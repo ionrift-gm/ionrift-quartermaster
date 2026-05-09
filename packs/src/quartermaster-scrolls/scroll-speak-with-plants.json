@@ -1,0 +1,93 @@
+{
+  "_id": "0000000029e735d4",
+  "name": "Scroll of Speak with Plants",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-green.webp",
+  "folder": "000000005ea52aec",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Speak with Plants</strong> (Level 3 Transmutation)</p><p>You imbue plants within 30 feet of you with limited sentience and animation, giving them the ability to communicate with you and follow your simple commands. You can question plants about events in the spell's area within the past day, gaining information about creatures that have passed, weather, and other circumstances.</p><p>You can also turn difficult terrain caused by plant growth (such as thickets and undergrowth) into ordinary terrain that lasts for the duration. Or you can turn ordinary terrain where plants are present into difficult terrain that lasts for the duration, causing vines and branches to hinder pursuers, for example.</p><p>Plants might be able to perform other tasks on your behalf, at the GM's discretion. The spell doesn't enable plants to uproot themselves and move about, but they can freely move branches, tendrils, and stalks.</p><p>If a plant creature is in the area, you can communicate with it as if you shared a common language, but you gain no magical ability to influence it.</p><p>This spell can cause the plants created by the entangle spell to release a restrained creature.</p><p><strong>Components:</strong> V, S</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> Self | <strong>Duration:</strong> 10 minutes</p><p><em>Classes: Bard, Druid, Ranger</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 200,
+      "denomination": "gp"
+    },
+    "rarity": "uncommon",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "10",
+      "units": ""
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-speak-with-plants",
+      "scrollMeta": {
+        "spellName": "Speak with Plants",
+        "spellLevel": 3,
+        "school": "transmutation",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Bard",
+          "Druid",
+          "Ranger"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S"
+        ]
+      }
+    }
+  }
+}

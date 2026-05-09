@@ -1,0 +1,93 @@
+{
+  "_id": "0000000059a2ee9b",
+  "name": "Scroll of Feather Fall",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-green.webp",
+  "folder": "000000005ea52aea",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Feather Fall</strong> (Level 1 Transmutation)</p><p>Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If the creature lands before the spell ends, it takes no falling damage and can land on its feet, and the spell ends for that creature.</p><p><strong>Components:</strong> V, M (A small feather or a piece of down.)</p><p><strong>Casting Time:</strong> 1 reaction | <strong>Range:</strong> 60 feet | <strong>Duration:</strong> 1 minute</p><p><em>Classes: Bard, Sorcerer, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 60,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": ""
+    },
+    "range": {
+      "value": 60,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-feather-fall",
+      "scrollMeta": {
+        "spellName": "Feather Fall",
+        "spellLevel": 1,
+        "school": "transmutation",
+        "saveDC": 13,
+        "attackBonus": 5,
+        "classLists": [
+          "Bard",
+          "Sorcerer",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "M"
+        ]
+      }
+    }
+  }
+}

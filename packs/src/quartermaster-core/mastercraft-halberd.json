@@ -1,0 +1,135 @@
+{
+  "_id": "84fb4d38013a61d3",
+  "name": "Mastercraft Halberd",
+  "type": "weapon",
+  "img": "icons/weapons/polearms/halberd-crescent-glowing.webp",
+  "folder": "7c4ab8ad1cb8c3bb",
+  "system": {
+    "description": {
+      "value": "<p>A spear-tipped metal shaft accompanied by a crescent blade, the halberd is a strong defensive weapon which allows a warrior to fend off foes using the reach of the shaft to attack from safe distance.</p><p>This item is a Mastercraft weapon, forged with exceptional skill and precision. It provides a +1 bonus to attack and damage rolls. The item weighs the same as standard counterparts but is of significantly higher quality, increasing its cost.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 6,
+    "price": {
+      "value": 220,
+      "denomination": "gp"
+    },
+    "attunement": 0,
+    "equipped": false,
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "cover": null,
+    "target": {
+      "value": null,
+      "width": null,
+      "units": "",
+      "type": "",
+      "prompt": true
+    },
+    "range": {
+      "value": 10,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": null,
+      "max": "",
+      "per": null,
+      "recovery": "",
+      "prompt": true
+    },
+    "consume": {
+      "type": "",
+      "target": null,
+      "amount": null,
+      "scale": false
+    },
+    "ability": "",
+    "actionType": "mwak",
+    "chatFlavor": "",
+    "critical": {
+      "threshold": null,
+      "damage": ""
+    },
+    "damage": {
+      "parts": [
+        [
+          "1d10 + 1 + @mod",
+          "slashing"
+        ]
+      ],
+      "versatile": ""
+    },
+    "formula": "",
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": "spell"
+    },
+    "armor": {
+      "value": 10
+    },
+    "hp": {
+      "value": 0,
+      "max": 0,
+      "dt": null,
+      "conditions": ""
+    },
+    "properties": [
+      "hvy",
+      "rch",
+      "two"
+    ],
+    "proficient": null,
+    "type": {
+      "value": "martialM",
+      "baseItem": "halberd"
+    },
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "crewed": false,
+    "attack": {
+      "bonus": "1",
+      "flat": false
+    },
+    "summons": {
+      "match": {
+        "attacks": false,
+        "proficiency": false,
+        "saves": false
+      },
+      "profiles": [],
+      "bonuses": {},
+      "prompt": true
+    },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-mastercraft-halberd",
+      "coreMeta": {
+        "category": "Mastercraft",
+        "material": "Mastercraft",
+        "priceGp": 220
+      }
+    }
+  }
+}

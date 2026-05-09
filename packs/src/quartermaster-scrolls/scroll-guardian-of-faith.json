@@ -1,0 +1,95 @@
+{
+  "_id": "000000004f4c63b8",
+  "name": "Scroll of Guardian of Faith",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-sealed-orange.webp",
+  "folder": "000000005d294d6c",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Guardian of Faith</strong> (Level 4 Conjuration)</p><p>A Large spectral guardian appears and hovers for the duration in an unoccupied space of your choice that you can see within range. The guardian occupies that space and is indistinct except for a gleaming sword and shield emblazoned with the symbol of your deity.</p><p>Any creature hostile to you that moves to a space within 10 feet of the guardian for the first time on a turn must succeed on a dexterity saving throw. The creature takes 20 radiant damage on a failed save, or half as much damage on a successful one. The guardian vanishes when it has dealt a total of 60 damage.</p><p><strong>Components:</strong> V</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 30 feet | <strong>Duration:</strong> 8 hours</p><p><em>Classes: Cleric</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 320,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "8",
+      "units": ""
+    },
+    "range": {
+      "value": 30,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "dex",
+      "dc": 15,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [
+        [
+          "20",
+          "radiant"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-guardian-of-faith",
+      "scrollMeta": {
+        "spellName": "Guardian of Faith",
+        "spellLevel": 4,
+        "school": "conjuration",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Cleric"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V"
+        ]
+      }
+    }
+  }
+}

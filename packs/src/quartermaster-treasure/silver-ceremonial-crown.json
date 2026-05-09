@@ -1,0 +1,39 @@
+{
+  "_id": "9b5e5cecaa03eaf1",
+  "name": "Silver Ceremonial Crown",
+  "type": "loot",
+  "img": "icons/equipment/neck/amulet-round-blue.webp",
+  "folder": "6db93f9bfcfc4acd",
+  "system": {
+    "description": {
+      "value": "<p>A thin silver band worked into a crown shape, set with moonstones. Decorative, not functional.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 1,
+    "price": {
+      "value": 250,
+      "denomination": "gp"
+    },
+    "rarity": "uncommon",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "treasure-silver-ceremonial-crown",
+      "treasureMeta": {
+        "category": "artObject",
+        "priceGp": 250
+      }
+    }
+  }
+}

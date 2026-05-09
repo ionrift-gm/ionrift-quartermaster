@@ -1,0 +1,135 @@
+{
+  "_id": "fcc2f3efcb697991",
+  "name": "Elven Steel Glaive",
+  "type": "weapon",
+  "img": "icons/weapons/polearms/halberd-crescent-glowing.webp",
+  "folder": "af8e4677e78962a8",
+  "system": {
+    "description": {
+      "value": "<p>A crescent blade is mounted on the end of a tall metal shaft. This polearm provies the ability to attack with deadly efficiency from greater range than typical melee weapons.</p><p>This item is crafted from Elven Steel, renowned for its lightweight and superior craftsmanship. It reduces the weight of the item and provides a +1 bonus to Dexterity checks. Additionally, it deals an extra +1d2-1 damage.</p><p></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 6,
+    "price": {
+      "value": 50,
+      "denomination": "gp"
+    },
+    "attunement": 0,
+    "equipped": false,
+    "rarity": "",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "cover": null,
+    "target": {
+      "value": null,
+      "width": null,
+      "units": "",
+      "type": "",
+      "prompt": true
+    },
+    "range": {
+      "value": 10,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": null,
+      "max": "",
+      "per": null,
+      "recovery": "",
+      "prompt": true
+    },
+    "consume": {
+      "type": "",
+      "target": null,
+      "amount": null,
+      "scale": false
+    },
+    "ability": "",
+    "actionType": "mwak",
+    "chatFlavor": "",
+    "critical": {
+      "threshold": null,
+      "damage": ""
+    },
+    "damage": {
+      "parts": [
+        [
+          "1d10 + (1d2-1) + @mod",
+          "slashing"
+        ]
+      ],
+      "versatile": ""
+    },
+    "formula": "",
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": "spell"
+    },
+    "armor": {
+      "value": 10
+    },
+    "hp": {
+      "value": 0,
+      "max": 0,
+      "dt": null,
+      "conditions": ""
+    },
+    "properties": [
+      "hvy",
+      "rch",
+      "two"
+    ],
+    "proficient": null,
+    "type": {
+      "value": "martialM",
+      "baseItem": "glaive"
+    },
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "crewed": false,
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "summons": {
+      "match": {
+        "attacks": false,
+        "proficiency": false,
+        "saves": false
+      },
+      "profiles": [],
+      "bonuses": {},
+      "prompt": true
+    },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-elven-steel-glaive",
+      "coreMeta": {
+        "category": "Cultural Weapons",
+        "material": "Elven Steel",
+        "priceGp": 50
+      }
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "_id": "000000000a804fcc",
+  "name": "Scroll of Hellish Rebuke",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-white.webp",
+  "folder": "0000000006b5b829",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Hellish Rebuke</strong> (Level 1 Evocation)</p><p>You point your finger, and the creature that damaged you is momentarily surrounded by hellish flames. The creature must make a dexterity saving throw. It takes 2d10 fire damage on a failed save, or half as much damage on a successful one.</p><p><em>When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.</em></p><p><strong>Components:</strong> V, S</p><p><strong>Casting Time:</strong> 1 reaction | <strong>Range:</strong> 60 feet | <strong>Duration:</strong> Instantaneous</p><p><em>Classes: Warlock</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 60,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "range": {
+      "value": 60,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "dex",
+      "dc": 13,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [
+        [
+          "2d10",
+          "fire"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-hellish-rebuke",
+      "scrollMeta": {
+        "spellName": "Hellish Rebuke",
+        "spellLevel": 1,
+        "school": "evocation",
+        "saveDC": 13,
+        "attackBonus": 5,
+        "classLists": [
+          "Warlock"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S"
+        ]
+      }
+    }
+  }
+}

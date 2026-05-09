@@ -1,0 +1,98 @@
+{
+  "_id": "0000000003b9356f",
+  "name": "Scroll of Wind Wall",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-white.webp",
+  "folder": "0000000006b5b82b",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Wind Wall</strong> (Level 3 Evocation)</p><p>A wall of strong wind rises from the ground at a point you choose within range. You can make the wall up to 50 feet long, 15 feet high, and 1 foot thick. You can shape the wall in any way you choose so long as it makes one continuous path along the ground. The wall lasts for the duration.</p><p>When the wall appears, each creature within its area must make a strength saving throw. A creature takes 3d8 bludgeoning damage on a failed save, or half as much damage on a successful one.</p><p>The strong wind keeps fog, smoke, and other gases at bay. Small or smaller flying creatures or objects can't pass through the wall. Loose, lightweight materials brought into the wall fly upward. Arrows, bolts, and other ordinary projectiles launched at targets behind the wall are deflected upward and automatically miss. (Boulders hurled by giants or siege engines, and similar projectiles, are unaffected.) Creatures in gaseous form can't pass through it.</p><p><strong>Components:</strong> V, S, M (A tiny fan and a feather of exotic origin.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 120 feet | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Druid, Ranger</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 200,
+      "denomination": "gp"
+    },
+    "rarity": "uncommon",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 120,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "str",
+      "dc": 15,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [
+        [
+          "3d8",
+          "bludgeoning"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-wind-wall",
+      "scrollMeta": {
+        "spellName": "Wind Wall",
+        "spellLevel": 3,
+        "school": "evocation",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Druid",
+          "Ranger"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

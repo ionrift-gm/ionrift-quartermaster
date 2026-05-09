@@ -1,0 +1,98 @@
+{
+  "_id": "0000000006b6054b",
+  "name": "Scroll of Dimension Door",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-sealed-orange.webp",
+  "folder": "000000005d294d6c",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Dimension Door</strong> (Level 4 Conjuration)</p><p>You teleport yourself from your current location to any other spot within range. You arrive at exactly the spot desired. It can be a place you can see, one you can visualize, or one you can describe by stating distance and direction, such as \"200 feet straight downward\" or \"upward to the northwest at a 45-degree angle, 300 feet.\"</p><p>You can bring along objects as long as their weight doesn't exceed what you can carry. You can also bring one willing creature of your size or smaller who is carrying gear up to its carrying capacity. The creature must be within 5 feet of you when you cast this spell.</p><p>If you would arrive in a place already occupied by an object or a creature, you and any creature traveling with you each take 4d6 force damage, and the spell fails to teleport you.</p><p><strong>Components:</strong> V</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 500 feet | <strong>Duration:</strong> Instantaneous</p><p><em>Classes: Bard, Sorcerer, Warlock, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 320,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "range": {
+      "value": 500,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [
+        [
+          "4d6",
+          "force"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-dimension-door",
+      "scrollMeta": {
+        "spellName": "Dimension Door",
+        "spellLevel": 4,
+        "school": "conjuration",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Bard",
+          "Sorcerer",
+          "Warlock",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V"
+        ]
+      }
+    }
+  }
+}

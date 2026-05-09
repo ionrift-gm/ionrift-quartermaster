@@ -1,0 +1,43 @@
+{
+  "_id": "1f3a6698791527c8",
+  "name": "Cut Amethyst",
+  "type": "loot",
+  "img": "icons/commodities/gems/gem-cut-faceted-princess-purple.webp",
+  "folder": "a4de333a9ee2fa68",
+  "system": {
+    "description": {
+      "value": "<p>A faceted violet amethyst. Clean internal colour, minor inclusions.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 50,
+      "denomination": "gp"
+    },
+    "rarity": "uncommon",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "type": {
+      "value": "gem",
+      "subtype": ""
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "gem-cut-amethyst",
+      "gemMeta": {
+        "tier": "Semi-Precious",
+        "priceGp": 50
+      }
+    }
+  }
+}

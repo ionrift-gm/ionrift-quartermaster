@@ -1,0 +1,67 @@
+# === Ionrift Quartermaster ===
+
+# Compiled pack build artifacts (compile step output, not committed)
+packs/proving-grounds-compiled/
+packs/proving-grounds-guide-compiled/
+packs/*-backup*/
+
+# Dev packs (status: dev in SHIPPING.json, local only)
+packs/proving-grounds/
+packs/proving-grounds-guide/
+
+# Retired/legacy pack folders (status: retired in SHIPPING.json)
+packs/quartermaster-cursed/
+packs/workshop-containers-compiled/
+packs/workshop-containers-new/
+packs/workshop-containers-new2/
+packs/scrolls/
+
+# Build output (filtered manifest for release)
+.build/
+
+# Dev composition profiles (local only)
+dev-profiles.json
+packs/.staging/
+
+# Test suites (IP-sensitive — see DEV_PROTOCOLS.md §31)
+tests/
+!scripts/tests/ForgeTestRunner.js
+vitest.config.*
+
+# Node / dev tooling
+node_modules/
+package-lock.json
+
+# LevelDB runtime files (created by Foundry at boot, never ship)
+packs/*/LOCK
+packs/*/CURRENT
+packs/*/MANIFEST-*
+packs/*/*.log
+packs/*/LOG
+packs/*/LOG.old
+packs/*/lost/
+# Nested pack subdirectory structure (e.g. packs/workshop-containers-new/workshop-containers/)
+packs/*/*/LOCK
+packs/*/*/CURRENT
+packs/*/*/MANIFEST-*
+packs/*/*/*.log
+packs/*/*/LOG
+packs/*/*/LOG.old
+packs/*/*/lost/
+
+# Dev artifacts
+*.bak
+audit_*.json
+audit_*.txt
+
+# Agent handoff specs (ephemeral — see DEV_PROTOCOLS.md §30)
+.cursor/
+CURSOR_TASK_*
+CURSOR_SPEC_*
+CURSOR_PLAN_*
+
+BACKLOG.md
+ITEM_DESIGN_GUIDE.md
+
+# Internal engineering docs — never ship
+docs/

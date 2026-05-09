@@ -1,0 +1,95 @@
+{
+  "_id": "0000000070dab147",
+  "name": "Scroll of Major Image",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-grey.webp",
+  "folder": "000000005aa39d4e",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Major Image</strong> (Level 3 Illusion)</p><p>You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 20-foot cube. The image appears at a spot that you can see within range and lasts for the duration. It seems completely real, including sounds, smells, and temperature appropriate to the thing depicted. You can't create sufficient heat or cold to cause damage, a sound loud enough to deal thunder damage or deafen a creature, or a smell that might sicken a creature (like a troglodyte's stench).</p><p>As long as you are within range of the illusion, you can use your action to cause the image to move to any other spot within range. As the image changes location, you can alter its appearance so that its movements appear natural for the image. For example, if you create an image of a creature and move it, you can alter the image so that it appears to be walking. Similarly, you can cause the illusion to make different sounds at different times, even making it carry on a conversation, for example.</p><p>Physical interaction with the image reveals it to be an illusion, because things can pass through it. A creature that uses its action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image, and its other sensory qualities become faint to the creature.</p><p><em>When you cast this spell using a spell slot of 6th level or higher, the spell lasts until dispelled, without requiring your concentration.</em></p><p><strong>Components:</strong> V, S, M (A bit of fleece.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 120 feet | <strong>Duration:</strong> Up to 10 minutes (Concentration)</p><p><em>Classes: Bard, Sorcerer, Warlock, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 200,
+      "denomination": "gp"
+    },
+    "rarity": "uncommon",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "10",
+      "units": "minute"
+    },
+    "range": {
+      "value": 120,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-major-image",
+      "scrollMeta": {
+        "spellName": "Major Image",
+        "spellLevel": 3,
+        "school": "illusion",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Bard",
+          "Sorcerer",
+          "Warlock",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "_id": "000000007f2026f8",
+  "name": "Scroll of Dispel Evil and Good",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-blue-white.webp",
+  "folder": "000000003df2e83e",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Dispel Evil and Good</strong> (Level 5 Abjuration)</p><p>Shimmering energy surrounds and protects you from fey, undead, and creatures originating from beyond the Material Plane. For the duration, celestials, elementals, fey, fiends, and undead have disadvantage on attack rolls against you.</p><p>You can end the spell early by using either of the following special functions.</p><p>***Break Enchantment.*** As your action, you touch a creature you can reach that is charmed, frightened, or possessed by a celestial, an elemental, a fey, a fiend, or an undead. The creature you touch is no longer charmed, frightened, or possessed by such creatures.</p><p>***Dismissal.*** As your action, make a melee spell attack against a celestial, an elemental, a fey, a fiend, or an undead you can reach. On a hit, you attempt to drive the creature back to its home plane. The creature must succeed on a charisma saving throw or be sent back to its home plane (if it isn't there already). If they aren't on their home plane, undead are sent to the Shadowfell, and fey are sent to the Feywild.</p><p><strong>Components:</strong> V, S, M (Holy water or powdered silver and iron.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> Self | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Cleric, Paladin</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 640,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "cha",
+      "dc": 17,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-dispel-evil-and-good",
+      "scrollMeta": {
+        "spellName": "Dispel Evil and Good",
+        "spellLevel": 5,
+        "school": "abjuration",
+        "saveDC": 17,
+        "attackBonus": 9,
+        "classLists": [
+          "Cleric",
+          "Paladin"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

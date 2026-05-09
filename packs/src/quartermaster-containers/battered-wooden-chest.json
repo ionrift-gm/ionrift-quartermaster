@@ -1,0 +1,59 @@
+{
+  "_id": "cac5a45974b8a96b",
+  "name": "Battered Wooden Chest",
+  "type": "container",
+  "img": "icons/containers/chest/chest-worn-oak-tan.webp",
+  "folder": "c9cb7fc62085af7d",
+  "system": {
+    "description": {
+      "value": "<p>A battered wooden chest with iron fittings, hinges worn loose from years of use.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 25,
+    "price": {
+      "value": 5,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "capacity": {
+      "type": "weight",
+      "value": 100,
+      "weightlessContents": false
+    },
+    "currency": {
+      "cp": 0,
+      "sp": 0,
+      "ep": 0,
+      "gp": 0,
+      "pp": 0
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "container-battered-wooden-chest",
+      "containerMeta": {
+        "terrains": [
+          "dungeon",
+          "ruin",
+          "urban"
+        ],
+        "cacheTypes": [
+          "hoard",
+          "merchant_wreck"
+        ],
+        "capacityLbs": 100
+      }
+    }
+  }
+}

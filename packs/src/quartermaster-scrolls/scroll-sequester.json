@@ -1,0 +1,92 @@
+{
+  "_id": "000000002e148c83",
+  "name": "Scroll of Sequester",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-green.webp",
+  "folder": "000000005ea52af0",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Sequester</strong> (Level 7 Transmutation)</p><p>By means of this spell, a willing creature or an object can be hidden away, safe from detection for the duration. When you cast the spell and touch the target, it becomes invisible and can't be targeted by divination spells or perceived through scrying sensors created by divination spells.</p><p>If the target is a creature, it falls into a state of suspended animation. Time ceases to flow for it, and it doesn't grow older.</p><p>You can set a condition for the spell to end early. The condition can be anything you choose, but it must occur or be visible within 1 mile of the target. Examples include \"after 1,000 years\" or \"when the tarrasque awakens.\" This spell also ends if the target takes any damage.</p><p><strong>Components:</strong> V, S, M (A powder composed of diamond, emerald, ruby, and sapphire dust worth at least 5,000 gp, which the spell consumes.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> Touch | <strong>Duration:</strong> Until dispelled</p><p><em>Classes: Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 2560,
+      "denomination": "gp"
+    },
+    "rarity": "very rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-sequester",
+      "scrollMeta": {
+        "spellName": "Sequester",
+        "spellLevel": 7,
+        "school": "transmutation",
+        "saveDC": 18,
+        "attackBonus": 10,
+        "classLists": [
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

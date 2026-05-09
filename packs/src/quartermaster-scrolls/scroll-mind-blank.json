@@ -1,0 +1,92 @@
+{
+  "_id": "00000000189408e7",
+  "name": "Scroll of Mind Blank",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-blue-white.webp",
+  "folder": "000000003df2e83b",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Mind Blank</strong> (Level 8 Abjuration)</p><p>Until the spell ends, one willing creature you touch is immune to psychic damage, any effect that would sense its emotions or read its thoughts, divination spells, and the charmed condition. The spell even foils wish spells and spells or effects of similar power used to affect the target's mind or to gain information about the target.</p><p><strong>Components:</strong> V, S</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> Touch | <strong>Duration:</strong> 24 hours</p><p><em>Classes: Bard, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 5120,
+      "denomination": "gp"
+    },
+    "rarity": "very rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "24",
+      "units": ""
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-mind-blank",
+      "scrollMeta": {
+        "spellName": "Mind Blank",
+        "spellLevel": 8,
+        "school": "abjuration",
+        "saveDC": 18,
+        "attackBonus": 10,
+        "classLists": [
+          "Bard",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S"
+        ]
+      }
+    }
+  }
+}

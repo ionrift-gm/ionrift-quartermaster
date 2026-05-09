@@ -1,0 +1,91 @@
+{
+  "_id": "00000000647ee49b",
+  "name": "Scroll of Compulsion",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-gold.webp",
+  "folder": "000000006fda7d6d",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Compulsion</strong> (Level 4 Enchantment)</p><p>Creatures of your choice that you can see within range and that can hear you must make a wisdom saving throw. A target automatically succeeds on this saving throw if it can't be charmed. On a failed save, a target is affected by this spell. Until the spell ends, you can use a bonus action on each of your turns to designate a direction that is horizontal to you. Each affected target must use as much of its movement as possible to move in that direction on its next turn. It can take any action before it moves. After moving in this way, it can make another Wisdom save to try to end the effect.</p><p>A target isn't compelled to move into an obviously deadly hazard, such as a fire or a pit, but it will provoke opportunity attacks to move in the designated direction.</p><p><strong>Components:</strong> V, S</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 30 feet | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Bard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 320,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 30,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "wis",
+      "dc": 15,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-compulsion",
+      "scrollMeta": {
+        "spellName": "Compulsion",
+        "spellLevel": 4,
+        "school": "enchantment",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Bard"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S"
+        ]
+      }
+    }
+  }
+}

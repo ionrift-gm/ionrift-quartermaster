@@ -1,0 +1,51 @@
+<form class="ionrift-loot-pool-config ionrift-cursed-import">
+    <p class="pool-instructions">
+        Tick items to add to the pool. Items already in the pool appear dimmed; untick them to remove on <strong>Apply</strong>. Only rows stamped with Quartermaster <strong>cursedMeta</strong> are listed.
+    </p>
+
+    {{#if hasPacks}}
+    <div class="cursed-import-toolbar">
+        <label class="cursed-import-pack-label">
+            <span>Compendium</span>
+            <select name="cursedImportPack" class="cursed-import-pack-select">
+                {{#each packs}}
+                <option value="{{this.id}}" {{#if (eq this.id ../selectedPackId)}}selected{{/if}}>{{this.label}}</option>
+                {{/each}}
+            </select>
+        </label>
+        <div class="cursed-import-toolbar-actions">
+            <button type="button" class="cache-btn-accent cursed-import-toggle-selection" title="Select every row, or clear if already all selected">
+                <i class="fas fa-right-left"></i> Toggle all
+            </button>
+        </div>
+    </div>
+
+    <div class="loot-pool-sources-scroll cursed-import-scroll">
+        {{#each items}}
+        <label class="pool-pack-row cursed-import-row{{#if this.inPool}} in-pool{{/if}}" data-uuid="{{this.uuid}}">
+            <input type="checkbox" {{#if this.inPool}}checked{{/if}} />
+            <span class="pool-pack-label">{{this.name}}</span>
+            <span class="cursed-import-badges">
+                <span class="cursed-import-tier-badge" title="Curse tier">T{{this.tier}}</span>
+                <span class="cursed-import-type-badge" title="Curse type">{{this.curseType}}</span>
+            </span>
+        </label>
+        {{else}}
+        <p class="cursed-import-empty">No items with <code>cursedMeta</code> in this compendium.</p>
+        {{/each}}
+    </div>
+
+    <footer class="pool-footer">
+        <button type="button" class="cache-btn-accent action-cursed-import-apply">
+            <i class="fas fa-check"></i> Apply
+        </button>
+    </footer>
+    <p class="scroll-jitter-note cursed-import-footer-note">
+        <button type="button" class="cursed-import-manage-sources">Manage Sources</button> to add or remove compendiums from this list.
+    </p>
+    {{else}}
+    <p class="cursed-import-empty">
+        No compendiums registered yet. <button type="button" class="cursed-import-manage-sources">Manage Sources</button> to add one, then run <strong>Rebuild Cursed Pool</strong>.
+    </p>
+    {{/if}}
+</form>

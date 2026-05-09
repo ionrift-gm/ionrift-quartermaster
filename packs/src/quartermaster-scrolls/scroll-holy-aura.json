@@ -1,0 +1,92 @@
+{
+  "_id": "000000007cfd5bbc",
+  "name": "Scroll of Holy Aura",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-blue-white.webp",
+  "folder": "000000003df2e83b",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Holy Aura</strong> (Level 8 Abjuration)</p><p>Divine light washes out from you and coalesces in a soft radiance in a 30-foot radius around you. Creatures of your choice in that radius when you cast this spell shed dim light in a 5-foot radius and have advantage on all saving throws, and other creatures have disadvantage on attack rolls against them until the spell ends. In addition, when a fiend or an undead hits an affected creature with a melee attack, the aura flashes with brilliant light. The attacker must succeed on a constitution saving throw or be blinded until the spell ends.</p><p><strong>Components:</strong> V, S, M (A tiny reliquary worth at least 1,000gp containing a sacred relic, such as a scrap of cloth from a saint's robe or a piece of parchment from a religious text.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> Self | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Cleric</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 5120,
+      "denomination": "gp"
+    },
+    "rarity": "very rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-holy-aura",
+      "scrollMeta": {
+        "spellName": "Holy Aura",
+        "spellLevel": 8,
+        "school": "abjuration",
+        "saveDC": 18,
+        "attackBonus": 10,
+        "classLists": [
+          "Cleric"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "_id": "00000000366d8820",
+  "name": "Scroll of Fire Shield",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-white.webp",
+  "folder": "0000000006b5b82c",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Fire Shield</strong> (Level 4 Evocation)</p><p>Thin and vaporous flame surround your body for the duration of the spell, radiating a bright light bright light in a 10-foot radius and dim light for an additional 10 feet. You can end the spell using an action to make it disappear.</p><p>The flames are around you a heat shield or cold, your choice. The heat shield gives you cold damage resistance and the cold resistance to fire damage.</p><p>In addition, whenever a creature within 5 feet of you hits you with a melee attack, flames spring from the shield. The attacker then suffers 2d8 points of fire damage or cold, depending on the model.</p><p><strong>Components:</strong> V, S, M (A little phosphorus or a firefly.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> Self | <strong>Duration:</strong> 10 minutes</p><p><em>Classes: Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 320,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "10",
+      "units": ""
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [
+        [
+          "2d8",
+          "fire"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-fire-shield",
+      "scrollMeta": {
+        "spellName": "Fire Shield",
+        "spellLevel": 4,
+        "school": "evocation",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

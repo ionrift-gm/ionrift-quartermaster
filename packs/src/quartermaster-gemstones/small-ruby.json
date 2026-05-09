@@ -1,0 +1,43 @@
+{
+  "_id": "03f199b6817118f5",
+  "name": "Small Ruby",
+  "type": "loot",
+  "img": "icons/commodities/gems/gem-faceted-radiant-red.webp",
+  "folder": "fbe72426bfe56932",
+  "system": {
+    "description": {
+      "value": "<p>A pigeon-blood red ruby, 3 carats. Minor inclusions but rich colour.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 0.2,
+    "price": {
+      "value": 250,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "type": {
+      "value": "gem",
+      "subtype": ""
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "gem-small-ruby",
+      "gemMeta": {
+        "tier": "Precious",
+        "priceGp": 250
+      }
+    }
+  }
+}

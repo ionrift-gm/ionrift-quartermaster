@@ -1,0 +1,94 @@
+{
+  "_id": "0000000033295b4b",
+  "name": "Scroll of Animal Friendship",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-gold.webp",
+  "folder": "000000006fda7d70",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Animal Friendship</strong> (Level 1 Enchantment)</p><p>This spell lets you convince a beast that you mean it no harm. Choose a beast that you can see within range. It must see and hear you. If the beast's Intelligence is 4 or higher, the spell fails. Otherwise, the beast must succeed on a wisdom saving throw or be charmed by you for the spell's duration. If you or one of your companions harms the target, the spells ends.</p><p><strong>Components:</strong> V, S, M (A morsel of food.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 30 feet | <strong>Duration:</strong> 24 hours</p><p><em>Classes: Bard, Druid, Ranger</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 60,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "24",
+      "units": ""
+    },
+    "range": {
+      "value": 30,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "wis",
+      "dc": 13,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-animal-friendship",
+      "scrollMeta": {
+        "spellName": "Animal Friendship",
+        "spellLevel": 1,
+        "school": "enchantment",
+        "saveDC": 13,
+        "attackBonus": 5,
+        "classLists": [
+          "Bard",
+          "Druid",
+          "Ranger"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

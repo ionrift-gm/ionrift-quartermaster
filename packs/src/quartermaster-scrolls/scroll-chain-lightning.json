@@ -1,0 +1,98 @@
+{
+  "_id": "000000005992fbbe",
+  "name": "Scroll of Chain Lightning",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-white.webp",
+  "folder": "0000000006b5b82e",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Chain Lightning</strong> (Level 6 Evocation)</p><p>You create a bolt of lightning that arcs toward a target of your choice that you can see within range. Three bolts then leap from that target to as many as three other targets, each of which must be within 30 feet of the first target. A target can be a creature or an object and can be targeted by only one of the bolts.</p><p>A target must make a dexterity saving throw. The target takes 10d8 lightning damage on a failed save, or half as much damage on a successful one.</p><p><em>When you cast this spell using a spell slot of 7th level or higher, one additional bolt leaps from the first target to another target for each slot level above 6th.</em></p><p><strong>Components:</strong> V, S, M (A bit of fur; a piece of amber, glass, or a crystal rod; and three silver pins.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 150 feet | <strong>Duration:</strong> Instantaneous</p><p><em>Classes: Sorcerer, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 1280,
+      "denomination": "gp"
+    },
+    "rarity": "very rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "range": {
+      "value": 150,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "dex",
+      "dc": 17,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [
+        [
+          "10d8",
+          "lightning"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-chain-lightning",
+      "scrollMeta": {
+        "spellName": "Chain Lightning",
+        "spellLevel": 6,
+        "school": "evocation",
+        "saveDC": 17,
+        "attackBonus": 9,
+        "classLists": [
+          "Sorcerer",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "version": "1",
+  "packs": {
+    "quartermaster-containers": {
+      "status": "approved",
+      "approvedBy": "ionrift",
+      "approvedDate": "2026-04-15",
+      "assetPolicy": "foundry-core-only",
+      "note": "Loot containers for cache generation"
+    },
+    "proving-grounds": {
+      "status": "dev",
+      "reason": "Curse engine EA feature, not yet public"
+    },
+    "proving-grounds-guide": {
+      "status": "dev",
+      "reason": "Curse engine EA feature, not yet public"
+    },
+    "quartermaster-core": {
+      "status": "retired",
+      "reason": "Legacy pack from pre-1.0 layout"
+    },
+    "quartermaster-gemstones": {
+      "status": "retired",
+      "reason": "Legacy pack from pre-1.0 layout"
+    },
+    "quartermaster-scrolls": {
+      "status": "retired",
+      "reason": "Legacy pack from pre-1.0 layout"
+    },
+    "quartermaster-treasure": {
+      "status": "retired",
+      "reason": "Legacy pack from pre-1.0 layout"
+    },
+    "quartermaster-cursed": {
+      "status": "retired",
+      "reason": "Merged into proving-grounds in v1.3.0-ea.2"
+    },
+    "scrolls": {
+      "status": "retired",
+      "reason": "Legacy local pack folder"
+    },
+    "workshop-containers-new": {
+      "status": "retired",
+      "reason": "Legacy workshop experiment"
+    },
+    "workshop-containers-new2": {
+      "status": "retired",
+      "reason": "Legacy workshop experiment"
+    }
+  }
+}

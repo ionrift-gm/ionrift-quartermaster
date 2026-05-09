@@ -1,0 +1,134 @@
+{
+  "_id": "74f237ed8fc32a21",
+  "name": "Elven Steel Light Hammer",
+  "type": "weapon",
+  "img": "icons/weapons/hammers/hammer-war-spiked.webp",
+  "folder": "af8e4677e78962a8",
+  "system": {
+    "description": {
+      "value": "<p>This sturdy hammer is small enough to be nimbly wielded or used in combination with another weapon.</p><p>This item is crafted from Elven Steel, renowned for its lightweight and superior craftsmanship. It reduces the weight of the item and provides a +1 bonus to Dexterity checks. Additionally, it deals an extra +1d2-1 damage.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 2,
+    "price": {
+      "value": 32,
+      "denomination": "gp"
+    },
+    "attunement": 0,
+    "equipped": false,
+    "rarity": "",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "cover": null,
+    "target": {
+      "value": null,
+      "width": null,
+      "units": "",
+      "type": "",
+      "prompt": true
+    },
+    "range": {
+      "value": 20,
+      "long": 60,
+      "units": "ft"
+    },
+    "uses": {
+      "value": null,
+      "max": "",
+      "per": null,
+      "recovery": "",
+      "prompt": true
+    },
+    "consume": {
+      "type": "",
+      "target": null,
+      "amount": null,
+      "scale": false
+    },
+    "ability": "",
+    "actionType": "mwak",
+    "chatFlavor": "",
+    "critical": {
+      "threshold": null,
+      "damage": ""
+    },
+    "damage": {
+      "parts": [
+        [
+          "1d4 + (1d2-1) + @mod",
+          "bludgeoning"
+        ]
+      ],
+      "versatile": ""
+    },
+    "formula": "",
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": "spell"
+    },
+    "armor": {
+      "value": 10
+    },
+    "hp": {
+      "value": 0,
+      "max": 0,
+      "dt": null,
+      "conditions": ""
+    },
+    "properties": [
+      "lgt",
+      "thr"
+    ],
+    "proficient": null,
+    "type": {
+      "value": "simpleM",
+      "baseItem": "lighthammer"
+    },
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "crewed": false,
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "summons": {
+      "match": {
+        "attacks": false,
+        "proficiency": false,
+        "saves": false
+      },
+      "profiles": [],
+      "bonuses": {},
+      "prompt": true
+    },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-elven-steel-light-hammer",
+      "coreMeta": {
+        "category": "Cultural Weapons",
+        "material": "Elven Steel",
+        "priceGp": 32
+      }
+    }
+  }
+}

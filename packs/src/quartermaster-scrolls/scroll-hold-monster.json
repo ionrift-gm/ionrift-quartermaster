@@ -1,0 +1,95 @@
+{
+  "_id": "00000000765863cc",
+  "name": "Scroll of Hold Monster",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-gold.webp",
+  "folder": "000000006fda7d6c",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Hold Monster</strong> (Level 5 Enchantment)</p><p>Choose a creature you can see and reach. The target must make a saving throw of Wisdom or be paralyzed for the duration of the spell. This spell has no effect against the undead. At the end of each round, the target can make a new saving throw of Wisdom. If successful, the spell ends for the creature.</p><p><em>When you cast this spell using a level 6 or higher location, you can target an additional creature for each level of location beyond the fifth. The creatures must be within 30 feet o f each other when you target them.</em></p><p><strong>Components:</strong> V, S, M (A small piece of iron.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 90 feet | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Bard, Sorcerer, Warlock, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 640,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 90,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "wis",
+      "dc": 17,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-hold-monster",
+      "scrollMeta": {
+        "spellName": "Hold Monster",
+        "spellLevel": 5,
+        "school": "enchantment",
+        "saveDC": 17,
+        "attackBonus": 9,
+        "classLists": [
+          "Bard",
+          "Sorcerer",
+          "Warlock",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

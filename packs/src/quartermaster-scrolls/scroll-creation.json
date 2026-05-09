@@ -1,0 +1,93 @@
+{
+  "_id": "00000000614a9e21",
+  "name": "Scroll of Creation",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-grey.webp",
+  "folder": "000000005aa39d4c",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Creation</strong> (Level 5 Illusion)</p><p>You pull wisps of shadow material from the Shadowfell to create a nonliving object of vegetable matter within range: soft goods, rope, wood, or something similar. You can also use this spell to create mineral objects such as stone, crystal, or metal. The object created must be no larger than a 5-foot cube, and the object must be of a form and material that you have seen before.</p><p>The duration depends on the object's material. If the object is composed of multiple materials, use the shortest duration.</p><p>| Material | Duration |</p><p>|---|---|</p><p>| Vegetable matter | 1 day |</p><p>| Stone or crystal | 12 hours |</p><p>| Precious metals | 1 hour |</p><p>| Gems | 10 minutes |</p><p>| Adamantine or mithral | 1 minute |</p><p>Using any material created by this spell as another spell's material component causes that spell to fail.</p><p><em>When you cast this spell using a spell slot of 6th level or higher, the cube increases by 5 feet for each slot level above 5th.</em></p><p><strong>Components:</strong> V, S, M (A tiny piece of matter of the same type of the item you plan to create.)</p><p><strong>Casting Time:</strong> 1 minute | <strong>Range:</strong> 30 feet | <strong>Duration:</strong> Special</p><p><em>Classes: Sorcerer, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 640,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "range": {
+      "value": 30,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-creation",
+      "scrollMeta": {
+        "spellName": "Creation",
+        "spellLevel": 5,
+        "school": "illusion",
+        "saveDC": 17,
+        "attackBonus": 9,
+        "classLists": [
+          "Sorcerer",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

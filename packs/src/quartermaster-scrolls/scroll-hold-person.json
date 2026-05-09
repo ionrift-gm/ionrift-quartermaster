@@ -1,0 +1,97 @@
+{
+  "_id": "0000000039abc6dd",
+  "name": "Scroll of Hold Person",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-gold.webp",
+  "folder": "000000006fda7d6f",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Hold Person</strong> (Level 2 Enchantment)</p><p>Choose a humanoid that you can see within range. The target must succeed on a wisdom saving throw or be paralyzed for the duration. At the end of each of its turns, the target can make another wisdom saving throw. On a success, the spell ends on the target.</p><p><em>When you cast this spell using a spell slot of 3rd level or higher, you can target one additional humanoid for each slot level above 2nd. The humanoids must be within 30 feet of each other when you target them.</em></p><p><strong>Components:</strong> V, S, M (A small, straight piece of iron.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 60 feet | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Bard, Cleric, Druid, Sorcerer, Warlock, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 120,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 60,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "wis",
+      "dc": 13,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-hold-person",
+      "scrollMeta": {
+        "spellName": "Hold Person",
+        "spellLevel": 2,
+        "school": "enchantment",
+        "saveDC": 13,
+        "attackBonus": 5,
+        "classLists": [
+          "Bard",
+          "Cleric",
+          "Druid",
+          "Sorcerer",
+          "Warlock",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

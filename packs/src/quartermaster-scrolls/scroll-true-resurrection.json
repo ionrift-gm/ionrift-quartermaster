@@ -1,0 +1,93 @@
+{
+  "_id": "00000000694af75a",
+  "name": "Scroll of True Resurrection",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-skull-brown.webp",
+  "folder": "0000000063127802",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of True Resurrection</strong> (Level 9 Necromancy)</p><p>You touch a creature that has been dead for no longer than 200 years and that died for any reason except old age. If the creature's soul is free and willing, the creature is restored to life with all its hit points.</p><p>This spell closes all wounds, neutralizes any poison, cures all diseases, and lifts any curses affecting the creature when it died. The spell replaces damaged or missing organs and limbs.</p><p>The spell can even provide a new body if the original no longer exists, in which case you must speak the creature's name. The creature then appears in an unoccupied space you choose within 10 feet of you.</p><p><strong>Components:</strong> V, S, M (A sprinkle of holy water and diamonds worth at least 25,000gp, which the spell consumes.)</p><p><strong>Casting Time:</strong> 1 hour | <strong>Range:</strong> Touch | <strong>Duration:</strong> Instantaneous</p><p><em>Classes: Cleric, Druid</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 10240,
+      "denomination": "gp"
+    },
+    "rarity": "legendary",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-true-resurrection",
+      "scrollMeta": {
+        "spellName": "True Resurrection",
+        "spellLevel": 9,
+        "school": "necromancy",
+        "saveDC": 19,
+        "attackBonus": 11,
+        "classLists": [
+          "Cleric",
+          "Druid"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

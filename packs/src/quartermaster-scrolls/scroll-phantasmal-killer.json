@@ -1,0 +1,96 @@
+{
+  "_id": "000000004236f7c1",
+  "name": "Scroll of Phantasmal Killer",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-grey.webp",
+  "folder": "000000005aa39d4d",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Phantasmal Killer</strong> (Level 4 Illusion)</p><p>You tap into the nightmares of a creature you can see within range and create an illusory manifestation of its deepest fears, visible only to that creature. The target must make a wisdom saving throw. On a failed save, the target becomes frightened for the duration. At the start of each of the target's turns before the spell ends, the target must succeed on a wisdom saving throw or take 4d10 psychic damage. On a successful save, the spell ends.</p><p><em>When you cast this spell using a spell slot of 5th level or higher, the damage increases by 1d10 for each slot level above 4th.</em></p><p><strong>Components:</strong> V, S</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 120 feet | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 320,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 120,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "wis",
+      "dc": 15,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [
+        [
+          "4d10",
+          "psychic"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-phantasmal-killer",
+      "scrollMeta": {
+        "spellName": "Phantasmal Killer",
+        "spellLevel": 4,
+        "school": "illusion",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S"
+        ]
+      }
+    }
+  }
+}

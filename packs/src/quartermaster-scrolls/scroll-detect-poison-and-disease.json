@@ -1,0 +1,95 @@
+{
+  "_id": "000000001b520f55",
+  "name": "Scroll of Detect Poison and Disease",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-symbol-eye-brown.webp",
+  "folder": "0000000033e5aef2",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Detect Poison and Disease</strong> (Level 1 Divination)</p><p>For the duration, you can sense the presence and location of poisons, poisonous creatures, and diseases within 30 feet of you. You also identify the kind of poison, poisonous creature, or disease in each case.</p><p>The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.</p><p><strong>Components:</strong> V, S, M (A yew leaf.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> Self | <strong>Duration:</strong> Up to 10 minutes (Concentration) (Ritual)</p><p><em>Classes: Cleric, Druid, Paladin, Ranger</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 60,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "10",
+      "units": "minute"
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-detect-poison-and-disease",
+      "scrollMeta": {
+        "spellName": "Detect Poison and Disease",
+        "spellLevel": 1,
+        "school": "divination",
+        "saveDC": 13,
+        "attackBonus": 5,
+        "classLists": [
+          "Cleric",
+          "Druid",
+          "Paladin",
+          "Ranger"
+        ],
+        "ritual": true,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

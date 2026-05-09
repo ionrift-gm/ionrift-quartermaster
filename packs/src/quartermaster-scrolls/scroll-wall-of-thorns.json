@@ -1,0 +1,97 @@
+{
+  "_id": "000000002e0242cf",
+  "name": "Scroll of Wall of Thorns",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-sealed-orange.webp",
+  "folder": "000000005d294d6e",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Wall of Thorns</strong> (Level 6 Conjuration)</p><p>You create a wall of tough, pliable, tangled brush bristling with needle-sharp thorns. The wall appears within range on a solid surface and lasts for the duration. You choose to make the wall up to 60 feet long, 10 feet high, and 5 feet thick or a circle that has a 20-foot diameter and is up to 20 feet high and 5 feet thick. The wall blocks line of sight.</p><p>When the wall appears, each creature within its area must make a dexterity saving throw. On a failed save, a creature takes 7d8 piercing damage, or half as much damage on a successful save.</p><p>A creature can move through the wall, albeit slowly and painfully. For every 1 foot a creature moves through the wall, it must spend 4 feet of movement. Furthermore, the first time a creature enters the wall on a turn or ends its turn there, the creature must make a dexterity saving throw. It takes 7d8 slashing damage on a failed save, or half as much damage on a successful one.</p><p><em>When you cast this spell using a spell slot of 7th level or higher, both types of damage increase by 1d8 for each slot level above 6th.</em></p><p><strong>Components:</strong> V, S, M (A handful of thorns.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 120 feet | <strong>Duration:</strong> Up to 10 minutes (Concentration)</p><p><em>Classes: Druid</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 1280,
+      "denomination": "gp"
+    },
+    "rarity": "very rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "10",
+      "units": "minute"
+    },
+    "range": {
+      "value": 120,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "dex",
+      "dc": 17,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [
+        [
+          "7d8",
+          "piercing"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-wall-of-thorns",
+      "scrollMeta": {
+        "spellName": "Wall of Thorns",
+        "spellLevel": 6,
+        "school": "conjuration",
+        "saveDC": 17,
+        "attackBonus": 9,
+        "classLists": [
+          "Druid"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

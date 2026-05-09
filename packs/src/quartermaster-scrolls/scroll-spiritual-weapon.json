@@ -1,0 +1,96 @@
+{
+  "_id": "0000000026a862da",
+  "name": "Scroll of Spiritual Weapon",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-white.webp",
+  "folder": "0000000006b5b82a",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Spiritual Weapon</strong> (Level 2 Evocation)</p><p>You create a floating, spectral weapon within range that lasts for the duration or until you cast this spell again. When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes force damage equal to 1d8 + your spellcasting ability modifier.</p><p>As a bonus action on your turn, you can move the weapon up to 20 feet and repeat the attack against a creature within 5 feet of it.</p><p>The weapon can take whatever form you choose. Clerics of deities who are associated with a particular weapon (as St. Cuthbert is known for his mace and Thor for his hammer) make this spell's effect resemble that weapon.</p><p><em>When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for every two slot levels above the 2nd.</em></p><p><strong>Components:</strong> V, S</p><p><strong>Casting Time:</strong> 1 bonus action | <strong>Range:</strong> 60 feet | <strong>Duration:</strong> 1 minute</p><p><em>Classes: Cleric</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 120,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": ""
+    },
+    "range": {
+      "value": 60,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "5",
+      "flat": false
+    },
+    "actionType": "msak",
+    "damage": {
+      "parts": [
+        [
+          "1d8 + MOD",
+          "force"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-spiritual-weapon",
+      "scrollMeta": {
+        "spellName": "Spiritual Weapon",
+        "spellLevel": 2,
+        "school": "evocation",
+        "saveDC": 13,
+        "attackBonus": 5,
+        "classLists": [
+          "Cleric"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S"
+        ]
+      }
+    }
+  }
+}

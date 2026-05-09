@@ -1,0 +1,97 @@
+{
+  "_id": "0000000022aa95d3",
+  "name": "Scroll of Black Tentacles",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-sealed-orange.webp",
+  "folder": "000000005d294d6c",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Black Tentacles</strong> (Level 4 Conjuration)</p><p>Squirming, ebony tentacles fill a 20-foot square on ground that you can see within range. For the duration, these tentacles turn the ground in the area into difficult terrain.</p><p>When a creature enters the affected area for the first time on a turn or starts its turn there, the creature must succeed on a Dexterity saving throw or take 3d6 bludgeoning damage and be restrained by the tentacles until the spell ends. A creature that starts its turn in the area and is already restrained by the tentacles takes 3d6 bludgeoning damage.</p><p>A creature restrained by the tentacles can use its action to make a Strength or Dexterity check (its choice) against your spell save DC. On a success, it frees itself.</p><p><strong>Components:</strong> V, S, M (A piece of tentacle from a giant octopus or a giant squid)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 90 feet | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 320,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 90,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "dex",
+      "dc": 15,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [
+        [
+          "3d6",
+          "bludgeoning"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-black-tentacles",
+      "scrollMeta": {
+        "spellName": "Black Tentacles",
+        "spellLevel": 4,
+        "school": "conjuration",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

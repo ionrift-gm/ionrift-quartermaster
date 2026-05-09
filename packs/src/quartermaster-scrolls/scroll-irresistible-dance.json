@@ -1,0 +1,91 @@
+{
+  "_id": "00000000058d440b",
+  "name": "Scroll of Irresistible Dance",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-gold.webp",
+  "folder": "000000006fda7d6b",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Irresistible Dance</strong> (Level 6 Enchantment)</p><p>Choose one creature that you can see within range. The target begins a comic dance in place: shuffling, tapping its feet, and capering for the duration. Creatures that can't be charmed are immune to this spell.</p><p>A dancing creature must use all its movement to dance without leaving its space and has disadvantage on dexterity saving throws and attack rolls. While the target is affected by this spell, other creatures have advantage on attack rolls against it. As an action, a dancing creature makes a wisdom saving throw to regain control of itself. On a successful save, the spell ends.</p><p><strong>Components:</strong> V</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 30 feet | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Bard, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 1280,
+      "denomination": "gp"
+    },
+    "rarity": "very rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 30,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-irresistible-dance",
+      "scrollMeta": {
+        "spellName": "Irresistible Dance",
+        "spellLevel": 6,
+        "school": "enchantment",
+        "saveDC": 17,
+        "attackBonus": 9,
+        "classLists": [
+          "Bard",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "_id": "e2b3c4d5e6f70819",
+  "name": "Ironwedding Plate",
+  "type": "equipment",
+  "img": "icons/equipment/chest/breastplate-banded-steel-grey.webp",
+  "folder": "7fa3e8b2c14d9022",
+  "system": {
+    "description": {
+      "value": "<p>Full plate polished to a mirror sheen, sized as if poured around the buyer. It never pinches at first fitting.</p><p><strong>Curse.</strong> While attuned, the armor slowly fuses with the wearer's skin at seams and rivets. Removing it without magic becomes agonising and deals 2d10 slashing damage per attempt. At full escalation the armor is effectively part of the body until the curse ends.</p>",
+      "chat": ""
+    },
+    "source": { "custom": "Ionrift Quartermaster  -  Cursed Pool" },
+    "quantity": 1,
+    "weight": 65,
+    "price": { "value": 2200, "denomination": "gp" },
+    "attunement": 2,
+    "equipped": false,
+    "rarity": "veryRare",
+    "identified": false,
+    "activation": { "type": "none", "cost": null, "condition": "" },
+    "duration": { "value": "", "units": "" },
+    "cover": null,
+    "target": { "value": null, "width": null, "units": "", "type": "", "prompt": true },
+    "range": { "value": null, "long": null, "units": "" },
+    "uses": { "value": null, "max": "", "per": null, "recovery": "", "prompt": true },
+    "consume": { "type": "", "target": null, "amount": null, "scale": false },
+    "ability": "",
+    "actionType": "",
+    "chatFlavor": "",
+    "critical": { "threshold": null, "damage": "" },
+    "damage": { "parts": [], "versatile": "" },
+    "formula": "",
+    "save": { "ability": "", "dc": null, "scaling": "spell" },
+    "armor": { "value": 18, "magicalBonus": 1, "dex": null },
+    "hp": { "value": 0, "max": 0, "dt": null, "conditions": "" },
+    "properties": ["mgc"],
+    "proficient": null,
+    "type": { "value": "heavy", "baseItem": "plate" },
+    "unidentified": { "description": "<p>Mirror-bright full plate. AC 19 with the enchantment. It fits uncannily well.</p>" },
+    "container": null,
+    "crewed": false,
+    "strength": 15,
+    "stealth": true,
+    "attack": { "bonus": "", "flat": false },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "cursed-ironwedding-plate",
+      "cursedMeta": {
+        "category": "Cursed Armor & Shields",
+        "curseType": "physical",
+        "tier": 3,
+        "decoyAppearance": "+1 adamantine-style plate (AC 19) that fits like it was poured for the wearer.",
+        "trueNature": "While attuned the plate fuses to skin at joints; removal without ending the curse causes 2d10 slashing per attempt and may become impossible at full escalation.",
+        "tags": ["armor", "plate", "physical", "tier-3"],
+        "curse": {
+          "name": "Ironwedding",
+          "description": "Attuned wearer suffers progressive fusion of armor to flesh. Doffing the armor without breaking the curse inflicts 2d10 slashing damage per attempt; at full activation the armor cannot be removed by mundane means.",
+          "effects": []
+        },
+        "detection": {
+          "arcanaDC": 20,
+          "hints": ["Sweat never loosens the gorget; the metal seems to drink heat from the collarbone."]
+        },
+        "latent": {
+          "trigger": "attunement",
+          "threshold": 4,
+          "escalation": [
+            { "at": 1, "effect": "Pressure lines at elbows and knees after long marches." },
+            { "at": 2, "effect": "Pinprick bleeding along strap lines; heal oddly slow." },
+            { "at": 4, "effect": "Full curse activation" }
+          ]
+        },
+        "removal": {
+          "removeCurseLevel": 7,
+          "customRequirement": null
+        }
+      }
+    }
+  }
+}

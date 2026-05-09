@@ -1,0 +1,92 @@
+{
+  "_id": "0000000005609896",
+  "name": "Scroll of Conjure Animals",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-sealed-orange.webp",
+  "folder": "000000005d294d6b",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Conjure Animals</strong> (Level 3 Conjuration)</p><p>You summon fey spirits that take the form of beasts and appear in unoccupied spaces that you can see within range. Choose one of the following options for what appears:</p><p>- One beast of challenge rating 2 or lower</p><p>- Two beasts of challenge rating 1 or lower</p><p>- Four beasts of challenge rating 1/2 or lower</p><p>- Eight beasts of challenge rating 1/4 or lower</p><p>- Each beast is also considered fey, and it disappears when it drops to 0 hit points or when the spell ends.</p><p>The summoned creatures are friendly to you and your companions. Roll initiative for the summoned creatures as a group, which has its own turns. They obey any verbal commands that you issue to them (no action required by you). If you don't issue any commands to them, they defend themselves from hostile creatures, but otherwise take no actions.</p><p>The GM has the creatures' statistics.</p><p><em>When you cast this spell using certain higher-level spell slots, you choose one of the summoning options above, and more creatures appear: twice as many with a 5th-level slot, three times as many with a 7th-level.</em></p><p><strong>Components:</strong> V, S</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 60 feet | <strong>Duration:</strong> Up to 1 hour (Concentration)</p><p><em>Classes: Druid, Ranger</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 200,
+      "denomination": "gp"
+    },
+    "rarity": "uncommon",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 60,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-conjure-animals",
+      "scrollMeta": {
+        "spellName": "Conjure Animals",
+        "spellLevel": 3,
+        "school": "conjuration",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Druid",
+          "Ranger"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S"
+        ]
+      }
+    }
+  }
+}

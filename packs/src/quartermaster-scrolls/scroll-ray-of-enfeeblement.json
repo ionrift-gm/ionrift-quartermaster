@@ -1,0 +1,92 @@
+{
+  "_id": "0000000054d71611",
+  "name": "Scroll of Ray of Enfeeblement",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-skull-brown.webp",
+  "folder": "0000000063127809",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Ray of Enfeeblement</strong> (Level 2 Necromancy)</p><p>A black beam of enervating energy springs from your finger toward a creature within range. Make a ranged spell attack against the target. On a hit, the target deals only half damage with weapon attacks that use Strength until the spell ends.</p><p>At the end of each of the target's turns, it can make a constitution saving throw against the spell. On a success, the spell ends.</p><p><strong>Components:</strong> V, S</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 60 feet | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Warlock, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 120,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 60,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "con",
+      "dc": 13,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "5",
+      "flat": false
+    },
+    "actionType": "rsak",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-ray-of-enfeeblement",
+      "scrollMeta": {
+        "spellName": "Ray of Enfeeblement",
+        "spellLevel": 2,
+        "school": "necromancy",
+        "saveDC": 13,
+        "attackBonus": 5,
+        "classLists": [
+          "Warlock",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S"
+        ]
+      }
+    }
+  }
+}

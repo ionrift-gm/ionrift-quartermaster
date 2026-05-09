@@ -1,0 +1,93 @@
+{
+  "_id": "0000000003fba52a",
+  "name": "Scroll of Arcane Eye",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-symbol-eye-brown.webp",
+  "folder": "0000000033e5aeef",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Arcane Eye</strong> (Level 4 Divination)</p><p>You create an invisible, magical eye within range that hovers in the air for the duration.</p><p>You mentally receive visual information from the eye, which has normal vision and darkvision out to 30 feet. The eye can look in every direction.</p><p>As an action, you can move the eye up to 30 feet in any direction. There is no limit to how far away from you the eye can move, but it can't enter another plane of existence. A solid barrier blocks the eye's movement, but the eye can pass through an opening as small as 1 inch in diameter.</p><p><strong>Components:</strong> V, S, M (A bit of bat fur.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 30 feet | <strong>Duration:</strong> Up to 1 hour (Concentration)</p><p><em>Classes: Cleric, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 320,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 30,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-arcane-eye",
+      "scrollMeta": {
+        "spellName": "Arcane Eye",
+        "spellLevel": 4,
+        "school": "divination",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Cleric",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

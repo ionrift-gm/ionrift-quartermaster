@@ -1,0 +1,92 @@
+{
+  "_id": "00000000049dd4b6",
+  "name": "Scroll of Warding Bond",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-blue-white.webp",
+  "folder": "000000003df2e841",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Warding Bond</strong> (Level 2 Abjuration)</p><p>This spell wards a willing creature you touch and creates a mystic connection between you and the target until the spell ends. While the target is within 60 feet of you, it gains a +1 bonus to AC and saving throws, and it has resistance to all damage. Also, each time it takes damage, you take the same amount of damage.</p><p>The spell ends if you drop to 0 hit points or if you and the target become separated by more than 60 feet.</p><p>It also ends if the spell is cast again on either of the connected creatures. You can also dismiss the spell as an action.</p><p><strong>Components:</strong> V, S, M (A pair of platinum rings worth at least 50gp each, which you and the target must wear for the duration.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> Touch | <strong>Duration:</strong> 1 hour</p><p><em>Classes: Cleric</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 120,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": ""
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-warding-bond",
+      "scrollMeta": {
+        "spellName": "Warding Bond",
+        "spellLevel": 2,
+        "school": "abjuration",
+        "saveDC": 13,
+        "attackBonus": 5,
+        "classLists": [
+          "Cleric"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

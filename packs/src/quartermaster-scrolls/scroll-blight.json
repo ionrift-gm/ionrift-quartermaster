@@ -1,0 +1,99 @@
+{
+  "_id": "000000004e0d2b0c",
+  "name": "Scroll of Blight",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-skull-brown.webp",
+  "folder": "0000000063127807",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Blight</strong> (Level 4 Necromancy)</p><p>Necromantic energy washes over a creature of your choice that you can see within range, draining moisture and vitality from it. The target must make a constitution saving throw. The target takes 8d8 necrotic damage on a failed save, or half as much damage on a successful one. The spell has no effect on undead or constructs.</p><p>If you target a plant creature or a magical plant, it makes the saving throw with disadvantage, and the spell deals maximum damage to it.</p><p>If you target a nonmagical plant that isn't a creature, such as a tree or shrub, it doesn't make a saving throw; it simply withers and dies.</p><p><em>When you cast this spell using a spell slot of 5th level of higher, the damage increases by 1d8 for each slot level above 4th.</em></p><p><strong>Components:</strong> V, S</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 30 feet | <strong>Duration:</strong> Instantaneous</p><p><em>Classes: Druid, Sorcerer, Warlock, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 320,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "range": {
+      "value": 30,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "con",
+      "dc": 15,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [
+        [
+          "8d8",
+          "necrotic"
+        ]
+      ],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-blight",
+      "scrollMeta": {
+        "spellName": "Blight",
+        "spellLevel": 4,
+        "school": "necromancy",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Druid",
+          "Sorcerer",
+          "Warlock",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S"
+        ]
+      }
+    }
+  }
+}

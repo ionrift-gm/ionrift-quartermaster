@@ -1,0 +1,43 @@
+{
+  "_id": "e7bbc2ec6738f64e",
+  "name": "Small Emerald",
+  "type": "loot",
+  "img": "icons/commodities/gems/gem-faceted-diamond-green.webp",
+  "folder": "fbe72426bfe56932",
+  "system": {
+    "description": {
+      "value": "<p>A vivid green emerald. Some natural inclusions -- the \"garden\" -- but excellent hue.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 0.2,
+    "price": {
+      "value": 300,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "type": {
+      "value": "gem",
+      "subtype": ""
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "gem-small-emerald",
+      "gemMeta": {
+        "tier": "Precious",
+        "priceGp": 300
+      }
+    }
+  }
+}
