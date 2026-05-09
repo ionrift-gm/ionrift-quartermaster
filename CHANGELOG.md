@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.3.0-rc.1] - 2026-05-09
+## [1.3.0-ea.1] - 2026-05-09
 
 ### Added
 - **Swamp and Arctic terrain themes.** The Cache Generator now includes Swamp and Arctic alongside the existing seven terrains, bringing the terrain list into alignment with Respite. Each has its own discovery flavour text and mastercraft material weighting.
@@ -8,8 +8,8 @@
 - **Standalone cursed item pool.** The Cursed Pool tab seeds from the SRD's 12 canonical cursed items with masked names and generic icons, indistinguishable from ordinary loot until triggered. No Proving Grounds content required.
 - **Cursed item import picker.** GMs can browse any compendium and manually add items to the cursed pool, regardless of origin.
 
-### Changed
-- Curse engine and Proving Grounds pack removed from the core module. The standalone SRD adapter provides a self-contained cursed pool. Full curse mechanics are available via the Cursewright companion module (available separately).
+### Coming Up
+- Curse mechanics are expanding. The standalone SRD pool ships now; a full companion module is in the works.
 
 ## [1.3.0-ea.2] - 2026-05-03
 
