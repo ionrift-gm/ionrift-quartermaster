@@ -198,9 +198,10 @@ export class ItemPoolResolver {
             case "consumable": {
                 if (type !== "consumable") return false;
                 if (subtype === "scroll") return false;
-                // Only actual potions, poisons, and food — not mundane gear (ammo, rod, wand, trinket)
-                // that dnd5e happens to classify as consumable
-                const potionSubtypes = ["potion", "poison", "food", ""];
+                // Only actual potions, poisons, food, and ammunition -- not mundane gear (rod, wand,
+                // trinket) that dnd5e happens to classify as consumable. Ammunition subtypes vary
+                // by compendium: 'ammo', 'ammunition', or empty string on some packs.
+                const potionSubtypes = ["potion", "poison", "food", "ammo", "ammunition", ""];
                 return potionSubtypes.includes(subtype);
             }
             case "scroll":
