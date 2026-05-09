@@ -53,9 +53,7 @@
 
 ## License
 
-This module is released under a custom Ionrift licence. Personal use in Foundry VTT games is
-permitted. Source code redistribution or derivative public releases are not permitted without
-written permission. See `LICENSE` for full terms.
+MIT License. See [LICENSE](./LICENSE) for details.
 
 ---
 

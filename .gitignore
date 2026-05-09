@@ -11,10 +11,34 @@ packs/proving-grounds-guide/
 
 # Retired/legacy pack folders (status: retired in SHIPPING.json)
 packs/quartermaster-cursed/
+packs/quartermaster-core/
+packs/quartermaster-gemstones/
+packs/quartermaster-scrolls/
+packs/quartermaster-treasure/
 packs/workshop-containers-compiled/
 packs/workshop-containers-new/
 packs/workshop-containers-new2/
 packs/scrolls/
+
+# Pack source data (content IP — only containers src ships)
+packs/src/proving-grounds/
+packs/src/proving-grounds-guide/
+packs/src/quartermaster-core/
+packs/src/quartermaster-gemstones/
+packs/src/quartermaster-scrolls/
+packs/src/quartermaster-treasure/
+
+# Triage output (local item dumps, may contain homebrew references)
+data/triage-output/
+
+# Dev build scripts (internal compendium authoring tools)
+scripts/triage-riftitems.mjs
+scripts/build-scroll-compendium.mjs
+scripts/fetch-*.mjs
+scripts/pack-*.mjs
+compile-proving-grounds.mjs
+compile-containers.mjs
+swap-containers.ps1
 
 # Build output (filtered manifest for release)
 .build/
