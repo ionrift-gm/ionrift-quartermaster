@@ -8,7 +8,7 @@
         "verified": "13"
     },
     "url": "https://github.com/ionrift-gm/ionrift-quartermaster",
-    "manifest": "https://github.com/ionrift-gm/ionrift-quartermaster/releases/latest/download/module.json",
+    "manifest": "https://github.com/ionrift-gm/ionrift-quartermaster/releases/download/v1.3.0-ea.1/module.json",
     "download": "https://github.com/ionrift-gm/ionrift-quartermaster/releases/download/v1.3.0-ea.1/module.zip",
     "bugs": "https://github.com/ionrift-gm/ionrift-quartermaster/issues",
     "esmodules": [
