@@ -60,8 +60,8 @@ export class CacheGenerator {
         // budgetMax caps the tier default from above (user set a ceiling).
         // budgetMin raises it from below (user wants a richer cache than the tier default).
         let effectiveBudget = (tierData.budgetCap ?? 150) * (ownerDef.budgetMultiplier ?? 1.0) * economy;
-        if (options.budgetMax != null) effectiveBudget = Math.min(effectiveBudget, options.budgetMax);
-        if (options.budgetMin != null) effectiveBudget = Math.max(effectiveBudget, Math.min(options.budgetMin, options.budgetMax ?? Infinity));
+        if (options.budgetMax !== null && options.budgetMax !== undefined) effectiveBudget = Math.min(effectiveBudget, options.budgetMax);
+        if (options.budgetMin !== null && options.budgetMin !== undefined) effectiveBudget = Math.max(effectiveBudget, Math.min(options.budgetMin, options.budgetMax ?? Infinity));
         const budgetFloor = options.budgetMin ?? 0;
         let spentBudget = 0;
 
@@ -149,7 +149,7 @@ export class CacheGenerator {
         // When the GM sets an explicit cap, guaranteed slots are tracked against
         // spentBudget just like filler slots. Without an override, guaranteed
         // items are uncapped (original behaviour).
-        const hardCap = options.budgetMax != null;
+        const hardCap = options.budgetMax !== null && options.budgetMax !== undefined;
         for (const slotType of drawnSlots) {
             const isGuaranteed = slotsProcessed < guaranteedCount;
 
