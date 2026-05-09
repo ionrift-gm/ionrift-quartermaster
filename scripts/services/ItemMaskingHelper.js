@@ -116,6 +116,17 @@ export class ItemMaskingHelper {
 
         if (subtype === "food" || subtype === "trinket") return false;
 
+        // dnd5e often types these as subtype "potion"; they stay labeled at purchase and
+        // are not run through mystery-vial presentation.
+        if (/\bacid\b/i.test(nameLower)) return false;
+        if (/basic poison/i.test(nameLower)) return false;
+        if (/alchemist'?s\s+fire/i.test(nameLower)) return false;
+        if (/holy water/i.test(nameLower)) return false;
+        if (/antitoxin/i.test(nameLower)) return false;
+
+        // Subtype can be wrong on flattened rows; keep mundane provisions readable.
+        if (/\bfeed\b|\brations?\b/i.test(nameLower)) return false;
+
         const nameHints = /potion|elixir|philter|draught|oil\s+of|dust|powder|bead|marble|candle|incense|salve|balm|ointment/i.test(nameLower);
         const subtypePotion = subtype === "potion";
 
@@ -134,7 +145,6 @@ export class ItemMaskingHelper {
         }
 
         const rarity = (itemMeta.rarity || "").toLowerCase().replace(/\s+/g, "");
-        const type = (itemMeta.type || "").toLowerCase();
         const nameLower = (itemMeta.name || "").toLowerCase();
 
         const obscureConsumables = game?.settings?.get("ionrift-quartermaster", "obscureConsumables") ?? true;
@@ -143,9 +153,11 @@ export class ItemMaskingHelper {
         const obscurableConsumable = this._isObscurableConsumable(itemMeta);
 
         const rarityMagical = rarity !== "" && rarity !== "common" && rarity !== "none";
-        const isMagical = rarityMagical
-            || (isScroll && obscureScrolls)
-            || (obscurableConsumable && obscureConsumables);
+
+        // isMagical reflects intrinsic magic independent of display settings.
+        // Scrolls are always magical. Potion-like consumables are always magical.
+        // Obscure settings only control name/image presentation below, not this flag.
+        const isMagical = rarityMagical || isScroll || obscurableConsumable;
 
         if (!isMagical) {
             return { isMagical: false, baseItemName: null, mundaneDesc: null, obscuredImg: null };
@@ -153,6 +165,8 @@ export class ItemMaskingHelper {
 
         const baseItemName = this._deriveBaseItemName(itemMeta);
         const mundaneDesc = this._deriveMundaneDescription(itemMeta, baseItemName, rarity);
+
+        // Obscured art only applied when the corresponding setting is on.
         const obscuredImg = this._resolveObscuredArtPath({
             isScroll,
             obscurableConsumable,
@@ -163,6 +177,7 @@ export class ItemMaskingHelper {
 
         return { isMagical, baseItemName, mundaneDesc, obscuredImg };
     }
+
 
     /**
      * Generic art for consumables / scrolls when settings hide their identity.
@@ -581,7 +596,12 @@ export class ItemMaskingHelper {
             if (/candle/i.test(nameLower))      return "Tallow Candle";
             if (/incense/i.test(nameLower))     return "Stick of Incense";
             if (/salve|balm|ointment/i.test(nameLower)) return "Tin of Salve";
-            if (st === "potion") return _pick(this._POTION_NAMES);
+            if (
+                st === "potion"
+                && this._isObscurableConsumable({ name: nameLower, type, subtype: st })
+            ) {
+                return _pick(this._POTION_NAMES);
+            }
         }
         return null;
     }
