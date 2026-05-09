@@ -1,0 +1,95 @@
+{
+  "_id": "000000007396cf61",
+  "name": "Scroll of Foresight",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-symbol-eye-brown.webp",
+  "folder": "0000000033e5aeea",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Foresight</strong> (Level 9 Divination)</p><p>You touch a willing creature and bestow a limited ability to see into the immediate future. For the duration, the target can't be surprised and has advantage on attack rolls, ability checks, and saving throws. Additionally, other creatures have disadvantage on attack rolls against the target for the duration.</p><p>This spell immediately ends if you cast it again before its duration ends.</p><p><strong>Components:</strong> V, S, M (A hummingbird feather.)</p><p><strong>Casting Time:</strong> 1 minute | <strong>Range:</strong> Touch | <strong>Duration:</strong> 8 hours</p><p><em>Classes: Bard, Druid, Warlock, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 10240,
+      "denomination": "gp"
+    },
+    "rarity": "legendary",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "8",
+      "units": ""
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-foresight",
+      "scrollMeta": {
+        "spellName": "Foresight",
+        "spellLevel": 9,
+        "school": "divination",
+        "saveDC": 19,
+        "attackBonus": 11,
+        "classLists": [
+          "Bard",
+          "Druid",
+          "Warlock",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

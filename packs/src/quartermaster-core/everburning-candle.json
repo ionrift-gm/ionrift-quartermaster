@@ -1,0 +1,41 @@
+{
+  "_id": "c0e9cfab3c33d278",
+  "name": "Everburning Candle",
+  "type": "loot",
+  "img": "items/RPG_Loot_Icons_13/black/2436_b.png",
+  "folder": "684ef18282a30165",
+  "system": {
+    "description": {
+      "value": "<p>A candle that, once lit, never seems to melt or go out. The flame flickers with a soft, steady glow, providing light without heat.</p>",
+      "chat": ""
+    },
+    "source": {},
+    "identified": true,
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 50,
+      "denomination": "gp"
+    },
+    "rarity": "",
+    "properties": [],
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-everburning-candle",
+      "coreMeta": {
+        "category": "Trinkets",
+        "material": "Trinkets",
+        "priceGp": 50
+      }
+    }
+  }
+}

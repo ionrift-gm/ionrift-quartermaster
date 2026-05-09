@@ -1,0 +1,101 @@
+<div class="grid-slot
+    {{#if this.filled}}slot-filled{{#if this.rarity}} rarity-{{this.rarity}}{{else}} rarity-uncommon{{/if}}{{else}}{{#if this.disabled}}slot-disabled{{else}}slot-empty{{/if}}{{/if}}
+    {{#if this.isPast}}slot-past{{/if}}
+    {{#if this.isFuture}}slot-future{{/if}}
+    {{#if this.isOverdue}}slot-overdue{{/if}}
+    {{#if this.delivered}}slot-delivered{{/if}}
+    {{#if this.used}}slot-used{{/if}}
+    {{#if this.isCurrent}}slot-current{{/if}}
+    {{#if this.isNext}}slot-next{{/if}}
+    {{#if this.reachGlowActive}} slot-reach-glow{{/if}}
+    {{#if this.locked}}slot-locked{{/if}}
+    {{#if this.variant}}{{this.variant}}-slot{{/if}}"
+    style="--ir-reach-blend: {{this.reachBlend}}; --ir-reach-glow: {{this.reachGlow}};"
+    {{#if this.actorId}}data-actor-id="{{this.actorId}}"{{/if}}
+    data-level="{{this.level}}"
+    data-slot-idx="{{this.slotIdx}}"
+    data-uuid="{{this.uuid}}"
+    {{#if this.name}}data-name="{{this.name}}"{{/if}}
+    {{#if this.curseType}}data-curse-type="{{this.curseType}}"{{/if}}
+    {{#unless this.filled}}title="{{#if this.disabled}}Budget full (4 signatures). This limit keeps each item meaningful. Clear a slot to reassign.{{else}}Drop item here{{/if}}"{{/unless}}>
+    {{#if this.filled}}
+        <img src="{{this.img}}" class="slot-item-img" alt="{{this.name}}" draggable="false" />
+
+        {{!-- Top-left: Lock (all variants) --}}
+        <button type="button" class="slot-btn slot-btn-lock action-toggle-lock{{#if this.locked}} is-locked{{/if}}"
+                data-level="{{this.level}}" data-uuid="{{this.uuid}}"
+                {{#if this.actorId}}data-actor-id="{{this.actorId}}"{{/if}}
+                data-slot-idx="{{this.slotIdx}}"
+                {{#if this.variant}}data-variant="{{this.variant}}"{{/if}}
+                aria-label="{{#if this.locked}}Unlock{{else}}Lock{{/if}}" draggable="false">
+            <i class="fas {{#if this.locked}}fa-lock{{else}}fa-lock-open{{/if}}" aria-hidden="true"></i>
+        </button>
+
+        {{#if (eq this.variant "cursed")}}
+            {{!-- Top-right: Remove --}}
+            {{#unless this.locked}}
+            <button type="button" class="slot-btn slot-btn-remove action-remove-cursed-item"
+                    data-level="{{this.level}}" data-uuid="{{this.uuid}}"
+                    aria-label="Remove" draggable="false">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            {{/unless}}
+            {{!-- Bottom-left: Used/delivered toggle --}}
+            <button type="button" class="slot-btn slot-btn-bl action-toggle-used"
+                    data-level="{{this.level}}" data-uuid="{{this.uuid}}"
+                    aria-label="{{#if this.used}}Mark unused{{else}}Mark used{{/if}}" draggable="false">
+                <i class="fas {{#if this.used}}fa-rotate-left{{else}}fa-virus-slash{{/if}}" aria-hidden="true"></i>
+            </button>
+            {{!-- Bottom-right: Re-roll --}}
+            {{#unless this.locked}}
+            <button type="button" class="slot-btn slot-btn-reroll action-reroll-cursed-slot"
+                    data-level="{{this.level}}" data-slot-idx="{{this.slotIdx}}" data-uuid="{{this.uuid}}"
+                    aria-label="Re-roll from pool" draggable="false">
+                <i class="fas fa-dice" aria-hidden="true"></i>
+            </button>
+            {{/unless}}
+        {{else if (eq this.variant "party")}}
+            {{!-- Top-right: Remove --}}
+            <button type="button" class="slot-btn slot-btn-remove action-remove-party-item"
+                    data-level="{{this.level}}" data-uuid="{{this.uuid}}"
+                    aria-label="Remove" draggable="false">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            {{!-- Bottom-left: Delivered toggle --}}
+            <button type="button" class="slot-btn slot-btn-bl action-toggle-delivered"
+                    data-level="{{this.level}}" data-uuid="{{this.uuid}}"
+                    aria-label="{{#if this.delivered}}Mark undelivered{{else}}Mark delivered{{/if}}" draggable="false">
+                <i class="fas {{#if this.delivered}}fa-rotate-left{{else}}fa-check{{/if}}" aria-hidden="true"></i>
+            </button>
+        {{else}}
+            {{!-- Top-right: Remove --}}
+            {{#unless this.locked}}
+            <button type="button" class="slot-btn slot-btn-remove action-clear-slot"
+                    aria-label="Remove item" draggable="false">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            {{/unless}}
+            {{!-- Bottom-left: Delivered toggle --}}
+            <button type="button" class="slot-btn slot-btn-bl action-toggle-sig-delivered"
+                    data-level="{{this.level}}" data-actor-id="{{this.actorId}}" data-uuid="{{this.uuid}}"
+                    aria-label="{{#if this.delivered}}Mark undelivered{{else}}Mark delivered{{/if}}" draggable="false">
+                <i class="fas {{#if this.delivered}}fa-rotate-left{{else}}fa-check{{/if}}" aria-hidden="true"></i>
+            </button>
+            {{!-- Bottom-right: Re-roll --}}
+            {{#unless this.locked}}
+            {{#if (eq this.source "auto")}}
+            <button type="button" class="slot-btn slot-btn-reroll action-reroll-slot"
+                    aria-label="Re-roll suggestion" draggable="false">
+                <i class="fas fa-dice" aria-hidden="true"></i>
+            </button>
+            {{/if}}
+            {{/unless}}
+        {{/if}}
+    {{else}}
+        {{#if this.disabled}}
+            <i class="fas fa-lock slot-disabled-icon" aria-hidden="true"></i>
+        {{else}}
+            <i class="fas fa-arrow-down-to-bracket slot-drop-icon"></i>
+        {{/if}}
+    {{/if}}
+</div>

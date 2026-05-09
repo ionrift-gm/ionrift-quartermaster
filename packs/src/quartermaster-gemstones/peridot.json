@@ -1,0 +1,43 @@
+{
+  "_id": "a7f1754c09e8e198",
+  "name": "Peridot",
+  "type": "loot",
+  "img": "icons/commodities/gems/gem-rough-cushion-green.webp",
+  "folder": "a4de333a9ee2fa68",
+  "system": {
+    "description": {
+      "value": "<p>A vivid lime-green olivine stone. Said to be gifted by volcanoes.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 65,
+      "denomination": "gp"
+    },
+    "rarity": "uncommon",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "type": {
+      "value": "gem",
+      "subtype": ""
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "gem-peridot",
+      "gemMeta": {
+        "tier": "Semi-Precious",
+        "priceGp": 65
+      }
+    }
+  }
+}

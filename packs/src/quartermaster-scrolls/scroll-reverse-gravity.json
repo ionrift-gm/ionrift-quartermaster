@@ -1,0 +1,94 @@
+{
+  "_id": "0000000032d85363",
+  "name": "Scroll of Reverse Gravity",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-green.webp",
+  "folder": "000000005ea52af0",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Reverse Gravity</strong> (Level 7 Transmutation)</p><p>This spell reverses gravity in a 50-foot-radius, 100-foot high cylinder centered on a point within range. All creatures and objects that aren't somehow anchored to the ground in the area fall upward and reach the top of the area when you cast this spell. A creature can make a dexterity saving throw to grab onto a fixed object it can reach, thus avoiding the fall.</p><p>If some solid object (such as a ceiling) is encountered in this fall, falling objects and creatures strike it just as they would during a normal downward fall. If an object or creature reaches the top of the area without striking anything, it remains there, oscillating slightly, for the duration.</p><p>At the end of the duration, affected objects and creatures fall back down.</p><p><strong>Components:</strong> V, S, M (A lodestone and iron filings.)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 100 feet | <strong>Duration:</strong> Up to 1 minute (Concentration)</p><p><em>Classes: Druid, Sorcerer, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 2560,
+      "denomination": "gp"
+    },
+    "rarity": "very rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "range": {
+      "value": 100,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "dex",
+      "dc": 18,
+      "scaling": "flat"
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "save",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-reverse-gravity",
+      "scrollMeta": {
+        "spellName": "Reverse Gravity",
+        "spellLevel": 7,
+        "school": "transmutation",
+        "saveDC": 18,
+        "attackBonus": 10,
+        "classLists": [
+          "Druid",
+          "Sorcerer",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": true,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

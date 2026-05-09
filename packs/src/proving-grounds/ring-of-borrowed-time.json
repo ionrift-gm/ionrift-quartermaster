@@ -1,0 +1,79 @@
+{
+  "_id": "f3b06a1d8e574c92",
+  "name": "Ring of Borrowed Time",
+  "type": "equipment",
+  "img": "icons/equipment/finger/ring-band-worn-gold.webp",
+  "folder": "b2c11ef4a93d6014",
+  "system": {
+    "description": {
+      "value": "<p>A plain gold band engraved with an hourglass so fine it can only be seen in direct sunlight. It fits any finger perfectly. It always has.</p><p><strong>Curse.</strong> While worn, the wearer does not age. This sounds like a gift. It is not. When the ring is removed  -  willingly or otherwise  -  the wearer immediately ages a number of years equal to the total time the ring was worn, to a minimum of one year per week. Magical aging, not biological: a <em>greater restoration</em> can reverse it.</p>",
+      "chat": ""
+    },
+    "source": { "custom": "Ionrift Quartermaster  -  Cursed Pool" },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": { "value": 300, "denomination": "gp" },
+    "attunement": 2,
+    "equipped": false,
+    "rarity": "rare",
+    "identified": false,
+    "activation": { "type": "none", "cost": null, "condition": "" },
+    "duration": { "value": "", "units": "" },
+    "cover": null,
+    "target": { "value": null, "width": null, "units": "", "type": "", "prompt": true },
+    "range": { "value": null, "long": null, "units": "" },
+    "uses": { "value": null, "max": "", "per": null, "recovery": "", "prompt": true },
+    "consume": { "type": "", "target": null, "amount": null, "scale": false },
+    "ability": "",
+    "actionType": "",
+    "chatFlavor": "",
+    "critical": { "threshold": null, "damage": "" },
+    "damage": { "parts": [], "versatile": "" },
+    "formula": "",
+    "save": { "ability": "", "dc": null, "scaling": "spell" },
+    "armor": { "value": 10 },
+    "hp": { "value": 0, "max": 0, "dt": null, "conditions": "" },
+    "properties": [],
+    "proficient": null,
+    "type": { "value": "trinket", "baseItem": "" },
+    "unidentified": { "description": "<p>A plain gold band. It slips onto any finger as if made for it. You notice no difference when wearing it.</p>" },
+    "container": null,
+    "crewed": false,
+    "attack": { "bonus": "", "flat": false },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "cursed-ring-of-borrowed-time",
+      "cursedMeta": {
+        "category": "Cursed Jewelry & Rings",
+        "curseType": "aging",
+        "tier": 2,
+        "decoyAppearance": "A plain gold band. Fits perfectly. Warm to the touch.",
+        "trueNature": "Prevents aging while worn. When removed, wearer ages by time worn (magical). Greater restoration reverses it.",
+        "tags": ["jewelry", "ring", "aging", "attunement"],
+        "curse": {
+          "name": "Borrowed Time",
+          "description": "While worn the wearer does not age. When the ring is removed they immediately age by the total time it was worn (magical aging; greater restoration can reverse it).",
+          "effects": []
+        },
+        "detection": {
+          "arcanaDC": 17,
+          "hints": ["Skin at the ring line looks a shade too smooth, as if years forgot to touch it."]
+        },
+        "latent": {
+          "trigger": "attunement",
+          "threshold": 5,
+          "escalation": [
+            { "at": 1, "effect": "Minor aches vanish while the band is on; mirrors feel slightly off." },
+            { "at": 5, "effect": "Full curse activation" }
+          ]
+        },
+        "removal": {
+          "removeCurseLevel": 5,
+          "customRequirement": null
+        }
+      }
+    }
+  }
+}

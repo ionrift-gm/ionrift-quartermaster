@@ -1,0 +1,5242 @@
+{
+  "count": 44,
+  "folders": 6,
+  "entries": [
+    {
+      "_id": "57cd2b4a72ad48ef",
+      "name": "Scroll of Bless",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Bless</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Paladin</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-bless",
+          "scrollMeta": {
+            "spellName": "Bless",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Paladin"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "5c03e9bff03744a4",
+      "name": "Scroll of Sleep",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Sleep</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-sleep",
+          "scrollMeta": {
+            "spellName": "Sleep",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "73e6ca3320264229",
+      "name": "Scroll of Sanctuary",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Sanctuary</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-sanctuary",
+          "scrollMeta": {
+            "spellName": "Sanctuary",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "44ddffff0c3e4fd4",
+      "name": "Scroll of Burning Hands",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Burning Hands</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-burning-hands",
+          "scrollMeta": {
+            "spellName": "Burning Hands",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "2c7afeda5e9b4c19",
+      "name": "Scroll of Longstrider",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Longstrider</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard, Druid, Ranger</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-longstrider",
+          "scrollMeta": {
+            "spellName": "Longstrider",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard",
+              "Druid",
+              "Ranger"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "dbe0b38a9ac04dd0",
+      "name": "Scroll of Bane",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Bane</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Bard</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-bane",
+          "scrollMeta": {
+            "spellName": "Bane",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Bard"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "b77813871ef74ffd",
+      "name": "Scroll of Ceremony",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Ceremony</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-ceremony",
+          "scrollMeta": {
+            "spellName": "Ceremony",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "afb98f76d5074363",
+      "name": "Scroll of Detect Magic",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Detect Magic</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard, Cleric, Druid, Paladin, Ranger, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-detect-magic",
+          "scrollMeta": {
+            "spellName": "Detect Magic",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard",
+              "Cleric",
+              "Druid",
+              "Paladin",
+              "Ranger",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "1c6f605ccac54560",
+      "name": "Scroll of Identify",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Identify</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-identify",
+          "scrollMeta": {
+            "spellName": "Identify",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "be9b03114eaa4ab0",
+      "name": "Scroll of Detect Poison and Disease",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Detect Poison and Disease</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Druid, Paladin, Ranger</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-detect-poison-and-disease",
+          "scrollMeta": {
+            "spellName": "Detect Poison and Disease",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Druid",
+              "Paladin",
+              "Ranger"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "eeb133e266d64ff9",
+      "name": "Scroll of Color Spray",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Color Spray</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-color-spray",
+          "scrollMeta": {
+            "spellName": "Color Spray",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "d70737acabc549fd",
+      "name": "Scroll of Inflict Wounds",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Inflict Wounds</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-inflict-wounds",
+          "scrollMeta": {
+            "spellName": "Inflict Wounds",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "07b9e4ca4fc64abc",
+      "name": "Scroll of Mage Armor",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Mage Armor</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-mage-armor",
+          "scrollMeta": {
+            "spellName": "Mage Armor",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "39e8710e51d644fd",
+      "name": "Scroll of Protection from Evil and Good",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Protection from Evil and Good</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Wizard, Paladin, Warlock</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-protection-from-evil-and-good",
+          "scrollMeta": {
+            "spellName": "Protection from Evil and Good",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Wizard",
+              "Paladin",
+              "Warlock"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "646a0bf160fc42b2",
+      "name": "Scroll of Tasha's Hideous Laughter",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Tasha's Hideous Laughter</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-tasha-s-hideous-laughter",
+          "scrollMeta": {
+            "spellName": "Tasha's Hideous Laughter",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "9456bebc438b4115",
+      "name": "Scroll of Guiding Bolt",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Guiding Bolt</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-guiding-bolt",
+          "scrollMeta": {
+            "spellName": "Guiding Bolt",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "5982c0cd6879454f",
+      "name": "Scroll of Disguise Self",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Disguise Self</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-disguise-self",
+          "scrollMeta": {
+            "spellName": "Disguise Self",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "a6c9d77827dd4d51",
+      "name": "Scroll of Unseen Servant",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Unseen Servant</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard, Warlock</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-unseen-servant",
+          "scrollMeta": {
+            "spellName": "Unseen Servant",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard",
+              "Warlock"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "7d621588b5244730",
+      "name": "Scroll of Tenser's Floating Disk",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Tenser's Floating Disk</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-tenser-s-floating-disk",
+          "scrollMeta": {
+            "spellName": "Tenser's Floating Disk",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "a91b6cadc3e24b03",
+      "name": "Scroll of Grease",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Grease</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-grease",
+          "scrollMeta": {
+            "spellName": "Grease",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "f72b68a600a84cf1",
+      "name": "Scroll of Illusory Script",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Illusory Script</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard, Warlock</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-illusory-script",
+          "scrollMeta": {
+            "spellName": "Illusory Script",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard",
+              "Warlock"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "fec27b58e2504eb3",
+      "name": "Scroll of Jump",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Jump</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Druid, Ranger, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-jump",
+          "scrollMeta": {
+            "spellName": "Jump",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Druid",
+              "Ranger",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "380b02a57be74151",
+      "name": "Scroll of Feather Fall",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Feather Fall</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-feather-fall",
+          "scrollMeta": {
+            "spellName": "Feather Fall",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "0b0f4bc829164a55",
+      "name": "Scroll of Command",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Command</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Paladin, Bard</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-command",
+          "scrollMeta": {
+            "spellName": "Command",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Paladin",
+              "Bard"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "ffbc99d04e464629",
+      "name": "Scroll of Magic Missile",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Magic Missile</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-magic-missile",
+          "scrollMeta": {
+            "spellName": "Magic Missile",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "a2be825b8cd740b9",
+      "name": "Scroll of Find Familiar",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Find Familiar</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-find-familiar",
+          "scrollMeta": {
+            "spellName": "Find Familiar",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "3cfb30fa6bfd46b4",
+      "name": "Scroll of Chromatic Orb",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Chromatic Orb</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-chromatic-orb",
+          "scrollMeta": {
+            "spellName": "Chromatic Orb",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "26cb5eb54fdd4095",
+      "name": "Scroll of Fog Cloud",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Fog Cloud</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Druid, Ranger, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-fog-cloud",
+          "scrollMeta": {
+            "spellName": "Fog Cloud",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Druid",
+              "Ranger",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "af14e1707d3f4831",
+      "name": "Scroll of Charm Person",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "54565d6200000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Charm Person</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Bard, Wizard, Sorcerer, Warlock, Druid</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-charm-person",
+          "scrollMeta": {
+            "spellName": "Charm Person",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Bard",
+            "classLists": [
+              "Bard",
+              "Wizard",
+              "Sorcerer",
+              "Warlock",
+              "Druid"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "a267d48d07ea4de4",
+      "name": "Scroll of Detect Evil and Good",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Detect Evil and Good</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Paladin</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-detect-evil-and-good",
+          "scrollMeta": {
+            "spellName": "Detect Evil and Good",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Paladin"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "882a191a3f4f4921",
+      "name": "Scroll of Cure Wounds",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Cure Wounds</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Bard, Druid, Paladin, Ranger</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-cure-wounds",
+          "scrollMeta": {
+            "spellName": "Cure Wounds",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Bard",
+              "Druid",
+              "Paladin",
+              "Ranger"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "890b0f76032a4be5",
+      "name": "Scroll of Shield",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Shield</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-shield",
+          "scrollMeta": {
+            "spellName": "Shield",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "e297d93f97f1461c",
+      "name": "Scroll of Comprehend Languages",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Comprehend Languages</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard, Sorcerer, Warlock</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-comprehend-languages",
+          "scrollMeta": {
+            "spellName": "Comprehend Languages",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard",
+              "Sorcerer",
+              "Warlock"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "a48fd806839d4eb0",
+      "name": "Scroll of False Life",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>False Life</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-false-life",
+          "scrollMeta": {
+            "spellName": "False Life",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "8c87e14196314a1a",
+      "name": "Scroll of Witch Bolt",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Witch Bolt</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Sorcerer, Warlock</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-witch-bolt",
+          "scrollMeta": {
+            "spellName": "Witch Bolt",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Sorcerer",
+              "Warlock"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "3fc48756529f49e1",
+      "name": "Scroll of Purify Food and Drink",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Purify Food and Drink</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Druid, Paladin</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-purify-food-and-drink",
+          "scrollMeta": {
+            "spellName": "Purify Food and Drink",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Druid",
+              "Paladin"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "bac4464368634041",
+      "name": "Scroll of Ray of Sickness",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Ray of Sickness</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-ray-of-sickness",
+          "scrollMeta": {
+            "spellName": "Ray of Sickness",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "58b8a9ecbd8b4ca2",
+      "name": "Scroll of Expeditious Retreat",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Expeditious Retreat</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Sorcerer, Warlock</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-expeditious-retreat",
+          "scrollMeta": {
+            "spellName": "Expeditious Retreat",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Sorcerer",
+              "Warlock"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "39d1340bcdb24bca",
+      "name": "Scroll of Silent Image",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Silent Image</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard, Sorcerer</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-silent-image",
+          "scrollMeta": {
+            "spellName": "Silent Image",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard",
+              "Sorcerer"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "536b4433d3424992",
+      "name": "Scroll of Create or Destroy Water",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Create or Destroy Water</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Druid</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-create-or-destroy-water",
+          "scrollMeta": {
+            "spellName": "Create or Destroy Water",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Druid"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "55349beae6064f7f",
+      "name": "Scroll of Healing Word",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Healing Word</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Bard, Druid</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-healing-word",
+          "scrollMeta": {
+            "spellName": "Healing Word",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Bard",
+              "Druid"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "87d3075e438d45fa",
+      "name": "Scroll of Alarm",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Alarm</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Ranger</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-alarm",
+          "scrollMeta": {
+            "spellName": "Alarm",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Ranger"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "960d74ed340941b6",
+      "name": "Scroll of Shield of Faith",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-writing-orange-black.webp",
+      "folder": "00437c5d00000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Shield of Faith</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Cleric, Paladin</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-shield-of-faith",
+          "scrollMeta": {
+            "spellName": "Shield of Faith",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Cleric",
+            "classLists": [
+              "Cleric",
+              "Paladin"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    },
+    {
+      "_id": "3fba34cfc1c94c79",
+      "name": "Scroll of Thunderwave",
+      "type": "consumable",
+      "img": "icons/sundries/scrolls/scroll-bound-green.webp",
+      "folder": "5ded636800000000",
+      "system": {
+        "description": {
+          "value": "<p>A spell scroll bearing the spell <strong>Thunderwave</strong> (Level 1).</p><p>When you use an action to read the scroll, the spell is cast at its base level. After the spell is cast, the scroll crumbles to dust.</p><p>If the spell is not on your class's spell list, you must make a DC 11 Intelligence (Arcana) check or the casting fails and the scroll is not consumed.</p><p><em>Spell lists: Wizard, Bard, Sorcerer, Druid</em></p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "book": "SRD 5.1",
+          "page": "",
+          "license": "CC-BY-4.0"
+        },
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 60,
+          "denomination": "gp"
+        },
+        "attunement": 0,
+        "equipped": false,
+        "rarity": "common",
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": "",
+          "units": ""
+        },
+        "cover": null,
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "",
+          "prompt": true
+        },
+        "range": {
+          "value": null,
+          "long": null,
+          "units": ""
+        },
+        "uses": {
+          "value": 1,
+          "max": "1",
+          "per": "charges",
+          "recovery": "",
+          "autoDestroy": true,
+          "prompt": true
+        },
+        "consume": {
+          "type": "",
+          "target": null,
+          "amount": null,
+          "scale": false
+        },
+        "ability": "",
+        "actionType": "msak",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": 13,
+          "scaling": "flat"
+        },
+        "type": {
+          "value": "scroll",
+          "subtype": ""
+        },
+        "unidentified": {
+          "description": ""
+        },
+        "container": null,
+        "crewed": false,
+        "properties": [
+          "mgc"
+        ],
+        "attack": {
+          "bonus": "5",
+          "flat": false
+        },
+        "summons": null,
+        "magicalBonus": null
+      },
+      "flags": {
+        "ionrift-workshop": {
+          "itemRef": "scroll-thunderwave",
+          "scrollMeta": {
+            "spellName": "Thunderwave",
+            "spellLevel": 1,
+            "saveDC": 13,
+            "attackBonus": 5,
+            "primaryClass": "Wizard",
+            "classLists": [
+              "Wizard",
+              "Bard",
+              "Sorcerer",
+              "Druid"
+            ],
+            "schoolHint": null
+          }
+        }
+      }
+    }
+  ],
+  "folderEntries": [
+    {
+      "_id": "63d5e88500000000",
+      "name": "Cleric",
+      "type": "Item",
+      "sorting": "a",
+      "sort": 0,
+      "color": null,
+      "flags": {}
+    },
+    {
+      "_id": "00437c5d00000000",
+      "name": "Level 1",
+      "type": "Item",
+      "sorting": "a",
+      "sort": 100,
+      "color": null,
+      "folder": "63d5e88500000000",
+      "flags": {}
+    },
+    {
+      "_id": "7a2a248000000000",
+      "name": "Wizard",
+      "type": "Item",
+      "sorting": "a",
+      "sort": 0,
+      "color": null,
+      "flags": {}
+    },
+    {
+      "_id": "5ded636800000000",
+      "name": "Level 1",
+      "type": "Item",
+      "sorting": "a",
+      "sort": 100,
+      "color": null,
+      "folder": "7a2a248000000000",
+      "flags": {}
+    },
+    {
+      "_id": "1424e1fa00000000",
+      "name": "Bard",
+      "type": "Item",
+      "sorting": "a",
+      "sort": 0,
+      "color": null,
+      "flags": {}
+    },
+    {
+      "_id": "54565d6200000000",
+      "name": "Level 1",
+      "type": "Item",
+      "sorting": "a",
+      "sort": 100,
+      "color": null,
+      "folder": "1424e1fa00000000",
+      "flags": {}
+    }
+  ]
+}

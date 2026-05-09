@@ -1,0 +1,79 @@
+{
+  "_id": "a8d14f2e6c93b705",
+  "name": "Dagger of Whispered Names",
+  "type": "weapon",
+  "img": "icons/weapons/daggers/dagger-curved-black.webp",
+  "folder": "4d9a1cc5e8a2b301",
+  "system": {
+    "description": {
+      "value": "<p>A slim dagger of dark iron, its blade etched with names in a script no living scholar recognises. The grip is warm, always warm, even in winter.</p><p><strong>Curse.</strong> The dagger whispers the name of the last creature it killed. Each night the wielder sleeps with it on their person, they must succeed on a DC 12 Wisdom saving throw or gain one level of exhaustion from dreams of the dead.</p>",
+      "chat": ""
+    },
+    "source": { "custom": "Ionrift Quartermaster  -  Cursed Pool" },
+    "quantity": 1,
+    "weight": 1,
+    "price": { "value": 85, "denomination": "gp" },
+    "attunement": 0,
+    "equipped": false,
+    "rarity": "uncommon",
+    "identified": false,
+    "activation": { "type": "action", "cost": 1, "condition": "" },
+    "duration": { "value": "", "units": "" },
+    "cover": null,
+    "target": { "value": null, "width": null, "units": "", "type": "", "prompt": true },
+    "range": { "value": 20, "long": 60, "units": "ft" },
+    "uses": { "value": null, "max": "", "per": null, "recovery": "", "prompt": true },
+    "consume": { "type": "", "target": null, "amount": null, "scale": false },
+    "ability": "",
+    "actionType": "mwak",
+    "chatFlavor": "",
+    "critical": { "threshold": null, "damage": "" },
+    "damage": { "parts": [["1d4 + @mod", "piercing"]], "versatile": "" },
+    "formula": "",
+    "save": { "ability": "", "dc": null, "scaling": "spell" },
+    "armor": { "value": 10 },
+    "hp": { "value": 0, "max": 0, "dt": null, "conditions": "" },
+    "properties": ["fin", "lgt", "thr"],
+    "proficient": null,
+    "type": { "value": "simpleM", "baseItem": "dagger" },
+    "unidentified": { "description": "<p>A dark iron dagger. The blade is etched with tiny symbols. It feels warm.</p>" },
+    "container": null,
+    "crewed": false,
+    "attack": { "bonus": "", "flat": false },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "cursed-dagger-of-whispered-names",
+      "cursedMeta": {
+        "category": "Cursed Weapons",
+        "curseType": "haunting",
+        "tier": 1,
+        "decoyAppearance": "A fine iron dagger with unusual etchings. Comfortably warm to the touch.",
+        "trueNature": "Sleep with it carried: DC 12 Wis save or gain 1 exhaustion level.",
+        "tags": ["weapon", "dagger", "haunting", "exhaustion"],
+        "curse": {
+          "name": "Whispered Names",
+          "description": "Each night the wielder sleeps with this dagger on their person they make a DC 12 Wisdom saving throw. On a failure they gain one level of exhaustion from dreams of the dead.",
+          "effects": []
+        },
+        "detection": {
+          "arcanaDC": 13,
+          "hints": ["The blade is always warm; etchings resemble names more than decoration."]
+        },
+        "latent": {
+          "trigger": "uses",
+          "threshold": 2,
+          "escalation": [
+            { "at": 1, "effect": "Light sleep and a sense of being named in the dark." },
+            { "at": 2, "effect": "Full curse activation" }
+          ]
+        },
+        "removal": {
+          "removeCurseLevel": 3,
+          "customRequirement": null
+        }
+      }
+    }
+  }
+}

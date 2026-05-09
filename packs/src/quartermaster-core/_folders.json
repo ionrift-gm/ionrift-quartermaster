@@ -1,0 +1,68 @@
+[
+  {
+    "_id": "61106d992c8e2e22",
+    "name": "Cultural Weapons",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 100,
+    "color": null,
+    "folder": null,
+    "flags": {}
+  },
+  {
+    "_id": "7c4ab8ad1cb8c3bb",
+    "name": "Mastercraft",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 200,
+    "color": null,
+    "folder": null,
+    "flags": {}
+  },
+  {
+    "_id": "684ef18282a30165",
+    "name": "Trinkets",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 300,
+    "color": null,
+    "folder": null,
+    "flags": {}
+  },
+  {
+    "_id": "af8e4677e78962a8",
+    "name": "Elven Steel",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 0,
+    "color": null,
+    "folder": "61106d992c8e2e22",
+    "flags": {}
+  },
+  {
+    "_id": "b9c7019fe6f4291d",
+    "name": "Dwarven Steel",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 0,
+    "color": null,
+    "folder": "61106d992c8e2e22",
+    "flags": {}
+  },
+  {
+    "_id": "d8413299385e949a",
+    "name": "Ironwood",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 0,
+    "color": null,
+    "folder": "61106d992c8e2e22",
+    "flags": {}
+  }
+]

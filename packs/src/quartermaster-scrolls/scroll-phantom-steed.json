@@ -1,0 +1,91 @@
+{
+  "_id": "0000000031fed3fd",
+  "name": "Scroll of Phantom Steed",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-grey.webp",
+  "folder": "000000005aa39d4e",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Phantom Steed</strong> (Level 3 Illusion)</p><p>A Large quasi-real, horselike creature appears on the ground in an unoccupied space of your choice within range. You decide the creature's appearance, but it is equipped with a saddle, bit, and bridle. Any of the equipment created by the spell vanishes in a puff of smoke if it is carried more than 10 feet away from the steed.</p><p>For the duration, you or a creature you choose can ride the steed. The creature uses the statistics for a riding horse, except it has a speed of 100 feet and can travel 10 miles in an hour, or 13 miles at a fast pace. When the spell ends, the steed gradually fades, giving the rider 1 minute to dismount. The spell ends if you use an action to dismiss it or if the steed takes any damage.</p><p><strong>Components:</strong> V, S</p><p><strong>Casting Time:</strong> 1 minute | <strong>Range:</strong> 30 feet | <strong>Duration:</strong> 1 hour (Ritual)</p><p><em>Classes: Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 200,
+      "denomination": "gp"
+    },
+    "rarity": "uncommon",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": ""
+    },
+    "range": {
+      "value": 30,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-phantom-steed",
+      "scrollMeta": {
+        "spellName": "Phantom Steed",
+        "spellLevel": 3,
+        "school": "illusion",
+        "saveDC": 15,
+        "attackBonus": 7,
+        "classLists": [
+          "Wizard"
+        ],
+        "ritual": true,
+        "concentration": false,
+        "components": [
+          "V",
+          "S"
+        ]
+      }
+    }
+  }
+}

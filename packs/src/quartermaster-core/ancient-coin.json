@@ -1,0 +1,41 @@
+{
+  "_id": "297e37006daa8710",
+  "name": "Ancient Coin",
+  "type": "loot",
+  "img": "icons/commodities/currency/coin-embossed-cobra-gold.webp",
+  "folder": "684ef18282a30165",
+  "system": {
+    "description": {
+      "value": "<p>An old, worn coin with strange, indecipherable markings. The metal is tarnished and rough, but it holds a certain mystique. </p><p>The coin feels oddly heavy for its size, and there's a faint aura of something ancient about it.</p>",
+      "chat": ""
+    },
+    "source": {},
+    "identified": true,
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 2,
+      "denomination": "sp"
+    },
+    "rarity": "",
+    "properties": [],
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-ancient-coin",
+      "coreMeta": {
+        "category": "Trinkets",
+        "material": "Trinkets",
+        "priceGp": 2
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "_id": "d27557b6421bd4a3",
+  "name": "Obsidian Lucky Charm",
+  "type": "loot",
+  "img": "icons/equipment/neck/pendant-rough-purple.webp",
+  "folder": "684ef18282a30165",
+  "system": {
+    "description": {
+      "value": "<p>A small piece of polished obsidian set in a delicate silver frame. The stone's surface is smooth and cold, and it glimmers with a dark, glossy sheen. </p><p>The charm is attached to a fine silver chain, making it easy to carry or wear.</p>",
+      "chat": ""
+    },
+    "source": {},
+    "identified": true,
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "quantity": 1,
+    "weight": 0.2,
+    "price": {
+      "value": 10,
+      "denomination": "gp"
+    },
+    "rarity": "",
+    "properties": [],
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-obsidian-lucky-charm",
+      "coreMeta": {
+        "category": "Trinkets",
+        "material": "Trinkets",
+        "priceGp": 10
+      }
+    }
+  }
+}

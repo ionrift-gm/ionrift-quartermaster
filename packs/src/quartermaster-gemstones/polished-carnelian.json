@@ -1,0 +1,43 @@
+{
+  "_id": "049e088bdf27597d",
+  "name": "Polished Carnelian",
+  "type": "loot",
+  "img": "icons/commodities/gems/gem-rough-cushion-red.webp",
+  "folder": "fcef7b52d71f073b",
+  "system": {
+    "description": {
+      "value": "<p>A warm reddish-orange stone, smooth and warm to the touch.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 18,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "type": {
+      "value": "gem",
+      "subtype": ""
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "gem-polished-carnelian",
+      "gemMeta": {
+        "tier": "Polished Common",
+        "priceGp": 18
+      }
+    }
+  }
+}

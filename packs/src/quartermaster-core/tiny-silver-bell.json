@@ -1,0 +1,41 @@
+{
+  "_id": "143462cb7d8a5316",
+  "name": "Tiny Silver Bell",
+  "type": "loot",
+  "img": "icons/commodities/treasure/case-red-silver.webp",
+  "folder": "684ef18282a30165",
+  "system": {
+    "description": {
+      "value": "<p>A small, ornate silver bell with a high, clear tone. The bell is decorated with tiny, intricate engravings of jungle scenes and animals.</p>",
+      "chat": ""
+    },
+    "source": {},
+    "identified": true,
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 4,
+      "denomination": "gp"
+    },
+    "rarity": "",
+    "properties": [],
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-tiny-silver-bell",
+      "coreMeta": {
+        "category": "Trinkets",
+        "material": "Trinkets",
+        "priceGp": 4
+      }
+    }
+  }
+}

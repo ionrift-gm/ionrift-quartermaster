@@ -1,0 +1,46 @@
+{
+  "_id": "14b46c25d41aa4bd",
+  "name": "Ancient Map Fragment",
+  "type": "loot",
+  "img": "icons/commodities/treasure/token-runed-nyd-green.webp",
+  "folder": "684ef18282a30165",
+  "system": {
+    "description": {
+      "value": "<p>A tattered piece of parchment that appears to be part of an ancient map. It shows a portion of Chult with markings that suggest hidden treasures or lost cities.</p><p><strong>Notes</strong>: Adventurers and explorers might pay well for this, hoping it leads to greater riches</p><p></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 2,
+    "price": {
+      "value": 50,
+      "denomination": "gp"
+    },
+    "rarity": "",
+    "identified": true,
+    "type": {
+      "value": "",
+      "subtype": ""
+    },
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-ancient-map-fragment",
+      "coreMeta": {
+        "category": "Trinkets",
+        "material": "Curiosities",
+        "priceGp": 50
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "_id": "3c17f5a8e0b64d29",
+  "name": "Lodestone Trinket",
+  "type": "loot",
+  "img": "icons/commodities/stone/rock-pile-grey.webp",
+  "folder": "e5f07a3c2b814da9",
+  "system": {
+    "description": {
+      "value": "<p>A smooth, dark stone the size of a clenched fist, worn perfectly round by what seems like centuries of water. It has a faintly metallic smell and a weight that seems slightly more than it should.</p><p><strong>Curse.</strong> The stone is magnetically cursed. Metal items in the same pack as the stone occasionally rattle and shift, sometimes locking together. Each time the carrier draws a weapon from a sheath or pack, they must make a DC 10 Dexterity check or the draw takes an additional action. The effect is subtle  -  it takes 1d6 days of carrying it before the issue becomes obvious.</p>",
+      "chat": ""
+    },
+    "source": { "custom": "Ionrift Quartermaster  -  Cursed Pool" },
+    "identified": false,
+    "unidentified": { "description": "<p>A smooth, dark stone. Heavier than it looks. Faintly metallic smell  -  probably iron content in the rock.</p>" },
+    "container": null,
+    "quantity": 1,
+    "weight": 2,
+    "price": { "value": 5, "denomination": "gp" },
+    "rarity": "",
+    "properties": [],
+    "type": { "value": "", "subtype": "" }
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "cursed-lodestone-trinket",
+      "cursedMeta": {
+        "category": "Cursed Trinkets & Gems",
+        "curseType": "practical",
+        "tier": 1,
+        "decoyAppearance": "A smooth, dense stone. Possibly decorative or a curiosity.",
+        "trueNature": "Weapons drawing from same pack: DC 10 Dex or costs extra action. Effect delayed 1d6 days.",
+        "tags": ["trinket", "stone", "practical", "subtle", "equipment interference"],
+        "curse": {
+          "name": "The Binding Stone",
+          "description": "Metal gear in the same container shifts and binds. Each time the carrier draws a weapon from a sheath or pack shared with the stone they make a DC 10 Dexterity check or the draw costs an additional action.",
+          "effects": []
+        },
+        "detection": {
+          "arcanaDC": 13,
+          "hints": ["Coins and nails in the same pack occasionally kiss with a faint click overnight."]
+        },
+        "latent": {
+          "trigger": "attunement",
+          "threshold": 4,
+          "escalation": [
+            { "at": 1, "effect": "Minor rattling in the pack that stops when opened." },
+            { "at": 4, "effect": "Full curse activation" }
+          ]
+        },
+        "removal": {
+          "removeCurseLevel": 3,
+          "customRequirement": null
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "count": 295,
+  "folders": 75,
+  "levelBreakdown": {
+    "1": 49,
+    "2": 54,
+    "3": 42,
+    "4": 31,
+    "5": 37,
+    "6": 31,
+    "7": 20,
+    "8": 16,
+    "9": 15
+  },
+  "schoolBreakdown": {
+    "Abjuration": 38,
+    "Conjuration": 48,
+    "Divination": 27,
+    "Enchantment": 28,
+    "Evocation": 53,
+    "Illusion": 26,
+    "Necromancy": 22,
+    "Transmutation": 53
+  }
+}

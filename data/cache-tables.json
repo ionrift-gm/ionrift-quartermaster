@@ -1,0 +1,166 @@
+{
+    "tiers": {
+        "1": { "label": "Tier 1 (Level 1-4)",   "levelRange": [1, 4],   "rarityMax": "uncommon", "goldDice": "2d6",      "scrollLevelMax": 2, "signatureChance": 0.05, "budgetCap": 150  },
+        "2": { "label": "Tier 2 (Level 5-10)",   "levelRange": [5, 10],  "rarityMax": "rare",     "goldDice": "4d6*5",    "scrollLevelMax": 4, "signatureChance": 0.10, "budgetCap": 600  },
+        "3": { "label": "Tier 3 (Level 11-16)",  "levelRange": [11, 16], "rarityMax": "veryRare", "goldDice": "4d6*50",   "scrollLevelMax": 7, "signatureChance": 0.15, "budgetCap": 2500 },
+        "4": { "label": "Tier 4 (Level 17-20)",  "levelRange": [17, 20], "rarityMax": "legendary","goldDice": "4d6*500",  "scrollLevelMax": 9, "signatureChance": 0.20, "budgetCap": 10000}
+    },
+
+    "ownerThemes": {
+        "unspecified": {
+            "label": "Unspecified",
+            "desc": "A general cache. Balanced distribution.",
+            "budgetMultiplier": 1.0,
+            "totalSlots": { "min": 5, "max": 8 },
+            "slotPool": {
+                "mundane": 2, "consumable": 2, "scroll": 1.5,
+                "mastercraft": 1.5, "gemstone": 1.5, "treasure": 1.5, "trinket": 1
+            },
+            "guaranteed": []
+        },
+        "arcana": {
+            "label": "Arcana",
+            "desc": "A spellcaster's reserves. Scrolls, reagents, and arcane curiosities.",
+            "budgetMultiplier": 1.0,
+            "totalSlots": { "min": 5, "max": 7 },
+            "slotPool": {
+                "scroll": 4, "consumable": 3, "trinket": 2,
+                "mundane": 1.5, "gemstone": 1, "mastercraft": 0.5, "treasure": 1
+            },
+            "guaranteed": [{ "type": "scroll", "min": 2, "max": 3 }]
+        },
+        "apothecary": {
+            "label": "Apothecary",
+            "desc": "A healer's stock or alchemist's shelf. Potions, elixirs, and medicinal supplies.",
+            "budgetMultiplier": 0.9,
+            "totalSlots": { "min": 5, "max": 7 },
+            "slotPool": {
+                "consumable": 6, "scroll": 2, "trinket": 1.5,
+                "mundane": 1, "gemstone": 0.5, "mastercraft": 0, "treasure": 0.5
+            },
+            "guaranteed": [{ "type": "consumable", "min": 2, "max": 3 }]
+        },
+        "armaments": {
+            "label": "Armaments",
+            "desc": "Military surplus or a warrior's stash.",
+            "budgetMultiplier": 1.0,
+            "totalSlots": { "min": 6, "max": 8 },
+            "slotPool": {
+                "mastercraft": 4, "mundane": 3, "consumable": 2,
+                "treasure": 1, "gemstone": 1, "scroll": 0.5, "trinket": 0.5
+            },
+            "guaranteed": [{ "type": "mastercraft", "min": 1, "max": 2 }]
+        },
+        "implements": {
+            "label": "Implements",
+            "desc": "A crafter's workshop or cult supplies.",
+            "budgetMultiplier": 0.6,
+            "totalSlots": { "min": 5, "max": 7 },
+            "slotPool": {
+                "mundane": 4, "consumable": 3, "treasure": 2,
+                "trinket": 2, "scroll": 1, "mastercraft": 1, "gemstone": 0.5
+            },
+            "guaranteed": [{ "type": "mundane", "min": 2, "max": 3 }, "consumable"]
+        },
+        "relics": {
+            "label": "Relics",
+            "desc": "Remnants of the dead or divine.",
+            "budgetMultiplier": 0.9,
+            "totalSlots": { "min": 5, "max": 7 },
+            "slotPool": {
+                "gemstone": 3, "treasure": 3, "trinket": 2,
+                "consumable": 1.5, "scroll": 1, "mundane": 1, "mastercraft": 0.5
+            },
+            "guaranteed": [{ "type": "treasure", "min": 1, "max": 2 }],
+            "curseMultiplier": 2.0
+        },
+        "abandoned": {
+            "label": "Abandoned",
+            "desc": "Forgotten junk. Mostly worthless, occasionally surprising.",
+            "budgetMultiplier": 0.15,
+            "totalSlots": { "min": 4, "max": 6 },
+            "slotPool": {
+                "mundane": 5, "trinket": 4, "consumable": 1.5,
+                "treasure": 1, "gemstone": 0.5, "scroll": 0.3, "mastercraft": 0
+            },
+            "guaranteed": ["mundane"]
+        }
+    },
+
+
+
+    "flavorPhrases": {
+        "dungeon": [
+            "Prising apart a loose floor tile, you find {container} concealed in the hollow beneath.",
+            "Wedged behind a supporting pillar and half-buried in rubble -- {container}.",
+            "A section of wall gives under pressure. In the shallow recess behind it, someone left this.",
+            "Scratched into the floor is a crude arrow. Following it leads to a collapsed niche.",
+            "The cell has a false bottom. It comes away cleanly. Whoever hid this knew what they were doing.",
+            "The skeleton in the alcove had its arms folded over something. It takes a moment to see why."
+        ],
+        "forest": [
+            "Between the thick roots of an old oak, pressed flat under leaf litter -- {container}.",
+            "The mossy stump is hollow. Someone used it as a cache, and not long ago.",
+            "Bark stripped from a birch reveals a recess sealed with pine resin. Still dry inside.",
+            "A rock that doesn't sit right. The soil beneath is freshly turned.",
+            "Caught in a hollow branch just above eye level, a bundle wrapped in oilskin.",
+            "Pressed flat under a sheet of fallen bark -- {container}. Easy to miss."
+        ],
+        "swamp": [
+            "Tangled in the root system of a half-drowned cypress, just above the waterline -- {container}.",
+            "A hollow log, bobbing at the edge of the reed bed. Clay-sealed at both ends. Still dry.",
+            "Buried in the silt at the bank's edge, the oilskin wrapping intact despite everything.",
+            "Lashed to a submerged stake with rotting cord. The water kept it cool. The seal held.",
+            "Wedged in the fork of a long-dead tree, rotted hollow above the mud line.",
+            "The mud here has a different texture -- packed, not settled. Whatever is beneath it was placed deliberately."
+        ],
+        "desert": [
+            "Beneath an overturned stone, shaded from the sun -- {container}.",
+            "The cairn was built to mark something. Beneath the lowest stone, wrapped in cloth, this.",
+            "A scraped furrow in the sand, half-filled by the wind. Whatever buried this wasn't expecting to leave it long.",
+            "Behind a wind-carved pillar of sandstone, in the cool shadow -- {container}.",
+            "The dry riverbed has a false bottom here. An old trader's trick.",
+            "Tucked under the lip of a rock shelf, just out of the sun. Easy to miss against the stone."
+        ],
+        "jungle": [
+            "The root system of a banyan has grown around {container}. It takes some effort to free.",
+            "A hollow bamboo stalk, capped and lashed. Whoever made it knew how to keep water out.",
+            "Someone wove the entrance shut with green vines. Careful cutting reveals {container} behind them.",
+            "Buried at the base of a strangler fig, deep enough to stay cool through the heat.",
+            "The canopy drip carved a channel in the stone over the years. Following it leads to a dry pocket.",
+            "A flat stone half-sunken into the mud. Beneath it, wrapped in broad leaves, something was set aside."
+        ],
+        "urban": [
+            "A loose brick in the alley wall. The mortar around it is barely set.",
+            "Under a market stall's false floor, sealed with a cloth rag. The stall has been empty for weeks.",
+            "A locked strongbox beneath a floorboard. The key was around the last occupant's neck.",
+            "Stuffed inside a chimney breast, wrapped in wax paper against the soot.",
+            "The cellar drain runs deeper than it should. A bundle is wedged into the bend.",
+            "Behind a panel in the wainscoting, the wood slightly proud of the wall if you know to look."
+        ],
+        "coastal": [
+            "Jammed into a rock crevice above the tideline, sealed in a waterproofed oilcloth roll.",
+            "The sea-cave narrows at the back. A ledge, invisible at high tide, holds this.",
+            "Beneath a cairn of wave-smoothed stones on the strand.",
+            "Lashed to the underside of a pier strut, just above the high-water mark.",
+            "{container}, wedged in a hull breach. The seal held. Just.",
+            "The hollow in the driftwood is deeper than it looks. Oilcloth inside, still intact."
+        ],
+        "mountain": [
+            "Wedged into a crack in the cliff face, barely visible from below.",
+            "Beneath a cairn at the ridge line, the stones placed with purpose.",
+            "The mountain hut's floorboards are loose. Someone used the crawlspace.",
+            "A narrow chimney in the rock face. The opening at the top conceals {container}.",
+            "The goat trail ends at a shelf. Someone camped here, and left something behind.",
+            "Ice-crusted and half-buried in scree. The oilcloth wrapping saved it."
+        ],
+        "arctic": [
+            "Buried under a cairn of stones, the gaps packed with snow. Still frozen solid inside.",
+            "Wedged into a crevasse in the ice shelf, wrapped in skins. The cold preserved it better than any vault.",
+            "The snow here is the wrong kind of flat -- packed, not drifted. Beneath it, wrapped in oilcloth.",
+            "A depression cut into the permafrost and deliberately refilled. Whoever made this expected to return.",
+            "Sealed inside a frozen hollow in the rock face. The ice has to be chipped away to reach it.",
+            "Lashed beneath the overhang of a glacial shelf, just above the freeze line. Still solid."
+        ]
+    }
+}

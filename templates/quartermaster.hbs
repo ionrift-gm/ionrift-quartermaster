@@ -1,0 +1,102 @@
+<form class="ionrift-quartermaster-form">
+    <header class="workshop-header">
+        <h1><i class="fas fa-hammer"></i> {{#if isEdit}}Reforging{{else}}The Quartermaster{{/if}}</h1>
+        <p>{{#if isEdit}}Refine what was made.{{else}}Forge Legend. Bind Sound.{{/if}}</p>
+    </header>
+
+    <div class="workshop-body">
+        <!-- Identity Section -->
+        <div class="identity-section">
+            <h2>Identity</h2>
+
+            <!-- Image Preview + Picker -->
+            <div class="image-row">
+                <div class="image-preview-container {{#unless currentImage}}empty{{/unless}}">
+                    <img src="{{#if currentImage}}{{currentImage}}{{else}}icons/svg/mystery-man.svg{{/if}}" class="item-image-preview" />
+                    <button type="button" class="action-pick-image" title="Choose image">
+                        <i class="fas fa-image"></i>
+                    </button>
+                </div>
+
+                <div class="identity-fields">
+                    <div class="form-group">
+                            <label>Name</label>
+                        </div>
+                        <input type="text" name="name" placeholder="Item Name..." value="{{itemData.name}}" />
+                    </div>
+
+                    <div class="form-group-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Type</label>
+                            <select name="type">
+                                {{#each types}}
+                                <option value="{{this}}" {{#if (eq this ../itemData.type)}}selected{{/if}}>{{this}}</option>
+                                {{/each}}
+                            </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" rows="8" placeholder="A blade forged in...">{{itemData.description}}</textarea>
+            </div>
+
+
+        </div>
+
+        {{#if hasResonance}}
+        <hr>
+
+        <!-- Sonic Binding (only when Resonance is active) -->
+        <div class="sonic-section">
+            <h2><i class="fas fa-music"></i> Sonic Binding</h2>
+
+            <div class="sound-slot">
+                <label><i class="fas fa-fist-raised"></i> Attack Sound</label>
+                <div class="input-group">
+                    <input type="text" name="sound_attack" placeholder="Default / ID" />
+                    <button type="button" class="action-search-sound" data-target="sound_attack"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+
+            <div class="sound-slot">
+                <label><i class="fas fa-hand-sparkles"></i> Use Sound (Debounced)</label>
+                <div class="input-group">
+                    <input type="text" name="sound_use" placeholder="ID, ID, ID (Randomized)" />
+                    <button type="button" class="action-search-sound" data-target="sound_use"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+
+            <div class="sound-slot">
+                <label><i class="fas fa-tshirt"></i> Equip Sound</label>
+                <div class="input-group">
+                    <input type="text" name="sound_equip" placeholder="Unsheathe ID" />
+                    <button type="button" class="action-search-sound" data-target="sound_equip"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+
+            <div class="sound-slot">
+                <label><i class="fas fa-box-open"></i> Unequip Sound</label>
+                <div class="input-group">
+                    <input type="text" name="sound_unequip" placeholder="Sheathe ID" />
+                    <button type="button" class="action-search-sound" data-target="sound_unequip"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{#unless hasResonance}}
+        <div class="standalone-hint">
+            <p><i class="fas fa-info-circle"></i> Install <strong>Ionrift Resonance</strong> for sound binding.</p>
+        </div>
+        {{/unless}}
+    </div>
+
+    <footer class="workshop-footer">
+        <button type="submit" class="action-create">
+            <i class="fas fa-{{#if isEdit}}save{{else}}check{{/if}}"></i>
+            {{#if isEdit}}Update Item{{else}}Forge Item{{/if}}
+        </button>
+    </footer>
+</form>

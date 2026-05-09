@@ -1,0 +1,134 @@
+{
+  "_id": "8b6f1c97e7fb00ef",
+  "name": "Ironwood Half Plate Armor",
+  "type": "equipment",
+  "img": "icons/equipment/chest/breastplate-banded-leather-brown.webp",
+  "folder": "d8413299385e949a",
+  "system": {
+    "description": {
+      "value": "<p>This item is crafted from ironwood, known for its durability and strength.</p><p>It provides a +1 bonus to AC with +1 bonus to Strength checks and saving throws</p><p>However, it is heavy, imposing a -5 penalty to movement speed and a -1 to Dex checks.</p><p>The item also provides good protection against undergrowth hazards like thorns and vines.</p><p></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 40,
+    "price": {
+      "value": 200,
+      "denomination": "gp"
+    },
+    "attunement": 0,
+    "equipped": false,
+    "rarity": "",
+    "identified": true,
+    "activation": {
+      "type": "",
+      "cost": null,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "cover": null,
+    "crewed": false,
+    "target": {
+      "value": null,
+      "width": null,
+      "units": "",
+      "type": "",
+      "prompt": true
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": null,
+      "max": "",
+      "per": null,
+      "recovery": "",
+      "prompt": true
+    },
+    "consume": {
+      "type": "",
+      "target": null,
+      "amount": null,
+      "scale": false
+    },
+    "ability": null,
+    "actionType": "",
+    "chatFlavor": "",
+    "critical": {
+      "threshold": null,
+      "damage": ""
+    },
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "formula": "",
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": "spell"
+    },
+    "armor": {
+      "value": 16,
+      "dex": 2,
+      "magicalBonus": null
+    },
+    "hp": {
+      "value": 0,
+      "max": 0,
+      "dt": null,
+      "conditions": ""
+    },
+    "speed": {
+      "value": null,
+      "conditions": ""
+    },
+    "strength": null,
+    "proficient": null,
+    "type": {
+      "value": "medium",
+      "baseItem": "halfplate"
+    },
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "properties": [
+      "stealthDisadvantage"
+    ],
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "summons": {
+      "match": {
+        "attacks": false,
+        "proficiency": false,
+        "saves": false
+      },
+      "profiles": [],
+      "bonuses": {},
+      "prompt": true
+    }
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-ironwood-half-plate-armor",
+      "coreMeta": {
+        "category": "Cultural Weapons",
+        "material": "Ironwood",
+        "priceGp": 200
+      }
+    }
+  }
+}

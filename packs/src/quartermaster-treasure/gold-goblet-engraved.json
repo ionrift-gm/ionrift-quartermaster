@@ -1,0 +1,39 @@
+{
+  "_id": "e10db2ecb81ba553",
+  "name": "Gold Goblet (engraved)",
+  "type": "loot",
+  "img": "icons/containers/kitchenware/goblet-engraved-grey.webp",
+  "folder": "6db93f9bfcfc4acd",
+  "system": {
+    "description": {
+      "value": "<p>A solid gold goblet with vine motifs pressed into the sides. Heavy and impractical for field use.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 1,
+    "price": {
+      "value": 100,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "treasure-gold-goblet-engraved",
+      "treasureMeta": {
+        "category": "artObject",
+        "priceGp": 100
+      }
+    }
+  }
+}

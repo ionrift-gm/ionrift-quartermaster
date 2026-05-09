@@ -1,0 +1,55 @@
+{
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-undef": "error",
+    "no-console": "off",
+    "eqeqeq": ["error", "always"],
+    "no-var": "error",
+    "prefer-const": "warn",
+    "semi": ["error", "always"],
+    "no-duplicate-imports": "error",
+    "no-unreachable": "error",
+    "no-constant-condition": "warn"
+  },
+  "globals": {
+    "game": "readonly",
+    "ui": "readonly",
+    "canvas": "readonly",
+    "Hooks": "readonly",
+    "CONFIG": "readonly",
+    "foundry": "readonly",
+    "Application": "readonly",
+    "FormApplication": "readonly",
+    "Dialog": "readonly",
+    "ChatMessage": "readonly",
+    "Actor": "readonly",
+    "Item": "readonly",
+    "Token": "readonly",
+    "Roll": "readonly",
+    "CONST": "readonly",
+    "mergeObject": "readonly",
+    "duplicate": "readonly",
+    "loadTemplates": "readonly",
+    "renderTemplate": "readonly",
+    "getTemplate": "readonly",
+    "TextEditor": "readonly",
+    "fromUuid": "readonly",
+    "fromUuidSync": "readonly",
+    "PIXI": "readonly",
+    "$": "readonly",
+    "Handlebars": "readonly",
+    "FilePicker": "readonly",
+    "Folder": "readonly",
+    "JournalEntry": "readonly",
+    "CompendiumCollection": "readonly",
+    "Pack": "readonly"
+  }
+}

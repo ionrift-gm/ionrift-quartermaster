@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "classic-level": "^3.0.0",
+    "handlebars": "^4.7.9"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

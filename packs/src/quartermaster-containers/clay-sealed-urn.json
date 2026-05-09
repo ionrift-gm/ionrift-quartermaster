@@ -1,0 +1,59 @@
+{
+  "_id": "8f74223eda8fbb3d",
+  "name": "Clay-Sealed Urn",
+  "type": "container",
+  "img": "icons/containers/kitchenware/jug-clay-brown-sealed.webp",
+  "folder": "c9cb7fc62085af7d",
+  "system": {
+    "description": {
+      "value": "<p>A wide-mouthed clay urn, stoppered and sealed with fired clay paste. Common in wetland settlements where rot claims anything with a lid that breathes.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 4,
+    "price": {
+      "value": 3,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "capacity": {
+      "type": "weight",
+      "value": 15,
+      "weightlessContents": false
+    },
+    "currency": {
+      "cp": 0,
+      "sp": 0,
+      "ep": 0,
+      "gp": 0,
+      "pp": 0
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "container-clay-sealed-urn",
+      "containerMeta": {
+        "terrains": [
+          "swamp",
+          "dungeon",
+          "desert"
+        ],
+        "cacheTypes": [
+          "stash",
+          "reliquary"
+        ],
+        "capacityLbs": 15
+      }
+    }
+  }
+}

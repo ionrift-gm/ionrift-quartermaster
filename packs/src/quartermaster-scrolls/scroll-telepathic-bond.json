@@ -1,0 +1,92 @@
+{
+  "_id": "000000002cb362e7",
+  "name": "Scroll of Telepathic Bond",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-symbol-eye-brown.webp",
+  "folder": "0000000033e5aeee",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Telepathic Bond</strong> (Level 5 Divination)</p><p>You forge a telepathic link among up to eight willing creatures of your choice within range, psychically linking each creature to all the others for the duration. Creatures with Intelligence scores of 2 or less aren't affected by this spell.</p><p>Until the spell ends, the targets can communicate telepathically through the bond whether or not they have a common language. The communication is possible over any distance, though it can't extend to other planes of existence.</p><p><strong>Components:</strong> V, S, M (Pieces of eggshell from two different kinds of creatures)</p><p><strong>Casting Time:</strong> 1 action | <strong>Range:</strong> 30 feet | <strong>Duration:</strong> 1 hour (Ritual)</p><p><em>Classes: Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 640,
+      "denomination": "gp"
+    },
+    "rarity": "rare",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": ""
+    },
+    "range": {
+      "value": 30,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-telepathic-bond",
+      "scrollMeta": {
+        "spellName": "Telepathic Bond",
+        "spellLevel": 5,
+        "school": "divination",
+        "saveDC": 17,
+        "attackBonus": 9,
+        "classLists": [
+          "Wizard"
+        ],
+        "ritual": true,
+        "concentration": false,
+        "components": [
+          "V",
+          "S",
+          "M"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "_id": "e8921958d1f6440d",
+  "name": "Ivory Dice",
+  "type": "loot",
+  "img": "icons/sundries/gaming/dice-runed-brown.webp",
+  "folder": "684ef18282a30165",
+  "system": {
+    "description": {
+      "value": "<p>A pair of dice carved from ivory, with intricate designs on each face. The dice are smooth and polished, feeling heavy and substantial in the hand.</p>",
+      "chat": ""
+    },
+    "source": {},
+    "identified": true,
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 6,
+      "denomination": "gp"
+    },
+    "rarity": "",
+    "properties": [],
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-ivory-dice",
+      "coreMeta": {
+        "category": "Trinkets",
+        "material": "Trinkets",
+        "priceGp": 6
+      }
+    }
+  }
+}

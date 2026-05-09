@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "production": {
+      "description": "Matches shipped release zip (approved packs only)",
+      "mount": ["quartermaster-containers"]
+    },
+    "ea-cursed": {
+      "description": "EA curse work: containers plus Proving Grounds compendiums",
+      "mount": [
+        "quartermaster-containers",
+        "proving-grounds",
+        "proving-grounds-guide"
+      ]
+    }
+  }
+}

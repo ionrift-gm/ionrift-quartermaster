@@ -1,0 +1,92 @@
+{
+  "_id": "0000000044018e23",
+  "name": "Scroll of Misty Step",
+  "type": "consumable",
+  "img": "icons/sundries/scrolls/scroll-bound-sealed-orange.webp",
+  "folder": "000000005d294d6a",
+  "system": {
+    "description": {
+      "value": "<p><strong>Scroll of Misty Step</strong> (Level 2 Conjuration)</p><p>Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.</p><p><strong>Components:</strong> V</p><p><strong>Casting Time:</strong> 1 bonus action | <strong>Range:</strong> Self | <strong>Duration:</strong> Instantaneous</p><p><em>Classes: Sorcerer, Warlock, Wizard</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 120,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "units": ""
+    },
+    "uses": {
+      "value": 1,
+      "max": "1",
+      "per": "charges",
+      "recovery": "",
+      "autoDestroy": true,
+      "prompt": true
+    },
+    "type": {
+      "value": "scroll",
+      "subtype": ""
+    },
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": ""
+    },
+    "attack": {
+      "bonus": "",
+      "flat": false
+    },
+    "actionType": "",
+    "damage": {
+      "parts": [],
+      "versatile": ""
+    },
+    "properties": [
+      "mgc"
+    ]
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "scroll-misty-step",
+      "scrollMeta": {
+        "spellName": "Misty Step",
+        "spellLevel": 2,
+        "school": "conjuration",
+        "saveDC": 13,
+        "attackBonus": 5,
+        "classLists": [
+          "Sorcerer",
+          "Warlock",
+          "Wizard"
+        ],
+        "ritual": false,
+        "concentration": false,
+        "components": [
+          "V"
+        ]
+      }
+    }
+  }
+}

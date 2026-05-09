@@ -1,0 +1,61 @@
+<form class="ionrift-loot-pool-config ionrift-curse-forge-sources">
+    {{#if alreadyCompiled}}
+    <p class="pool-instructions">
+        The <strong>Quartermaster: Cursed Items</strong> compendium already exists.
+        Re-compiling will rebuild it from the selected sources below.
+        {{recipeCount}} curse recipes will be matched against items in these compendiums.
+    </p>
+    {{else}}
+    <div class="scroll-forge-welcome">
+        <div class="scroll-forge-welcome-icon">
+            <i class="fas fa-skull"></i>
+        </div>
+        <h3>Compile D&amp;D Curses</h3>
+        <p class="scroll-forge-welcome-desc">
+            Curse Forge reads your installed <strong>D&amp;D 5e item compendiums</strong>
+            and matches {{recipeCount}} curse recipes against them. The result is a
+            <strong>Quartermaster: Cursed Items</strong> world compendium containing
+            Ionrift-branded cursed items ready for your campaign.
+        </p>
+        <p class="scroll-forge-welcome-action">
+            Confirm the sources below, then hit <strong>Compile</strong>.
+            You can re-compile any time from the Cursed Pool tab.
+        </p>
+        <p class="scroll-forge-welcome-note">
+            No SRD content is shipped with the module. Base item stats and images come
+            from your own system installation. Curse names, descriptions, and escalation
+            phases are Ionrift originals.
+        </p>
+    </div>
+    {{/if}}
+
+    <div class="scroll-forge-toolbar">
+        <button type="button" class="cache-btn-accent curse-forge-select-all">
+            <i class="fas fa-check-double"></i> Select all
+        </button>
+        <button type="button" class="cache-btn-accent curse-forge-select-none">
+            <i class="fas fa-times"></i> Select none
+        </button>
+    </div>
+
+    {{#each groups}}
+    <div class="pool-group">
+        <div class="pool-group-header">
+            <i class="fas fa-box-archive"></i> {{this.label}}
+        </div>
+        {{#each this.packs}}
+        <label class="pool-pack-row">
+            <input type="checkbox" name="pack-{{this.id}}" {{#if this.enabled}}checked{{/if}} />
+            <span class="pool-pack-label">{{this.label}}</span>
+            <span class="pool-pack-id">{{this.id}} ({{this.count}} items)</span>
+        </label>
+        {{/each}}
+    </div>
+    {{/each}}
+
+    <footer class="pool-footer">
+        <button type="submit" class="cache-btn-accent">
+            <i class="fas fa-hammer"></i> Compile
+        </button>
+    </footer>
+</form>

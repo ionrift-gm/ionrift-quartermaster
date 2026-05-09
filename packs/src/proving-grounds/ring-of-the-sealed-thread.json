@@ -1,0 +1,80 @@
+{
+  "_id": "8f8192a3b4c5d6e0",
+  "name": "Ring of the Sealed Thread",
+  "type": "equipment",
+  "img": "icons/equipment/finger/ring-band-engraved-silver.webp",
+  "folder": "b2c11ef4a93d6014",
+  "system": {
+    "description": {
+      "value": "<p>A silver band engraved with endless knotwork. It grants advantage on death saving throws.</p><p><strong>Curse.</strong> While attuned, if the wearer dies their soul cannot be restored by <em>raise dead</em>, <em>resurrection</em>, or <em>reincarnate</em> while the ring remains intact on the corpse or in inventory. Only <em>true resurrection</em> or <em>wish</em> ignores this block until the curse is broken.</p>",
+      "chat": ""
+    },
+    "source": { "custom": "Ionrift Quartermaster  -  Cursed Pool" },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": { "value": 18000, "denomination": "gp" },
+    "attunement": 2,
+    "equipped": false,
+    "rarity": "legendary",
+    "identified": false,
+    "activation": { "type": "none", "cost": null, "condition": "" },
+    "duration": { "value": "", "units": "" },
+    "cover": null,
+    "target": { "value": null, "width": null, "units": "", "type": "", "prompt": true },
+    "range": { "value": null, "long": null, "units": "" },
+    "uses": { "value": null, "max": "", "per": null, "recovery": "", "prompt": true },
+    "consume": { "type": "", "target": null, "amount": null, "scale": false },
+    "ability": "",
+    "actionType": "",
+    "chatFlavor": "",
+    "critical": { "threshold": null, "damage": "" },
+    "damage": { "parts": [], "versatile": "" },
+    "formula": "",
+    "save": { "ability": "", "dc": null, "scaling": "spell" },
+    "armor": { "value": 10 },
+    "hp": { "value": 0, "max": 0, "dt": null, "conditions": "" },
+    "properties": [],
+    "proficient": null,
+    "type": { "value": "trinket", "baseItem": "" },
+    "unidentified": { "description": "<p>A silver ring of tight knot engravings. Your pulse steadies when death is discussed.</p>" },
+    "container": null,
+    "crewed": false,
+    "attack": { "bonus": "", "flat": false },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "cursed-ring-of-the-sealed-thread",
+      "cursedMeta": {
+        "category": "Cursed Jewelry & Rings",
+        "curseType": "compulsion",
+        "tier": 4,
+        "decoyAppearance": "Legendary ring that steadies the soul on death's door (advantage on death saves).",
+        "trueNature": "While attuned, death locks the soul: raise dead, resurrection, and reincarnate fail unless the curse is ended first; true resurrection and wish still work.",
+        "tags": ["ring", "jewelry", "compulsion", "legendary", "tier-4"],
+        "curse": {
+          "name": "Sealed Thread",
+          "description": "If the attuned wearer dies, their soul cannot return via raise dead, resurrection, or reincarnate until the curse is removed or the ring is destroyed. True resurrection and wish can still restore them.",
+          "effects": []
+        },
+        "detection": {
+          "arcanaDC": 23,
+          "hints": ["Speak with dead fails on corpses still wearing the band; the thread has no loose end."]
+        },
+        "latent": {
+          "trigger": "attunement",
+          "threshold": 5,
+          "escalation": [
+            { "at": 1, "effect": "Cleric spells that restore HP feel cold on the ring hand." },
+            { "at": 3, "effect": "Dream of signing a contract with no witnesses." },
+            { "at": 5, "effect": "Full curse activation" }
+          ]
+        },
+        "removal": {
+          "removeCurseLevel": 9,
+          "customRequirement": null
+        }
+      }
+    }
+  }
+}

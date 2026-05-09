@@ -1,0 +1,79 @@
+{
+  "_id": "2e8c47a0f1b93d56",
+  "name": "Necklace of Honest Words",
+  "type": "equipment",
+  "img": "icons/equipment/neck/amulet-round-silver-blue.webp",
+  "folder": "b2c11ef4a93d6014",
+  "system": {
+    "description": {
+      "value": "<p>A simple silver chain holding a flat blue stone, polished smooth. You might mistake it for decorative. You would be mistaken.</p><p><strong>Curse.</strong> The wearer cannot speak a deliberate lie. They can refuse to answer, stay silent, or mislead through technically true statements  -  but any intentional falsehood causes the stone to flash cold against the skin and the words to fail in the throat. The effect is difficult to explain to others without demonstration.</p>",
+      "chat": ""
+    },
+    "source": { "custom": "Ionrift Quartermaster  -  Cursed Pool" },
+    "quantity": 1,
+    "weight": 0.2,
+    "price": { "value": 180, "denomination": "gp" },
+    "attunement": 2,
+    "equipped": false,
+    "rarity": "uncommon",
+    "identified": false,
+    "activation": { "type": "none", "cost": null, "condition": "" },
+    "duration": { "value": "", "units": "" },
+    "cover": null,
+    "target": { "value": null, "width": null, "units": "", "type": "", "prompt": true },
+    "range": { "value": null, "long": null, "units": "" },
+    "uses": { "value": null, "max": "", "per": null, "recovery": "", "prompt": true },
+    "consume": { "type": "", "target": null, "amount": null, "scale": false },
+    "ability": "",
+    "actionType": "",
+    "chatFlavor": "",
+    "critical": { "threshold": null, "damage": "" },
+    "damage": { "parts": [], "versatile": "" },
+    "formula": "",
+    "save": { "ability": "", "dc": null, "scaling": "spell" },
+    "armor": { "value": 10 },
+    "hp": { "value": 0, "max": 0, "dt": null, "conditions": "" },
+    "properties": [],
+    "proficient": null,
+    "type": { "value": "trinket", "baseItem": "" },
+    "unidentified": { "description": "<p>A silver chain with a flat blue stone. Smooth and cool. Perfectly ordinary-looking.</p>" },
+    "container": null,
+    "crewed": false,
+    "attack": { "bonus": "", "flat": false },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "cursed-necklace-of-honest-words",
+      "cursedMeta": {
+        "category": "Cursed Jewelry & Rings",
+        "curseType": "compulsion",
+        "tier": 1,
+        "decoyAppearance": "A silver chain with a polished blue stone. Tasteful and simple.",
+        "trueNature": "Wearer cannot deliberately lie. Silence and technically-true misleading is still possible.",
+        "tags": ["jewelry", "necklace", "compulsion", "roleplay"],
+        "curse": {
+          "name": "Honest Words",
+          "description": "While attuned the wearer cannot speak a deliberate lie; intentional falsehoods fail in the throat as the stone flashes cold.",
+          "effects": []
+        },
+        "detection": {
+          "arcanaDC": 14,
+          "hints": ["Under stress the wearer hesitates on simple facts and the pendant cools against the skin."]
+        },
+        "latent": {
+          "trigger": "attunement",
+          "threshold": 3,
+          "escalation": [
+            { "at": 1, "effect": "Harmless slips of phrasing; the wearer corrects themselves more often than usual." },
+            { "at": 3, "effect": "Full curse activation" }
+          ]
+        },
+        "removal": {
+          "removeCurseLevel": 3,
+          "customRequirement": null
+        }
+      }
+    }
+  }
+}

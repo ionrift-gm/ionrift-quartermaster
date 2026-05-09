@@ -1,0 +1,81 @@
+{
+  "_id": "09708192a3b4c5d6",
+  "name": "Crown of Quiet Promotion",
+  "type": "equipment",
+  "img": "icons/equipment/head/circlet-jewel-gold-red.webp",
+  "folder": "b2c11ef4a93d6014",
+  "system": {
+    "description": {
+      "value": "<p>A slim crown set with rubies that look like sealed letters. While worn it grants advantage on Charisma (Persuasion) checks made against nobles.</p><p><strong>Curse.</strong> Each dawn, a sliver of the wearer's class power transfers to a hidden patron NPC (lose one hit die size step of effective class features at the GM's discretion, cumulative). Only destroying the patron's phylactery-object or completing a quest agreed at the table reverses the drain.</p>",
+      "chat": ""
+    },
+    "source": { "custom": "Ionrift Quartermaster  -  Cursed Pool" },
+    "quantity": 1,
+    "weight": 0.5,
+    "price": { "value": 25000, "denomination": "gp" },
+    "attunement": 2,
+    "equipped": false,
+    "rarity": "legendary",
+    "identified": false,
+    "activation": { "type": "none", "cost": null, "condition": "" },
+    "duration": { "value": "", "units": "" },
+    "cover": null,
+    "target": { "value": null, "width": null, "units": "", "type": "", "prompt": true },
+    "range": { "value": null, "long": null, "units": "" },
+    "uses": { "value": null, "max": "", "per": null, "recovery": "", "prompt": true },
+    "consume": { "type": "", "target": null, "amount": null, "scale": false },
+    "ability": "",
+    "actionType": "",
+    "chatFlavor": "",
+    "critical": { "threshold": null, "damage": "" },
+    "damage": { "parts": [], "versatile": "" },
+    "formula": "",
+    "save": { "ability": "", "dc": null, "scaling": "spell" },
+    "armor": { "value": 10 },
+    "hp": { "value": 0, "max": 0, "dt": null, "conditions": "" },
+    "properties": [],
+    "proficient": null,
+    "type": { "value": "trinket", "baseItem": "" },
+    "unidentified": { "description": "<p>A courtly circlet with deep red stones. Wearing it makes petitions feel effortless.</p>" },
+    "container": null,
+    "crewed": false,
+    "attack": { "bonus": "", "flat": false },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "cursed-crown-of-quiet-promotion",
+      "cursedMeta": {
+        "category": "Cursed Jewelry & Rings",
+        "curseType": "narrative",
+        "tier": 4,
+        "decoyAppearance": "Legendary court crown that bends noble ears toward your petitions.",
+        "trueNature": "Class power bleeds each dawn to a patron NPC until a table-defined quest or destruction of the patron anchor ends it.",
+        "tags": ["crown", "jewelry", "narrative", "legendary", "tier-4"],
+        "curse": {
+          "name": "Quiet Promotion",
+          "description": "At each dawn the GM moves one concrete class resource (spell slot tier, martial die size, channel uses, etc.) from the wearer to a named patron NPC until the curse is resolved by quest or destroying the patron's bound object.",
+          "effects": []
+        },
+        "detection": {
+          "arcanaDC": 25,
+          "hints": ["Rubies contain folded script only visible in candlelight; the letters are addressed to someone else's name."]
+        },
+        "latent": {
+          "trigger": "attunement",
+          "threshold": 7,
+          "escalation": [
+            { "at": 1, "effect": "A distant voice congratulates the wearer on 'delegating well.'" },
+            { "at": 3, "effect": "NPC allies defer to the patron's name without knowing why." },
+            { "at": 5, "effect": "Class features stutter: one resource misfires per long rest." },
+            { "at": 7, "effect": "Full curse activation" }
+          ]
+        },
+        "removal": {
+          "removeCurseLevel": 9,
+          "customRequirement": "Destroy or sanctify the patron's bound relic, or complete the GM-authored quest tied to the crown's deed."
+        }
+      }
+    }
+  }
+}

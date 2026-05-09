@@ -1,0 +1,137 @@
+{
+  "_id": "d4e7a1f3c8b92065",
+  "name": "Leather Gauntlets",
+  "type": "equipment",
+  "img": "icons/equipment/hand/glove-ringed-cloth-brown.webp",
+  "folder": "7fa3e8b2c14d9022",
+  "system": {
+    "description": {
+      "value": "<p>A pair of well-worn leather gauntlets with iron knuckle plates. Heavy stitching, sturdy grip.</p>",
+      "chat": ""
+    },
+    "source": { "custom": "" },
+    "quantity": 1,
+    "weight": 1,
+    "price": { "value": 0, "denomination": "gp" },
+    "attunement": 0,
+    "equipped": false,
+    "rarity": "",
+    "identified": false,
+    "activation": { "type": "", "cost": null, "condition": "" },
+    "duration": { "value": "", "units": "" },
+    "cover": null,
+    "target": { "value": null, "width": null, "units": "", "type": "", "prompt": true },
+    "range": { "value": null, "long": null, "units": "" },
+    "uses": { "value": null, "max": "", "per": null, "recovery": "", "prompt": true },
+    "consume": { "type": "", "target": null, "amount": null, "scale": false },
+    "armor": { "value": 0, "magicalBonus": null },
+    "hp": { "value": 0, "max": 0, "dt": null, "conditions": "" },
+    "properties": [],
+    "proficient": null,
+    "type": { "value": "trinket", "baseItem": "" },
+    "unidentified": { "description": "<p>A pair of well-worn leather gauntlets with iron knuckle plates. Heavy stitching, sturdy grip.</p>" },
+    "container": null,
+    "crewed": false,
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "cursed-gauntlets-of-the-ogres-due",
+      "cursedMeta": {
+        "category": "Cursed Wondrous Items",
+        "curseType": "physical",
+        "tier": 1,
+        "decoyAppearance": "Gauntlets of Ogre Power. STR set to 19 while worn. Requires attunement.",
+        "trueNature": "Item weight escalates through four phases via the exposure metric. Sticky guard at Phase 2. Max weight 60 lb. STR drops from 19 to 17 at Phase 4. Discovered through encumbrance.",
+        "tags": ["gauntlets", "physical", "strength", "encumbrance", "tier-1", "exposure"],
+        "lure": {
+          "name": "Gauntlets of Ogre Power",
+          "magicalBonus": "0",
+          "properties": ["mgc"],
+          "attunement": "required",
+          "description": "<p>Your Strength score is 19 while you wear these gauntlets. They have no effect on you if your Strength is already 19 or higher.</p>",
+          "rarity": "uncommon"
+        },
+        "curse": {
+          "name": "The Ogre's Due",
+          "description": "The gauntlets grow heavier with use. Item weight escalates from 1 lb to 60 lb across four phases. At Phase 2, the gauntlets lock on and cannot be removed without Remove Curse. At Phase 4, STR drops from 19 to 17 and the gauntlets weigh 60 lb. The ogre wants its strength back.",
+          "effects": [
+            {
+              "label": "The Ogre's Due",
+              "changes": [
+                { "key": "flags.ionrift-quartermaster.curseActive", "mode": 5, "value": "true" }
+              ]
+            }
+          ]
+        },
+        "detection": {
+          "arcanaDC": 15,
+          "hints": [
+            "The iron plates are unusually dense for their size.",
+            "The leather lining has bonded slightly to the display mannequin.",
+            "Detect Magic shows transmutation, consistent with a strength item, but the aura is heavier than expected."
+          ]
+        },
+        "latent": {
+          "trigger": "exposure",
+          "exposure": {
+            "weights": { "combat": 3, "shortRest": 1, "longRest": 8 },
+            "phaseThresholds": [30, 70, 120, 180]
+          },
+          "escalation": [
+            {
+              "at": 30,
+              "phase": 1,
+              "label": "Settling",
+              "effect": "The gauntlets have settled in. Weight increases to 4 lb. No player signal.",
+              "playerHint": "",
+              "apply": { "weight": 4 }
+            },
+            {
+              "at": 70,
+              "phase": 2,
+              "label": "Grip",
+              "stickyGuard": true,
+              "effect": "The Ogre's Due has taken hold. Weight is now 12 lb, heavier than a greatsword. Gauntlets cannot be removed. Encumbrance may start shifting.",
+              "playerHint": "",
+              "apply": { "weight": 12 }
+            },
+            {
+              "at": 120,
+              "phase": 3,
+              "label": "Bearing",
+              "effect": "The gauntlets weigh 25 lb, heavier than a breastplate. Encumbrance is being affected. A player who inspects the item will see an obviously wrong weight.",
+              "playerHint": "You flex your fingers. The motion feels slower than it should.",
+              "apply": { "weight": 25, "image": "icons/equipment/hand/gauntlet-armored-grey.webp" }
+            },
+            {
+              "at": 180,
+              "phase": 4,
+              "label": "Due",
+              "effect": "Full reveal. The Gauntlets of the Ogre's Due show their true nature. 60 lb, heavier than chain mail. STR drops from 19 to 17. The item renames, description updates, icon swaps.",
+              "playerHint": "",
+              "apply": {
+                "weight": 60,
+                "strength": 17,
+                "name": "Gauntlets of the Ogre's Due",
+                "image": "icons/equipment/hand/gauntlet-armored-grey.webp",
+                "descriptionAppend": "<p><strong>Curse: The Ogre's Due.</strong> The gauntlets gave you ogre strength. Now the ogre wants it back. Your Strength is 17. The gauntlets weigh 60 lb. They cannot be removed without Remove Curse.</p>"
+              }
+            }
+          ]
+        },
+        "images": {
+          "lure": "icons/equipment/hand/glove-ringed-cloth-brown.webp",
+          "escalation": "icons/equipment/hand/gauntlet-armored-grey.webp",
+          "revealed": "icons/equipment/hand/gauntlet-armored-grey.webp"
+        },
+        "removal": {
+          "removeCurseLevel": 3,
+          "fade": null,
+          "customRequirement": null,
+          "notes": "T1. Base Remove Curse (3rd) frees the creature - item retains weight/state. Over-levelled Remove Curse (5th) purges the item entirely."
+        }
+      }
+    }
+  }
+}

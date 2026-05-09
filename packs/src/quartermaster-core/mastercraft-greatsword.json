@@ -1,0 +1,134 @@
+{
+  "_id": "57fe1fe3e211aa45",
+  "name": "Mastercraft Greatsword",
+  "type": "weapon",
+  "img": "icons/weapons/swords/greatsword-guard-gem-blue.webp",
+  "folder": "7c4ab8ad1cb8c3bb",
+  "system": {
+    "description": {
+      "value": "<p>A mighty two-handed blade is over four feet long an almost five inches wide. This weapon requires extensive martial training but those proficient in its use are formidable warriors.</p><p>This item is a Mastercraft weapon, forged with exceptional skill and precision. It provides a +1 bonus to attack and damage rolls. The item weighs the same as standard counterparts but is of significantly higher quality, increasing its cost.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "SRD 5.1",
+      "page": "",
+      "license": "CC-BY-4.0"
+    },
+    "quantity": 1,
+    "weight": 6,
+    "price": {
+      "value": 210,
+      "denomination": "gp"
+    },
+    "attunement": 0,
+    "equipped": false,
+    "rarity": "",
+    "identified": true,
+    "activation": {
+      "type": "action",
+      "cost": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": ""
+    },
+    "cover": null,
+    "target": {
+      "value": null,
+      "width": null,
+      "units": "",
+      "type": "",
+      "prompt": true
+    },
+    "range": {
+      "value": 5,
+      "long": null,
+      "units": "ft"
+    },
+    "uses": {
+      "value": null,
+      "max": "",
+      "per": null,
+      "recovery": "",
+      "prompt": true
+    },
+    "consume": {
+      "type": "",
+      "target": null,
+      "amount": null,
+      "scale": false
+    },
+    "ability": "",
+    "actionType": "mwak",
+    "chatFlavor": "",
+    "critical": {
+      "threshold": null,
+      "damage": ""
+    },
+    "damage": {
+      "parts": [
+        [
+          "2d6 + 1 + @mod",
+          "slashing"
+        ]
+      ],
+      "versatile": ""
+    },
+    "formula": "",
+    "save": {
+      "ability": "",
+      "dc": null,
+      "scaling": "spell"
+    },
+    "armor": {
+      "value": 10
+    },
+    "hp": {
+      "value": 0,
+      "max": 0,
+      "dt": null,
+      "conditions": ""
+    },
+    "properties": [
+      "hvy",
+      "two"
+    ],
+    "proficient": null,
+    "type": {
+      "value": "martialM",
+      "baseItem": "greatsword"
+    },
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "crewed": false,
+    "attack": {
+      "bonus": "1",
+      "flat": false
+    },
+    "summons": {
+      "match": {
+        "attacks": false,
+        "proficiency": false,
+        "saves": false
+      },
+      "profiles": [],
+      "bonuses": {},
+      "prompt": true
+    },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "core-mastercraft-greatsword",
+      "coreMeta": {
+        "category": "Mastercraft",
+        "material": "Mastercraft",
+        "priceGp": 210
+      }
+    }
+  }
+}

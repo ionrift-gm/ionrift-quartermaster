@@ -1,0 +1,79 @@
+{
+  "_id": "9b5e0d14c2f87a31",
+  "name": "Shield of Flinching",
+  "type": "equipment",
+  "img": "icons/equipment/shield/shield-round-boss-wood-brown.webp",
+  "folder": "7fa3e8b2c14d9022",
+  "system": {
+    "description": {
+      "value": "<p>A round shield of worn leather over iron, painted with no device. It shows the marks of many blows absorbed, which is not in itself suspicious. The problem is what it does with them.</p><p><strong>Curse.</strong> Whenever the wielder takes damage while this shield is equipped, they must succeed on a DC 11 Wisdom saving throw or use their reaction to move up to 15 feet directly away from the source of the damage. They cannot willingly move toward the source of the damage until the start of their next turn.</p>",
+      "chat": ""
+    },
+    "source": { "custom": "Ionrift Quartermaster  -  Cursed Pool" },
+    "quantity": 1,
+    "weight": 6,
+    "price": { "value": 75, "denomination": "gp" },
+    "attunement": 0,
+    "equipped": false,
+    "rarity": "uncommon",
+    "identified": false,
+    "activation": { "type": "none", "cost": null, "condition": "" },
+    "duration": { "value": "", "units": "" },
+    "cover": null,
+    "target": { "value": null, "width": null, "units": "", "type": "", "prompt": true },
+    "range": { "value": null, "long": null, "units": "" },
+    "uses": { "value": null, "max": "", "per": null, "recovery": "", "prompt": true },
+    "consume": { "type": "", "target": null, "amount": null, "scale": false },
+    "ability": "",
+    "actionType": "util",
+    "chatFlavor": "",
+    "critical": { "threshold": null, "damage": "" },
+    "damage": { "parts": [], "versatile": "" },
+    "formula": "",
+    "save": { "ability": "wis", "dc": 11, "scaling": "flat" },
+    "armor": { "value": 10, "magicalBonus": null, "dex": null },
+    "hp": { "value": 0, "max": 0, "dt": null, "conditions": "" },
+    "properties": ["mgc"],
+    "proficient": null,
+    "type": { "value": "shield", "baseItem": "shield" },
+    "unidentified": { "description": "<p>A battered round shield. Leather on iron. Someone carried this for years.</p>" },
+    "container": null,
+    "crewed": false,
+    "attack": { "bonus": "", "flat": false },
+    "magicalBonus": null
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "cursed-shield-of-flinching",
+      "cursedMeta": {
+        "category": "Cursed Armor & Shields",
+        "curseType": "behavioral",
+        "tier": 1,
+        "decoyAppearance": "A well-worn round shield. Solid construction. Shows battle use.",
+        "trueNature": "On taking damage: DC 11 Wis save or spend reaction to move 15ft away from source, cannot advance toward source until next turn.",
+        "tags": ["armor", "shield", "behavioral", "movement"],
+        "curse": {
+          "name": "The Flinch",
+          "description": "Whenever the wielder takes damage while this shield is equipped they make a DC 11 Wisdom saving throw. On a failure they must use their reaction to move up to 15 feet away from the damage source and cannot willingly move toward it until the start of their next turn.",
+          "effects": []
+        },
+        "detection": {
+          "arcanaDC": 15,
+          "hints": ["The shield arm twitches before blows land, as if it remembers old pain."]
+        },
+        "latent": {
+          "trigger": "combat",
+          "threshold": 4,
+          "escalation": [
+            { "at": 1, "effect": "Footwork widens after a hard hit; the bearer blames fatigue." },
+            { "at": 4, "effect": "Full curse activation" }
+          ]
+        },
+        "removal": {
+          "removeCurseLevel": 3,
+          "customRequirement": null
+        }
+      }
+    }
+  }
+}

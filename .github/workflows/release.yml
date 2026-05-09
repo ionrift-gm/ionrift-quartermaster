@@ -1,0 +1,93 @@
+name: Release Creation
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Validate Assets
+        run: |
+          FIRST_PNG=$(find assets -name '*.png' -type f | head -1)
+          if [ -z "$FIRST_PNG" ]; then
+            echo "WARNING: No PNG files found in assets/ � skipping validation"
+          else
+            SIZE=$(wc -c < "$FIRST_PNG")
+            if [ "$SIZE" -lt 1000 ]; then
+              echo "ERROR: $FIRST_PNG is only ${SIZE} bytes � likely an LFS pointer, not an image"
+              exit 1
+            fi
+            echo "OK: Asset files are real images (first file: $FIRST_PNG, ${SIZE} bytes)"
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate shipping manifest
+        run: node tools/validate-shipping.mjs
+
+      - name: Build shipping manifest
+        run: node tools/filter-manifest.mjs
+
+      - name: Stage filtered manifest for release
+        run: cp .build/module.json module.json
+
+      - name: Zip Module
+        run: |
+          zip -r module.zip . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x ".gitignore" \
+            -x ".gitattributes" \
+            -x ".cursor/*" \
+            -x "tests/*" \
+            -x "node_modules/*" \
+            -x "packs/*" \
+            -x ".build/*" \
+            -x "*.mjs" \
+            -x "*.bak" \
+            -x "*.lock" \
+            -x "*.ps1" \
+            -x "package.json" \
+            -x "package-lock.json" \
+            -x "BACKLOG.md" \
+            -x "task.md" \
+            -x "tools/*" \
+            -x "docs/*" \
+            -x "vitest*" \
+            -x ".eslintrc*"
+
+      - name: Append approved compendium packs to zip
+        run: node tools/append-approved-packs-to-zip.mjs
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            module.zip
+            module.json
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-ea') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+          generate_release_notes: true
+          make_latest: ${{ !(contains(github.ref_name, '-ea') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha')) }}
+
+      # Foundry VTT API notification skipped for EA releases.
+      # Re-enable when submitting to the public package listing.
+
+      # Discord notification skipped for EA releases.
+      # Use manual Patreon post instead.
