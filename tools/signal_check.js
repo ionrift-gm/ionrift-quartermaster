@@ -10,6 +10,8 @@ const REPO_ROOT = path.dirname(TARGET_DIR);
 
 // Files exempt from scanning — contain legitimate matches for domain vocabulary.
 const ALLOWLIST_PATHS = new Set([
+    // Foundry VTT compendium ownership API uses "ASSISTANT" as a role name — not an AI artifact.
+    path.normalize('scripts/services/SrdCurseAdapter.js'),
 ]);
 
 const _d = (s) => Buffer.from(s, 'base64').toString('utf8');
