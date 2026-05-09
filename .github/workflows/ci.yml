@@ -50,12 +50,10 @@ jobs:
   # vitest:
   #   uses: ionrift-gm/ionrift-ci/.github/workflows/vitest.yml@main
 
-  # forge-safety suspended: ionrift-testharness repo does not exist yet.
-  # Re-enable once the testharness repo is created under ionrift-gm.
-  # forge-safety:
-  #   uses: ionrift-gm/ionrift-ci/.github/workflows/vitest.yml@main
-  #   with:
-  #     testharness_repo: 'ionrift-gm/ionrift-testharness'
-  #     testharness_config: 'vitest/forge-safety/vitest.config.js'
-  #   secrets:
-  #     CI_PAT: ${{ secrets.IONRIFT_CI_PAT }}
+  forge-safety:
+    uses: ionrift-gm/ionrift-ci/.github/workflows/vitest.yml@main
+    with:
+      testharness_repo: 'ionrift-gm/ionrift-testharness'
+      testharness_config: 'vitest/forge-safety/vitest.config.js'
+    secrets:
+      CI_PAT: ${{ secrets.IONRIFT_CI_PAT }}
