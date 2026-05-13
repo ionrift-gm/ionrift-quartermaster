@@ -68,7 +68,7 @@ export class ProgressionAdvisor {
             ?? game.actors?.filter(a => a.hasPlayerOwner && a.type === "character")
             ?? [];
         if (!members.length) return 1;
-        const levels  = members.map(a => SA ? SA.getLevel(a) : (a.system?.details?.level ?? 1));
+        const levels  = members.map(a => SA?.getLevel(a) ?? 1);
         return levels.reduce((s, v) => s + v, 0) / levels.length;
     }
 
@@ -82,7 +82,7 @@ export class ProgressionAdvisor {
             const actor = game.actors?.get(id);
             if (!actor) continue;
 
-            const level = SA ? SA.getLevel(actor) : (actor.system?.details?.level ?? 1);
+            const level = SA?.getLevel(actor) ?? 1;
             const powerScore = SignatureLedger.computePowerScore(actor);
 
             const plannedFiltered = (data.plannedItems ?? [])

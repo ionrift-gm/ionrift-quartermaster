@@ -16,12 +16,27 @@ const MODULE_ID = "ionrift-quartermaster";
 
 // ── SRD Manifest ────────────────────────────────────────────────────────
 //
-// 12 canonical SRD cursed items. Names are matched against the dnd5e system
+// 13 canonical SRD cursed items. Names are matched against the dnd5e system
 // compendiums at runtime. cursedMeta stamps tier and curseType only.
 
 const SRD_CURSE_MANIFEST = [
     { match: "Berserker Axe",               tier: 1, curseType: "compulsion" },
     { match: "Dust of Sneezing and Choking", tier: 1, curseType: "deceptive"  },
+    {
+        match: "Potion of Poison",
+        tier: 1,
+        curseType: "deceptive",
+        // masking: instruct QM's ItemMaskingHelper to obscure this item as a
+        // Potion of Healing until the GM identifies it. Activities and effects
+        // from the raw SRD item are preserved — the midi-qol save fires on use.
+        // This is purely presentation masking; no lure trickery is needed.
+        masking: {
+            originalName: "Potion of Healing",
+            originalRarity: "common",
+            img: "icons/consumables/potions/potion-flask-stopped-red.webp",
+            description: "<p><em>Potion, Common</em></p><p>This vial contains a red liquid that glimmers when agitated. As a Bonus Action, you can drink it or administer it to another creature within 5 feet of yourself. The creature that drinks the magical red liquid regains 2d4 + 2 Hit Points.</p>"
+        }
+    },
     { match: "Sword of Vengeance",           tier: 1, curseType: "compulsion" },
     { match: "Armor of Vulnerability",       tier: 2, curseType: "deceptive"  },
     { match: "Bag of Devouring",             tier: 2, curseType: "physical"   },
@@ -48,8 +63,11 @@ export class SrdCurseAdapter {
     /**
      * Discover SRD item packs, match the manifest, and write results into
      * a GM-only world compendium. Hash-gated to avoid recompiling every load.
+     *
+     * @param {boolean} [forceRecompile=false] - Bypass hash gate (used when GM
+     *   explicitly clicks Rebuild Pool, so they always get a fresh compile).
      */
-    static async compile() {
+    static async compile({ forceRecompile = false } = {}) {
         if (!game.user.isGM) return;
         if (game.system?.id !== "dnd5e") return;
 
@@ -61,7 +79,7 @@ export class SrdCurseAdapter {
 
         const sourceHash = await this._computeSourceHash(itemPacks);
         const lastHash   = game.settings.get(MODULE_ID, this.SETTING_HASH);
-        if (sourceHash === lastHash) return;
+        if (!forceRecompile && sourceHash === lastHash) return;
 
         // Load all documents from discovered packs
         const allItems = [];
@@ -147,9 +165,31 @@ export class SrdCurseAdapter {
         const data   = sourceItem.toObject();
         const system = data.system ??= {};
 
-        // Preserve name and stats — SRD items are public as-is.
-        // Just mark it identified so it appears correctly.
+        // All SRD items are identified=true so the GM pool card renders the
+        // real item name and icon. This is a GM-only compendium — hiding the
+        // identity here serves no purpose and breaks pool card rendering.
+        //
+        // For entries with a masking blob (e.g. Potion of Poison disguised as
+        // a Potion of Healing), the latentMagic flag records the swap target so
+        // QM's distribution/identification flow can apply it at hand-off time.
+        // We do NOT pre-overwrite img/description or set identified=false here.
         system.identified = true;
+
+        if (entry.masking) {
+            // Store the masked presentation for QM to use at distribution time.
+            data.flags                                      ??= {};
+            data.flags["ionrift-quartermaster"]             ??= {};
+            data.flags["ionrift-quartermaster"].latentMagic = {
+                originalName:        entry.masking.originalName,
+                originalRarity:      entry.masking.originalRarity ?? "common",
+                magicalBonus:        "",
+                attunement:          "",
+                properties:          ["mgc"],
+                originalDescription: entry.masking.description,
+                originalImg:         entry.masking.img,
+                originalPrice:       { value: system.price?.value ?? 0, denomination: system.price?.denomination ?? "gp" }
+            };
+        }
 
         // Minimal cursedMeta: tier + curseType only.
         // decoyAppearance and trueNature are intentionally empty — no Ionrift IP.

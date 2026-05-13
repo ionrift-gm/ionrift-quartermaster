@@ -251,12 +251,8 @@ export class ProgressionSeeder {
         // Fetch enriched candidates from compendium
         const candidates = await this._fetchCandidates(classNames, banSet);
 
-        const actorTraits = new Set();
-        if (game.system.id === "dnd5e") {
-            if ((actor.system?.attributes?.senses?.darkvision ?? 0) > 0) actorTraits.add("darkvision");
-            for (const dr of actor.system?.traits?.dr?.value ?? []) actorTraits.add(`${dr}-resistance`);
-            for (const ci of actor.system?.traits?.ci?.value ?? []) actorTraits.add(`${ci}-immunity`);
-        }
+        const SA = game.ionrift?.library?.system;
+        const actorTraits = SA ? SA.getTraits(actor) : new Set();
 
         let activeSlots;
 
@@ -460,8 +456,9 @@ export class ProgressionSeeder {
     }
 
     static _getClassNames(actor) {
-        return Object.values(actor.classes || {})
-            .map(c => (c.name || "").toLowerCase().trim());
+        const SA = game.ionrift?.library?.system;
+        if (SA) return SA.getClassNames(actor).map(c => c.toLowerCase().trim());
+        return Object.values(actor.classes || {}).map(c => (c.name || "").toLowerCase().trim());
     }
 
     // ── Compendium Queries ────────────────────────────────────────────────────

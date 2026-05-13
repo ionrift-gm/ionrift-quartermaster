@@ -151,7 +151,7 @@ export class ItemPoolResolver {
                 // Use getIndex for lightweight query
                 const index = await pack.getIndex({ fields: [
                     "name", "type", "img", "system.price", "system.rarity",
-                    "system.type", "system.weight"
+                    "system.type", "system.weight", "system.description"
                 ]});
 
                 const filtered = [];
@@ -240,12 +240,35 @@ export class ItemPoolResolver {
      * Exclude problematic items (cursed, artifacts, class-specific features).
      */
     static _isExcluded(entry) {
-        const name = entry.name?.toLowerCase() ?? "";
+        const name = entry.name?.trim() ?? "";
+        const nameLower = name.toLowerCase();
         // Skip class features, spells, feats masquerading as items
         if (entry.type === "feat" || entry.type === "class" || entry.type === "spell") return true;
         // Skip items with no name
-        if (!entry.name || entry.name.trim() === "") return true;
+        if (!name) return true;
+        if (this._isPlaceholderPoolEntry(entry, nameLower)) return true;
         return false;
+    }
+
+    /**
+     * SRD compendium stubs that are not real loot rows (table pointers, empty shells).
+     */
+    static _isPlaceholderPoolEntry(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
+        if (nameLower === "trinket") return true;
+
+        const desc = this._entryDescriptionText(entry);
+        if (!desc) return false;
+        if (desc.includes("placeholder for the non-srd")) return true;
+        if (desc.includes("placeholder") && desc.includes("d100 table")) return true;
+        return false;
+    }
+
+    static _entryDescriptionText(entry) {
+        const raw = entry.system?.description?.value
+            ?? entry.system?.description
+            ?? "";
+        if (typeof raw !== "string") return "";
+        return raw.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
     }
 
     /**

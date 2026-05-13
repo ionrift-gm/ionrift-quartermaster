@@ -32,7 +32,7 @@ export class CacheGenerator {
         const defaultTier = game.settings?.get("ionrift-quartermaster", "defaultCacheTier") ?? 1;
         const defaultTheme = game.settings?.get("ionrift-quartermaster", "defaultCacheTheme") ?? "dungeon";
 
-        const tier = Math.clamped(options.tier ?? defaultTier, 1, 4);
+        const tier = Math.clamp(options.tier ?? defaultTier, 1, 4);
         const theme = options.theme ?? defaultTheme;
         const ownerTheme = options.ownerTheme ?? "unspecified";
 
@@ -261,7 +261,21 @@ export class CacheGenerator {
         return result;
     }
 
-
+    /**
+     * Cache-time curse injection for manual cache edits and the Curse Cache action.
+     * Delegates to Cursewright when that module is active.
+     *
+     * @param {Object} result
+     * @param {Object} [options]
+     * @returns {Promise<boolean>}
+     */
+    static async applyCacheCurses(result, options = {}) {
+        const engine = game.ionrift?.cursewright?.engine;
+        if (engine?.applyCacheCurses) {
+            return engine.applyCacheCurses(result, options);
+        }
+        return false;
+    }
 
     /**
      * Returns the list of available owner themes.
@@ -962,125 +976,39 @@ export class CacheGenerator {
     }
 
     static async _postChatCard(result) {
-        const { gold, items, meta } = result;
-
         const cacheId = foundry.utils.randomID();
         this._pendingCaches.set(cacheId, result);
 
-        const signatures = items.filter(i => i.isSignature);
-        const scrolls    = items.filter(i => i.spellName);
-        const weapons    = items.filter(i => (i.type === 'weapon' || i.type === 'equipment') && !i.isSignature);
-        const gemstones  = items.filter(i => i.sourceCompendium === 'ionrift-quartermaster.quartermaster-gemstones');
-        const treasures  = items.filter(i => i.sourceCompendium === 'ionrift-quartermaster.quartermaster-treasure');
-        const consumables= items.filter(i => i.type === 'consumable' && !i.spellName && !i.isSignature);
-        const mundane    = items.filter(i => !i.isSignature && !i.spellName
-                            && i.type !== 'weapon' && i.type !== 'equipment'
-                            && i.sourceCompendium !== 'ionrift-quartermaster.quartermaster-gemstones'
-                            && i.sourceCompendium !== 'ionrift-quartermaster.quartermaster-treasure'
-                            && (i.type === 'loot' || i.type === 'tool' || !i.type));
+        const { gold, items, meta: metaBase, coinage } = result;
+        const meta = {
+            ...metaBase,
+            themeDisplay: metaBase.theme.charAt(0).toUpperCase() + metaBase.theme.slice(1)
+        };
+        const coinageRows = coinage
+            ? ["pp", "gp", "ep", "sp", "cp"].filter(d => coinage[d]).map(d => ({ denom: d, amount: coinage[d] }))
+            : [];
 
-        let html = `<div class="ionrift-cache-card" style="font-family: var(--ionrift-font, inherit);">`;
-        html += `<h3 style="margin:0 0 2px; border-bottom: 1px solid rgba(255,255,255,0.15);">`;
-        html += `<i class="fas fa-treasure-chest" style="margin-right:4px;"></i> ${meta.cacheLabel}</h3>`;
-        html += `<p style="margin:2px 0; opacity:0.8; font-size:0.85em;">${meta.tierLabel} | ${meta.theme.charAt(0).toUpperCase() + meta.theme.slice(1)} terrain</p>`;
+        const signatures  = items.filter(i => i.isSignature);
+        const scrolls     = items.filter(i => i.spellName);
+        const weapons     = items.filter(i => (i.type === "weapon" || i.type === "equipment") && !i.isSignature);
+        const treasures   = items.filter(i => i.sourceCompendium === "ionrift-quartermaster.quartermaster-treasure");
+        const consumables = items.filter(i => i.type === "consumable" && !i.spellName && !i.isSignature);
+        const mundane     = items.filter(i =>
+            !i.isSignature && !i.spellName
+            && i.type !== "weapon" && i.type !== "equipment"
+            && i.sourceCompendium !== "ionrift-quartermaster.quartermaster-gemstones"
+            && i.sourceCompendium !== "ionrift-quartermaster.quartermaster-treasure"
+            && (i.type === "loot" || i.type === "tool" || !i.type)
+        );
+        const totalValue = Math.round((gold + items.reduce((s, i) => s + (i.price ?? 0), 0)) * 100) / 100;
 
-        // Flavor
-        if (meta.flavor) {
-            html += `<p style="margin:6px 0 8px; font-style:italic; opacity:0.75; font-size:0.9em; border-left:2px solid rgba(255,255,255,0.2); padding-left:8px;">${meta.flavor}</p>`;
-        }
-
-        // Gold
-        if (gold > 0) {
-            html += `<div style="margin:6px 0; padding:4px 8px; background:rgba(218,165,32,0.15); border-radius:4px;">`;
-            
-            let coinStr = `<strong>${gold} gp</strong>`;
-            if (result.coinage) {
-                const parts = [];
-                for (const denom of ["pp", "gp", "ep", "sp", "cp"]) {
-                    if (result.coinage[denom]) parts.push(`<strong>${result.coinage[denom]} ${denom}</strong>`);
-                }
-                coinStr = parts.join(", ");
-            }
-            
-            html += `<i class="fas fa-coins" style="color:gold;margin-right:4px;"></i> ${coinStr}</div>`;
-        }
-
-        // Signature items
-        if (signatures.length) {
-            html += `<div style="margin:6px 0;"><strong style="color:#daa520;">Signature Items</strong>`;
-            for (const item of signatures) {
-                html += `<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">`;
-                html += `<img src="${item.img}" width="24" height="24" style="border:0;border-radius:3px;" />`;
-                html += `<span>${item.name}</span>`;
-                html += `<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">${item.rarity}</span>`;
-                html += `</div>`;
-            }
-            html += `</div>`;
-        }
-
-        // Scrolls
-        if (scrolls.length) {
-            html += `<div style="margin:6px 0;"><strong style="color:#7b68ee;">Spell Scrolls</strong>`;
-            for (const item of scrolls) {
-                html += `<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">`;
-                html += `<img src="${item.img}" width="24" height="24" style="border:0;border-radius:3px;" />`;
-                html += `<span>${item.name}</span>`;
-                html += `<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">Lvl ${item.spellLevel}</span>`;
-                html += `</div>`;
-            }
-            html += `</div>`;
-        }
-
-        // Treasures (art objects + trade goods)
-        if (treasures.length) {
-            html += `<div style="margin:6px 0;"><strong style="color:#e8c97a;">Treasure</strong>`;
-            for (const item of treasures) {
-                html += `<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">`;
-                html += `<img src="${item.img}" width="24" height="24" style="border:0;border-radius:3px;" />`;
-                html += `<span>${item.name}</span>`;
-                html += `<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">${item.price} gp</span>`;
-                html += `</div>`;
-            }
-            html += `</div>`;
-        }
-
-        // Consumables
-        if (consumables.length) {
-            html += `<div style="margin:6px 0;"><strong style="color:#3cb371;">Consumables</strong>`;
-            for (const item of consumables) {
-                html += `<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">`;
-                html += `<img src="${item.img}" width="24" height="24" style="border:0;border-radius:3px;" />`;
-                html += `<span>${item.name}</span>`;
-                html += `<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">${item.price} gp</span>`;
-                html += `</div>`;
-            }
-            html += `</div>`;
-        }
-
-        // Mundane
-        if (mundane.length) {
-            html += `<div style="margin:6px 0;"><strong style="color:#cd853f;">Trade Goods</strong>`;
-            for (const item of mundane) {
-                html += `<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">`;
-                html += `<img src="${item.img}" width="24" height="24" style="border:0;border-radius:3px;" />`;
-                html += `<span>${item.name}</span>`;
-                html += `<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">${item.price} gp</span>`;
-                html += `</div>`;
-            }
-            html += `</div>`;
-        }
-
-        // Total value footer
-        const totalValue = Math.round((gold + items.reduce((sum, i) => sum + (i.price ?? 0), 0)) * 100) / 100;
-        html += `<div style="margin-top:8px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.1);font-size:0.85em;opacity:0.7;">`;
-        html += `Est. Total Value: ${totalValue} gp | ${items.length} items</div>`;
-
-        // Create-in-world button (uses data-attribute, not inline JS)
-        html += `<button type="button" class="ionrift-cache-create" data-cache-id="${cacheId}" `;
-        html += `style="margin-top:6px;width:100%;cursor:pointer;">`;
-        html += `<i class="fas fa-box-open"></i> Create Items in World</button>`;
-
-        html += `</div>`;
+        const html = await renderTemplate(
+            `modules/ionrift-quartermaster/templates/partials/cache-chat-card.hbs`,
+            { meta, gold, coinage, coinageRows, hasCoinage: coinageRows.length > 0,
+                showGoldBlock: gold > 0,
+                cacheId, totalValue, itemCount: items.length,
+                signatures, scrolls, weapons, treasures, consumables, mundane }
+        );
 
         await ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ alias: "Ionrift Quartermaster" }),

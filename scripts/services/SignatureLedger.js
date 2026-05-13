@@ -380,7 +380,7 @@ export class SignatureLedger {
             .filter(a => data[a.id])
             .map(a => {
                 const entry = data[a.id];
-                const level = SA ? SA.getLevel(a) : (a.system?.details?.level ?? 1);
+                const level = SA?.getLevel(a) ?? 1;
                 return {
                     actor: a,
                     entry,
@@ -439,7 +439,8 @@ export class SignatureLedger {
      * @deprecated Use logSignatureDelivery instead. Kept for backward compat.
      */
     static async logWindfall(actorId, _rarity) {
-        const level = game.actors?.get(actorId)?.system?.details?.level ?? 1;
+        const actorForWindfall = game.actors?.get(actorId);
+        const level = (game.ionrift?.library?.system?.getLevel(actorForWindfall)) ?? 1;
         return this.logSignatureDelivery(actorId, level);
     }
 }
