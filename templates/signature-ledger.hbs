@@ -404,7 +404,7 @@
             <span class="scroll-section-hint">A reserve of cursed items the generator draws from when filling slots. Drop items from compendiums or the sidebar to add them.</span>
         </div>
 
-        <div class="cursed-pool-ladder-row cursed-pool-receive">
+        <div class="cursed-pool-ladder-row cursed-pool-receive{{#unless cursedPoolCount}} cursed-pool-ladder-row--empty{{/unless}}">
             {{#if cursedPoolCount}}
             {{#each cursedPoolLanes}}
             <div class="cursed-pool-tier-lane" data-drop-tier="{{this.tier}}">
@@ -449,59 +449,68 @@
             {{/if}}
         </div>
 
-        {{!-- ── Pool actions (matching scroll/party button bar pattern) ── --}}
-        <div class="scroll-compendium-info cursed-compendium-info cursed-pool-actions">
-            {{#unless cwPresent}}
-            <div class="scroll-compendium-buttons cursed-compendium-buttons">
-                <button type="button" class="scroll-open-compendium action-import-all-cursed"
-                        title="Browse registered compendiums and add cursed items to the pool">
-                    <i class="fas fa-plus-circle"></i> Add from Compendium
-                </button>
-                <button type="button" class="scroll-compile-btn action-curate-cursed-sources"
-                        title="Add or remove compendiums from the cursed pool source list">
-                    <i class="fas fa-sliders"></i> Curate Sources
-                </button>
-            </div>
-            <p class="scroll-jitter-note">
-                Use <strong>Add from Compendium</strong> to select items from registered sources.
-                Drop items directly from any compendium to add them individually.
-                {{#if cursedPoolCount}}{{cursedPoolCount}} item{{#if (gt cursedPoolCount 1)}}s{{/if}} in pool.{{/if}}
-            </p>
-            {{else}}
-            <div class="scroll-compendium-buttons cursed-compendium-buttons">
-                <button type="button" class="scroll-compile-btn action-compile-curse-forge" title="Compile Ionrift cursed items from your D&amp;D 5e sources">
-                    <i class="fas fa-hammer"></i> Rebuild Cursed Pool
-                </button>
-                {{#if hasSrdPack}}
-                <a class="scroll-open-compendium action-open-cursed-compendium" title="Open the SRD cursed items compendium">
-                    <i class="fas fa-book-open"></i> Open Cursed Items
-                </a>
-                {{else if hasCurseForge}}
-                <a class="scroll-open-compendium action-open-cursed-compendium" title="Open the Quartermaster: Cursed Items compendium">
-                    <i class="fas fa-book-open"></i> Open Cursed Items
-                </a>
+        {{!-- ── Pool sources ─────────────────────────────────────────────── --}}
+        <div class="cursed-pool-actions">
+            <div class="cursed-source-cards">
+
+                {{!-- SRD source card (always shown) --}}
+                <div class="cursed-source-card{{#if srdPoolCount}} source-card-active{{/if}}">
+                    <div class="source-card-icon">
+                        <i class="fas {{#if srdPoolCount}}fa-circle-check{{else}}fa-flask-vial{{/if}}"></i>
+                    </div>
+                    <div class="source-card-body">
+                        <strong>SRD Cursed Items</strong>
+                        <span>
+                            {{#if srdPoolCount}}
+                                {{srdPoolCount}} item{{#if (gt srdPoolCount 1)}}s{{/if}} in pool
+                            {{else}}
+                                12 standard cursed items — Berserker Axe, Bag of Devouring &amp; more
+                            {{/if}}
+                        </span>
+                    </div>
+                    <a role="button" class="source-card-btn action-compile-srd-cursed"
+                       data-action="compile-srd-cursed"
+                       title="Load the 12 SRD cursed items into the pool">
+                        <i class="fas {{#if srdPoolCount}}fa-rotate{{else}}fa-plus{{/if}}"></i>
+                        {{#if srdPoolCount}}Refresh{{else}}Load{{/if}}
+                    </a>
+                </div>
+
+                {{!-- Cursewright source card (only when CW installed) --}}
+                {{#if cwPresent}}
+                <div class="cursed-source-card{{#if cwPoolCount}} source-card-active{{/if}}">
+                    <div class="source-card-icon">
+                        <i class="fas {{#if cwPoolCount}}fa-circle-check{{else}}fa-skull-crossbones{{/if}}"></i>
+                    </div>
+                    <div class="source-card-body">
+                        <strong>Cursewright</strong>
+                        <span>
+                            {{#if cwPoolCount}}
+                                {{cwPoolCount}} item{{#if (gt cwPoolCount 1)}}s{{/if}} in pool
+                            {{else}}
+                                Ionrift curse recipes matched against your D&amp;D 5e items
+                            {{/if}}
+                        </span>
+                    </div>
+                    <a role="button" class="source-card-btn action-compile-curse-forge"
+                       data-action="compile-curse-forge"
+                       title="Compile Ionrift curse recipes and add matching items to the pool">
+                        <i class="fas {{#if cwPoolCount}}fa-rotate{{else}}fa-hammer{{/if}}"></i>
+                        {{#if cwPoolCount}}Refresh{{else}}Load{{/if}}
+                    </a>
+                </div>
                 {{/if}}
-                <button type="button" class="scroll-compile-btn action-import-all-cursed" title="Import all items from selected cursed compendiums into the pool">
-                    <i class="fas fa-file-import"></i> Import All
-                </button>
-                <button type="button" class="scroll-compile-btn action-curate-cursed-sources" title="Choose which cursed item compendiums to source from">
-                    <i class="fas fa-sliders"></i> Curate
-                </button>
+
             </div>
-            {{#if hasSrdPack}}
-            <p class="scroll-jitter-note">
-                Drop items from the compendium into the pool, or use <strong>Import All</strong> to add all selected sources at once.{{#if cursedPoolCount}} {{cursedPoolCount}} items in pool.{{/if}}
+            <p class="pool-bar-note">
+                {{#if cursedPoolCount}}
+                    <i class="fas fa-circle-check" style="color:var(--color-level-success,#6bcb77);"></i>
+                    {{cursedPoolCount}} item{{#if (gt cursedPoolCount 1)}}s{{/if}} in pool.
+                    Drop items from any compendium to add more.
+                {{else}}
+                    Load a source above, or drop items from any compendium to build the pool.
+                {{/if}}
             </p>
-            {{else if hasCurseForge}}
-            <p class="scroll-jitter-note">
-                Drop items from the compendium into the pool, or use <strong>Import All</strong> to add all selected sources at once.{{#if cursedPoolCount}} {{cursedPoolCount}} items in pool.{{/if}}
-            </p>
-            {{else}}
-            <p class="scroll-jitter-note">
-                Click <strong>Rebuild Cursed Pool</strong> to populate with the SRD cursed items. Install <strong>Cursewright</strong> for Ionrift-original items with lure names and escalation.
-            </p>
-            {{/if}}
-            {{/unless}}
         </div>
 
         </div>

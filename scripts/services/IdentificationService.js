@@ -15,13 +15,13 @@ const FLAG_CURSED_META = "cursedMeta";
  *
  *   - `latentMagic`: set by the cache masking pipeline on plain
  *     magical items (a +1 Javelin from a loot cache). Carries
- *     magicalBonus, the `mgc` property, and attunement. Unset after
- *     promotion.
+ *     magicalBonus, the `mgc` property, and attunement. Marked
+ *     `promoted: true` after promotion so a GM can re-obscure.
  *
- *   - `cursedMeta.lure`: authored on cursed compendium items. Carries
- *     the same mechanical fields plus an optional renamed item and a
- *     fully-formed lure description. `cursedMeta` stays on the item
- *     because the curse engine still needs it to observe the lifecycle.
+ *   - Legacy `cursedMeta.lure`: older compendium rows that stash the decoy
+ *     on the meta object instead of `latentMagic`. Curse Forge now writes
+ *     the same latent shape as cache +1 items and keeps only the curse arc
+ *     on `cursedMeta` (plus `lureName` for engine bookkeeping).
  *
  * All identification paths in Quartermaster (GM action, Respite rest
  * activity, future Arcana flow) should route through `identify(item)`.
@@ -50,7 +50,7 @@ export class IdentificationService {
         const latent = item.getFlag?.(MODULE_ID, FLAG_LATENT_MAGIC) ?? null;
         const cursedMeta = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? null;
 
-        const hasPendingPayload = !!latent
+        const hasPendingPayload = !!(latent && !latent.promoted)
             || (cursedMeta?.lure && item.system?.identified === false);
         if (!hasPendingPayload) {
             return { identified: false, kind: "none", reason: "already-identified" };
@@ -60,15 +60,30 @@ export class IdentificationService {
         let kind = "mundane";
         let displayName = item.name;
 
-        if (latent) {
+        const forgedFrom = item.flags?.[MODULE_ID]?.forgedFrom;
+        const isCurseForgeLatent = !!(latent && forgedFrom);
+
+        if (isCurseForgeLatent) {
+            Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent));
+            kind = "cursed-lure";
+            displayName = latent.originalName ?? item.name;
+        } else if (latent) {
             Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent));
             kind = "latent-magic";
             displayName = latent.originalName ?? item.name;
-        } else if (cursedMeta?.lure) {
-            // Lure promotion is handled by Cursewright via hooks.
-            // Without Cursewright, the item identifies as its mundane base name.
+        } else if (cursedMeta?.lure && item.system?.identified === false) {
+            const lure = cursedMeta.lure;
+            Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, {
+                magicalBonus: lure.magicalBonus,
+                attunement: lure.attunement,
+                properties: lure.properties,
+                ...(lure.name ? { originalName: lure.name } : {}),
+                ...(lure.description !== undefined ? { originalDescription: lure.description } : {}),
+                ...(lure.rarity ? { originalRarity: lure.rarity } : {}),
+                ...(lure.img ? { originalImg: lure.img } : {})
+            }));
             kind = "cursed-lure";
-            displayName = item.name;
+            displayName = lure.name ?? item.name;
         }
 
         try {
@@ -80,9 +95,12 @@ export class IdentificationService {
 
         if (latent) {
             try {
-                await item.unsetFlag(MODULE_ID, FLAG_LATENT_MAGIC);
+                await item.setFlag(MODULE_ID, FLAG_LATENT_MAGIC, {
+                    ...latent,
+                    promoted: true
+                });
             } catch (err) {
-                Logger.warn("Quartermaster", `IdentificationService: failed to unset latentMagic on ${item.name}:`, err.message);
+                Logger.warn("Quartermaster", `IdentificationService: failed to mark latentMagic promoted on ${item.name}:`, err.message);
             }
         }
 
@@ -95,9 +113,6 @@ export class IdentificationService {
         }
 
         Hooks.callAll(`${MODULE_ID}.itemIdentified`, item, { kind, cursedMeta });
-        if (kind === "cursed-lure") {
-            Hooks.callAll(`${MODULE_ID}.curseIdentified`, item, cursedMeta);
-        }
 
         Logger.info("Quartermaster", `IdentificationService: ${kind} -> "${item.name}".`);
         return { identified: true, kind };
@@ -147,8 +162,10 @@ export class IdentificationService {
 
         if (!latent && !cursedMeta && !mintBatch) return null;
 
+        const forgedFrom = flags.forgedFrom;
         let kind = "mundane";
-        if (latent) kind = "latent-magic";
+        if (latent && forgedFrom) kind = "cursed-lure";
+        else if (latent) kind = "latent-magic";
         else if (cursedMeta) kind = "cursed-lure";
 
         const originalPrice = latent?.originalPrice
@@ -159,6 +176,7 @@ export class IdentificationService {
             ?? null;
         const originalName = latent?.originalName
             ?? cursedMeta?.lure?.name
+            ?? cursedMeta?.lureName
             ?? null;
 
         return {

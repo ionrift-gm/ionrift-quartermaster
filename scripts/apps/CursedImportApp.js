@@ -1,11 +1,7 @@
-import { StandalonePoolRegistry } from "../services/StandalonePoolRegistry.js";
+import { getActiveCursedRegistry } from "../services/StandalonePoolRegistry.js";
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "./CursedSourcesApp.js";
 
 const MODULE_ID = "ionrift-quartermaster";
-
-function getPoolRegistry() {
-    return game.ionrift?.cursewright?.registry ?? StandalonePoolRegistry;
-}
 
 /**
  * GM picker: add or remove cursedMeta-stamped items from registered compendiums
@@ -76,7 +72,7 @@ export class CursedImportApp extends FormApplication {
             items = await CursedImportApp._fetchCursedMetaItemsFromPack(selectedPackId);
         }
 
-        const pool = await getPoolRegistry().getCursedPool();
+        const pool = await getActiveCursedRegistry().getCursedPool();
         const poolKeys = new Set(pool.map(p => (p.uuid || "").toLowerCase()));
 
         items = items.map(it => ({
@@ -127,7 +123,7 @@ export class CursedImportApp extends FormApplication {
         const html = this.element;
         const uuidKey = u => (u || "").toLowerCase();
 
-        let pool = await getPoolRegistry().getCursedPool();
+        let pool = await getActiveCursedRegistry().getCursedPool();
         const initialLen = pool.length;
 
         const toRemove = new Set();
@@ -178,7 +174,7 @@ export class CursedImportApp extends FormApplication {
             added++;
         }
 
-        await getPoolRegistry().setCursedPool(pool);
+        await getActiveCursedRegistry().setCursedPool(pool);
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
 
         const parts = [];

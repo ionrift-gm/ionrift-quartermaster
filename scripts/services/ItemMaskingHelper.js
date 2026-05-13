@@ -214,10 +214,12 @@ export class ItemMaskingHelper {
      * On identification via `IdentificationService`, all stashed values
      * are promoted back onto `system`.
      *
-     * Cursed items that ship a full `cursedMeta.lure` (Cursewright decoy)
-     * are skipped: the lure owns surface presentation. SRD-style cursed
-     * stamps (`cursedMeta` without `lure`) still carry real names and art;
-     * those go through the same latent masking as other magical cache rows.
+     * Cursed items that ship a legacy `cursedMeta.lure` blob are skipped:
+     * the lure owns surface presentation. Curse Forge compendium rows that
+     * already carry authored `latentMagic` plus `forgedFrom` are left as-is.
+     * SRD-style cursed stamps (`cursedMeta` without `lure`) still carry real
+     * names and art; those go through the same latent masking as other
+     * magical cache rows.
      *
      * @param {Object} itemData  - Full Foundry Item data object (mutated)
      * @param {Object} maskInfo  - { baseItemName, mundaneDesc, obscuredImg? }
@@ -230,6 +232,9 @@ export class ItemMaskingHelper {
         const qmFlags = itemData.flags?.["ionrift-quartermaster"] ?? {};
         if (qmFlags.cursedMeta?.lure) {
             itemData.system.identified = true;
+            return;
+        }
+        if (qmFlags.forgedFrom && qmFlags.latentMagic) {
             return;
         }
 
@@ -428,9 +433,14 @@ export class ItemMaskingHelper {
 
         if (t === "weapon") return { value: 15, denomination: "gp" };
         if (t === "armor" || t === "equipment") {
-            if (/shield/.test(nameLower)) return { value: 10, denomination: "gp" };
-            if (/ring|amulet|pendant|necklace/.test(nameLower)) return { value: 5, denomination: "gp" };
-            if (/cloak|robe|hat|belt|boots|gloves|bracers|circlet|hood/.test(nameLower)) {
+            if (/\bshield\b/.test(nameLower)) return { value: 10, denomination: "gp" };
+            if (/\bring\s+mail\b/.test(nameLower)) {
+                return this._BASE_ITEM_PRICES.ringmail ?? { value: 30, denomination: "gp" };
+            }
+            if (/\b(?:cloak|robe|hat|belt|boots|gloves|gauntlets|bracers|circlet|hood)\b/.test(nameLower)) {
+                return { value: 5, denomination: "gp" };
+            }
+            if (/\b(?:ring|amulet|pendant|necklace)\b/.test(nameLower)) {
                 return { value: 5, denomination: "gp" };
             }
             return { value: 20, denomination: "gp" };
@@ -508,9 +518,9 @@ export class ItemMaskingHelper {
      *   1. Named-item override map (compound magical names to base type)
      *   2. Consumable type masking (potions, scrolls, wands, rods)
      *   3. system.type.baseItem field
-     *   4. Wondrous type map (keyword scan for equipment lacking baseItem)
-     *   5. "of X" stripping + prefix/suffix cleanup
-     *   6. Raw name fallback
+     *   4. Strip "of X" suffixes, "+N", and magical prefixes
+     *   5. Wondrous type map on the stripped label (equipment lacking baseItem)
+     *   6. Stripped label fallback
      */
     static _deriveBaseItemName(itemMeta) {
         const rawName = (itemMeta.name || "").trim();
@@ -539,22 +549,24 @@ export class ItemMaskingHelper {
             return this._capitalise(baseItem);
         }
 
-        // 5. Wondrous type map for equipment lacking baseItem
+        // 5. Strip "of X" suffixes, "+N", and magical prefixes before wondrous scan
+        let strippedName = rawName;
+        strippedName = strippedName.replace(/\s*\+\d+\s*$/g, "").trim();
+        strippedName = strippedName.replace(/\s+of\s+.+$/i, "").trim();
+        for (const pattern of this._PREFIX_PATTERNS) {
+            const next = strippedName.replace(pattern, "").trim();
+            if (next.length > 2) strippedName = next;
+        }
+        const strippedLower = strippedName.toLowerCase();
+
+        // 6. Wondrous type map on stripped label, then full name if needed
         if (type === "equipment" || type === "armor" || type === "loot") {
-            const wondrousMask = this._matchWondrousType(nameLower);
+            const wondrousMask = this._matchWondrousType(strippedLower)
+                ?? (strippedLower !== nameLower ? this._matchWondrousType(nameLower) : null);
             if (wondrousMask) return wondrousMask;
         }
 
-        // 6. Strip "of X" suffixes, "+N", and magical prefixes
-        let name = rawName;
-        name = name.replace(/\s*\+\d+\s*$/g, "").trim();
-        name = name.replace(/\s+of\s+.+$/i, "").trim();
-        for (const pattern of this._PREFIX_PATTERNS) {
-            const stripped = name.replace(pattern, "").trim();
-            if (stripped.length > 2) name = stripped;
-        }
-
-        return name || rawName;
+        return strippedName || rawName;
     }
 
     static _capitalise(str) {
@@ -637,35 +649,41 @@ export class ItemMaskingHelper {
     }
 
     static _WONDROUS_MAP = [
-        [/cloak|mantle|cape/i,          "Cloak"],
-        [/ring/i,                       "Ring"],
-        [/amulet|periapt|pendant/i,     "Pendant"],
-        [/necklace/i,                   "Necklace"],
-        [/boots|slippers/i,             "Boots"],
-        [/gloves|gauntlets/i,           "Gloves"],
-        [/bracers|vambrace/i,           "Bracers"],
-        [/belt|girdle/i,                "Belt"],
-        [/helm|headband|circlet/i,      "Circlet"],
-        [/goggles|eyes|lenses/i,        "Goggles"],
-        [/robe|vestment/i,              "Robe"],
-        [/hat|cap|hood/i,               "Hat"],
-        [/bag|haversack|sack/i,         "Leather Bag"],
-        [/tome|manual|book|libram/i,    "Old Book"],
-        [/orb|crystal\s*ball/i,         "Glass Sphere"],
-        [/figurine/i,                   "Small Figurine"],
-        [/mirror/i,                     "Hand Mirror"],
-        [/stone|ioun/i,                 "Polished Stone"],
-        [/gem|jewel/i,                  "Cut Gemstone"],
-        [/carpet|rug/i,                 "Woven Rug"],
-        [/broom/i,                      "Broom"],
-        [/candle/i,                     "Candle"],
-        [/deck|cards/i,                 "Card Deck"],
-        [/rope/i,                       "Coil of Rope"],
-        [/lantern|lamp/i,              "Lantern"],
-        [/horn/i,                       "Horn"],
-        [/bottle|flask|decanter/i,      "Sealed Bottle"],
-        [/quiver/i,                     "Quiver"],
-        [/shield/i,                     "Shield"],
+        [/\bcrystal\s*ball\b/i,              "Glass Sphere"],
+        [/\bioun\s*stone\b|\bioun\b/i,       "Polished Stone"],
+        [/\b(?:cloak|mantle|cape)s?\b/i,     "Cloak"],
+        [/\b(?:gloves|gauntlets)\b/i,        "Gloves"],
+        [/\b(?:bracers|vambrace)s?\b/i,      "Bracers"],
+        [/\b(?:boots|slippers)\b/i,          "Boots"],
+        [/\b(?:belt|girdle)s?\b/i,           "Belt"],
+        [/\b(?:amulet|periapt|pendant|medallion|brooch)s?\b/i, "Pendant"],
+        [/\bnecklace\b/i,                    "Necklace"],
+        [/\bring\s+mail\b/i,                 "Ring Mail"],
+        [/\bring\b/i,                       "Ring"],
+        [/\b(?:robe|vestment)s?\b/i,         "Robe"],
+        [/\b(?:hat|cap|hood)s?\b/i,          "Hat"],
+        [/\bhelms?\b/i,                      "Helm"],
+        [/\bheadbands?\b/i,                  "Headband"],
+        [/\bcirclets?\b/i,                   "Circlet"],
+        [/\b(?:goggles|lenses)\b/i,          "Goggles"],
+        [/^eyes\b/i,                         "Goggles"],
+        [/\bhaversack\b|\bbag\b|\bsack\b/i,  "Leather Bag"],
+        [/\b(?:tome|manual|libram)s?\b|\bbook\b/i, "Old Book"],
+        [/\borb\b/i,                         "Glass Sphere"],
+        [/\bfigurine\b/i,                    "Small Figurine"],
+        [/\bmirror\b/i,                      "Hand Mirror"],
+        [/\bstone\b/i,                       "Polished Stone"],
+        [/\b(?:gem|jewel)\b/i,               "Cut Gemstone"],
+        [/\b(?:carpet|rug)\b/i,              "Woven Rug"],
+        [/\bbroom\b/i,                       "Broom"],
+        [/\bcandle\b/i,                      "Candle"],
+        [/\b(?:deck|cards)\b/i,              "Card Deck"],
+        [/\brope\b/i,                        "Coil of Rope"],
+        [/\b(?:lantern|lamp)\b/i,            "Lantern"],
+        [/\bhorn\b/i,                        "Horn"],
+        [/\b(?:bottle|flask|decanter)\b/i,   "Sealed Bottle"],
+        [/\bquiver\b/i,                      "Quiver"],
+        [/\bshield\b/i,                      "Shield"],
     ];
 
     // ── Named Item Overrides ─────────────────────────────────────────
@@ -878,19 +896,21 @@ export class ItemMaskingHelper {
             return "weapon_generic";
         }
         if (type === "equipment" || type === "armor") {
-            if (/shield/i.test(term))                                              return "shield";
-            if (/plate|mail|breastplate|splint|half plate/i.test(term))            return "heavy_armor";
-            if (/leather|hide|studded|chain shirt|scale/i.test(term))              return "light_armor";
-            if (/ring/i.test(term))                                                return "ring";
-            if (/cloak|mantle|cape/i.test(term))                                   return "cloak";
-            if (/boots|slippers/i.test(term))                                      return "boots";
-            if (/gloves|gauntlets/i.test(term))                                    return "gloves";
-            if (/helm|headband|circlet/i.test(term))                               return "headwear";
-            if (/bracers|vambrace/i.test(term))                                    return "bracers";
-            if (/belt|girdle/i.test(term))                                         return "belt";
-            if (/robe|vestment/i.test(term))                                       return "robe";
-            if (/amulet|necklace|pendant|periapt/i.test(term))                     return "necklace";
-            if (/bag|haversack|sack/i.test(term))                                  return "bag";
+            if (/\bshield\b/i.test(term))                                              return "shield";
+            if (/plate|mail|breastplate|splint|half plate/i.test(term))                return "heavy_armor";
+            if (/leather|hide|studded|chain shirt|scale/i.test(term))                  return "light_armor";
+            if (/\b(?:gloves|gauntlets)\b/i.test(term))                                return "gloves";
+            if (/\b(?:cloak|mantle|cape)s?\b/i.test(term))                            return "cloak";
+            if (/\b(?:boots|slippers)\b/i.test(term))                                  return "boots";
+            if (/\b(?:bracers|vambrace)s?\b/i.test(term))                              return "bracers";
+            if (/\b(?:belt|girdle)s?\b/i.test(term))                                   return "belt";
+            if (/\b(?:robe|vestment)s?\b/i.test(term))                                 return "robe";
+            if (/\b(?:amulet|necklace|pendant|periapt|medallion|brooch)s?\b/i.test(term)) return "necklace";
+            if (/\bhelms?\b/i.test(term))                                              return "headwear";
+            if (/\b(?:headband|circlet)s?\b/i.test(term))                              return "headwear";
+            if (/\bring\s+mail\b/i.test(term))                                         return "heavy_armor";
+            if (/\bring\b/i.test(term))                                                return "ring";
+            if (/\bhaversack\b|\bbag\b|\bsack\b/i.test(term))                          return "bag";
             return "armor_generic";
         }
         if (type === "consumable") {

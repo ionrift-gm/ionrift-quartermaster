@@ -5311,6 +5311,14 @@
     min-height: 96px;
 }
 
+.cursed-pool-ladder-row--empty {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    min-height: 120px;
+}
+
 .cursed-pool-ladder-gutter {
     grid-column: 1;
     display: flex;
@@ -5395,14 +5403,39 @@
     border-color: rgba(180, 110, 255, 0.45);
 }
 
-.cursed-pool-empty-ladder {
-    grid-column: 1 / -1;
+.cursed-pool-empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 120px;
+    gap: 6px;
+    width: 100%;
     margin: 0;
+    padding: 16px 12px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.28);
+}
+
+.cursed-pool-empty-state i {
+    font-size: 1.75em;
+    color: rgba(248, 113, 113, 0.4);
+}
+
+.cursed-pool-empty-state p {
+    margin: 0;
+    max-width: 22rem;
+    line-height: 1.45;
+    font-size: 0.82em;
+}
+
+.cursed-pool-unseeded-hint {
+    font-size: 0.78em;
+    color: rgba(255, 255, 255, 0.22);
+}
+
+.cursed-pool-empty-ladder {
+    grid-column: 1 / -1;
+    min-height: 120px;
 }
 
 .cursed-pool-card {
@@ -7261,6 +7294,158 @@ button.scroll-open-compendium {
     border-color: rgba(139, 92, 246, 0.6);
 }
 
+/* Whisper dialog */
+.curse-whisper-window .window-content {
+    padding: 0;
+}
+
+.curse-whisper-window .dialog-buttons {
+    flex-direction: row;
+    padding: 8px 16px 14px;
+}
+
+.curse-whisper-dialog {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px 8px;
+}
+
+.curse-whisper-meta {
+    margin: 0;
+    font-size: 0.82em;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+.curse-whisper-pool {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.curse-whisper-pool-label {
+    font-size: 0.78em;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(196, 181, 253, 0.7);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.curse-whisper-pool-count {
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 999px;
+    padding: 0 6px;
+    font-size: 0.85em;
+    color: #c4b5fd;
+}
+
+.curse-whisper-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.curse-whisper-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    background: rgba(139, 92, 246, 0.06);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.curse-whisper-item:hover {
+    background: rgba(139, 92, 246, 0.18);
+    border-color: rgba(139, 92, 246, 0.35);
+}
+
+.curse-whisper-item--selected {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.5);
+}
+
+.curse-whisper-item--used {
+    opacity: 0.65;
+}
+
+.curse-whisper-item-text {
+    flex: 1;
+    font-style: italic;
+    font-size: 0.85em;
+    color: #e2e8f0;
+    line-height: 1.4;
+}
+
+.curse-whisper-item-badge {
+    flex-shrink: 0;
+    font-size: 0.72em;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+}
+
+.curse-whisper-item--used .curse-whisper-item-badge {
+    background: rgba(139, 92, 246, 0.12);
+    border-color: rgba(139, 92, 246, 0.25);
+    color: #c4b5fd;
+}
+
+.curse-whisper-compose-label {
+    font-size: 0.82em;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: -4px;
+}
+
+.curse-whisper-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    font-style: italic;
+    color: #e2e8f0;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    line-height: 1.5;
+    min-height: 72px;
+}
+
+.curse-whisper-textarea:focus {
+    outline: none;
+    border-color: rgba(139, 92, 246, 0.6);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.curse-whisper-status {
+    min-height: 1.1em;
+    font-size: 0.78em;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+}
+
+.curse-whisper-status--sent {
+    color: rgba(196, 181, 253, 0.6);
+}
+
 .curse-btn-break-bond {
     border-color: rgba(251, 191, 36, 0.4);
     background: rgba(251, 191, 36, 0.14);
@@ -7567,4 +7752,366 @@ button.scroll-open-compendium {
     outline: none;
     border-color: var(--ionrift-accent, #8b5cf6);
     box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+}
+
+/* ── Curse Pool: source cards ───────────────────────────────────────────────── */
+
+.cursed-pool-actions {
+    padding: 0 2px 4px;
+}
+
+.cursed-source-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 7px;
+}
+
+.cursed-source-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 11px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.cursed-source-card.source-card-active {
+    background: rgba(107, 203, 119, 0.06);
+    border-color: rgba(107, 203, 119, 0.22);
+}
+
+.cursed-source-card:hover {
+    background: rgba(255, 255, 255, 0.055);
+    border-color: rgba(255, 255, 255, 0.13);
+}
+
+.cursed-source-card.source-card-active:hover {
+    background: rgba(107, 203, 119, 0.1);
+}
+
+.source-card-icon {
+    flex: 0 0 22px;
+    text-align: center;
+    font-size: 1em;
+    color: rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.cursed-source-card.source-card-active .source-card-icon {
+    color: rgba(107, 203, 119, 0.8);
+}
+
+.source-card-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.source-card-body strong {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.cursed-source-card.source-card-active .source-card-body strong {
+    color: rgba(200, 240, 200, 0.9);
+}
+
+.source-card-body span {
+    font-size: 0.69em;
+    color: rgba(255, 255, 255, 0.32);
+    line-height: 1.3;
+}
+
+.source-card-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+    font-size: 0.74em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    width: auto !important;
+    flex-shrink: 0;
+    line-height: 1.4;
+}
+
+.source-card-btn:hover {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.45);
+    color: #d5c8f8;
+}
+
+.cursed-source-card.source-card-active .source-card-btn {
+    background: rgba(107, 203, 119, 0.1);
+    border-color: rgba(107, 203, 119, 0.25);
+    color: rgba(180, 240, 180, 0.7);
+}
+
+.cursed-source-card.source-card-active .source-card-btn:hover {
+    background: rgba(107, 203, 119, 0.2);
+    border-color: rgba(107, 203, 119, 0.45);
+    color: #b8f0b8;
+}
+
+
+/* ── Curse Pool: empty-state offer card ──────────────────────────────────── */
+
+.pool-offer-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 13px;
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.22);
+    border-radius: 7px;
+    margin-bottom: 7px;
+    transition: border-color 0.2s;
+}
+
+.pool-offer-card:hover {
+    border-color: rgba(139, 92, 246, 0.38);
+}
+
+.pool-offer-icon {
+    flex: 0 0 28px;
+    font-size: 1.3em;
+    color: rgba(200, 175, 255, 0.6);
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.pool-offer-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.pool-offer-body strong {
+    font-size: 0.84em;
+    color: #e0e0e0;
+    font-weight: 600;
+}
+
+.pool-offer-body span {
+    font-size: 0.71em;
+    color: rgba(255, 255, 255, 0.38);
+    line-height: 1.35;
+}
+
+.pool-offer-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    background: rgba(139, 92, 246, 0.28);
+    border: 1px solid rgba(139, 92, 246, 0.48);
+    color: #d5c8f8;
+    border-radius: 5px;
+    font-size: 0.8em;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pool-offer-btn:hover {
+    background: rgba(139, 92, 246, 0.48);
+    border-color: rgba(139, 92, 246, 0.7);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.pool-offer-note {
+    font-size: 0.72em;
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0 0 2px 0;
+    padding: 0 2px;
+    line-height: 1.4;
+}
+
+.pool-offer-link {
+    color: rgba(180, 155, 240, 0.6);
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    font-family: inherit;
+    transition: color 0.15s;
+}
+
+.pool-offer-link:hover {
+    color: rgba(200, 175, 255, 0.9);
+}
+
+/* ── Curse Pool: populated-state compact bar ──────────────────────────────── */
+
+.cursed-pool-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 5px;
+}
+
+.cursed-pool-bar .pool-bar-btn,
+.cursed-pool-bar a.pool-bar-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 9px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    color: rgba(255, 255, 255, 0.45);
+    border-radius: 4px;
+    font-size: 0.75em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    width: auto !important;
+    flex-shrink: 0;
+    line-height: 1.4;
+}
+
+.cursed-pool-bar .pool-bar-btn:hover,
+.cursed-pool-bar a.pool-bar-btn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.pool-bar-note {
+    font-size: 0.72em;
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0;
+    padding: 0 2px;
+    line-height: 1.4;
+}
+
+
+/* ── Curse Pool: 3-step Workflow Guide (standalone path) ──────────────────── */
+
+.cursed-pool-workflow-guide {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.cursed-pool-workflow-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 6px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.cursed-pool-workflow-step:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Completed step: dim it back out so the remaining ones stand out */
+.cursed-pool-workflow-step.workflow-step-done {
+    opacity: 0.5;
+}
+
+/* Optional step: slightly more muted than active, not as dim as done */
+.cursed-pool-workflow-step.workflow-step-optional {
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.05);
+    opacity: 0.7;
+}
+
+.workflow-step-num {
+    flex: 0 0 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(139, 92, 246, 0.25);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 50%;
+    font-size: 0.75em;
+    font-weight: 700;
+    color: rgba(200, 175, 255, 0.9);
+    flex-shrink: 0;
+}
+
+.cursed-pool-workflow-step.workflow-step-done .workflow-step-num {
+    background: rgba(107, 203, 119, 0.2);
+    border-color: rgba(107, 203, 119, 0.4);
+    color: rgba(107, 203, 119, 0.9);
+}
+
+.workflow-step-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.workflow-step-body strong {
+    font-size: 0.82em;
+    color: #e2e2e2;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.workflow-step-hint {
+    font-size: 0.72em;
+    color: rgba(255, 255, 255, 0.4);
+    line-height: 1.35;
+}
+
+.workflow-step-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ccc;
+    border-radius: 4px;
+    font-size: 0.78em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.workflow-step-btn:hover {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.5);
+    color: #fff;
+}
+
+.cursed-pool-workflow-note {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0;
+    line-height: 1.4;
+    padding: 0 2px;
 }

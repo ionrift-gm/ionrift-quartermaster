@@ -111,3 +111,12 @@ export class StandalonePoolRegistry {
         return shuffled.slice(0, cap);
     }
 }
+
+/**
+ * Returns the active cursed pool registry.
+ * Prefers game.ionrift.cursewright.registry (Cursewright installed),
+ * falls back to StandalonePoolRegistry for standalone operation.
+ */
+export function getActiveCursedRegistry() {
+    return game.ionrift?.cursewright?.registry ?? StandalonePoolRegistry;
+}

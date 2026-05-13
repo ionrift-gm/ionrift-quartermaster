@@ -418,7 +418,9 @@ export class CacheGeneratorApp extends Application {
         const curseEntry = mintBatch ? (game.ionrift?.cursewright?.registry?.get(mintBatch) ?? null) : null;
         if (curseEntry) {
             for (const item of items) {
-                if (item.name === curseEntry.decoyName) {
+                // Only badge items that were explicitly injected as cursed (advisory panel).
+                // Regular consumables with the same display name are clean — do not badge them.
+                if (item._specialSection && item._specialType === "cursed" && item.name === curseEntry.decoyName) {
                     item.cursed = true;
                     item.cursedAs = curseEntry.trueItem;
                 }
@@ -961,7 +963,10 @@ export class CacheGeneratorApp extends Application {
             );
 
             if (payload.isCursed) {
-                await CacheGenerator._applyCurses(this._currentResult, { forceCurse: false });
+                const curseEngine = game.ionrift?.cursewright?.engine;
+                if (curseEngine) {
+                    await curseEngine.applyCacheCurses(this._currentResult, { forceCurse: false });
+                }
                 ui.notifications.info("Item added to cache. Assign its curse via the Curse Cache pipeline if needed.");
                 this.render();
             }
@@ -1594,6 +1599,7 @@ export class CacheGeneratorApp extends Application {
     async _onCanvasDrop(event) {
         event.preventDefault();
         this.element.find(".container-card").removeClass("dragging");
+        console.log("[QM|CanvasDrop] handler fired"); // [DEBUG-STACK] remove before release
 
         let data;
         try {
@@ -1613,7 +1619,7 @@ export class CacheGeneratorApp extends Application {
         try {
             const pileItems = [];
             const mintBatch = result.meta?.mintBatch;
-            
+
             // Helper to resolve generic cache items into full Foundry Item payloads with flags
             const resolveItemData = async (metaObj) => {
                 let data = null;
@@ -1641,14 +1647,17 @@ export class CacheGeneratorApp extends Application {
                         data.system.capacity = { type: "weight", value: metaObj.capacityLbs };
                     }
                 }
-                
+
                 // Vital: Stamp the mintBatch flag on all generated items so curses can be tracked
                 if (mintBatch) {
                     foundry.utils.setProperty(data, "flags.ionrift-quartermaster.mintBatch", mintBatch);
                 }
 
-                // Apply identification masking for magical items
-                if (metaObj._isMagical) {
+                // Apply identification masking for magical items.
+                // Skip items with latentMagic — Cursewright already set the correct lure surface
+                // name/img. Re-masking would overwrite "Potion of Healing" with "Unidentified Consumable".
+                const hasLatentMagic = !!(data.flags?.["ionrift-quartermaster"]?.latentMagic);
+                if (metaObj._isMagical && !hasLatentMagic) {
                     const obscuredFallback = ItemMaskingHelper.detectMagical({
                         name: data.name,
                         rarity: data.system?.rarity ?? metaObj.rarity ?? "",
@@ -1662,6 +1671,34 @@ export class CacheGeneratorApp extends Application {
                         sourceImg: metaObj._maskSourceImg
                     });
                 }
+
+                // Stamp infectedRate when this entry absorbed cursed items at squash time.
+                // Stored as a lightweight float — does not break Item Piles stacking.
+                // CurseEngine resolves probability at use time via mintBatch + CurseRegistry.
+                if (metaObj._infectedCount && metaObj._totalQty) {
+                    const infectedRate = metaObj._infectedCount / metaObj._totalQty;
+                    foundry.utils.setProperty(data, "flags.ionrift-quartermaster.infectedRate", infectedRate);
+                    // Strip latentMagic and cursedMeta — this merged entry presents as a plain
+                    // "Potion of Healing". The curse is tracked via infectedRate + mintBatch only.
+                    // Leaving latentMagic intact would trigger QM's preCreateItem masking hook
+                    // and rename the pile item to "Unidentified Consumable".
+                    if (data.flags?.["ionrift-quartermaster"]) {
+                        delete data.flags["ionrift-quartermaster"].latentMagic;
+                        delete data.flags["ionrift-quartermaster"].cursedMeta;
+                        delete data.flags["ionrift-quartermaster"].forgedFrom;
+                    }
+                    // Clear identified=false so QM's identification gate doesn't block the item
+                    if (data.system?.identified === false) {
+                        foundry.utils.setProperty(data, "system.identified", true);
+                    }
+                }
+
+                // Remove canStack:false that Cursewright may have stamped — stacking is
+                // controlled at the pile level via canStackItems:true, not per-item flags.
+                if (data.flags?.["item-piles"]?.item?.canStack === false) {
+                    delete data.flags["item-piles"].item.canStack;
+                }
+
                 return data;
             };
 
@@ -1670,6 +1707,8 @@ export class CacheGeneratorApp extends Application {
             const stampPileQuantity = (itemData, qty) => {
                 const q = Math.max(1, Math.floor(Number(qty)) || 1);
                 foundry.utils.setProperty(itemData, "system.quantity", q);
+                // Assign a unique _id so Item Piles doesn't collapse distinct entries into one row.
+                itemData._id = foundry.utils.randomID();
                 return itemData;
             };
 
@@ -1678,9 +1717,59 @@ export class CacheGeneratorApp extends Application {
                 pileItems.push(stampPileQuantity(await resolveItemData(result.container), 1));
             }
 
-            // 2. Resolve all cache contents
-            for (const i of result.items ?? []) {
-                pileItems.push(stampPileQuantity(await resolveItemData(i), i.quantity ?? 1));
+            // 2. Two-pass squash
+            //
+            // Diagnostic finding: dnd5e 2024 PHB resolves "Potion of Healing" → "Corked Bottle".
+            // The Cursewright item resolves as "Potion of Healing" (lure surface name).
+            // Without squashing, the pile has two rows with different names that can't merge.
+            //
+            // Fix: group by generator display name BEFORE resolution. When a cursed item
+            // matches a clean item by name, override the clean item's compendium ref with the
+            // cursed item's ref so resolution uses the lure surface ("Potion of Healing").
+            // The clean items contribute only their quantity to the merged total.
+
+            // Pass A: collect non-cursed items, grouped by compendium key or display name
+            const squashedMap = new Map();
+            for (const item of result.items ?? []) {
+                if (item._specialSection && item._specialType === "cursed") continue;
+                const key = (item.sourceCompendium && item._compendiumId)
+                    ? `${item.sourceCompendium}::${item._compendiumId}`
+                    : item.name;
+                if (squashedMap.has(key)) {
+                    squashedMap.get(key)._totalQty += (item.quantity ?? 1);
+                } else {
+                    squashedMap.set(key, { ...item, _totalQty: item.quantity ?? 1 });
+                }
+            }
+
+            // Pass B: merge cursed items into a matching non-cursed entry by display name.
+            // The cursed item's compendium ref becomes the resolution base for the merged entry.
+            for (const item of result.items ?? []) {
+                if (!item._specialSection || item._specialType !== "cursed") continue;
+                const qty = item.quantity ?? 1;
+                const matchEntry = [...squashedMap.values()].find(e => e.name === item.name);
+                if (matchEntry) {
+                    // Override resolution ref to use the cursed item's compendium data.
+                    // This ensures the merged pile entry resolves as "Potion of Healing"
+                    // rather than "Corked Bottle" (the 2024 PHB name for the clean version).
+                    matchEntry.sourceCompendium = item.sourceCompendium;
+                    matchEntry._compendiumId    = item._compendiumId;
+                    matchEntry._isMagical       = false; // lure surface — masking already applied
+                    matchEntry._infectedCount   = (matchEntry._infectedCount ?? 0) + qty;
+                    matchEntry._totalQty        = (matchEntry._totalQty ?? 0) + qty;
+                } else {
+                    // No non-cursed counterpart — standalone infected entry (fully poisoned stack)
+                    squashedMap.set(`cursed::${item._uid ?? item.name}`, {
+                        ...item,
+                        _totalQty:      qty,
+                        _infectedCount: qty
+                    });
+                }
+            }
+
+            // 3. Resolve squashed entries into final pile items
+            for (const entry of squashedMap.values()) {
+                pileItems.push(stampPileQuantity(await resolveItemData(entry), entry._totalQty ?? 1));
             }
 
             const containerName = result.container?.name ?? "Loot Cache";
@@ -1699,14 +1788,20 @@ export class CacheGeneratorApp extends Application {
                 position: { x, y },
                 items: pileItems,
                 pileSettings: {
-                    displayOne: false,
-                    showItemName: false,
-                    isContainer: true
+                    displayOne:      false,
+                    showItemName:    false,
+                    isContainer:     true,
+                    canStackItems:   true,
+                    canInspectItems: true,
+                    deleteWhenEmpty: false
                 },
                 itemPileFlags: {
-                    displayOne: false,
-                    showItemName: false,
-                    isContainer: true
+                    displayOne:      false,
+                    showItemName:    false,
+                    isContainer:     true,
+                    canStackItems:   true,
+                    canInspectItems: true,
+                    deleteWhenEmpty: false
                 },
                 tokenOverrides: {
                     name: containerName,

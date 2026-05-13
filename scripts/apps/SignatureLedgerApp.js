@@ -2,7 +2,7 @@ import { SignatureLedger } from "../services/SignatureLedger.js";
 import { ProgressionSeeder }  from "../services/ProgressionSeeder.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { SrdCurseAdapter } from "../services/SrdCurseAdapter.js";
-import { StandalonePoolRegistry } from "../services/StandalonePoolRegistry.js";
+import { StandalonePoolRegistry, getActiveCursedRegistry } from "../services/StandalonePoolRegistry.js";
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "./CursedSourcesApp.js";
 
 /** Always read fresh so profile changes take effect without reload. */
@@ -44,9 +44,6 @@ function getCursedItemsPackId() {
 }
 
 /** Active pool registry: CurseRegistry when Cursewright is installed, else QM settings. */
-function getPoolRegistry() {
-    return game.ionrift?.cursewright?.registry ?? StandalonePoolRegistry;
-}
 
 /** @param {number} tier @returns {{ curseTier: number }} */
 function cursePoolTierViewFields(tier) {
@@ -297,7 +294,7 @@ export class SignatureLedgerApp extends Application {
             // When CW is installed it owns the planned/pool registry.
             // When it's absent QM maintains its own minimal stub pool sourced
             // exclusively from the world.ionrift-srd-cursed compendium.
-            const reg = getPoolRegistry();
+            const reg = getActiveCursedRegistry();
             let cursedPlannedRaw = await reg.getCursedPlanned();
             if (game.user.isGM) await reg.ensureDefaultCursedPoolIfEmpty?.();
             const cursedPoolRaw = await reg.getCursedPool();
@@ -306,18 +303,21 @@ export class SignatureLedgerApp extends Application {
             const lanes     = SignatureLedgerApp._buildCursedPoolLanes(annotated);
             const typeSet   = new Set(annotated.map(e => (e.curseType || "").toLowerCase()).filter(Boolean));
 
-            // hasSrdPack: the SRD stub compendium exists (compiled at least once)
+            // Per-source item counts — drive the source button active states
+            const cwPoolCount  = annotated.filter(p => (p.uuid || "").includes("ionrift-cursewright-forged")).length;
+            const srdPoolCount = annotated.filter(p => (p.uuid || "").includes("ionrift-srd-cursed")).length;
+
+            // Pack existence flags (used by _onOpenCursedCompendium and template conditionals)
             const hasSrdPack    = !!game.packs.get("world.ionrift-srd-cursed");
-            // hasCurseForge: the premium CW world compendium (lure-named items)
-            const hasCurseForge = !!game.packs.get("world.ionrift-forged-cursed");
-            // Empty-state: pool not yet seeded AND neither compendium exists
-            const cursedPoolEmpty = annotated.length === 0 && !hasSrdPack && !hasCurseForge;
+            const hasCurseForge = !!game.packs.get("world.ionrift-cursewright-forged")
+                                || !!game.packs.get("world.ionrift-forged-cursed");
 
             curseData = {
                 cwPresent,
                 hasSrdPack,
                 hasCurseForge,
-                cursedPoolEmpty,
+                cwPoolCount,
+                srdPoolCount,
                 cursedPlannedRow: this._buildCursedPlannedStrip(partyActors, cursedPlannedRaw),
                 cursedPool: annotated,
                 cursedPoolLanes: lanes,
@@ -409,7 +409,7 @@ export class SignatureLedgerApp extends Application {
             const actor = game.actors.get(id);
             if (!actor) continue;
 
-            const level      = actor.system?.details?.level || 1;
+            const level      = (game.ionrift?.library?.system?.getLevel(actor)) || 1;
             const classes    = Object.values(actor.classes || {}).map(c => c.name).join("/") || "Unknown";
             const powerScore = SignatureLedger.computePowerScore(actor);
             totalRvp        += data.rvp;
@@ -743,8 +743,9 @@ export class SignatureLedgerApp extends Application {
     /** Party level for the planned-curses progress band: median character level. */
     static _partyMedianLevel(partyActors) {
         if (!partyActors?.length) return 1;
+        const systemAdapter = game.ionrift?.library?.system;
         const sorted = partyActors
-            .map(a => a.system?.details?.level || 1)
+            .map(a => systemAdapter?.getLevel(a) || 1)
             .sort((a, b) => a - b);
         const mid = Math.floor(sorted.length / 2);
         return sorted.length % 2 === 1
@@ -942,7 +943,7 @@ export class SignatureLedgerApp extends Application {
      * Move or swap planned pins between slots (same or different milestone).
      */
     async _swapOrMoveCursedPlanned(fromLevel, fromUuid, toLevel, toSlotIdx) {
-        let planned = await getPoolRegistry().getCursedPlanned();
+        let planned = await getActiveCursedRegistry().getCursedPlanned();
         const pin = planned.find(p => p.level === fromLevel && p.uuid === fromUuid);
         if (!pin || pin.locked) return;
 
@@ -965,14 +966,14 @@ export class SignatureLedgerApp extends Application {
                     used: !!pin.used
                 }
             );
-            await getPoolRegistry().setCursedPlanned(merged);
+            await getActiveCursedRegistry().setCursedPlanned(merged);
             return;
         }
 
         if (fromLevel === toLevel) {
             pin.slotOrder = toIdx;
             destOcc.slotOrder = fromSlotIdx;
-            await getPoolRegistry().setCursedPlanned(planned);
+            await getActiveCursedRegistry().setCursedPlanned(planned);
             return;
         }
 
@@ -990,15 +991,15 @@ export class SignatureLedgerApp extends Application {
             level: fromLevel,
             used: !!destOcc.used
         });
-        await getPoolRegistry().setCursedPlanned(merged);
+        await getActiveCursedRegistry().setCursedPlanned(merged);
     }
 
     async _dropPoolCardOntoPlanned(poolIndex, toLevel, toSlotIdx) {
-        const pool = await getPoolRegistry().getCursedPool();
+        const pool = await getActiveCursedRegistry().getCursedPool();
         const incoming = pool[poolIndex];
         if (!incoming?.uuid) return;
 
-        let planned = await getPoolRegistry().getCursedPlanned();
+        let planned = await getActiveCursedRegistry().getCursedPlanned();
         const idx    = Math.min(1, Math.max(0, toSlotIdx));
         const occ    = SignatureLedgerApp._plannedOccupantAtSlot(planned, toLevel, idx);
         if (occ?.locked) return;
@@ -1021,23 +1022,23 @@ export class SignatureLedgerApp extends Application {
         if (occ) {
             planned = SignatureLedgerApp._removePlannedPin(planned, toLevel, occ.uuid);
             const nextPool = SignatureLedgerApp._appendCursedPoolIfAbsent(pool, occ);
-            if (nextPool !== pool) await getPoolRegistry().setCursedPool(nextPool);
+            if (nextPool !== pool) await getActiveCursedRegistry().setCursedPool(nextPool);
         }
 
         const merged = SignatureLedgerApp._mergeCursedPlannedSlot(planned, toLevel, idx, newEntry);
-        await getPoolRegistry().setCursedPlanned(merged);
+        await getActiveCursedRegistry().setCursedPlanned(merged);
     }
 
     async _cursedPlannedToPool(fromLevel, fromUuid) {
-        let planned = await getPoolRegistry().getCursedPlanned();
+        let planned = await getActiveCursedRegistry().getCursedPlanned();
         const pin = planned.find(p => p.level === fromLevel && p.uuid === fromUuid);
         if (!pin || pin.locked) return;
 
-        const pool = await getPoolRegistry().getCursedPool();
+        const pool = await getActiveCursedRegistry().getCursedPool();
         const nextPool = SignatureLedgerApp._appendCursedPoolIfAbsent(pool, pin);
         planned = SignatureLedgerApp._removePlannedPin(planned, fromLevel, fromUuid);
-        await getPoolRegistry().setCursedPlanned(planned);
-        if (nextPool !== pool) await getPoolRegistry().setCursedPool(nextPool);
+        await getActiveCursedRegistry().setCursedPlanned(planned);
+        if (nextPool !== pool) await getActiveCursedRegistry().setCursedPool(nextPool);
     }
 
     /**
@@ -1421,9 +1422,17 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-remove-pool-item").click(this._onRemovePoolItem.bind(this));
         this._initCursedPoolDropZoneVisuals(html);
         html.find(".action-compile-curse-forge").click(this._onRebuildCursedPool.bind(this));
+        html.find(".action-compile-srd-cursed").click(this._onLoadSrdCursedItems.bind(this));
         html.find(".action-open-cursed-compendium").click(this._onOpenCursedCompendium.bind(this));
         html.find(".action-import-all-cursed").click(this._onImportAllCursed.bind(this));
-        html.find(".action-curate-cursed-sources").click(this._onCurateCursedSources.bind(this));
+        // Delegated handler for source card buttons (more robust than direct binding on <a>)
+        html.find(".cursed-source-cards").on("click", "[data-action]", (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const action = ev.currentTarget.dataset.action;
+            if (action === "compile-srd-cursed")  this._onLoadSrdCursedItems(ev);
+            if (action === "compile-curse-forge") this._onRebuildCursedPool(ev);
+        });
         if (this._activeTab === "cursed") this._initCursedDragDrop(html);
         if (this._activeTab === "scrolls") this._initScrollDragDrop(html);
         if (this._activeTab === "party") this._initPartyDragDrop(html);
@@ -1626,11 +1635,11 @@ export class SignatureLedgerApp extends Application {
             pin.locked = !pin.locked;
             await SignatureLedger.setPartyShelf(shelf);
         } else {
-            const planned = await getPoolRegistry().getCursedPlanned();
+            const planned = await getActiveCursedRegistry().getCursedPlanned();
             const pin = planned.find(p => p.level === level && p.uuid === uuid);
             if (!pin) return;
             pin.locked = !pin.locked;
-            await getPoolRegistry().setCursedPlanned(planned);
+            await getActiveCursedRegistry().setCursedPlanned(planned);
         }
         this.render();
     }
@@ -2103,25 +2112,126 @@ export class SignatureLedgerApp extends Application {
     // ── Cursed: Pool Management ─────────────────────────────────────────
 
     /**
-     * "Rebuild Cursed Pool" button handler.
-     * Routes to CurseForge (premium source dialog) when Cursewright is active,
-     * or falls back to SrdCurseAdapter (12 SRD stubs) in standalone mode.
+     * "Load SRD Cursed Items" button — always available regardless of CW.
+     * Force-recompiles the 12 SRD stubs from dnd5e packs and seeds the pool.
+     * Idempotent: items already in pool are skipped by UUID.
+     */
+    async _onLoadSrdCursedItems(event) {
+        event.preventDefault();
+        if (!game.user.isGM) return;
+
+        ui.notifications.info("Quartermaster: compiling SRD cursed items...");
+        await SrdCurseAdapter.compile({ forceRecompile: true });
+
+        const srdPack = game.packs.get(SrdCurseAdapter.worldCollectionId);
+        if (!srdPack) {
+            ui.notifications.warn("SRD cursed items could not be found. Check your D&D 5e system installation.");
+            return;
+        }
+
+        let docs;
+        try { docs = await srdPack.getDocuments(); }
+        catch (e) { Logger.error(MODULE_LABEL, "_onLoadSrdCursedItems: could not read SRD pack", e); return; }
+
+        // Strip any existing SRD items from the pool first.
+        // Their UUIDs become stale after a recompile (compendium is destroyed + recreated).
+        // Replacing is correct Refresh behaviour; non-SRD items are untouched.
+        let pool = await getActiveCursedRegistry().getCursedPool();
+        pool = pool.filter(p => !(p.uuid || "").includes("ionrift-srd-cursed"));
+        const before = pool.length;
+
+        for (const item of docs) {
+            const meta = item.flags?.["ionrift-quartermaster"]?.cursedMeta ?? {};
+            pool.push({
+                uuid:      item.uuid,
+                name:      item.name,
+                img:       item.img || "icons/svg/item-bag.svg",
+                curseType: meta.curseType || "",
+                tier:      meta.tier ?? 1
+            });
+        }
+
+        await getActiveCursedRegistry().setCursedPool(pool);
+        Hooks.callAll(CURSED_POOL_DATA_HOOK);
+        const added = pool.length - before;
+        ui.notifications.info(`SRD cursed items refreshed: ${docs.length} item${docs.length !== 1 ? "s" : ""} in pool.`);
+        this.render();
+    }
+
+    /**
+     * "Load Cursewright" / "Refresh Cursewright" button.
+     * Silently compiles from auto-detected dnd5e packs (no picker dialog)
+     * then seeds the pool from the resulting world pack.
      */
     async _onRebuildCursedPool(event) {
         event.preventDefault();
         if (!game.user.isGM) return;
 
         const cw = game.ionrift?.cursewright;
-        if (cw) {
-            // Cursewright installed — open the premium source dialog
-            const { CurseForgeSourceApp } = await import(`/modules/ionrift-cursewright/scripts/apps/CurseForgeSourceApp.js`);
-            const compiled = await CurseForgeSourceApp.waitForClose();
-            if (compiled) this.render();
-        } else {
-            // Standalone — seed from the 12 canonical SRD cursed items
-            await SrdCurseAdapter.compile();
-            this.render();
+        if (!cw) {
+            // Fallback: if CW button somehow fires without CW, load SRD instead
+            return this._onLoadSrdCursedItems(event);
         }
+
+        // Silent compile — no dialog, auto-detected packs
+        const { CurseForge } = await import(`/modules/ionrift-cursewright/scripts/services/CurseForge.js`);
+
+        // If the world pack was deleted manually the CW hash setting is stale —
+        // compile() will see "hash unchanged" and no-op, leaving the pack missing.
+        // Detect this and clear the hash so compile() runs in full.
+        const cwPackId = CurseForge.worldCollectionId;
+        if (!game.packs.get(cwPackId)) {
+            Logger.warn(MODULE_LABEL, "_onRebuildCursedPool: world pack missing — clearing hash to force recompile.");
+            try { await game.settings.set("ionrift-cursewright", CurseForge.SETTING_HASH, ""); }
+            catch (e) { /* setting may not exist yet — that's fine */ }
+        }
+
+        ui.notifications.info("Cursewright: compiling cursed items from D&D 5e sources...");
+        await CurseForge.compile();
+        CurseForge.enforceOwnership();
+
+        await this._seedPoolFromForgedPack();
+        this.render();
+    }
+
+    /**
+     * Imports every item from the Cursewright forged world pack into the pool.
+     * Strip-then-replace: removes existing CW items (stale UUIDs after recompile)
+     * then adds all fresh items from the newly compiled pack.
+     */
+    async _seedPoolFromForgedPack() {
+        const cw = game.ionrift?.cursewright;
+        const forgedPackId = cw?.forge?.worldCollectionId ?? "world.ionrift-cursewright-forged";
+        const pack = game.packs.get(forgedPackId);
+        if (!pack) {
+            Logger.warn(MODULE_LABEL, "_seedPoolFromForgedPack: forged pack not found after compile.");
+            return;
+        }
+
+        let docs;
+        try { docs = await pack.getDocuments(); }
+        catch (e) { Logger.error(MODULE_LABEL, "_seedPoolFromForgedPack: could not read forged pack", e); return; }
+
+        // Strip existing CW items — their UUIDs are invalidated when the pack is rebuilt.
+        let pool = await getActiveCursedRegistry().getCursedPool();
+        pool = pool.filter(p => !(p.uuid || "").includes("ionrift-cursewright-forged"));
+
+        for (const item of docs) {
+            const meta = item.flags?.["ionrift-quartermaster"]?.cursedMeta ?? {};
+            pool.push({
+                uuid:            item.uuid,
+                name:            item.name,
+                img:             item.img || "icons/svg/item-bag.svg",
+                curseType:       meta.curseType       || "",
+                decoyAppearance: meta.decoyAppearance || "",
+                trueNature:      meta.trueNature      || "",
+                tier:            meta.tier ?? 1
+            });
+        }
+
+        await getActiveCursedRegistry().setCursedPool(pool);
+        Hooks.callAll(CURSED_POOL_DATA_HOOK);
+        ui.notifications.info(`Cursewright: ${docs.length} item${docs.length !== 1 ? "s" : ""} in pool.`);
     }
 
     async _onOpenCursedCompendium(event) {
@@ -2146,6 +2256,14 @@ export class SignatureLedgerApp extends Application {
         ui.notifications.warn("No SRD cursed items compendium found. Run Rebuild Cursed Pool first.");
     }
 
+    /**
+     * "Add New Items" button handler (CW path) / "Import All" (standalone path).
+     *
+     * CW path: pulls directly from the compiled Cursewright world pack.
+     *          No configuration needed — the forged pack IS the source.
+     * Standalone path: pulls from compendiums registered in CursedSourcesApp.
+     * Skips items already in the pool (idempotent by UUID).
+     */
     async _onImportAllCursed(event) {
         event.preventDefault();
         if (!game.user.isGM) {
@@ -2153,35 +2271,45 @@ export class SignatureLedgerApp extends Application {
             return;
         }
 
-        if (!game.ionrift?.cursewright) {
-            const { CursedImportApp } = await import("./CursedImportApp.js");
-            new CursedImportApp().render(true);
+        if (game.ionrift?.cursewright) {
+            // CW path: delegate directly to _seedPoolFromForgedPack.
+            // That method handles the import and fires notifications.
+            await this._seedPoolFromForgedPack();
+            this.render();
             return;
         }
 
-        const { CursedPoolSourceApp } = await import(`/modules/ionrift-cursewright/scripts/apps/CursedPoolSourceApp.js`);
-        const sourceIds = CursedPoolSourceApp.getEnabledSources();
-        const pool = await getPoolRegistry().getCursedPool();
+        // Standalone path: pull from CursedSourcesApp-registered compendiums
+        const sourceIds = CursedSourcesApp.getEnabledSources();
+        if (!sourceIds?.length) {
+            ui.notifications.warn("No cursed item sources registered. Use Manage Sources to add a compendium first.");
+            return;
+        }
+
+        const pool = await getActiveCursedRegistry().getCursedPool();
         const existing = new Set(pool.map(p => (p.uuid || "").toLowerCase()));
         let added = 0;
+        let skippedPacks = 0;
+
+        const SKIP_TYPES = new Set(["spell", "class", "subclass", "background", "feat", "race"]);
 
         for (const packId of sourceIds) {
             const pack = game.packs.get(packId);
-            if (!pack) continue;
+            if (!pack) { skippedPacks++; continue; }
             const docs = await pack.getDocuments();
             for (const item of docs) {
-                if (item.type !== "consumable" && item.type !== "equipment" && item.type !== "weapon" && item.type !== "armor" && item.type !== "loot") {
-                    if (!item.flags?.["ionrift-quartermaster"]?.cursedMeta) continue;
-                }
-                const key = item.uuid.toLowerCase();
-                if (existing.has(key)) continue;
+                const t = (item.type || "").toLowerCase();
+                if (SKIP_TYPES.has(t)) continue;
+
+                const key = (item.uuid || "").toLowerCase();
+                if (!key || existing.has(key)) continue;
                 existing.add(key);
 
                 const meta = item.flags?.["ionrift-quartermaster"]?.cursedMeta ?? {};
                 pool.push({
                     uuid:            item.uuid,
                     name:            item.name,
-                    img:             item.img,
+                    img:             item.img || "icons/svg/item-bag.svg",
                     curseType:       meta.curseType       || "",
                     curseTypeDesc:   meta.curseTypeDesc   || "",
                     decoyAppearance: meta.decoyAppearance || "",
@@ -2193,14 +2321,33 @@ export class SignatureLedgerApp extends Application {
         }
 
         if (added === 0) {
-            ui.notifications.info("All items from the selected sources are already in the pool.");
+            if (skippedPacks === sourceIds.length) {
+                ui.notifications.warn("None of the registered source compendiums could be found. Check your Sources list.");
+            } else {
+                ui.notifications.info("All items from the selected sources are already in the pool.");
+            }
             return;
         }
 
-        await getPoolRegistry().setCursedPool(pool);
+        await getActiveCursedRegistry().setCursedPool(pool);
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
-        ui.notifications.info(`Imported ${added} cursed item${added !== 1 ? "s" : ""} into the pool.`);
+        ui.notifications.info(`Imported ${added} item${added !== 1 ? "s" : ""} into the cursed pool.`);
         this.render();
+    }
+
+    /**
+     * "Browse & Pick" button handler (standalone) — opens CursedImportApp for
+     * hand-picking individual items from a compendium. This was previously the
+     * action incorrectly assigned to "Add from Compendium" / "Import All".
+     */
+    async _onImportIndividualCursed(event) {
+        event.preventDefault();
+        if (!game.user.isGM) {
+            ui.notifications.warn("Only a GM can modify the cursed pool.");
+            return;
+        }
+        const { CursedImportApp } = await import("./CursedImportApp.js");
+        new CursedImportApp().render(true);
     }
 
     async _onCurateCursedSources(event) {
@@ -2235,10 +2382,10 @@ export class SignatureLedgerApp extends Application {
         try {
             Logger.log(MODULE_LABEL, "fill planned curses: click");
 
-            await getPoolRegistry().ensureDefaultCursedPoolIfEmpty();
+            await getActiveCursedRegistry().ensureDefaultCursedPoolIfEmpty();
 
-            let planned = await getPoolRegistry().getCursedPlanned();
-            const pool  = await getPoolRegistry().getCursedPool();
+            let planned = await getActiveCursedRegistry().getCursedPlanned();
+            const pool  = await getActiveCursedRegistry().getCursedPool();
 
             const placedKeys = new Set(
                 planned.map(p => (p.uuid || "").toLowerCase()).filter(Boolean)
@@ -2265,7 +2412,7 @@ export class SignatureLedgerApp extends Application {
             );
             poolQueue.sort(() => Math.random() - 0.5);
 
-            const catalogQueue = await (getPoolRegistry()?.getCatalogForSeeding(placedKeys) ?? Promise.resolve([]));
+            const catalogQueue = await (getActiveCursedRegistry()?.getCatalogForSeeding(placedKeys) ?? Promise.resolve([]));
             const sourceQueue  = [
                 ...poolQueue,
                 ...catalogQueue.filter(p => !placedKeys.has((p.uuid || "").toLowerCase()))
@@ -2306,7 +2453,7 @@ export class SignatureLedgerApp extends Application {
                 newPins.push(pin);
             }
 
-            await getPoolRegistry().setCursedPlanned(planned);
+            await getActiveCursedRegistry().setCursedPlanned(planned);
 
             Logger.log(MODULE_LABEL, "fill planned curses: result", {
                 added:       newPins.length,
@@ -2336,10 +2483,10 @@ export class SignatureLedgerApp extends Application {
         event.stopPropagation();
         const level = parseInt(event.currentTarget.dataset.level);
         const uuid  = event.currentTarget.dataset.uuid;
-        const planned = await getPoolRegistry().getCursedPlanned();
+        const planned = await getActiveCursedRegistry().getCursedPlanned();
         const pin = planned.find(p => p.level === level && p.uuid === uuid);
         if (pin?.locked) return;
-        await getPoolRegistry().setCursedPlanned(
+        await getActiveCursedRegistry().setCursedPlanned(
             planned.filter(p => !(p.level === level && p.uuid === uuid))
         );
         this.render();
@@ -2350,11 +2497,11 @@ export class SignatureLedgerApp extends Application {
         event.stopPropagation();
         const level = parseInt(event.currentTarget.dataset.level);
         const uuid  = event.currentTarget.dataset.uuid;
-        const planned = await getPoolRegistry().getCursedPlanned();
+        const planned = await getActiveCursedRegistry().getCursedPlanned();
         const item  = planned.find(p => p.level === level && p.uuid === uuid);
         if (item) {
             item.used = !item.used;
-            await getPoolRegistry().setCursedPlanned(planned);
+            await getActiveCursedRegistry().setCursedPlanned(planned);
             this.render();
         }
     }
@@ -2371,11 +2518,11 @@ export class SignatureLedgerApp extends Application {
         const slotIdx = parseInt(btn.dataset.slotIdx || "0", 10);
         const oldUuid = btn.dataset.uuid;
 
-        let planned = await getPoolRegistry().getCursedPlanned();
+        let planned = await getActiveCursedRegistry().getCursedPlanned();
         const existing = planned.find(p => p.level === level && p.uuid === oldUuid);
         if (existing?.locked) return;
 
-        const pool = await getPoolRegistry().getCursedPool();
+        const pool = await getActiveCursedRegistry().getCursedPool();
 
         const placedKeys = new Set(
             planned.map(p => (p.uuid || "").toLowerCase()).filter(Boolean)
@@ -2390,7 +2537,7 @@ export class SignatureLedgerApp extends Application {
         let pick = poolCandidates[0] ?? null;
 
         if (!pick) {
-            const catalog = await (getPoolRegistry()?.getCatalogForSeeding(placedKeys) ?? Promise.resolve([]));
+            const catalog = await (getActiveCursedRegistry()?.getCatalogForSeeding(placedKeys) ?? Promise.resolve([]));
             pick = catalog[0] ?? null;
         }
 
@@ -2414,7 +2561,7 @@ export class SignatureLedgerApp extends Application {
             used:            false
         };
         planned.push(pin);
-        await getPoolRegistry().setCursedPlanned(planned);
+        await getActiveCursedRegistry().setCursedPlanned(planned);
 
         ui.notifications.info(`Re-rolled: ${pick.name} at Lv ${level}.`);
         this.render();
@@ -2425,9 +2572,9 @@ export class SignatureLedgerApp extends Application {
     async _onRemovePoolItem(event) {
         event.preventDefault();
         const idx  = parseInt(event.currentTarget.dataset.index);
-        const pool = await getPoolRegistry().getCursedPool();
+        const pool = await getActiveCursedRegistry().getCursedPool();
         pool.splice(idx, 1);
-        await getPoolRegistry().setCursedPool(pool);
+        await getActiveCursedRegistry().setCursedPool(pool);
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
         this.render();
     }
@@ -2438,13 +2585,13 @@ export class SignatureLedgerApp extends Application {
      */
     async _setCursedPoolEntryTier(poolIndex, newTier) {
         const tier = Math.max(1, Math.min(4, Number(newTier) || 1));
-        const pool = await getPoolRegistry().getCursedPool();
+        const pool = await getActiveCursedRegistry().getCursedPool();
         const entry = pool[poolIndex];
         if (!entry) return false;
         const prev = Math.max(1, Math.min(4, Number(entry.tier) || 1));
         if (prev === tier) return false;
         entry.tier = tier;
-        await getPoolRegistry().setCursedPool(pool);
+        await getActiveCursedRegistry().setCursedPool(pool);
         return true;
     }
 
@@ -2681,7 +2828,7 @@ export class SignatureLedgerApp extends Application {
         if (cursedPoolZone) {
             const item = await fromUuid(data.uuid);
             if (!item) return;
-            const pool = await getPoolRegistry().getCursedPool();
+            const pool = await getActiveCursedRegistry().getCursedPool();
             const key = data.uuid.toLowerCase();
             if (pool.some(p => (p.uuid || "").toLowerCase() === key)) {
                 ui.notifications.warn(`"${item.name}" is already in the cursed pool.`);
@@ -2722,7 +2869,7 @@ export class SignatureLedgerApp extends Application {
                 trueNature:      curseMeta.trueNature      ?? "",
                 tier:            curseMeta.tier ?? 1
             });
-            await getPoolRegistry().setCursedPool(pool);
+            await getActiveCursedRegistry().setCursedPool(pool);
             Hooks.callAll(CURSED_POOL_DATA_HOOK);
             ui.notifications.info(`"${item.name}" added to the cursed pool.`);
             this.render();
@@ -2828,7 +2975,7 @@ export class SignatureLedgerApp extends Application {
                 if (!curseMeta) return;
             }
 
-            const planned = await getPoolRegistry().getCursedPlanned();
+            const planned = await getActiveCursedRegistry().getCursedPlanned();
             const slotIdx   = Math.min(1, Math.max(0, parseInt(slotEl.dataset.slotIdx || "0", 10)));
             const newEntry  = {
                 uuid:            data.uuid,
@@ -2843,7 +2990,7 @@ export class SignatureLedgerApp extends Application {
                 used:            false
             };
             const merged = SignatureLedgerApp._mergeCursedPlannedSlot(planned, level, slotIdx, newEntry);
-            await getPoolRegistry().setCursedPlanned(merged);
+            await getActiveCursedRegistry().setCursedPlanned(merged);
         } else if (actorId) {
             await this._assignSignature(actorId, level, base);
             return; // _assignSignature calls render()

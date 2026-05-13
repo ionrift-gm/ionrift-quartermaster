@@ -1,4 +1,4 @@
-<form class="ionrift-cache-generator">
+﻿<form class="ionrift-cache-generator">
     <div class="cache-split-layout {{#if advisory}}has-advisory{{/if}}">
 
         {{!-- LEFT PANEL  --  Progression Advisory (only renders when data exists) --}}
@@ -186,10 +186,10 @@
                     <div class="context-pill">
                         <i class="fas fa-layer-group"></i>
                         <select name="tier" class="context-select">
-                            <option value="1" {{#if tierIs1}}selected{{/if}}>T1  - Lv 1–4</option>
-                            <option value="2" {{#if tierIs2}}selected{{/if}}>T2  - Lv 5–10</option>
-                            <option value="3" {{#if tierIs3}}selected{{/if}}>T3  - Lv 11–16</option>
-                            <option value="4" {{#if tierIs4}}selected{{/if}}>T4  - Lv 17–20</option>
+                            <option value="1" {{#if tierIs1}}selected{{/if}}>T1  - Lv 1â€“4</option>
+                            <option value="2" {{#if tierIs2}}selected{{/if}}>T2  - Lv 5â€“10</option>
+                            <option value="3" {{#if tierIs3}}selected{{/if}}>T3  - Lv 11â€“16</option>
+                            <option value="4" {{#if tierIs4}}selected{{/if}}>T4  - Lv 17â€“20</option>
                         </select>
                     </div>
                     <div class="context-strip-divider"></div>
@@ -272,7 +272,7 @@
                                 {{#if this._isMagical}}<span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>{{/if}}
                             </div>
                             {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                            <button type="button" class="action-remove-slot remove-btn" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                                 <i class="fas fa-xmark"></i>
                             </button>
                         </div>
@@ -298,7 +298,7 @@
                                 {{#if this._isMagical}}<span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>{{/if}}
                             </div>
                             {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                            <button type="button" class="action-remove-slot remove-btn" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                                 <i class="fas fa-xmark"></i>
                             </button>
                         </div>
@@ -321,7 +321,8 @@
                                 <span class="cache-item-meta">{{#if this.rarity}}{{this.rarity}}{{/if}}</span>
                             </div>
                             <span class="cursed-pip" title="Cursed{{#if this.cursedAs}}: {{this.cursedAs}}{{/if}}"><i class="fas fa-skull"></i></span>
-                            <button type="button" class="action-remove-slot remove-btn" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                                 <i class="fas fa-xmark"></i>
                             </button>
                         </div>
@@ -355,10 +356,10 @@
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="scroll" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="scroll" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -389,10 +390,10 @@
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="mastercraft" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="mastercraft" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -420,10 +421,10 @@
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="gemstone" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="gemstone" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -451,10 +452,10 @@
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="treasure" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="treasure" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -485,10 +486,10 @@
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="consumable" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="consumable" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -516,10 +517,10 @@
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="mundane" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="mundane" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -547,10 +548,10 @@
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="trinket" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="trinket" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -587,7 +588,7 @@
                     </div>
                     <div class="cache-total">
                         <i class="fas fa-scale-balanced"></i>
-                        Est. ≈ <strong>{{totalValue}} gp</strong>
+                        Est. â‰ˆ <strong>{{totalValue}} gp</strong>
                     </div>
                 </div>
 
@@ -615,9 +616,9 @@
         </div>{{!-- /.cache-center --}}
 
 
-        {{!-- ═══════════════════════════════════════════════════════════════
+        {{!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
              RIGHT PANEL  --  Container / Delivery
-        ═══════════════════════════════════════════════════════════════ --}}
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         <div class="cache-right">
             {{#if hasResult}}
 

@@ -24,6 +24,13 @@ import { Logger, MODULE_LABEL } from "./_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
+/**
+ * Systems with full Quartermaster support. On other systems the module loads
+ * but logs an advisory; core loot and progression features require DnD5e schema.
+ * Extend this list when a formal QMSystemAdapter is implemented.
+ */
+const SUPPORTED_SYSTEMS = ["dnd5e"];
+
 function isResonanceActive() {
     return game.modules.get("ionrift-resonance")?.active ?? false;
 }
@@ -33,6 +40,14 @@ function isResonanceActive() {
 Hooks.once('init', async () => {
     const version = game.modules.get(MODULE_ID)?.version ?? "unknown";
     Logger.info(MODULE_LABEL, `v${version} | Initializing.`);
+
+    if (!SUPPORTED_SYSTEMS.includes(game.system?.id)) {
+        Logger.warn(
+            MODULE_LABEL,
+            `System '${game.system?.id}' is not officially supported. ` +
+            `Core features require DnD5e. The module will load but results may be unpredictable.`
+        );
+    }
 
     // Expose API
     game.modules.get(MODULE_ID).api = {
@@ -362,6 +377,7 @@ Hooks.once('init', async () => {
             "modules/ionrift-quartermaster/templates/partials/sound-picker-row.hbs",
             "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs",
             "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs",
+            "modules/ionrift-quartermaster/templates/partials/cache-chat-card.hbs",
             "modules/ionrift-quartermaster/templates/scroll-forge-sources.hbs"
         ]);
     } catch (e) {
@@ -438,6 +454,17 @@ Hooks.on('ready', () => {
 
     // Content Pack discovery + auto-compile
     if (game.user.isGM) {
+        // Register QM-specific terrains into the lib spine so other modules can see them.
+        const registerQmTerrains = (terrains) => {
+            terrains.register({ id: "jungle", label: "Jungle" });
+            terrains.register({ id: "coastal", label: "Coastal" });
+            terrains.register({ id: "swamp", label: "Swamp" });
+            terrains.register({ id: "arctic", label: "Arctic" });
+        };
+        Hooks.on("ionrift.terrainsReady", registerQmTerrains);
+        const libTerrains = game.ionrift?.library?.terrains;
+        if (libTerrains) registerQmTerrains(libTerrains);
+
         ContentPackLoader.init().then(() => {
             if (ContentPackLoader.loaded && ContentPackLoader.getLoadedPacks().length > 0) {
                 ContentPackCompiler.compileAll().catch(err => {
@@ -448,6 +475,44 @@ Hooks.on('ready', () => {
             Logger.error(MODULE_LABEL, "Content Pack loader failed:", err);
         });
     }
+});
+
+Hooks.on("preUpdateItem", (item, changes, options) => {
+    if (!game.user.isGM) return;
+    if (changes?.system?.identified !== false) return;
+
+    const latent = item.getFlag?.(MODULE_ID, "latentMagic");
+    if (!latent?.promoted) return;
+
+    if (latent.originalName) changes.name = latent.originalName;
+    if (latent.originalRarity) changes.system.rarity = latent.originalRarity;
+    if (latent.originalPrice) changes.system.price = latent.originalPrice;
+    if (latent.originalDescription !== undefined) {
+        changes.system ??= {};
+        changes.system.description ??= {};
+        changes.system.description.value = latent.originalDescription;
+    }
+    if (latent.magicalBonus !== undefined) {
+        changes.system ??= {};
+        changes.system.magicalBonus = "";
+    }
+    if (latent.attunement) {
+        changes.system ??= {};
+        changes.system.attunement = "";
+    }
+    if (latent.originalImg) changes.img = latent.originalImg;
+
+    options.curseBypass = true;
+    options._reobscureItem = item.id;
+});
+
+Hooks.on("updateItem", (item, changes, options) => {
+    if (!options._reobscureItem || options._reobscureItem !== item.id) return;
+    if (!game.user.isGM) return;
+    item.setFlag(MODULE_ID, "latentMagic", {
+        ...item.getFlag(MODULE_ID, "latentMagic"),
+        promoted: false
+    });
 });
 
 // Bind cache chat card buttons
