@@ -4490,6 +4490,32 @@
 
 .advisory-section-toggle:hover { opacity: 1; }
 
+/* Dice reroll button in advisory sub-section headers (scroll plan / party shelf / cursed pool) */
+.advisory-pool-reroll-btn {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid transparent;
+    color: inherit;
+    opacity: 0.4;
+    cursor: pointer;
+    line-height: 1;
+    font-size: 0.8em;
+    border-radius: 3px;
+    transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.advisory-pool-reroll-btn:hover {
+    opacity: 1;
+    border-color: currentColor;
+    background: rgba(255, 255, 255, 0.07);
+}
+
 /* Sub-section body */
 .advisory-sub-body {
     padding: 4px 6px;
@@ -4663,7 +4689,8 @@
     transition: outline 0.15s ease, background 0.15s ease;
 }
 
-.cache-results.drop-target-active {
+.cache-results.drop-target-active,
+#cache-right-drop-zone.drop-target-active {
     outline: 2px dashed rgba(139, 92, 246, 0.6);
     outline-offset: -2px;
     background: rgba(139, 92, 246, 0.04);

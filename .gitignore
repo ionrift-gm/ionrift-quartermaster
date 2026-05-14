@@ -3,6 +3,7 @@
 # Compiled pack build artifacts (compile step output, not committed)
 packs/proving-grounds-compiled/
 packs/proving-grounds-guide-compiled/
+packs/quartermaster-containers/
 packs/*-backup*/
 
 # Dev packs (status: dev in SHIPPING.json, local only)

@@ -1,4 +1,4 @@
-﻿<form class="ionrift-cache-generator">
+<form class="ionrift-cache-generator">
     <div class="cache-split-layout {{#if advisory}}has-advisory{{/if}}">
 
         {{!-- LEFT PANEL  --  Progression Advisory (only renders when data exists) --}}
@@ -89,6 +89,7 @@
                 <div class="advisory-sub-section advisory-scroll-section">
                     <div class="advisory-sub-header">
                         <span><i class="fas fa-scroll"></i> Scroll Plan</span>
+                        {{#if advisory.scrollCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="scroll" title="Reroll scroll suggestions (ignores ripe gate)"><i class="fas fa-dice"></i></button>{{/if}}
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.scrolls}}
@@ -117,6 +118,7 @@
                 <div class="advisory-sub-section advisory-party-section">
                     <div class="advisory-sub-header">
                         <span><i class="fas fa-box-open"></i> Party Shelf</span>
+                        {{#if advisory.partyShelfCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="partyShelf" title="Reroll party shelf suggestions (ignores ripe gate)"><i class="fas fa-dice"></i></button>{{/if}}
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.partyShelf}}
@@ -139,6 +141,7 @@
                 <div class="advisory-sub-section advisory-cursed-section">
                     <div class="advisory-sub-header">
                         <span><i class="fas fa-skull"></i> Cursed Pool</span>
+                        {{#if advisory.cursedCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="cursedPool" title="Reroll cursed pool suggestions (random from full pool)"><i class="fas fa-dice"></i></button>{{/if}}
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.cursedPool}}
@@ -186,10 +189,10 @@
                     <div class="context-pill">
                         <i class="fas fa-layer-group"></i>
                         <select name="tier" class="context-select">
-                            <option value="1" {{#if tierIs1}}selected{{/if}}>T1  - Lv 1â€“4</option>
-                            <option value="2" {{#if tierIs2}}selected{{/if}}>T2  - Lv 5â€“10</option>
-                            <option value="3" {{#if tierIs3}}selected{{/if}}>T3  - Lv 11â€“16</option>
-                            <option value="4" {{#if tierIs4}}selected{{/if}}>T4  - Lv 17â€“20</option>
+                            <option value="1" {{#if tierIs1}}selected{{/if}}>T1  - Lv 1-4</option>
+                            <option value="2" {{#if tierIs2}}selected{{/if}}>T2  - Lv 5-10</option>
+                            <option value="3" {{#if tierIs3}}selected{{/if}}>T3  - Lv 11-16</option>
+                            <option value="4" {{#if tierIs4}}selected{{/if}}>T4  - Lv 17-20</option>
                         </select>
                     </div>
                     <div class="context-strip-divider"></div>
@@ -588,7 +591,7 @@
                     </div>
                     <div class="cache-total">
                         <i class="fas fa-scale-balanced"></i>
-                        Est. â‰ˆ <strong>{{totalValue}} gp</strong>
+                        Est. ~ <strong>{{totalValue}} gp</strong>
                     </div>
                 </div>
 
@@ -616,10 +619,8 @@
         </div>{{!-- /.cache-center --}}
 
 
-        {{!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-             RIGHT PANEL  --  Container / Delivery
-        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
-        <div class="cache-right">
+        {{!-- RIGHT PANEL -- Container / Delivery --}}
+        <div class="cache-right drop-target" id="cache-right-drop-zone">
             {{#if hasResult}}
 
                 {{#if meta.flavor}}
