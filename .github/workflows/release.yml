@@ -36,6 +36,15 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile compendium packs
+        run: node tools/compile-packs.mjs
+
+      - name: Validate compiled packs
+        run: node tools/validate-packs-local.mjs
+
       - name: Validate shipping manifest
         run: node tools/validate-shipping.mjs
 
@@ -55,7 +64,9 @@ jobs:
             -x ".cursor/*" \
             -x "tests/*" \
             -x "node_modules/*" \
-            -x "packs/*" \
+            -x "packs/src/*" \
+            -x "packs/.validation-staging/*" \
+            -x "packs/SHIPPING.json" \
             -x ".build/*" \
             -x "*.mjs" \
             -x "*.bak" \
@@ -69,9 +80,6 @@ jobs:
             -x "docs/*" \
             -x "vitest*" \
             -x ".eslintrc*"
-
-      - name: Append approved compendium packs to zip
-        run: node tools/append-approved-packs-to-zip.mjs
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

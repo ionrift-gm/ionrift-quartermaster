@@ -480,6 +480,9 @@ Hooks.on('ready', () => {
 Hooks.on("preUpdateItem", (item, changes, options) => {
     if (!game.user.isGM) return;
     if (changes?.system?.identified !== false) return;
+    // Skip items on Item Piles containers — transfer operations can trigger
+    // identified changes as a side-effect; never re-identify pile items.
+    if (item.parent?.flags?.["item-piles"]?.data?.enabled) return;
 
     const latent = item.getFlag?.(MODULE_ID, "latentMagic");
     if (!latent?.promoted) return;

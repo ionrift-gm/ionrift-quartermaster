@@ -59,6 +59,9 @@ export class CacheGeneratorApp extends Application {
         this._boundCanvasDrop = this._onCanvasDrop.bind(this);
         this._cursedPoolLoaded = false; // [EA] guards against re-fetch loop
         this._advisoryRerollState = new Map();
+        // Tracks pools manually rerolled via dice button: suppresses isPlanned (recipe) items.
+        // Reset on _onGenerate so fresh generation restores milestone priority.
+        this._poolRerollMode = new Set();
         // Budget range slider state (null = use tier default)
         this._budgetMin = null;
         this._budgetMax = null;
@@ -295,7 +298,10 @@ export class CacheGeneratorApp extends Application {
             adv?.partyShelf ?? [],
             partyLevelAvg
         );
-        const ledgerShelf = shelfOrdered.map(entry => ({
+        // When the GM manually rerolled this panel, skip planned/recipe pins and show
+        // only fresh ephemeral suggestions from the compendium pool.
+        const shelfRerollMode = this._poolRerollMode?.has("partyShelf");
+        const ledgerShelf = shelfRerollMode ? [] : shelfOrdered.map(entry => ({
             name:             entry.name,
             img:              entry.img ?? "icons/equipment/chest/chest-wooden-simple.webp",
             level:            entry.level,
@@ -326,7 +332,10 @@ export class CacheGeneratorApp extends Application {
         );
 
         // Cursed: planned block (sorted) then pool; one visibility pass + cap (same as party shelf).
-        const plannedCursed = (this._cursedPlanned ?? [])
+        // When the GM manually rerolled this panel, skip planned/recipe pins and show
+        // only fresh random suggestions from the compendium pool.
+        const cursedRerollMode = this._poolRerollMode?.has("cursedPool");
+        const plannedCursed = cursedRerollMode ? [] : (this._cursedPlanned ?? [])
             .filter(c => !(c.used || c.delivered))
             .map(c => ({
                 name:             c.name,
@@ -383,15 +392,27 @@ export class CacheGeneratorApp extends Application {
             return null;
         }
 
+        // Dice reroll button should only appear when there is something random to surface.
+        // If every visible row is already a planned+ripe pin, rerolling would show the same items.
+        const partyShelfCanReroll = partyShelf.some(i => !i.isPlanned)
+            || (this._partyShelfPool?.length > partyShelf.length);
+        const cursedCanReroll = cursedPool.some(i => !i.isPlanned)
+            || (this._cursedPool?.length > cursedPool.length);
+        // Scrolls: only useful to reroll when the advisor has more pins than the visible cap.
+        const scrollCanReroll = (adv?.scrolls?.length ?? 0) > scrollRows.length;
+
         return {
             characters,
             partyShelf,
             cursedPool,
-            scrolls:       scrollRows,
-            overdueCount:  characters.length,
-            hasPartyShelf: partyShelf.length > 0,
-            hasCursedPool: cursedPool.length > 0,
-            hasScrolls:    scrollRows.length > 0
+            scrolls:          scrollRows,
+            overdueCount:     characters.length,
+            hasPartyShelf:    partyShelf.length > 0,
+            hasCursedPool:    cursedPool.length > 0,
+            hasScrolls:       scrollRows.length > 0,
+            partyShelfCanReroll,
+            cursedCanReroll,
+            scrollCanReroll
         };
     }
 
@@ -508,6 +529,8 @@ export class CacheGeneratorApp extends Application {
         html.find(".action-toggle-advisory").click(this._onToggleAdvisory.bind(this));
         // Section collapse toggles in the left panel
         html.find(".advisory-section-toggle").click(this._onToggleAdvisorySection.bind(this));
+        // Panel pool reroll dice buttons (scroll plan / party shelf / cursed pool)
+        html.find(".action-reroll-panel-pool").click(this._onRerollPanelPool.bind(this));
 
         // Auto-persist tier and theme selects on change; reroll if a result is already showing
         html.find("select[name='tier']").change(e => {
@@ -548,12 +571,26 @@ export class CacheGeneratorApp extends Application {
             el.addEventListener("dragstart", this._onLeftPanelItemDragStart.bind(this));
         });
 
-        // Cache results list: accept drops from left-panel items
+        // Cache results list + the full right panel: accept drops from left-panel items.
+        // Using the right panel as the outer drop zone means the GM can drop anywhere
+        // in the preview area (container card, drag-hint, etc.) not just the item list.
+        // Uses a dragEnter counter to avoid flickering when the cursor
+        // crosses child-element boundaries within the drop zone.
         const resultsEl = html.find(".cache-results")[0];
         if (resultsEl) {
-            resultsEl.addEventListener("dragover", this._onCacheResultsDragOver.bind(this));
-            resultsEl.addEventListener("dragleave", this._onCacheResultsDragLeave.bind(this));
-            resultsEl.addEventListener("drop", this._onCacheResultsDrop.bind(this));
+            resultsEl.addEventListener("dragenter",  this._onCacheResultsDragEnter.bind(this));
+            resultsEl.addEventListener("dragover",   this._onCacheResultsDragOver.bind(this));
+            resultsEl.addEventListener("dragleave",  this._onCacheResultsDragLeave.bind(this));
+            resultsEl.addEventListener("drop",       this._onCacheResultsDrop.bind(this));
+        }
+
+        // Extend drop zone to the full right panel (container/loot preview area)
+        const rightEl = html.find("#cache-right-drop-zone")[0];
+        if (rightEl) {
+            rightEl.addEventListener("dragenter",  this._onCacheResultsDragEnter.bind(this));
+            rightEl.addEventListener("dragover",   this._onCacheResultsDragOver.bind(this));
+            rightEl.addEventListener("dragleave",  this._onCacheResultsDragLeave.bind(this));
+            rightEl.addEventListener("drop",       this._onCacheResultsDrop.bind(this));
         }
 
         // Constrain results height so overflow-y scroll is reliable
@@ -761,6 +798,7 @@ export class CacheGeneratorApp extends Application {
 
         this._generating = true;
         this._advisory   = null;
+        this._poolRerollMode?.clear();  // Fresh generate restores milestone priority
         this.render();
 
         try {
@@ -909,21 +947,37 @@ export class CacheGeneratorApp extends Application {
 
     // ── Cache Results Drop Target ─────────────────────────────────────────────
 
+    /**
+     * Increment the drag-enter counter and activate the drop-zone highlight.
+     * Using a counter (instead of just dragover/dragleave) prevents flickering
+     * when the cursor crosses child-element boundaries inside the zone.
+     */
+    _onCacheResultsDragEnter(event) {
+        if (!event.dataTransfer.types.includes("text/plain")) return;
+        event.preventDefault();
+        this._dragEnterCount = (this._dragEnterCount ?? 0) + 1;
+        event.currentTarget.classList.add("drop-target-active");
+    }
+
     _onCacheResultsDragOver(event) {
         // Only accept our own left-panel items
         if (!event.dataTransfer.types.includes("text/plain")) return;
         event.preventDefault();
-        event.currentTarget.classList.add("drop-target-active");
         event.dataTransfer.dropEffect = "copy";
     }
 
     _onCacheResultsDragLeave(event) {
-        event.currentTarget.classList.remove("drop-target-active");
+        this._dragEnterCount = Math.max(0, (this._dragEnterCount ?? 1) - 1);
+        if (this._dragEnterCount === 0) {
+            event.currentTarget.classList.remove("drop-target-active");
+        }
     }
 
     async _onCacheResultsDrop(event) {
         event.preventDefault();
+        this._dragEnterCount = 0;  // Reset counter on any drop
         event.currentTarget.classList.remove("drop-target-active");
+
         if (!this._currentResult) return;
 
         let payload;
@@ -1046,6 +1100,58 @@ export class CacheGeneratorApp extends Application {
         if (!key) return;
         const current = this._advisoryRerollState.get(key) ?? 0;
         this._advisoryRerollState.set(key, current + 1);
+        this.render();
+    }
+
+    /**
+     * Reroll a specific advisory pool section (scroll plan, party shelf, or cursed pool).
+     * Ignores "ripe" gating — pulls a fresh random slice from the full pool.
+     * For cursed pool: bypasses recipe-only items and draws anything from the full pool.
+     */
+    async _onRerollPanelPool(event) {
+        event.preventDefault();
+        const pool = event.currentTarget.dataset.pool;
+        const tier = this._currentResult?.meta?.tier
+            ?? game.settings?.get(MODULE_ID, "defaultCacheTier")
+            ?? 1;
+
+        // Mark pool as reroll-mode: planned/recipe pins will be suppressed
+        this._poolRerollMode.add(pool);
+
+        if (pool === "partyShelf") {
+            // Force a fresh ephemeral draw — re-shuffle by clearing current pool first
+            this._partyShelfPool = [];
+            await this._refreshPartyShelfPool(tier);
+            // Rotate through the pool so repeated clicks surface different rows
+            if (this._partyShelfPool.length > 1) {
+                const shift = this._partyShelfPool.splice(0, 1);
+                this._partyShelfPool.push(...shift);
+            }
+        } else if (pool === "cursedPool") {
+            // Force fresh random draw from the full pool, bypassing ripe/recipe gate
+            const reg = getCursedPoolRegistry();
+            try {
+                let raw = await reg.getPool(tier, ADVISORY_EPHEMERAL_FETCH * 2);
+                if (!raw.length && typeof reg.getCursedPool === "function") {
+                    const stored = await reg.getCursedPool();
+                    const t = Math.max(1, Math.min(4, Number(tier) || 1));
+                    raw = (stored ?? []).filter(r => (r.tier ?? 1) <= t);
+                }
+                // Shuffle and pick a new slice ignoring what was shown before
+                const shuffled = [...raw].sort(() => Math.random() - 0.5);
+                this._cursedPool = shuffled.slice(0, ADVISORY_EPHEMERAL_FETCH);
+            } catch (err) {
+                Logger.warn(MODULE_LABEL, "Cursed pool reroll failed:", err.message);
+            }
+        } else if (pool === "scroll") {
+            // Shuffle the advisory scrolls array in-place to surface a different subset.
+            // Do NOT call _refreshAdvisoryForCurrentCache() — that would re-fetch all pools
+            // and cause partyShelf and cursedPool to randomise as a side-effect.
+            if (this._advisory?.scrolls?.length > 1) {
+                this._advisory.scrolls = [...this._advisory.scrolls].sort(() => Math.random() - 0.5);
+            }
+        }
+
         this.render();
     }
 
@@ -1653,11 +1759,28 @@ export class CacheGeneratorApp extends Application {
                     foundry.utils.setProperty(data, "flags.ionrift-quartermaster.mintBatch", mintBatch);
                 }
 
+                // For infected entries: strip Cursewright meta BEFORE the masking check.
+                // This is critical for standalone cursed items (Cursewright item as resolution
+                // source) which have latentMagic set — if we check hasLatentMagic before
+                // stripping, masking is skipped and the lure name is revealed immediately.
+                // Stamp infectedRate at the same time.
+                const isInfected = !!(metaObj._infectedCount && metaObj._totalQty);
+                if (isInfected) {
+                    const infectedRate = metaObj._infectedCount / metaObj._totalQty;
+                    foundry.utils.setProperty(data, "flags.ionrift-quartermaster.infectedRate", infectedRate);
+                    if (data.flags?.["ionrift-quartermaster"]) {
+                        delete data.flags["ionrift-quartermaster"].latentMagic;
+                        delete data.flags["ionrift-quartermaster"].cursedMeta;
+                        delete data.flags["ionrift-quartermaster"].forgedFrom;
+                    }
+                    // Do NOT set system.identified = true here.
+                    // QM design: mask by renaming, not by identified=false.
+                }
+
                 // Apply identification masking for magical items.
-                // Skip items with latentMagic — Cursewright already set the correct lure surface
-                // name/img. Re-masking would overwrite "Potion of Healing" with "Unidentified Consumable".
+                // Infected entries are always treated as magical.
                 const hasLatentMagic = !!(data.flags?.["ionrift-quartermaster"]?.latentMagic);
-                if (metaObj._isMagical && !hasLatentMagic) {
+                if ((metaObj._isMagical || isInfected) && !hasLatentMagic) {
                     const obscuredFallback = ItemMaskingHelper.detectMagical({
                         name: data.name,
                         rarity: data.system?.rarity ?? metaObj.rarity ?? "",
@@ -1672,31 +1795,23 @@ export class CacheGeneratorApp extends Application {
                     });
                 }
 
-                // Stamp infectedRate when this entry absorbed cursed items at squash time.
-                // Stored as a lightweight float — does not break Item Piles stacking.
-                // CurseEngine resolves probability at use time via mintBatch + CurseRegistry.
-                if (metaObj._infectedCount && metaObj._totalQty) {
-                    const infectedRate = metaObj._infectedCount / metaObj._totalQty;
-                    foundry.utils.setProperty(data, "flags.ionrift-quartermaster.infectedRate", infectedRate);
-                    // Strip latentMagic and cursedMeta — this merged entry presents as a plain
-                    // "Potion of Healing". The curse is tracked via infectedRate + mintBatch only.
-                    // Leaving latentMagic intact would trigger QM's preCreateItem masking hook
-                    // and rename the pile item to "Unidentified Consumable".
-                    if (data.flags?.["ionrift-quartermaster"]) {
-                        delete data.flags["ionrift-quartermaster"].latentMagic;
-                        delete data.flags["ionrift-quartermaster"].cursedMeta;
-                        delete data.flags["ionrift-quartermaster"].forgedFrom;
-                    }
-                    // Clear identified=false so QM's identification gate doesn't block the item
-                    if (data.system?.identified === false) {
-                        foundry.utils.setProperty(data, "system.identified", true);
-                    }
+                // Stamp canStack "yes" on masked items (IP maps string keys; boolean is ignored).
+                // IP checks flags["item-piles"].item.canStack before merging stacks.
+                // Without an explicit stackable stamp, IP runs a normalisation pass that touches
+                // system.identified, triggering _guardIdentify and causing the
+                // alternating Corked Bottle / Potion of Healing reveal bug.
+                if (data.flags?.["ionrift-quartermaster"]?.latentMagic) {
+                    data.flags["item-piles"] = data.flags["item-piles"] ?? {};
+                    data.flags["item-piles"].item = data.flags["item-piles"].item ?? {};
+                    data.flags["item-piles"].item.canStack = "yes";
                 }
 
-                // Remove canStack:false that Cursewright may have stamped — stacking is
-                // controlled at the pile level via canStackItems:true, not per-item flags.
-                if (data.flags?.["item-piles"]?.item?.canStack === false) {
-                    delete data.flags["item-piles"].item.canStack;
+                // Strip compendium source references from masked items.
+                // IP uses flags.core.sourceId to re-resolve from compendium.
+                // Without it, IP transfers our masked data as-is.
+                if (data.flags?.["ionrift-quartermaster"]?.latentMagic) {
+                    if (data.flags?.core?.sourceId) delete data.flags.core.sourceId;
+                    if (data._stats?.compendiumSource) delete data._stats.compendiumSource;
                 }
 
                 return data;
@@ -1712,10 +1827,8 @@ export class CacheGeneratorApp extends Application {
                 return itemData;
             };
 
-            // 1. Prefix the container itself so Item Piles adopts its image and players can physically loot it
-            if (result.container) {
-                pileItems.push(stampPileQuantity(await resolveItemData(result.container), 1));
-            }
+            // Container appearance is applied via tokenOverrides (name, texture, lockRotation).
+            // We do NOT add the container as a pile item — only the actual loot contents appear.
 
             // 2. Two-pass squash
             //
@@ -1742,23 +1855,30 @@ export class CacheGeneratorApp extends Application {
                 }
             }
 
-            // Pass B: merge cursed items into a matching non-cursed entry by display name.
-            // The cursed item's compendium ref becomes the resolution base for the merged entry.
+            // Pass B: merge cursed items INTO the matching clean entry.
+            // The pile must show ONE row for all potions of the same type — two
+            // identical "Small Phial" entries is a dead giveaway for players.
+            //
+            // Architecture:
+            //   clean (x2) + infected (x1) → one entry, _totalQty=3, _infectedCount=1
+            //   → infectedRate = 1/3 ≈ 0.33
+            //
+            // Each use in preUseActivity rolls Math.random() < infectedRate independently.
+            // The rate is probabilistic, not a counter — so even if Item Piles merges
+            // this with existing clean potions on the player's inventory, every use
+            // still has the correct chance of being poisoned.
+            //
+            // We retain the CLEAN item's compendium ref so the pile contains a usable
+            // SRD Potion of Healing (with a heal activity), not the Cursewright item.
             for (const item of result.items ?? []) {
                 if (!item._specialSection || item._specialType !== "cursed") continue;
                 const qty = item.quantity ?? 1;
                 const matchEntry = [...squashedMap.values()].find(e => e.name === item.name);
                 if (matchEntry) {
-                    // Override resolution ref to use the cursed item's compendium data.
-                    // This ensures the merged pile entry resolves as "Potion of Healing"
-                    // rather than "Corked Bottle" (the 2024 PHB name for the clean version).
-                    matchEntry.sourceCompendium = item.sourceCompendium;
-                    matchEntry._compendiumId    = item._compendiumId;
-                    matchEntry._isMagical       = false; // lure surface — masking already applied
-                    matchEntry._infectedCount   = (matchEntry._infectedCount ?? 0) + qty;
-                    matchEntry._totalQty        = (matchEntry._totalQty ?? 0) + qty;
+                    matchEntry._infectedCount = (matchEntry._infectedCount ?? 0) + qty;
+                    matchEntry._totalQty      = (matchEntry._totalQty ?? 0) + qty;
                 } else {
-                    // No non-cursed counterpart — standalone infected entry (fully poisoned stack)
+                    // No clean counterpart — standalone fully-infected stack.
                     squashedMap.set(`cursed::${item._uid ?? item.name}`, {
                         ...item,
                         _totalQty:      qty,
@@ -1766,6 +1886,7 @@ export class CacheGeneratorApp extends Application {
                     });
                 }
             }
+
 
             // 3. Resolve squashed entries into final pile items
             for (const entry of squashedMap.values()) {
@@ -1788,28 +1909,35 @@ export class CacheGeneratorApp extends Application {
                 position: { x, y },
                 items: pileItems,
                 pileSettings: {
+                    type:            "container",
                     displayOne:      false,
                     showItemName:    false,
                     isContainer:     true,
                     canStackItems:   true,
                     canInspectItems: true,
-                    deleteWhenEmpty: false
+                    deleteWhenEmpty: false,
+                    // Currency sharing disabled — players can take as much as they want
+                    shareCurrenciesEnabled: false
                 },
                 itemPileFlags: {
+                    type:            "container",
                     displayOne:      false,
                     showItemName:    false,
                     isContainer:     true,
                     canStackItems:   true,
                     canInspectItems: true,
-                    deleteWhenEmpty: false
+                    deleteWhenEmpty: false,
+                    shareCurrenciesEnabled: false
                 },
                 tokenOverrides: {
-                    name: containerName,
-                    "texture.src": containerImg,
-                    img: containerImg,
-                    texture: { src: containerImg },
-                    vision: false,
-                    sight: { enabled: false }
+                    name:            containerName,
+                    "texture.src":   containerImg,
+                    img:             containerImg,
+                    texture:         { src: containerImg },
+                    // Lock artwork rotation so the container token never spins
+                    lockRotation:    true,
+                    vision:          false,
+                    sight:           { enabled: false }
                 },
                 actorOverrides: {
                     name: containerName,
