@@ -301,7 +301,15 @@ export class ItemMaskingHelper {
         // "Lightning Bolt"). We snapshot the entire activities map
         // and any system.damage.bonus line, and promote them back
         // on identification.
-        if (system.activities && Object.keys(system.activities).length > 0) {
+        //
+        // Consumables are EXCLUDED: a HealingActivity is the item's
+        // function, not an identification tell. Stripping it leaves
+        // players with an unusable item. Deceptive consumables
+        // (Apothecary's Folly) carry their real activity in
+        // cursedMeta.realActivity — not here — so they are unaffected.
+        if (itemData.type !== "consumable"
+                && system.activities
+                && Object.keys(system.activities).length > 0) {
             latent.activities = foundry.utils.deepClone(system.activities);
             system.activities = {};
         }

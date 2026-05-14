@@ -1915,7 +1915,7 @@ export class CacheGeneratorApp extends Application {
                     isContainer:     true,
                     canStackItems:   true,
                     canInspectItems: true,
-                    deleteWhenEmpty: false,
+                    deleteWhenEmpty: "yes",
                     // Currency sharing disabled — players can take as much as they want
                     shareCurrenciesEnabled: false
                 },
@@ -1926,7 +1926,7 @@ export class CacheGeneratorApp extends Application {
                     isContainer:     true,
                     canStackItems:   true,
                     canInspectItems: true,
-                    deleteWhenEmpty: false,
+                    deleteWhenEmpty: "yes",
                     shareCurrenciesEnabled: false
                 },
                 tokenOverrides: {
