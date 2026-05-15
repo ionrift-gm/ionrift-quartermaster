@@ -1299,11 +1299,47 @@ export class CacheGeneratorApp extends Application {
             };
         }
 
+        // ── Stale compendium guard ───────────────────────────────────────────────
+        // If the item resolved as unidentified ("Unknown"), the compendium was
+        // compiled before the identified:true fix. Try to recover the display name
+        // from latentMagic.originalName (mask) or cursedMeta.lureName (recipe).
+        // If neither is available, warn the GM and bail out of the inject.
+        if (markCursed && itemData.system?.identified === false) {
+            const qmFlags = resolvedDoc?.flags?.["ionrift-quartermaster"] ?? {};
+            const lureName = qmFlags.latentMagic?.originalName
+                ?? qmFlags.cursedMeta?.lureName
+                ?? qmFlags.cursedMeta?.lure?.name
+                ?? null;
+            if (lureName) {
+                itemData.name = lureName;
+                itemData.system = { ...itemData.system, identified: true };
+                Logger.warn(MODULE_LABEL,
+                    `[CacheGen] Cursed item "${lureName}" resolved as unidentified; recovered from latentMagic. Recompile the pack to fix permanently.`
+                );
+                ui.notifications.warn(
+                    `Cursed item recovered from stale compendium data. Run compile-packs.mjs to fix permanently.`,
+                    { permanent: false }
+                );
+            } else {
+                ui.notifications.error(
+                    `Cursed item landed as "Unknown". The compendium needs recompiling. Run compile-packs.mjs then reload.`,
+                    { permanent: true }
+                );
+                Logger.error(MODULE_LABEL,
+                    `[CacheGen] Cursed item from ${entry.uuid} is unidentified with no recovery metadata. Compendium recompile required.`
+                );
+                return;
+            }
+        }
+
         if (markCursed) {
             itemData.cursed = true;
-            const cm = resolvedDoc?.flags?.["ionrift-quartermaster"]?.cursedMeta ?? {};
+            const qmFlags = resolvedDoc?.flags?.["ionrift-quartermaster"] ?? {};
+            const cm = qmFlags.cursedMeta ?? {};
             const hint = (cm.trueNature || cm.decoyAppearance || "").trim();
             itemData.cursedAs = hint || itemData.name;
+            const infectedRate = qmFlags.infectedRate ?? 0;
+            if (infectedRate > 0) itemData.isInfectedStack = true;
         }
 
         itemData._injected   = true;

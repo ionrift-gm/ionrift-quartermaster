@@ -323,7 +323,16 @@
                                 <span class="cache-item-name inspectable">{{this.name}}{{#if this.stacked}} <span class="qty-badge">x{{this.quantity}}</span>{{/if}}</span>
                                 <span class="cache-item-meta">{{#if this.rarity}}{{this.rarity}}{{/if}}</span>
                             </div>
-                            <span class="cursed-pip" title="Cursed{{#if this.cursedAs}}: {{this.cursedAs}}{{/if}}"><i class="fas fa-skull"></i></span>
+                            {{!-- Skull = standard cursed. Droplet = infected potion stack. GM-only in both cases. --}}
+                            {{#if this.isInfectedStack}}
+                            <span class="cursed-pip cursed-pip--infected" title="Infected stack: {{this.cursedAs}}">
+                                <i class="fas fa-tint"></i>
+                            </span>
+                            {{else}}
+                            <span class="cursed-pip" title="Cursed{{#if this.cursedAs}}: {{this.cursedAs}}{{/if}}">
+                                <i class="fas fa-skull"></i>
+                            </span>
+                            {{/if}}
                             {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
                             <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
                                 <i class="fas fa-xmark"></i>
