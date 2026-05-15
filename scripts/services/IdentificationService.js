@@ -10,8 +10,7 @@ const FLAG_CURSED_META = "cursedMeta";
  *
  * Single entry point for item identification in Quartermaster worlds.
  * Promotes stashed magical properties back onto the item's system data
- * and flips `system.identified = true`. Handles two sources of stashed
- * data, via item flags:
+ * and flips `system.identified = true`. Stashed payloads live on item flags:
  *
  *   - `latentMagic`: set by the cache masking pipeline on plain
  *     magical items (a +1 Javelin from a loot cache). Carries
@@ -22,6 +21,11 @@ const FLAG_CURSED_META = "cursedMeta";
  *     on the meta object instead of `latentMagic`. Curse Forge now writes
  *     the same latent shape as cache +1 items and keeps only the curse arc
  *     on `cursedMeta` (plus `lureName` for engine bookkeeping).
+ *
+ *   - Modern Cursewright rows can carry `cursedMeta` without `lure` once
+ *     latent magic is absent or already promoted. Identification then only
+ *     flips `system.identified` and records `cursedMeta.gmRevealed` after a
+ *     GM-only notice.
  *
  * All identification paths in Quartermaster (GM action, Respite rest
  * activity, future Arcana flow) should route through `identify(item)`.
@@ -50,8 +54,17 @@ export class IdentificationService {
         const latent = item.getFlag?.(MODULE_ID, FLAG_LATENT_MAGIC) ?? null;
         const cursedMeta = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? null;
 
-        const hasPendingPayload = !!(latent && !latent.promoted)
-            || (cursedMeta?.lure && item.system?.identified === false);
+        const hasUnpromotedLatent = !!(latent && !latent.promoted);
+        const hasCursedOnlyMeta = !!(
+            cursedMeta
+            && !cursedMeta.lure
+            && !hasUnpromotedLatent
+            && !cursedMeta.gmRevealed
+        );
+
+        const hasPendingPayload = hasUnpromotedLatent
+            || (cursedMeta?.lure && item.system?.identified === false)
+            || hasCursedOnlyMeta;
         if (!hasPendingPayload) {
             return { identified: false, kind: "none", reason: "already-identified" };
         }
@@ -61,13 +74,13 @@ export class IdentificationService {
         let displayName = item.name;
 
         const forgedFrom = item.flags?.[MODULE_ID]?.forgedFrom;
-        const isCurseForgeLatent = !!(latent && forgedFrom);
+        const isCurseForgeLatent = !!(latent && forgedFrom && !latent.promoted);
 
         if (isCurseForgeLatent) {
             Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent));
             kind = "cursed-lure";
             displayName = latent.originalName ?? item.name;
-        } else if (latent) {
+        } else if (latent && !latent.promoted) {
             Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent));
             kind = "latent-magic";
             displayName = latent.originalName ?? item.name;
@@ -84,6 +97,10 @@ export class IdentificationService {
             }));
             kind = "cursed-lure";
             displayName = lure.name ?? item.name;
+        } else if (hasCursedOnlyMeta) {
+            // Modern Cursewright item: no lure block; curse is tracked on cursedMeta only.
+            kind = "cursed-identified";
+            displayName = item.name;
         }
 
         try {
@@ -104,9 +121,23 @@ export class IdentificationService {
             }
         }
 
+        if (hasCursedOnlyMeta) {
+            try {
+                await item.setFlag(MODULE_ID, FLAG_CURSED_META, { ...cursedMeta, gmRevealed: true });
+            } catch (err) {
+                Logger.warn("Quartermaster", `IdentificationService: failed to mark cursedMeta gmRevealed on ${item.name}:`, err.message);
+            }
+            if (!silent) {
+                const curseName = cursedMeta.curse?.name ?? "Unknown Curse";
+                const tier = cursedMeta.tier ?? 1;
+                ui.notifications.warn(
+                    `[GM] ${item.name} is cursed (T${tier}: ${curseName}). The curse is latent; it will not reveal until activated.`,
+                    { permanent: false }
+                );
+            }
+        }
 
-
-        if (!silent) {
+        if (!silent && kind !== "cursed-identified") {
             const actorName = item.parent?.name ?? "an unknown holder";
             const suffix = kind === "cursed-lure" ? ". The lure is active." : ".";
             ui.notifications.info(`${displayName} has been identified for ${actorName}${suffix}`);

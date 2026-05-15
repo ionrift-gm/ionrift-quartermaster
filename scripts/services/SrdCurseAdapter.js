@@ -317,7 +317,7 @@ export class SrdCurseAdapter {
 
     static async _assignSidebarFolder(pack) {
         if (!game.user.isGM) return;
-        const folderId = this._findQuartermasterFolderId();
+        const folderId = await this._ensureQuartermasterFolderId();
         if (!folderId) return;
 
         const packId = pack.collection;
@@ -326,13 +326,53 @@ export class SrdCurseAdapter {
         await game.settings.set("core", "compendiumConfiguration", cfg);
     }
 
-    static _findQuartermasterFolderId() {
+    /**
+     * Finds the "Quartermaster" compendium browser folder (child of "Ionrift").
+     * Falls back to creating the folder hierarchy if it doesn't exist yet.
+     * Returns the folder ID, or null on failure.
+     */
+    static async _ensureQuartermasterFolderId() {
+        // 1. Try to find via the known module pack's current folder assignment.
         const cfg     = game.settings.get("core", "compendiumConfiguration") ?? {};
-        const refPack = "ionrift-quartermaster.quartermaster-core";
+        const refPack = "ionrift-quartermaster.quartermaster-containers";
         const fromRef = cfg[refPack]?.folder;
         if (fromRef) {
             const f = game.folders.get(fromRef);
-            if (f?.type === "Compendium" && f.name === "Quartermaster") return fromRef;
+            if (f?.name === "Quartermaster") return fromRef;
+        }
+
+        // 2. Search by name in both game.folders and game.packs.folders.
+        const allFolders = [
+            ...game.folders.filter(f => f.type === "Compendium"),
+            ...(game.packs?.folders?.filter(f => f.type === "Compendium") ?? [])
+        ];
+        const ionriftRoots = allFolders.filter(f => f.name === "Ionrift" && !f.folder);
+        for (const ion of ionriftRoots) {
+            const qm = allFolders.find(f => f.name === "Quartermaster" && f.folder === ion.id);
+            if (qm) return qm.id;
+        }
+
+        // 3. Not found — create the hierarchy so the pack is placed correctly.
+        try {
+            let ionrift = ionriftRoots[0];
+            if (!ionrift) {
+                ionrift = await Folder.create({ name: "Ionrift", type: "Compendium", color: "#8b5cf6", sorting: "a" });
+            }
+            const qm = await Folder.create({ name: "Quartermaster", type: "Compendium", folder: ionrift.id, sorting: "a" });
+            return qm.id;
+        } catch (err) {
+            Logger.warn(MODULE_LABEL, "SrdCurseAdapter: could not create compendium folder hierarchy:", err);
+            return null;
+        }
+    }
+
+    /** @deprecated Use _ensureQuartermasterFolderId() */
+    static _findQuartermasterFolderId() {
+        const cfg     = game.settings.get("core", "compendiumConfiguration") ?? {};
+        const fromRef = cfg["ionrift-quartermaster.quartermaster-containers"]?.folder;
+        if (fromRef) {
+            const f = game.folders.get(fromRef);
+            if (f?.name === "Quartermaster") return fromRef;
         }
         const ionriftRoots = game.folders.filter(f =>
             f.type === "Compendium" && f.name === "Ionrift" && !f.folder

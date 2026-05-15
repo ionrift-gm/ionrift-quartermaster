@@ -145,11 +145,9 @@ export class ScrollForge {
             enabled = [];
         }
 
-        const candidateIds = new Set(candidates.map(c => c.id));
-        const enabledOk = enabled.filter(id => candidateIds.has(id));
-
+        const hadSavedSources = Array.isArray(enabled) && enabled.length > 0;
+        if (!hadSavedSources) return false;
         if (currentSnap !== lastSnap) return true;
-        if (!enabledOk.length && candidates.length > 0) return true;
         return false;
     }
 
@@ -182,9 +180,11 @@ export class ScrollForge {
             .filter(p => p && p.documentName === "Item");
 
         if (!spellPacks.length) {
-            ui.notifications.warn(
-                "Scroll Forge: no spell compendiums are enabled. Open module settings, Scroll Forge spell sources."
-            );
+            if (enabledIds.length > 0) {
+                ui.notifications.warn(
+                    "Scroll Forge: no spell compendiums are enabled. Open module settings, Scroll Forge spell sources."
+                );
+            }
             return;
         }
 
