@@ -12,6 +12,9 @@ const MODULE_ID = "ionrift-quartermaster";
 /** Rows shown in Party Shelf and Cursed Pool strips (ledger + pool combined). */
 const ADVISORY_SIDE_POOL_CAP = 2;
 
+/** When Scroll Plan has no pins, those strips are hidden; shelf + cursed use one extra row. */
+const ADVISORY_SIDE_POOL_CAP_NO_SCROLLS = ADVISORY_SIDE_POOL_CAP + 1;
+
 /** Ephemeral compendium draw size before cache visibility filter (must exceed cap). */
 const ADVISORY_EPHEMERAL_FETCH = 12;
 
@@ -180,6 +183,30 @@ export class CacheGeneratorApp extends Application {
                 }
             }
             this._cursedPlanned = await reg.getCursedPlanned?.() ?? [];
+
+            // Live-resolve display names from the forged pack index. Pool entries
+            // store names at load-time and go stale after a recompile. The index
+            // latentMagic.originalName is the GM-facing authority.
+            try {
+                const _fp = game.packs.get("world.ionrift-cursewright-forged")
+                         ?? game.packs.get("world.ionrift-forged-cursed");
+                if (_fp && this._cursedPool.length) {
+                    const _idx = await _fp.getIndex({ fields: ["name", "flags"] });
+                    const _nm = new Map();
+                    _idx.forEach(e => {
+                        const _qm = e.flags?.["ionrift-quartermaster"] ?? {};
+                        _nm.set(
+                            `Compendium.${_fp.collection}.Item.${e._id ?? e.id}`,
+                            _qm.latentMagic?.originalName ?? _qm.cursedMeta?.lureName ?? e.name
+                        );
+                    });
+                    this._cursedPool = this._cursedPool.map(entry => ({
+                        ...entry,
+                        name: _nm.get(entry.uuid) ?? entry.name
+                    }));
+                }
+            } catch { /* unreadable pack — stored names are used as-is */ }
+
         } catch (err) {
             Logger.warn(MODULE_LABEL, "Cursed pool refresh failed:", err.message);
             this._cursedPool = [];
@@ -188,6 +215,7 @@ export class CacheGeneratorApp extends Application {
         this._cursedPoolLoaded = true;
         return this._cursedPool;
     }
+
 
     /**
      * Refresh the ephemeral party shelf pool from compendiums.
@@ -291,6 +319,8 @@ export class CacheGeneratorApp extends Application {
         }
 
         const partyLevelAvg = adv?.partyLevelAvg ?? 1;
+        const scrollPlanHasPins = (adv?.scrolls?.length ?? 0) > 0;
+        const sidePoolCap = scrollPlanHasPins ? ADVISORY_SIDE_POOL_CAP : ADVISORY_SIDE_POOL_CAP_NO_SCROLLS;
 
         // Party shelf: full ranked ledger + ephemeral pool, then first N rows that
         // are not already in the cache (takeVisibleCapped; do not pre-slice ledger).
@@ -328,7 +358,7 @@ export class CacheGeneratorApp extends Application {
         const partyShelf = takeVisibleCapped(
             partyShelfCombined,
             rowNotInCachePreview,
-            ADVISORY_SIDE_POOL_CAP
+            sidePoolCap
         );
 
         // Cursed: planned block (sorted) then pool; one visibility pass + cap (same as party shelf).
@@ -369,7 +399,7 @@ export class CacheGeneratorApp extends Application {
         const cursedPool = takeVisibleCapped(
             [...plannedCursedOrdered, ...poolCursed],
             rowNotInCachePreview,
-            ADVISORY_SIDE_POOL_CAP
+            sidePoolCap
         );
 
         // Scroll Plan: advisor list is already cache-filtered; cap with shared helper.

@@ -299,8 +299,33 @@ export class SignatureLedgerApp extends Application {
             if (game.user.isGM) await reg.ensureDefaultCursedPoolIfEmpty?.();
             const cursedPoolRaw = await reg.getCursedPool();
 
-            const annotated = SignatureLedgerApp._annotateCursedPoolForView(cursedPlannedRaw, cursedPoolRaw);
+            // Pool entries store names at load-time; they go stale when the forged
+            // pack is recompiled. Resolve display names live from the forged pack
+            // index so the GM always sees the current identity, not a cached label.
+            let _forgedNameMap = new Map();
+            try {
+                const _forgedPack = game.packs.get("world.ionrift-cursewright-forged")
+                                 ?? game.packs.get("world.ionrift-forged-cursed");
+                if (_forgedPack) {
+                    const _idx = await _forgedPack.getIndex({ fields: ["name", "flags"] });
+                    _idx.forEach(e => {
+                        const _qm = e.flags?.["ionrift-quartermaster"] ?? {};
+                        _forgedNameMap.set(
+                            `Compendium.${_forgedPack.collection}.Item.${e._id ?? e.id}`,
+                            _qm.latentMagic?.originalName ?? _qm.cursedMeta?.lureName ?? e.name
+                        );
+                    });
+                }
+            } catch { /* unreadable pack — fall through to stored names */ }
+
+            const cursedPoolResolved = cursedPoolRaw.map(entry => ({
+                ...entry,
+                name: _forgedNameMap.get(entry.uuid) ?? entry.name
+            }));
+
+            const annotated = SignatureLedgerApp._annotateCursedPoolForView(cursedPlannedRaw, cursedPoolResolved);
             const lanes     = SignatureLedgerApp._buildCursedPoolLanes(annotated);
+
             const typeSet   = new Set(annotated.map(e => (e.curseType || "").toLowerCase()).filter(Boolean));
 
             // Per-source item counts — drive the source button active states

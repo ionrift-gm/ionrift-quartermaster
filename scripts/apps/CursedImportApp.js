@@ -35,10 +35,18 @@ export class CursedImportApp extends FormApplication {
         for (const item of docs) {
             const meta = item.getFlag(MODULE_ID, "cursedMeta");
             if (!meta || typeof meta !== "object") continue;
+            // dnd5e overrides item.name to return "Unidentified [type]" when
+            // system.identified is false. Resolve through the flag chain so the
+            // GM sees the actual item identity, not the system masking label.
+            const qmFlags = item.flags?.[MODULE_ID] ?? {};
+            const displayName = qmFlags.latentMagic?.originalName
+                ?? meta.lureName
+                ?? item._source?.name
+                ?? item.name;
             rows.push({
                 id:               item.id,
                 uuid:             item.uuid,
-                name:             item.name,
+                name:             displayName,
                 img:              item.img ?? "icons/svg/item-bag.svg",
                 curseType:        meta.curseType ?? "unknown",
                 tier:             meta.tier ?? 1,
@@ -161,15 +169,24 @@ export class CursedImportApp extends FormApplication {
             const meta = item.getFlag(MODULE_ID, "cursedMeta");
             if (!meta || typeof meta !== "object") continue;
 
+            // dnd5e overrides item.name to return "Unidentified [type]" when
+            // system.identified is false. Resolve through the flag chain.
+            const qmFlags = item.flags?.[MODULE_ID] ?? {};
+            const displayName = qmFlags.latentMagic?.originalName
+                ?? meta.lureName
+                ?? item._source?.name
+                ?? item.name;
+
             pool.push({
                 uuid,
-                name:            item.name,
+                name:            displayName,
                 img:             item.img || "icons/svg/item-bag.svg",
                 curseType:       meta.curseType ?? "unknown",
                 decoyAppearance: meta.decoyAppearance ?? "",
                 trueNature:      meta.trueNature ?? "",
                 tier:            Math.max(1, Math.min(4, Number(meta.tier) || 1))
             });
+
             existing.add(key);
             added++;
         }

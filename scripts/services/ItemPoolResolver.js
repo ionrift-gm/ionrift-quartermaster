@@ -230,10 +230,10 @@ export class ItemPoolResolver {
      * Check if item rarity is within allowed range.
      */
     static _matchesRarity(entry, allowedRarities) {
-        const rarity = (entry.system?.rarity ?? "common").toLowerCase();
-        // Items without rarity are treated as common
-        if (!rarity || rarity === "") return true;
-        return allowedRarities.has(rarity);
+        const rarity = (entry.system?.rarity ?? "").toLowerCase().trim();
+        // No rarity field: treat as common, still subject to the tier ceiling
+        const effective = rarity || "common";
+        return allowedRarities.has(effective);
     }
 
     /**

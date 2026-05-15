@@ -756,11 +756,24 @@ export class CacheGenerator {
         const other   = finalPool.filter(i => !isPotionLike(i));
 
         // 70% potion bias when potions exist
+        const SA = game.ionrift?.library?.system;
+        const situational = SA?.getSituationalConsumables?.() ?? new Set();
+
+        function _weightedPick(arr) {
+            if (!arr.length) return null;
+            const tickets = [];
+            for (const item of arr) {
+                const count = situational.has((item.name ?? "").toLowerCase()) ? 1 : 3;
+                for (let i = 0; i < count; i++) tickets.push(item);
+            }
+            return tickets[Math.floor(Math.random() * tickets.length)];
+        }
+
         let pick;
         if (potions.length > 0 && (other.length === 0 || Math.random() < 0.7)) {
-            pick = potions[Math.floor(Math.random() * potions.length)];
+            pick = _weightedPick(potions);
         } else {
-            pick = finalPool[Math.floor(Math.random() * finalPool.length)];
+            pick = _weightedPick(finalPool);
         }
 
         return {
