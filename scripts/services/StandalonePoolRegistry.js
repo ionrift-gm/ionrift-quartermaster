@@ -1,5 +1,6 @@
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { SrdCurseAdapter } from "./SrdCurseAdapter.js";
+import { CursedItemResolver } from "./CursedItemResolver.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -22,13 +23,8 @@ export class StandalonePoolRegistry {
         if (!docId) return null;
         const meta = doc.flags?.[MODULE_ID]?.cursedMeta;
         if (!meta || typeof meta !== "object") return null;
-        // Resolve display name: flag chain → _source.name → doc.name
-        // (doc.name may be "Unidentified X" due to dnd5e's identified:false getter)
-        const qmFlags = doc.flags?.[MODULE_ID] ?? {};
-        const displayName = qmFlags.latentMagic?.originalName
-            ?? meta.lureName
-            ?? doc._source?.name
-            ?? doc.name;
+        // Resolve display name via shared service (bypasses dnd5e's identified:false getter)
+        const displayName = CursedItemResolver.resolveDisplayName(doc);
         return {
             uuid:            `Compendium.${packId}.Item.${docId}`,
             name:            displayName,

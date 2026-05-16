@@ -5,6 +5,7 @@ import { ProgressionAdvisor } from "../services/ProgressionAdvisor.js";
 import { SignatureLedger } from "../services/SignatureLedger.js";
 import { StandalonePoolRegistry } from "../services/StandalonePoolRegistry.js";
 import { takeVisibleCapped } from "../services/AdvisoryStripUtils.js";
+import { CursedItemResolver } from "../services/CursedItemResolver.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -206,24 +207,11 @@ export class CacheGeneratorApp extends Application {
             }
             this._cursedPlanned = await reg.getCursedPlanned?.() ?? [];
 
-            // Live-resolve display names from the forged pack. Pool entries
-            // store names at load-time and go stale after a recompile.
-            // getIndex() cannot be used here — Foundry V14 applies dnd5e's name
-            // getter, so items with identified:false return "Unidentified Consumable".
-            // Full documents give us _source.name and reliable flag access.
+            // Live-resolve display names from the forged pack via shared service.
+            // Pool entries store names at load-time and go stale after a recompile.
             try {
-                const _fp = game.packs.get("world.ionrift-cursewright-forged")
-                         ?? game.packs.get("world.ionrift-forged-cursed");
-                if (_fp && this._cursedPool.length) {
-                    const _docs = await _fp.getDocuments();
-                    const _nm = new Map();
-                    for (const doc of _docs) {
-                        const _qm = doc.flags?.["ionrift-quartermaster"] ?? {};
-                        _nm.set(
-                            `Compendium.${_fp.collection}.Item.${doc.id}`,
-                            _qm.latentMagic?.originalName ?? _qm.cursedMeta?.lureName ?? doc._source?.name ?? doc.name
-                        );
-                    }
+                const _nm = await CursedItemResolver.buildForgedNameMap();
+                if (_nm.size && this._cursedPool.length) {
                     this._cursedPool = this._cursedPool.map(entry => ({
                         ...entry,
                         name: _nm.get(entry.uuid) ?? entry.name
@@ -1362,13 +1350,10 @@ export class CacheGeneratorApp extends Application {
             const qmFlags = resolvedDoc?.flags?.["ionrift-quartermaster"] ?? {};
 
             if (itemData.system?.identified === false) {
-                const displayName = qmFlags.latentMagic?.originalName
-                    ?? qmFlags.cursedMeta?.lureName
-                    ?? qmFlags.cursedMeta?.lure?.name
-                    ?? null;
-                if (displayName) {
+                const displayName = CursedItemResolver.resolveDisplayName(resolvedDoc ?? itemData);
+                if (displayName && !displayName.startsWith("Unidentified")) {
                     itemData.name = displayName;
-                    itemData.system = { ...itemData.system, identified: true };
+                    CursedItemResolver.ensureIdentified(itemData);
                     Logger.info(MODULE_LABEL,
                         `[CacheGen] Cursed item "${displayName}" — resolved display name from flags (identified:false is expected).`
                     );

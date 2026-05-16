@@ -1,5 +1,6 @@
 import { getActiveCursedRegistry } from "../services/StandalonePoolRegistry.js";
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "./CursedSourcesApp.js";
+import { CursedItemResolver } from "../services/CursedItemResolver.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -35,14 +36,8 @@ export class CursedImportApp extends FormApplication {
         for (const item of docs) {
             const meta = item.getFlag(MODULE_ID, "cursedMeta");
             if (!meta || typeof meta !== "object") continue;
-            // dnd5e overrides item.name to return "Unidentified [type]" when
-            // system.identified is false. Resolve through the flag chain so the
-            // GM sees the actual item identity, not the system masking label.
-            const qmFlags = item.flags?.[MODULE_ID] ?? {};
-            const displayName = qmFlags.latentMagic?.originalName
-                ?? meta.lureName
-                ?? item._source?.name
-                ?? item.name;
+            // Resolve display name via shared service (bypasses dnd5e's identified:false getter)
+            const displayName = CursedItemResolver.resolveDisplayName(item);
             rows.push({
                 id:               item.id,
                 uuid:             item.uuid,
@@ -169,13 +164,8 @@ export class CursedImportApp extends FormApplication {
             const meta = item.getFlag(MODULE_ID, "cursedMeta");
             if (!meta || typeof meta !== "object") continue;
 
-            // dnd5e overrides item.name to return "Unidentified [type]" when
-            // system.identified is false. Resolve through the flag chain.
-            const qmFlags = item.flags?.[MODULE_ID] ?? {};
-            const displayName = qmFlags.latentMagic?.originalName
-                ?? meta.lureName
-                ?? item._source?.name
-                ?? item.name;
+            // Resolve display name via shared service (bypasses dnd5e's identified:false getter)
+            const displayName = CursedItemResolver.resolveDisplayName(item);
 
             pool.push({
                 uuid,
