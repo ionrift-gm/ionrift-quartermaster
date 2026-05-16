@@ -14,17 +14,25 @@ export class StandalonePoolRegistry {
     }
 
     /**
-     * Map a compendium index entry to a slim pool row. Requires cursedMeta on the index.
+     * Map a compendium document (or index entry) to a slim pool row.
+     * Requires cursedMeta on the document flags.
      */
-    static _mapIndexRow(entry, packId) {
-        const docId = this._indexDocId(entry);
+    static _mapDocRow(doc, packId) {
+        const docId = doc?.id ?? doc?._id ?? "";
         if (!docId) return null;
-        const meta = entry.flags?.[MODULE_ID]?.cursedMeta;
+        const meta = doc.flags?.[MODULE_ID]?.cursedMeta;
         if (!meta || typeof meta !== "object") return null;
+        // Resolve display name: flag chain → _source.name → doc.name
+        // (doc.name may be "Unidentified X" due to dnd5e's identified:false getter)
+        const qmFlags = doc.flags?.[MODULE_ID] ?? {};
+        const displayName = qmFlags.latentMagic?.originalName
+            ?? meta.lureName
+            ?? doc._source?.name
+            ?? doc.name;
         return {
             uuid:            `Compendium.${packId}.Item.${docId}`,
-            name:            entry.name,
-            img:             entry.img ?? "icons/svg/item-bag.svg",
+            name:            displayName,
+            img:             doc.img ?? "icons/svg/item-bag.svg",
             curseType:       meta.curseType ?? "unknown",
             decoyAppearance: meta.decoyAppearance ?? "",
             trueNature:      meta.trueNature ?? "",
@@ -66,11 +74,14 @@ export class StandalonePoolRegistry {
             const pack = game.packs.get(packId);
             if (!pack) return [];
 
-            const index = await pack.getIndex({ fields: ["name", "img", "flags"] });
-            if (!index.length) return [];
+            // getIndex() cannot be used — Foundry V14 applies dnd5e's name
+            // getter, so items with identified:false return "Unidentified Consumable".
+            // Full documents give us _source.name and reliable flag access.
+            const docs = await pack.getDocuments();
+            if (!docs.length) return [];
 
-            return index
-                .map(e => this._mapIndexRow(e, packId))
+            return docs
+                .map(doc => this._mapDocRow(doc, packId))
                 .filter(Boolean);
         } catch (e) {
             Logger.warn(MODULE_LABEL, "StandalonePoolRegistry.getDefaultPoolPayload:", e.message);
