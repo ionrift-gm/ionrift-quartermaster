@@ -4,6 +4,7 @@ import { Logger, MODULE_LABEL } from "../_logger.js";
 import { SrdCurseAdapter } from "../services/SrdCurseAdapter.js";
 import { StandalonePoolRegistry, getActiveCursedRegistry } from "../services/StandalonePoolRegistry.js";
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "./CursedSourcesApp.js";
+import { CursedItemResolver } from "../services/CursedItemResolver.js";
 
 /** Always read fresh so profile changes take effect without reload. */
 function MILESTONES() { return SignatureLedger.MILESTONES; }
@@ -300,25 +301,10 @@ export class SignatureLedgerApp extends Application {
             const cursedPoolRaw = await reg.getCursedPool();
 
             // Pool entries store names at load-time; they go stale when the forged
-            // pack is recompiled. Resolve display names live from the forged pack
-            // index so the GM always sees the current identity, not a cached label.
+            // pack is recompiled. Resolve display names live via shared service.
             let _forgedNameMap = new Map();
             try {
-                const _forgedPack = game.packs.get("world.ionrift-cursewright-forged")
-                                 ?? game.packs.get("world.ionrift-forged-cursed");
-                if (_forgedPack) {
-                    // getIndex() cannot be used — Foundry V14 applies dnd5e's name
-                    // getter, so items with identified:false return "Unidentified Consumable".
-                    // Full documents give us _source.name and reliable flag access.
-                    const _docs = await _forgedPack.getDocuments();
-                    for (const doc of _docs) {
-                        const _qm = doc.flags?.["ionrift-quartermaster"] ?? {};
-                        _forgedNameMap.set(
-                            `Compendium.${_forgedPack.collection}.Item.${doc.id}`,
-                            _qm.latentMagic?.originalName ?? _qm.cursedMeta?.lureName ?? doc._source?.name ?? doc.name
-                        );
-                    }
-                }
+                _forgedNameMap = await CursedItemResolver.buildForgedNameMap();
             } catch { /* unreadable pack — fall through to stored names */ }
 
             const cursedPoolResolved = cursedPoolRaw.map(entry => ({
