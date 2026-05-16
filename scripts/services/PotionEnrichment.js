@@ -119,15 +119,14 @@ export class PotionEnrichment {
     }
 
     /**
-     * Inject a standard dnd5e HealActivity onto a plain item data object.
-     * Only call when `system.activities` is absent or empty.
+     * Build a standard dnd5e HealActivity payload matching the SRD Consume shape.
      *
-     * @param {object} itemData  Plain item data object (mutated in place).
-     * @param {string} formula   Healing roll formula (e.g. "2d4 + 2").
+     * @param {string} formula  Healing roll formula (e.g. "2d4 + 2").
+     * @returns {object}        Activity data object with a fresh `_id`.
      */
-    static injectHealActivity(itemData, formula) {
+    static _buildHealActivityData(formula) {
         const id = foundry.utils.randomID(16);
-        const activity = {
+        return {
             _id: id,
             type: "heal",
             name: "Consume",
@@ -163,10 +162,21 @@ export class PotionEnrichment {
             sort: 0,
             img: ""
         };
+    }
+
+    /**
+     * Inject a standard dnd5e HealActivity onto a plain item data object.
+     * Only call when `system.activities` is absent or empty.
+     *
+     * @param {object} itemData  Plain item data object (mutated in place).
+     * @param {string} formula   Healing roll formula (e.g. "2d4 + 2").
+     */
+    static injectHealActivity(itemData, formula) {
+        const activity = PotionEnrichment._buildHealActivityData(formula);
 
         if (!itemData.system) itemData.system = {};
         if (!itemData.system.activities) itemData.system.activities = {};
-        itemData.system.activities[id] = activity;
+        itemData.system.activities[activity._id] = activity;
     }
 
     // ── Post-identification enrichment (live Foundry Item) ─────────────────
@@ -276,46 +286,8 @@ export class PotionEnrichment {
         const hasNoHealActivity = activityCount === 0;
 
         if (midiActive && hasNoHealActivity) {
-            // Build the activity data object (same shape as injectHealActivity
-            // but returned as a plain object rather than mutating itemData).
-            const activityId = foundry.utils.randomID(16);
-            const activityData = {
-                _id: activityId,
-                type: "heal",
-                name: "Consume",
-                identifier: "consume",
-                activation: { type: "bonus", value: 1, condition: "", override: false },
-                consumption: {
-                    targets: [{ type: "itemUses", value: "1", target: "", scaling: {} }],
-                    scaling: { allowed: false, max: "" },
-                    spellSlot: true
-                },
-                description: { chatFlavor: "" },
-                duration: { concentration: false, value: "", units: "inst", special: "", override: false },
-                effects: [],
-                range: { units: "self", special: "", override: false },
-                target: {
-                    template: {
-                        count: "", contiguous: false, type: "", size: "",
-                        width: "", height: "", units: "ft", stationary: false
-                    },
-                    affects: { count: "", type: "self", choice: false, special: "" },
-                    prompt: true,
-                    override: false
-                },
-                healing: {
-                    number: null,
-                    denomination: null,
-                    bonus: "",
-                    types: ["healing"],
-                    custom: { enabled: true, formula: tier.formula },
-                    scaling: { mode: "", number: null, formula: "" }
-                },
-                uses: { spent: 0, recovery: [], max: "" },
-                sort: 0,
-                img: ""
-            };
-            patch[`system.activities.${activityId}`] = activityData;
+            const activityData = PotionEnrichment._buildHealActivityData(tier.formula);
+            patch[`system.activities.${activityData._id}`] = activityData;
         }
 
         if (Object.keys(patch).length === 0) return;
