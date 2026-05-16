@@ -1,5 +1,6 @@
 import { Logger } from "../_logger.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
+import { PotionEnrichment } from "./PotionEnrichment.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 const FLAG_LATENT_MAGIC = "latentMagic";
@@ -77,11 +78,13 @@ export class IdentificationService {
         const isCurseForgeLatent = !!(latent && forgedFrom && !latent.promoted);
 
         if (isCurseForgeLatent) {
-            Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent));
+            console.warn(`[QM:IdentificationService] isCurseForgeLatent path — item.type="${item.type}" item.name="${item.name}"`);
+            Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type));
             kind = "cursed-lure";
             displayName = latent.originalName ?? item.name;
         } else if (latent && !latent.promoted) {
-            Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent));
+            console.warn(`[QM:IdentificationService] latent-magic path — item.type="${item.type}" item.name="${item.name}" latent.attunement=${JSON.stringify(latent.attunement)}`);
+            Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type));
             kind = "latent-magic";
             displayName = latent.originalName ?? item.name;
         } else if (cursedMeta?.lure && item.system?.identified === false) {
@@ -94,7 +97,7 @@ export class IdentificationService {
                 ...(lure.description !== undefined ? { originalDescription: lure.description } : {}),
                 ...(lure.rarity ? { originalRarity: lure.rarity } : {}),
                 ...(lure.img ? { originalImg: lure.img } : {})
-            }));
+            }, item.type));
             kind = "cursed-lure";
             displayName = lure.name ?? item.name;
         } else if (hasCursedOnlyMeta) {
@@ -103,12 +106,26 @@ export class IdentificationService {
             displayName = item.name;
         }
 
+        // Consumables carry a "NaN" string in system.attunement from legacy cache placement
+        // (StringField coerces numeric NaN → "NaN"). Include the clear in the SAME atomic
+        // update as identified=true so there is no render gap where the attunement icon flashes.
+        if (item.type === "consumable") {
+            updates["system.attunement"] = "";
+        }
+
         try {
             await item.update(updates, { curseBypass: true });
         } catch (err) {
             Logger.error("Quartermaster", `IdentificationService: update failed for ${item.name}:`, err.message);
             return { identified: false, kind, reason: "update-failed" };
         }
+
+        // Post-identification enrichment for healing potions.
+        // Corrects weight, price, description, and MIDI HealActivity
+        // unconditionally — these values are not stashed in latentMagic
+        // and may be absent or incorrect from the original compendium entry.
+        // enrichIdentifiedItem is a no-op for non-healing-potion items.
+        await PotionEnrichment.enrichIdentifiedItem(item);
 
         if (latent) {
             try {
@@ -119,6 +136,27 @@ export class IdentificationService {
             } catch (err) {
                 Logger.warn("Quartermaster", `IdentificationService: failed to mark latentMagic promoted on ${item.name}:`, err.message);
             }
+
+            // Clear IP canStack restriction after identification.
+            // Masked scrolls get canStack:"no" to prevent conflation of
+            // different spells sharing the name "Unidentified Scroll".
+            // Once identified, each scroll has a unique name ("Spell Scroll:
+            // Cure Wounds") and normal IP stacking by name should resume.
+            const ipCanStack = item.flags?.["item-piles"]?.item?.canStack;
+            if (ipCanStack === "no") {
+                try {
+                    await item.update(
+                        { "flags.item-piles.item.canStack": "yes" },
+                        { curseBypass: true }
+                    );
+                } catch (err) {
+                    Logger.warn("Quartermaster", `IdentificationService: failed to clear canStack on ${item.name}:`, err.message);
+                }
+            }
+
+            // §5b: After clearing canStack, attempt to merge this scroll
+            // into any existing same-named stack in the actor's inventory.
+            await IdentificationService._tryMergeScrollStack(item);
         }
 
         if (hasCursedOnlyMeta) {
@@ -218,5 +256,51 @@ export class IdentificationService {
             originalName,
             mintBatch
         };
+    }
+
+    /**
+     * After a scroll is identified its name is restored (e.g. "Spell Scroll: Cure Wounds").
+     * If the owning actor already holds another stack with that exact name,
+     * merge this item's quantity into it and delete this item.
+     *
+     * Only runs on actor-owned items; pile items are left alone.
+     *
+     * @param {Item} item  The freshly-identified scroll item.
+     * @returns {Promise<void>}
+     */
+    static async _tryMergeScrollStack(item) {
+        const actor = item.parent;
+        // Only merge into actor inventories, not piles or unowned items.
+        if (!actor || actor.documentName !== "Actor") return;
+        // The name is now the restored spell name. Find a different item
+        // with the same name and a quantity flag (canStack:"yes").
+        const resolvedName = item._source?.name ?? item.name;
+        const siblings = actor.items.filter(
+            (i) =>
+                i.id !== item.id &&
+                (i._source?.name ?? i.name) === resolvedName
+        );
+        if (!siblings.length) return;
+        // Pick the first match and absorb this item's qty into it.
+        const target = siblings[0];
+        const myQty  = item.system?.quantity ?? 1;
+        const tgtQty = target.system?.quantity ?? 1;
+        try {
+            await target.update(
+                { "system.quantity": tgtQty + myQty },
+                { curseBypass: true }
+            );
+            await item.delete({ curseBypass: true });
+            Logger.info(
+                "Quartermaster",
+                `IdentificationService: merged scroll "${resolvedName}" (qty +${myQty}) into existing stack.`
+            );
+        } catch (err) {
+            Logger.warn(
+                "Quartermaster",
+                `IdentificationService: scroll merge failed for "${resolvedName}":`,
+                err.message
+            );
+        }
     }
 }

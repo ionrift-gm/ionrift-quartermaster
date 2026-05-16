@@ -310,8 +310,12 @@ export class ItemMaskingHelper {
         if (itemData.type !== "consumable"
                 && system.activities
                 && Object.keys(system.activities).length > 0) {
+            console.warn(`[DIAG-ACTIVITY] _stripToLatent "${itemData.name}": STRIPPING ${Object.keys(system.activities).length} activities (type=${itemData.type})`);
             latent.activities = foundry.utils.deepClone(system.activities);
             system.activities = {};
+        } else if (itemData.type === "consumable" && system.activities) {
+            const actKeys = Object.keys(system.activities);
+            console.warn(`[DIAG-ACTIVITY] _stripToLatent "${itemData.name}": PRESERVING ${actKeys.length} activities (consumable exclusion)`, actKeys.length > 0 ? JSON.stringify(Object.values(system.activities).map(a => ({ _id: a._id, type: a.type, name: a.name, activation: a.activation?.type }))) : "EMPTY");
         }
 
         if (system.damage?.bonus) {
@@ -379,13 +383,19 @@ export class ItemMaskingHelper {
      * @param {Object} latent - The latentMagic flag block
      * @returns {Object} update patch
      */
-    static buildPromotionPatch(system, latent) {
+    static buildPromotionPatch(system, latent, itemType = "") {
         const patch = {};
+
+        console.warn(`[QM:buildPromotionPatch] itemType="${itemType}" latent.attunement=${JSON.stringify(latent.attunement)} → ${
+            latent.attunement
+                ? (itemType === "consumable" ? "BLOCKED (consumable)" : `APPLYING "${latent.attunement}"`)
+                : "no attunement in latent"
+        }`);
 
         if (latent.magicalBonus) {
             patch["system.magicalBonus"] = latent.magicalBonus;
         }
-        if (latent.attunement) {
+        if (latent.attunement && itemType !== "consumable") {
             patch["system.attunement"] = latent.attunement;
         }
         if (latent.properties?.length) {

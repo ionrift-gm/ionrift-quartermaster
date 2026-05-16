@@ -569,7 +569,7 @@ export class ScrollForge {
             system: {
                 description: { value: desc },
                 rarity,
-                weight:  { value: 0, units: "lb" },
+                weight:  { value: 0.1, units: "lb" },
                 price:   { value: priceVal, denomination: "gp" },
                 type:    { value: "scroll" },
                 uses:    { max: 1, spent: 0, recovery: "", autoDestroy: true },

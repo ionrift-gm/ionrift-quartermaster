@@ -247,6 +247,7 @@ export class ItemPoolResolver {
         // Skip items with no name
         if (!name) return true;
         if (this._isPlaceholderPoolEntry(entry, nameLower)) return true;
+        if (this._isContainerContentOnly(entry, nameLower)) return true;
         return false;
     }
 
@@ -256,10 +257,39 @@ export class ItemPoolResolver {
     static _isPlaceholderPoolEntry(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
         if (nameLower === "trinket") return true;
 
+        // SRD table-aggregator stubs: entries like "Ammunition, +1, +2, or +3" list a
+        // bonus range rather than naming a specific item. No real loot item has ", or +"
+        // in its name, so this pattern reliably identifies roll-table pointers.
+        if (/, or \+\d/.test(nameLower)) return true;
+
         const desc = this._entryDescriptionText(entry);
         if (!desc) return false;
         if (desc.includes("placeholder for the non-srd")) return true;
         if (desc.includes("placeholder") && desc.includes("d100 table")) return true;
+        return false;
+    }
+
+    /**
+     * Items that only exist as contents of a container and should never appear
+     * as standalone loot drops. Bulk liquids measured in pints (water, common
+     * wine, etc.) arrive in waterskins or flasks — they have no meaning as a
+     * loose item in a cache.
+     *
+     * Rule: consumable food/drink items whose name ends with a parenthesised
+     * unit of measure such as "(Pint)", "(Gallon)", "(Ounce)", or "(Portion)"
+     * are treated as container-content stubs.
+     */
+    static _isContainerContentOnly(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
+        // Only applies to consumable food/drink items
+        const subtype = (entry.system?.type?.value ?? "").toLowerCase();
+        if (entry.type !== "consumable" || (subtype !== "food" && subtype !== "drink" && subtype !== "")) return false;
+
+        // Reject anything whose display name ends with a liquid/bulk unit in parentheses
+        if (/\(pint(?:s)?\)$/i.test(nameLower)) return true;
+        if (/\(gallon(?:s)?\)$/i.test(nameLower)) return true;
+        if (/\(ounce(?:s)?\)$/i.test(nameLower)) return true;
+        if (/\(portion(?:s)?\)$/i.test(nameLower)) return true;
+
         return false;
     }
 

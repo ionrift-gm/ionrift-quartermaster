@@ -69,33 +69,83 @@ export class CursedItemResolver {
      * Build a UUID→name map for all documents in a pack.
      * Uses loadPackDocuments + resolveDisplayName.
      *
+     * Also populates a secondary `_byDocId` map on the returned Map so that
+     * callers can fall back to docId-based matching when stored UUIDs reference
+     * a pack that has been destroyed and recreated (new document IDs).
+     *
      * @param {string} packId - The full pack ID
      * @returns {Promise<Map<string, string>>} Map of UUID → resolved display name
+     *   with `_byDocId: Map<string, string>` secondary index.
      */
     static async buildNameMap(packId) {
         const map = new Map();
+        map._byDocId = new Map();
         const docs = await CursedItemResolver.loadPackDocuments(packId);
         const pack = game.packs.get(packId);
         if (!pack) return map;
 
         for (const doc of docs) {
+            const name = CursedItemResolver.resolveDisplayName(doc);
             const uuid = `Compendium.${pack.collection}.Item.${doc.id}`;
-            map.set(uuid, CursedItemResolver.resolveDisplayName(doc));
+            map.set(uuid, name);
+            map._byDocId.set(doc.id, name);
         }
         return map;
+    }
+
+    /**
+     * Resolve a display name from the name map, falling back to docId matching
+     * when the full UUID doesn't match (orphaned after pack recompilation).
+     *
+     * @param {Map<string, string>} nameMap - Result of buildForgedNameMap()
+     * @param {string} uuid - Stored entry UUID to look up
+     * @returns {string|undefined} Resolved name, or undefined if not found.
+     */
+    static resolveFromMap(nameMap, uuid) {
+        if (!nameMap || !uuid) return undefined;
+        const direct = nameMap.get(uuid);
+        if (direct) return direct;
+        // Fallback: extract docId from the UUID and try the secondary index
+        const docId = uuid.split(".").pop();
+        return docId ? nameMap._byDocId?.get(docId) : undefined;
     }
 
     /**
      * Build a UUID→name map from the "forged" world pack.
      * Tries "world.ionrift-cursewright-forged", then "world.ionrift-forged-cursed".
      *
+     * Also includes entries from the shipped compendium
+     * ("ionrift-cursewright.cursewright-items") because pool entries may reference
+     * either UUID domain depending on how they were seeded.
+     *
      * @returns {Promise<Map<string, string>>} Map of UUID → resolved display name
      */
     static async buildForgedNameMap() {
+        const map = new Map();
+        map._byDocId = new Map();
+
+        // 1. Forged world pack (custom compiled items)
         const forgedPack = game.packs.get("world.ionrift-cursewright-forged")
                         ?? game.packs.get("world.ionrift-forged-cursed");
-        if (!forgedPack) return new Map();
-        return CursedItemResolver.buildNameMap(forgedPack.collection);
+        if (forgedPack) {
+            const forgedMap = await CursedItemResolver.buildNameMap(forgedPack.collection);
+            for (const [k, v] of forgedMap) map.set(k, v);
+            for (const [k, v] of forgedMap._byDocId ?? []) map._byDocId.set(k, v);
+        }
+
+        // 2. Shipped compendium (pool entries may reference these UUIDs)
+        const shippedPack = game.packs.get("ionrift-cursewright.cursewright-items");
+        if (shippedPack) {
+            const shippedMap = await CursedItemResolver.buildNameMap(shippedPack.collection);
+            for (const [k, v] of shippedMap) {
+                if (!map.has(k)) map.set(k, v);
+            }
+            for (const [k, v] of shippedMap._byDocId ?? []) {
+                if (!map._byDocId.has(k)) map._byDocId.set(k, v);
+            }
+        }
+
+        return map;
     }
 
     /**
