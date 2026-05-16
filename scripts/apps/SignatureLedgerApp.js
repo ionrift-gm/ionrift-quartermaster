@@ -307,14 +307,17 @@ export class SignatureLedgerApp extends Application {
                 const _forgedPack = game.packs.get("world.ionrift-cursewright-forged")
                                  ?? game.packs.get("world.ionrift-forged-cursed");
                 if (_forgedPack) {
-                    const _idx = await _forgedPack.getIndex({ fields: ["name", "flags"] });
-                    _idx.forEach(e => {
-                        const _qm = e.flags?.["ionrift-quartermaster"] ?? {};
+                    // getIndex() cannot be used — Foundry V14 applies dnd5e's name
+                    // getter, so items with identified:false return "Unidentified Consumable".
+                    // Full documents give us _source.name and reliable flag access.
+                    const _docs = await _forgedPack.getDocuments();
+                    for (const doc of _docs) {
+                        const _qm = doc.flags?.["ionrift-quartermaster"] ?? {};
                         _forgedNameMap.set(
-                            `Compendium.${_forgedPack.collection}.Item.${e._id ?? e.id}`,
-                            _qm.latentMagic?.originalName ?? _qm.cursedMeta?.lureName ?? e.name
+                            `Compendium.${_forgedPack.collection}.Item.${doc.id}`,
+                            _qm.latentMagic?.originalName ?? _qm.cursedMeta?.lureName ?? doc._source?.name ?? doc.name
                         );
-                    });
+                    }
                 }
             } catch { /* unreadable pack — fall through to stored names */ }
 

@@ -24,6 +24,28 @@ function getCursedPoolRegistry() {
 }
 
 /**
+ * Healing-potion surface names that participate in infected-stack squash (clean + poison vials).
+ * Keep in sync with ionrift-cursewright `CurseEngine.POTION_CURSE_TIERS` decoy names (pre-masking).
+ */
+const POISON_STACK_DECOY_NAME_RX = [
+    /^Potion of Healing( \(Basic\))?$/i,
+    /^Potion of Greater Healing$/i,
+    /^Potion of Superior Healing$/i,
+    /^Potion of Supreme Healing$/i
+];
+
+/**
+ * @param {object} item - Ephemeral cache row from `result.items` (Pass B).
+ * @returns {boolean} True when this cursed row should contribute to `_infectedCount` / infectedRate.
+ */
+function _isPoisonStackMergeSource(item) {
+    if (!item) return false;
+    if (item.isInfectedStack) return true;
+    const name = (item.name || "").trim();
+    return POISON_STACK_DECOY_NAME_RX.some(rx => rx.test(name));
+}
+
+/**
  * Cache Generator UI.
  * Three-column layout when Progression Advisory has data:
  *   Left   -- read-only advisory: character milestone cards (passive reference).
@@ -184,22 +206,24 @@ export class CacheGeneratorApp extends Application {
             }
             this._cursedPlanned = await reg.getCursedPlanned?.() ?? [];
 
-            // Live-resolve display names from the forged pack index. Pool entries
-            // store names at load-time and go stale after a recompile. The index
-            // latentMagic.originalName is the GM-facing authority.
+            // Live-resolve display names from the forged pack. Pool entries
+            // store names at load-time and go stale after a recompile.
+            // getIndex() cannot be used here — Foundry V14 applies dnd5e's name
+            // getter, so items with identified:false return "Unidentified Consumable".
+            // Full documents give us _source.name and reliable flag access.
             try {
                 const _fp = game.packs.get("world.ionrift-cursewright-forged")
                          ?? game.packs.get("world.ionrift-forged-cursed");
                 if (_fp && this._cursedPool.length) {
-                    const _idx = await _fp.getIndex({ fields: ["name", "flags"] });
+                    const _docs = await _fp.getDocuments();
                     const _nm = new Map();
-                    _idx.forEach(e => {
-                        const _qm = e.flags?.["ionrift-quartermaster"] ?? {};
+                    for (const doc of _docs) {
+                        const _qm = doc.flags?.["ionrift-quartermaster"] ?? {};
                         _nm.set(
-                            `Compendium.${_fp.collection}.Item.${e._id ?? e.id}`,
-                            _qm.latentMagic?.originalName ?? _qm.cursedMeta?.lureName ?? e.name
+                            `Compendium.${_fp.collection}.Item.${doc.id}`,
+                            _qm.latentMagic?.originalName ?? _qm.cursedMeta?.lureName ?? doc._source?.name ?? doc.name
                         );
-                    });
+                    }
                     this._cursedPool = this._cursedPool.map(entry => ({
                         ...entry,
                         name: _nm.get(entry.uuid) ?? entry.name
@@ -1051,7 +1075,7 @@ export class CacheGeneratorApp extends Application {
                 if (curseEngine) {
                     await curseEngine.applyCacheCurses(this._currentResult, { forceCurse: false });
                 }
-                ui.notifications.info("Item added to cache. Assign its curse via the Curse Cache pipeline if needed.");
+
                 this.render();
             }
             return;
@@ -1083,7 +1107,7 @@ export class CacheGeneratorApp extends Application {
                     { badge: "Cursed", markCursed: true }
                 );
                 await CacheGenerator._applyCurses(this._currentResult, { forceCurse: false });
-                ui.notifications.info("Item added to cache. Assign its curse via the Curse Cache pipeline if needed.");
+
                 this.render();
             } else if (shelfMatch) {
                 await this._injectItem(
@@ -1329,42 +1353,31 @@ export class CacheGeneratorApp extends Application {
             };
         }
 
-        // ── Stale compendium guard ───────────────────────────────────────────────
-        // If the item resolved as unidentified ("Unknown"), the compendium was
-        // compiled before the identified:true fix. Try to recover the display name
-        // from latentMagic.originalName (mask) or cursedMeta.lureName (recipe).
-        // If neither is available, warn the GM and bail out of the inject.
-        if (markCursed && itemData.system?.identified === false) {
-            const qmFlags = resolvedDoc?.flags?.["ionrift-quartermaster"] ?? {};
-            const lureName = qmFlags.latentMagic?.originalName
-                ?? qmFlags.cursedMeta?.lureName
-                ?? qmFlags.cursedMeta?.lure?.name
-                ?? null;
-            if (lureName) {
-                itemData.name = lureName;
-                itemData.system = { ...itemData.system, identified: true };
-                Logger.warn(MODULE_LABEL,
-                    `[CacheGen] Cursed item "${lureName}" resolved as unidentified; recovered from latentMagic. Recompile the pack to fix permanently.`
-                );
-                ui.notifications.warn(
-                    `Cursed item recovered from stale compendium data. Run compile-packs.mjs to fix permanently.`,
-                    { permanent: false }
-                );
-            } else {
-                ui.notifications.error(
-                    `Cursed item landed as "Unknown". The compendium needs recompiling. Run compile-packs.mjs then reload.`,
-                    { permanent: true }
-                );
-                Logger.error(MODULE_LABEL,
-                    `[CacheGen] Cursed item from ${entry.uuid} is unidentified with no recovery metadata. Compendium recompile required.`
-                );
-                return;
-            }
-        }
-
+        // ── Cursed item name resolution ──────────────────────────────────────────
+        // CurseForge items have system.identified=false by design — dnd5e overrides
+        // .name to "Unidentified [type]" in that state. This is normal, not an error.
+        // Resolve the GM-facing display name from flags and flip identified:true on
+        // the preview data so the cache UI shows the real lure/item name.
         if (markCursed) {
-            itemData.cursed = true;
             const qmFlags = resolvedDoc?.flags?.["ionrift-quartermaster"] ?? {};
+
+            if (itemData.system?.identified === false) {
+                const displayName = qmFlags.latentMagic?.originalName
+                    ?? qmFlags.cursedMeta?.lureName
+                    ?? qmFlags.cursedMeta?.lure?.name
+                    ?? null;
+                if (displayName) {
+                    itemData.name = displayName;
+                    itemData.system = { ...itemData.system, identified: true };
+                    Logger.info(MODULE_LABEL,
+                        `[CacheGen] Cursed item "${displayName}" — resolved display name from flags (identified:false is expected).`
+                    );
+                }
+                // If no display name found in flags, the stored entry.name from
+                // the pool is used as-is (already resolved by _refreshCursedPool).
+            }
+
+            itemData.cursed = true;
             const cm = qmFlags.cursedMeta ?? {};
             const hint = (cm.trueNature || cm.decoyAppearance || "").trim();
             itemData.cursedAs = hint || itemData.name;
@@ -1799,7 +1812,19 @@ export class CacheGeneratorApp extends Application {
                     const pack = game.packs.get(metaObj.sourceCompendium);
                     if (pack) {
                         const doc = await pack.getDocument(metaObj._compendiumId);
-                        if (doc) data = doc.toObject();
+                        if (doc) {
+                            data = doc.toObject();
+                            // CurseForge items have system.identified=false by design.
+                            // dnd5e preserves that raw false in toObject(), which causes
+                            // IP's _transferItems to crash reading .type from unexpected
+                            // object shapes. Force identified:true — the lure identity is
+                            // carried by latentMagic flags, not by the identified field.
+                            const qmF = data.flags?.["ionrift-quartermaster"] ?? {};
+                            if (data.system && data.system.identified === false
+                                    && (qmF.cursedMeta || qmF.forgedFrom)) {
+                                data.system.identified = true;
+                            }
+                        }
                     }
                 }
                 if (!data) {
@@ -1936,19 +1961,31 @@ export class CacheGeneratorApp extends Application {
             //
             // We retain the CLEAN item's compendium ref so the pile contains a usable
             // SRD Potion of Healing (with a heal activity), not the Cursewright item.
+            //
+            // Only Apothecary-style healing decoys may carry `_infectedCount`. Other cursed
+            // specials (weapons, dust, etc.) must merge by quantity without stamping infectedRate,
+            // or the GM droplet badge appears on every cursed item after pile creation.
             for (const item of result.items ?? []) {
                 if (!item._specialSection || item._specialType !== "cursed") continue;
                 const qty = item.quantity ?? 1;
+                const poisonMerge = _isPoisonStackMergeSource(item);
                 const matchEntry = [...squashedMap.values()].find(e => e.name === item.name);
                 if (matchEntry) {
-                    matchEntry._infectedCount = (matchEntry._infectedCount ?? 0) + qty;
-                    matchEntry._totalQty      = (matchEntry._totalQty ?? 0) + qty;
-                } else {
-                    // No clean counterpart — standalone fully-infected stack.
+                    if (poisonMerge) {
+                        matchEntry._infectedCount = (matchEntry._infectedCount ?? 0) + qty;
+                    }
+                    matchEntry._totalQty = (matchEntry._totalQty ?? 0) + qty;
+                } else if (poisonMerge) {
+                    // No clean counterpart — standalone fully-infected healing stack.
                     squashedMap.set(`cursed::${item._uid ?? item.name}`, {
                         ...item,
                         _totalQty:      qty,
                         _infectedCount: qty
+                    });
+                } else {
+                    squashedMap.set(`cursed::${item._uid ?? item.name}`, {
+                        ...item,
+                        _totalQty: qty
                     });
                 }
             }
