@@ -48,10 +48,9 @@ swap-containers.ps1
 dev-profiles.json
 packs/.staging/
 
-# Test suites (IP-sensitive — see DEV_PROTOCOLS.md §31)
-tests/
+# Test suites — montecarlo local deps excluded, all else tracked
+tests/montecarlo/node_modules/
 !scripts/tests/ForgeTestRunner.js
-vitest.config.*
 
 # Node / dev tooling
 node_modules/
