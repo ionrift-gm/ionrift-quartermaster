@@ -199,8 +199,6 @@ export class PotionEnrichment {
 
         const patch = {};
 
-        console.warn(`[QM:PotionEnrichment.enrichIdentifiedItem] item="${resolvedName}" current attunement=${JSON.stringify(item.system?.attunement)} \u2192 will clear to ""`);
-
         // ── Attunement ──────────────────────────────────────────────────
         // Force-clear attunement unconditionally. Healing potions never
         // require attunement in dnd5e 2024. buildPromotionPatch guards this
@@ -273,17 +271,11 @@ export class PotionEnrichment {
         const activityCount = acts
             ? (typeof acts.size === "number" ? acts.size : Object.keys(acts).length)
             : 0;
-        console.warn(`[DIAG-ACTIVITY] enrichIdentifiedItem "${item.name}": midiActive=${midiActive} activityCount=${activityCount} actsType=${acts?.constructor?.name ?? typeof acts}`);
-        if (activityCount > 0 && acts) {
-            const actList = typeof acts.values === "function" ? [...acts.values()] : Object.values(acts);
-            console.warn(`[DIAG-ACTIVITY] enrichIdentifiedItem existing activities:`, JSON.stringify(actList.map(a => ({ _id: a._id, type: a.type, name: a.name, identifier: a.identifier, activation: a.activation?.type }))));
-        }
         // If ANY activity exists, skip injection — healing potions have exactly
         // one activity type. A second pass must never add a duplicate.
         const hasNoHealActivity = activityCount === 0;
 
         if (midiActive && hasNoHealActivity) {
-            console.warn(`[DIAG-ACTIVITY] enrichIdentifiedItem "${item.name}": INJECTING HealActivity (formula=${tier.formula})`);
             // Build the activity data object (same shape as injectHealActivity
             // but returned as a plain object rather than mutating itemData).
             const activityId = foundry.utils.randomID(16);

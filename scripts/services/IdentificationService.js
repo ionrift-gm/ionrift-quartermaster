@@ -78,12 +78,10 @@ export class IdentificationService {
         const isCurseForgeLatent = !!(latent && forgedFrom && !latent.promoted);
 
         if (isCurseForgeLatent) {
-            console.warn(`[QM:IdentificationService] isCurseForgeLatent path — item.type="${item.type}" item.name="${item.name}"`);
             Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type));
             kind = "cursed-lure";
             displayName = latent.originalName ?? item.name;
         } else if (latent && !latent.promoted) {
-            console.warn(`[QM:IdentificationService] latent-magic path — item.type="${item.type}" item.name="${item.name}" latent.attunement=${JSON.stringify(latent.attunement)}`);
             Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type));
             kind = "latent-magic";
             displayName = latent.originalName ?? item.name;
