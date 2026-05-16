@@ -631,7 +631,7 @@ export class CacheGenerator {
                         type: "consumable",
                         img: pick.img ?? ItemMaskingHelper._genericIconFor("scroll"),
                         price: scrollPrices[scrollMeta.spellLevel] ?? 60,
-                        weight: 0.05,
+                        weight: 0.1,
                         rarity: scrollMeta.spellLevel <= 2 ? "common" : scrollMeta.spellLevel <= 4 ? "uncommon" : "rare",
                         quantity: 1,
                         spellLevel: scrollMeta.spellLevel,
@@ -642,11 +642,18 @@ export class CacheGenerator {
                 }
             }
         } catch (e) {
-            Logger.warn(MODULE_LABEL, "Scroll compendium query failed, using stub:", e.message);
+            Logger.warn(MODULE_LABEL, "Scroll compendium query failed:", e.message);
         }
 
-        // Fallback stub
-        return this._generateScrollStub(tierData);
+        // No eligible scroll in the ScrollForge pool at this level.
+        // Return null — the slot loop converts empty picks to gold filler.
+        // Do NOT fabricate stub scrolls from hardcoded spell lists; items
+        // that don't exist in the compiled pool must not enter caches.
+        Logger.warn(MODULE_LABEL,
+            `No scroll available at level ${this._weightedScrollLevel(tierData.scrollLevelMax ?? 2)} — ` +
+            `ensure Scroll Forge is compiled with spell sources enabled.`
+        );
+        return null;
     }
 
     /**
@@ -782,7 +789,7 @@ export class CacheGenerator {
             subtype: pick.subtype ?? "",
             img: pick.img ?? "icons/consumables/potions/potion-bottle-corked-red.webp",
             price: pick.price ?? 0,
-            weight: 0.1,
+            weight: pick.weight || 0.1,
             rarity: pick.rarity ?? "common",
             quantity: 1,
             sourceCompendium: pick.sourceCompendium,
@@ -809,8 +816,10 @@ export class CacheGenerator {
     }
 
     /**
-     * Stub scroll generator. Phase 2 will use the real scroll compendium.
-     * For now, generates a named scroll at an appropriate level.
+     * @deprecated Stub scroll generator — retained only for reroll compatibility.
+     * ScrollForge is now the sole source of scroll items. _pickScroll returns null
+     * when no eligible scroll exists; the slot loop handles the empty pick.
+     * TODO: Remove once reroll paths are confirmed to never call this directly.
      */
     static _generateScrollStub(tierData) {
         const maxLevel = tierData.scrollLevelMax;
@@ -836,6 +845,7 @@ export class CacheGenerator {
 
         return {
             name: `Scroll of ${spell}`,
+            weight: 0.1,
             type: "consumable",
             img: ItemMaskingHelper._genericIconFor("scroll"),
             price: scrollPrices[level] ?? 60,

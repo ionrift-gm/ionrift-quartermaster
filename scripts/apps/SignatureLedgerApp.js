@@ -309,7 +309,7 @@ export class SignatureLedgerApp extends Application {
 
             const cursedPoolResolved = cursedPoolRaw.map(entry => ({
                 ...entry,
-                name: _forgedNameMap.get(entry.uuid) ?? entry.name
+                name: CursedItemResolver.resolveFromMap(_forgedNameMap, entry.uuid) ?? entry.name
             }));
 
             const annotated = SignatureLedgerApp._annotateCursedPoolForView(cursedPlannedRaw, cursedPoolResolved);
@@ -1446,6 +1446,8 @@ export class SignatureLedgerApp extends Application {
             const action = ev.currentTarget.dataset.action;
             if (action === "compile-srd-cursed")  this._onLoadSrdCursedItems(ev);
             if (action === "compile-curse-forge") this._onRebuildCursedPool(ev);
+            if (action === "remove-srd-cursed")   this._onRemoveSrdCursedFromPool(ev);
+            if (action === "remove-curse-forge")  this._onRemoveCursewrightFromPool(ev);
         });
         if (this._activeTab === "cursed") this._initCursedDragDrop(html);
         if (this._activeTab === "scrolls") this._initScrollDragDrop(html);
@@ -2130,6 +2132,41 @@ export class SignatureLedgerApp extends Application {
      * Force-recompiles the 12 SRD stubs from dnd5e packs and seeds the pool.
      * Idempotent: items already in pool are skipped by UUID.
      */
+    async _onRemoveSrdCursedFromPool(event) {
+        event.preventDefault();
+        await this._removeCursedPoolBySource("ionrift-srd-cursed", "SRD cursed");
+    }
+
+    async _onRemoveCursewrightFromPool(event) {
+        event.preventDefault();
+        await this._removeCursedPoolBySource("ionrift-cursewright-forged", "Cursewright");
+    }
+
+    /**
+     * Drop every pool row whose uuid contains the given source fragment.
+     * @param {string} uuidFragment - e.g. ionrift-srd-cursed
+     * @param {string} label - short name for notifications
+     */
+    async _removeCursedPoolBySource(uuidFragment, label) {
+        if (!game.user.isGM) return;
+
+        let pool = await getActiveCursedRegistry().getCursedPool();
+        const before = pool.length;
+        pool = pool.filter(p => !(p.uuid || "").includes(uuidFragment));
+        const removed = before - pool.length;
+        if (removed === 0) {
+            this.render();
+            return;
+        }
+
+        await getActiveCursedRegistry().setCursedPool(pool);
+        Hooks.callAll(CURSED_POOL_DATA_HOOK);
+        ui.notifications.info(
+            `Quartermaster: removed ${removed} ${label} item${removed !== 1 ? "s" : ""} from the pool.`
+        );
+        this.render();
+    }
+
     async _onLoadSrdCursedItems(event) {
         event.preventDefault();
         if (!game.user.isGM) return;

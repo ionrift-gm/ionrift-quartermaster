@@ -49,6 +49,27 @@ const SRD_CURSE_MANIFEST = [
     { match: "Scarab of Death",              tier: 3, curseType: "physical"   },
 ];
 
+/**
+ * Fallback price and weight for SRD cursed items whose compendium entries
+ * carry zero values. Values sourced from the 2024 PHB/DMG item tables.
+ * Keys are lowercase item names matching SRD_CURSE_MANIFEST entries.
+ */
+const SRD_ITEM_FALLBACKS = {
+    "berserker axe":                { price: 9000,  weight: 7,   denomination: "gp" },
+    "dust of sneezing and choking": { price: 450,   weight: 0.1, denomination: "gp" },
+    "potion of poison":             { price: 100,   weight: 0.5, denomination: "gp" },
+    "sword of vengeance":           { price: 6000,  weight: 3,   denomination: "gp" },
+    "armor of vulnerability":       { price: 9000,  weight: 65,  denomination: "gp" },
+    "bag of devouring":             { price: 0,     weight: 0.5, denomination: "gp" }, // priceless
+    "boots of dancing":             { price: 4000,  weight: 1,   denomination: "gp" },
+    "cloak of poisonousness":       { price: 3000,  weight: 1,   denomination: "gp" },
+    "crown of madness":             { price: 2500,  weight: 1,   denomination: "gp" },
+    "shield of missile attraction": { price: 6000,  weight: 6,   denomination: "gp" },
+    "demon armor":                  { price: 48000, weight: 65,  denomination: "gp" },
+    "necklace of strangulation":    { price: 45000, weight: 1,   denomination: "gp" },
+    "scarab of death":              { price: 36000, weight: 0,   denomination: "gp" },
+};
+
 // ── SrdCurseAdapter ─────────────────────────────────────────────────────
 
 export class SrdCurseAdapter {
@@ -154,6 +175,38 @@ export class SrdCurseAdapter {
     }
 
     /**
+     * Patch price and weight on a plain item data object when the compendium
+     * entry carries zero/absent values. Only overwrites if the current value
+     * is 0 or missing — never downgrades a valid compendium value.
+     *
+     * @param {object} data       Plain item data (mutated in place).
+     * @param {string} entryName  Manifest match name (e.g. "Berserker Axe").
+     */
+    static _applyFallbacks(data, entryName) {
+        const fallback = SRD_ITEM_FALLBACKS[entryName.trim().toLowerCase()];
+        if (!fallback) return;
+        const system = data.system ??= {};
+        // Weight — handles both object { value, units } and legacy number forms
+        const w = system.weight;
+        const currentWeight = (w !== null && typeof w === "object") ? (w.value ?? 0) : (w ?? 0);
+        if (currentWeight === 0 && fallback.weight > 0) {
+            if (w !== null && typeof w === "object") {
+                w.value = fallback.weight;
+            } else {
+                system.weight = { value: fallback.weight, units: "lb" };
+            }
+        }
+        // Price — only patch if current value is 0 (legacy entry)
+        const p = system.price ?? {};
+        if ((p.value ?? 0) === 0 && fallback.price > 0) {
+            system.price = {
+                value:        fallback.price,
+                denomination: fallback.denomination ?? "gp",
+            };
+        }
+    }
+
+    /**
      * Clone a source item and stamp minimal cursedMeta.
      * No lure names, no escalation, no Ionrift prose — SRD only.
      *
@@ -164,6 +217,8 @@ export class SrdCurseAdapter {
     static _stampItem(sourceItem, entry) {
         const data   = sourceItem.toObject();
         const system = data.system ??= {};
+        // Apply price/weight fallbacks before any further mutation
+        this._applyFallbacks(data, entry.match);
 
         // All SRD items are identified=true so the GM pool card renders the
         // real item name and icon. This is a GM-only compendium — hiding the

@@ -464,16 +464,26 @@
                             {{#if srdPoolCount}}
                                 {{srdPoolCount}} item{{#if (gt srdPoolCount 1)}}s{{/if}} in pool
                             {{else}}
-                                12 standard cursed items — Berserker Axe, Bag of Devouring &amp; more
+                                12 standard cursed items: Berserker Axe, Bag of Devouring, and more
                             {{/if}}
                         </span>
                     </div>
-                    <a role="button" class="source-card-btn action-compile-srd-cursed"
-                       data-action="compile-srd-cursed"
-                       title="Load the 12 SRD cursed items into the pool">
-                        <i class="fas {{#if srdPoolCount}}fa-rotate{{else}}fa-plus{{/if}}"></i>
-                        {{#if srdPoolCount}}Refresh{{else}}Load{{/if}}
-                    </a>
+                    <div class="source-card-actions">
+                        {{#if srdPoolCount}}
+                        <a role="button" class="source-card-btn source-card-btn-remove"
+                           data-action="remove-srd-cursed"
+                           title="Remove all SRD cursed items from the pool">
+                            <i class="fas fa-times"></i>
+                            Remove
+                        </a>
+                        {{/if}}
+                        <a role="button" class="source-card-btn action-compile-srd-cursed"
+                           data-action="compile-srd-cursed"
+                           title="{{#if srdPoolCount}}Recompile and refresh SRD cursed items in the pool{{else}}Load the 12 SRD cursed items into the pool{{/if}}">
+                            <i class="fas {{#if srdPoolCount}}fa-rotate{{else}}fa-plus{{/if}}"></i>
+                            {{#if srdPoolCount}}Refresh{{else}}Load{{/if}}
+                        </a>
+                    </div>
                 </div>
 
                 {{!-- Cursewright source card (only when CW installed) --}}
@@ -492,12 +502,22 @@
                             {{/if}}
                         </span>
                     </div>
-                    <a role="button" class="source-card-btn action-compile-curse-forge"
-                       data-action="compile-curse-forge"
-                       title="Compile Ionrift curse recipes and add matching items to the pool">
-                        <i class="fas {{#if cwPoolCount}}fa-rotate{{else}}fa-hammer{{/if}}"></i>
-                        {{#if cwPoolCount}}Refresh{{else}}Load{{/if}}
-                    </a>
+                    <div class="source-card-actions">
+                        {{#if cwPoolCount}}
+                        <a role="button" class="source-card-btn source-card-btn-remove"
+                           data-action="remove-curse-forge"
+                           title="Remove all Cursewright items from the pool">
+                            <i class="fas fa-times"></i>
+                            Remove
+                        </a>
+                        {{/if}}
+                        <a role="button" class="source-card-btn action-compile-curse-forge"
+                           data-action="compile-curse-forge"
+                           title="{{#if cwPoolCount}}Recompile and refresh Cursewright items in the pool{{else}}Compile Ionrift curse recipes and add matching items to the pool{{/if}}">
+                            <i class="fas {{#if cwPoolCount}}fa-rotate{{else}}fa-hammer{{/if}}"></i>
+                            {{#if cwPoolCount}}Refresh{{else}}Load{{/if}}
+                        </a>
+                    </div>
                 </div>
                 {{/if}}
 
