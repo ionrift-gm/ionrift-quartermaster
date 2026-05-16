@@ -1813,7 +1813,6 @@ export class CacheGeneratorApp extends Application {
     async _onCanvasDrop(event) {
         event.preventDefault();
         this.element.find(".container-card").removeClass("dragging");
-        console.log("[QM|CanvasDrop] handler fired"); // [DEBUG-STACK] remove before release
 
         let data;
         try {
@@ -1837,16 +1836,12 @@ export class CacheGeneratorApp extends Application {
             // Helper to resolve generic cache items into full Foundry Item payloads with flags
             const resolveItemData = async (metaObj) => {
                 let data = null;
-                // [DIAG-RESOLVE] Point B: entry
-                console.warn(`[DIAG-RESOLVE] entry: name="${metaObj.name}" src=${metaObj.sourceCompendium} id=${metaObj._compendiumId} _isMagical=${metaObj._isMagical} _infectedCount=${metaObj._infectedCount} _totalQty=${metaObj._totalQty} _baseItemName="${metaObj._baseItemName}" _lureSurfaceName="${metaObj._lureSurfaceName}" cursedMeta.lure=${!!metaObj.flags?.["ionrift-quartermaster"]?.cursedMeta?.lure}`);
                 if (metaObj.sourceCompendium && metaObj._compendiumId) {
                     const pack = game.packs.get(metaObj.sourceCompendium);
                     if (pack) {
                         const doc = await pack.getDocument(metaObj._compendiumId);
                         if (doc) {
                             data = doc.toObject();
-                            // [DIAG-RESOLVE] Point C: compendium hit
-                            console.warn(`[DIAG-RESOLVE] COMPENDIUM: resolved "${data.name}" from ${metaObj.sourceCompendium} type=${data.type} system.type.value=${data.system?.type?.value} identified=${data.system?.identified} cursedMeta.lure=${!!data.flags?.["ionrift-quartermaster"]?.cursedMeta?.lure} latentMagic=${!!data.flags?.["ionrift-quartermaster"]?.latentMagic}`);
                             // CurseForge items have system.identified=false by design.
                             // dnd5e preserves that raw false in toObject(), which causes
                             // IP's _transferItems to crash reading .type from unexpected
@@ -1862,14 +1857,9 @@ export class CacheGeneratorApp extends Application {
                                 const potionData = PotionEnrichment.getHealFormula(data.name);
                                 if (potionData) {
                                     PotionEnrichment.correctWeight(data, potionData.weight);
-                                    const existingActKeys = data.system?.activities ? Object.keys(data.system.activities) : [];
-                                    console.warn(`[DIAG-ACTIVITY] resolveItemData "${data.name}": existingActivities=${existingActKeys.length}`, existingActKeys.length > 0 ? JSON.stringify(Object.values(data.system.activities).map(a => ({ _id: a._id, type: a.type, name: a.name, identifier: a.identifier, activation: a.activation?.type }))) : "EMPTY");
                                     if (!data.system?.activities
                                             || Object.keys(data.system.activities).length === 0) {
-                                        console.warn(`[DIAG-ACTIVITY] resolveItemData "${data.name}": INJECTING fallback HealActivity (formula=${potionData.formula})`);
                                         PotionEnrichment.injectHealActivity(data, potionData.formula);
-                                    } else {
-                                        console.warn(`[DIAG-ACTIVITY] resolveItemData "${data.name}": PRESERVING source activity from compendium`);
                                     }
                                 }
                             }
@@ -1887,8 +1877,6 @@ export class CacheGeneratorApp extends Application {
                     }
                 }
                 if (!data) {
-                    // [DIAG-RESOLVE] Point C: fallback path
-                    console.warn(`[DIAG-RESOLVE] FALLBACK: name="${metaObj.name}" type=${metaObj.type}`);
                     // Safe generic fallback (compendium resolution is preferred; see _pickContainer)
                     const w = Number(metaObj.weight);
                     data = {
@@ -1936,8 +1924,6 @@ export class CacheGeneratorApp extends Application {
                 // Apply identification masking for magical items.
                 // Infected entries are always treated as magical.
                 const hasLatentMagic = !!(data.flags?.["ionrift-quartermaster"]?.latentMagic);
-                // [DIAG-RESOLVE] Point D: pre-masking
-                console.warn(`[DIAG-RESOLVE] pre-mask: data.name="${data.name}" isInfected=${isInfected} _isMagical=${metaObj._isMagical} hasLatentMagic=${hasLatentMagic} willMask=${(metaObj._isMagical || isInfected) && !hasLatentMagic} cursedMeta.lure=${!!data.flags?.["ionrift-quartermaster"]?.cursedMeta?.lure} data.flags=`, JSON.stringify(data.flags?.["ionrift-quartermaster"]));
                 if ((metaObj._isMagical || isInfected) && !hasLatentMagic) {
                     const obscuredFallback = ItemMaskingHelper.detectMagical({
                         name: data.name,
@@ -1976,8 +1962,6 @@ export class CacheGeneratorApp extends Application {
                 // a Scroll of Fireball and a Scroll of Lightning Bolt into one stack.
                 const isScroll = data.system?.type?.value === "scroll"
                     || /scroll/i.test(data.name || "");
-                // [DIAG-RESOLVE] Point E: post-masking
-                console.warn(`[DIAG-RESOLVE] post-mask: data.name="${data.name}" isScroll=${isScroll} isInfected=${isInfected} hasLatentMagic=${!!data.flags?.["ionrift-quartermaster"]?.latentMagic} canStack will stamp=${!isScroll && (!!data.flags?.["ionrift-quartermaster"]?.latentMagic || isInfected)}`);
                 if (!isScroll && (data.flags?.["ionrift-quartermaster"]?.latentMagic || isInfected)) {
                     data.flags["item-piles"] = data.flags["item-piles"] ?? {};
                     data.flags["item-piles"].item = data.flags["item-piles"].item ?? {};
