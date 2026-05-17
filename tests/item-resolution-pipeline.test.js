@@ -120,7 +120,7 @@ describe("ItemResolutionPipeline.resolve", () => {
         expect(data.flags?.[MODULE_ID]?.latentMagic).toBeTruthy();
         expect(data.flags?.core?.sourceId).toBeUndefined();
         expect(data._stats?.compendiumSource).toBeUndefined();
-        expect(data.flags?.["item-piles"]?.item?.canStack).toBe("yes");
+        expect(data.flags?.["item-piles"]?.item?.canStack).toBeUndefined();
     });
 
     it("stamps canStack no for masked scrolls", async () => {

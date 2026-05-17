@@ -142,9 +142,15 @@ export class ItemResolutionPipeline {
         // the same masked name ("Unidentified Scroll") but contain different spells.
         // If canStack is "yes", IP merges them on the player's actor, conflating
         // a Scroll of Fireball and a Scroll of Lightning Bolt into one stack.
+        //
+        // EXCEPTION: Infected potions must NOT be stackable. Different infected
+        // stacks share the same masked name but carry distinct infectedCount values.
+        // Without canStack, IP always CREATEs on transfer; InfectedStackManager.mergeStack
+        // intercepts and merges infected stacks manually.
         const isScroll = data.system?.type?.value === "scroll"
             || /scroll/i.test(data.name || "");
-        if (!isScroll && (data.flags?.[MODULE_ID]?.latentMagic || isInfected)) {
+        const hasInfectedCount = (data.flags?.[MODULE_ID]?.infectedCount ?? 0) > 0;
+        if (!isScroll && data.flags?.[MODULE_ID]?.latentMagic && !hasInfectedCount) {
             data.flags["item-piles"] = data.flags["item-piles"] ?? {};
             data.flags["item-piles"].item = data.flags["item-piles"].item ?? {};
             data.flags["item-piles"].item.canStack = "yes";

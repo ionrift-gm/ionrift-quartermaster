@@ -10,6 +10,21 @@ const POISON_STACK_DECOY_NAME_RX = [
 ];
 
 /**
+ * Normalise a display name for tolerant matching. The cache pool uses
+ * `Potion of Healing` (canonical) but some compendium entries arrive as
+ * `Potion of Healing (Common)`, `Potion of Healing (Basic)`, or with stray
+ * whitespace. Strip parenthetical rarity suffixes and collapse whitespace.
+ */
+function _normaliseHealingName(name) {
+    if (typeof name !== "string") return "";
+    return name
+        .replace(/\s*\((?:Common|Basic|Uncommon|Rare|Very Rare|Legendary)\)\s*$/i, "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+}
+
+/**
  * Two-pass squash merge for cache items before canvas placement.
  * Extracted from CacheGeneratorApp._onCanvasDrop.
  */
@@ -36,9 +51,11 @@ export class SquashMerger {
      * Two-pass squash: group identical items, merge cursed into clean counterparts.
      *
      * @param {object[]} items  Cache result items array
+     * @param {object}   [logger] Optional Logger + label tuple for diagnostics
      * @returns {Map<string, object>} Squashed entries with _totalQty and _infectedCount
      */
-    static merge(items) {
+    static merge(items, logger = null) {
+        const log = logger?.log ?? (() => {});
         // Diagnostic finding: dnd5e 2024 PHB resolves "Potion of Healing" → "Corked Bottle".
         // The Cursewright item resolves as "Potion of Healing" (lure surface name).
         // Without squashing, the pile has two rows with different names that can't merge.
@@ -61,6 +78,9 @@ export class SquashMerger {
                 squashedMap.set(key, { ...item, _totalQty: item.quantity ?? 1 });
             }
         }
+        log(`[SquashMerger.passA] ${squashedMap.size} non-cursed entries: ${
+            [...squashedMap.values()].map(e => `"${e.name}"×${e._totalQty}`).join(", ")
+        }`);
 
         // Pass B: merge cursed items INTO the matching clean entry.
         // The pile must show ONE row for all potions of the same type — two
@@ -91,7 +111,16 @@ export class SquashMerger {
             // carries the lure name ("Potion of Healing"). _lureSurfaceName is
             // stashed during _injectItem to bridge this gap.
             const matchName = item._lureSurfaceName ?? item.name;
-            const matchEntry = [...squashedMap.values()].find(e => e.name === matchName);
+            const matchKey  = _normaliseHealingName(matchName);
+            // Tolerant match: compendium entries sometimes arrive as
+            // "Potion of Healing (Common)" while the lure surface is the
+            // canonical "Potion of Healing". A strict equality check splits
+            // them into separate squash entries → two pile rows where the
+            // GM expected one folded stack with infectedCount carried.
+            const matchEntry = [...squashedMap.values()].find(e =>
+                _normaliseHealingName(e.name) === matchKey
+            );
+            log(`[SquashMerger.passB] cursed "${item.name}" lure="${matchName}" key="${matchKey}" → ${matchEntry ? `MATCH "${matchEntry.name}" (qty ${matchEntry._totalQty})` : "STANDALONE"}`);
             if (matchEntry) {
                 if (poisonMerge) {
                     matchEntry._infectedCount = (matchEntry._infectedCount ?? 0) + qty;
