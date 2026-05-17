@@ -179,6 +179,67 @@ export class PotionEnrichment {
         itemData.system.activities[activity._id] = activity;
     }
 
+    /**
+     * Enrich a plain potion item-data object so the masked / pre-mask state
+     * has everything dnd5e needs to make it consumable in the actor sheet:
+     * `system.type.value = "potion"`, `system.uses.max = 1`, a HealActivity
+     * if none is present, and the canonical PHB weight.
+     *
+     * Drives both the masked (pre-identification) appearance — where the
+     * surface name is e.g. "Corked Bottle" but the player must still be able
+     * to drink it — and the post-identification "Potion of Healing" stack.
+     *
+     * Name-driven gate: callers don't need to pre-set `system.type.value`,
+     * which dnd5e 2024 PHB ships blank on some Potion of Healing variants.
+     * That blank field was the bug — the old guard
+     * `data.system?.type?.value === "potion"` skipped enrichment for those
+     * entries, leaving the masked actor item with no charges or activity.
+     *
+     * @param {object} data  Plain item data object (mutated in place).
+     * @returns {boolean}    True when the item was a recognised potion.
+     */
+    static enrichPileItemData(data) {
+        if (!data || data.type !== "consumable") return false;
+        const tier = PotionEnrichment.getTierData(data.name);
+        if (!tier) return false;
+
+        data.system ??= {};
+
+        // Consumable type: dnd5e routes use behaviour off this field.
+        data.system.type = data.system.type ?? {};
+        if (!data.system.type.value) {
+            data.system.type.value = "potion";
+        }
+
+        // Weight: tier value (PHB-canonical, 0.5 lb for healing tiers).
+        PotionEnrichment.correctWeight(data, tier.weight);
+
+        // Limited Uses: ensure `max` is populated so the Charges column
+        // shows N/N rather than "—". `spent` defaults to 0; `recovery`
+        // empty array renders as "Never" in the dnd5e details panel.
+        data.system.uses = data.system.uses ?? {};
+        const currentMax = Number(data.system.uses.max);
+        if (!Number.isFinite(currentMax) || currentMax < 1) {
+            data.system.uses.max = tier.uses.max;
+            data.system.uses.spent = data.system.uses.spent ?? 0;
+            if (!Array.isArray(data.system.uses.recovery)) {
+                data.system.uses.recovery = [...tier.uses.recovery];
+            }
+        }
+
+        // HealActivity: only inject when the item has no activity at all.
+        // SRD compendium entries usually carry one already; CurseForge mints
+        // copy the activity over. The injection is the fallback for entries
+        // that ship empty (some 2024 PHB variants do).
+        const acts = data.system.activities;
+        const hasActivity = acts && Object.keys(acts).length > 0;
+        if (!hasActivity) {
+            PotionEnrichment.injectHealActivity(data, tier.formula);
+        }
+
+        return true;
+    }
+
     // ── Post-identification enrichment (live Foundry Item) ─────────────────
 
     /**

@@ -1282,7 +1282,10 @@ export class CacheGeneratorApp extends Application {
 
         if (entry.uuid) {
             try {
-                const doc = await fromUuid(entry.uuid);
+                let doc = await fromUuid(entry.uuid);
+                if (!doc && entry.sourceCompendium && entry._compendiumId) {
+                    doc = await ItemResolutionPipeline._resolveCompendiumDocument(entry);
+                }
                 if (doc) {
                     resolvedDoc = doc;
                     const raw = doc.toObject();

@@ -66,7 +66,8 @@ Hooks.once('init', async () => {
         config: true,
         type: Boolean,
         default: true,
-        requiresReload: false
+        requiresReload: false,
+        restricted: true
     });
 
 
@@ -153,7 +154,8 @@ Hooks.once('init', async () => {
         config: true,
         type: Number,
         range: { min: 0.25, max: 3.0, step: 0.25 },
-        default: 1.0
+        default: 1.0,
+        restricted: true
     });
 
     game.settings.register(MODULE_ID, "magicFrequency", {
@@ -163,7 +165,8 @@ Hooks.once('init', async () => {
         config: true,
         type: Number,
         range: { min: 0.0, max: 2.0, step: 0.25 },
-        default: 1.0
+        default: 1.0,
+        restricted: true
     });
 
     game.settings.register(MODULE_ID, "obscureConsumables", {
@@ -363,7 +366,8 @@ Hooks.once('init', async () => {
         scope: "client",
         config: true,
         type: Boolean,
-        default: false
+        default: false,
+        restricted: true
     });
 
     // Sound integration (only if Resonance is present)
