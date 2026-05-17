@@ -5,8 +5,8 @@
 ![Foundry v12+](https://img.shields.io/badge/Foundry-v12%2B-333333?style=flat&logo=foundryvirtualtabletop)
 ![Systems](https://img.shields.io/badge/system-dnd5e-blue)
 
-> **The GM's loot engine for Foundry VTT. Terrain-aware cache generation, scroll management,
-> cursed item tracking, and campaign item planning.**
+> **The GM's loot engine for Foundry VTT.** Terrain-aware cache generation, masked item
+> identification, scroll management, cursed item tracking, and campaign item planning.
 
 > Documentation, setup guides, and troubleshooting: **[Ionrift Wiki](https://github.com/ionrift-gm/ionrift-library/wiki)**
 
@@ -14,14 +14,16 @@
 
 - **Cache Generator:** Terrain-aware, tier-scaled loot caches with a single click. Nine terrain
   themes, four party tiers, ten owner profiles. Full slot re-roll and preview before commit.
-- **Cursed Item Pool:** Seed your campaign with SRD cursed items that are indistinguishable from
-  ordinary loot: masked names, generic icons, concealed rarity. GM-only pool with standalone
-  management or full integration with Cursewright (premium companion module).
+  Drag caches onto the canvas as interactive loot containers with [Item Piles](https://foundryvtt.com/packages/itempilesdnd5e).
+- **Masked Items & Identification:** Generated items appear mundane to players — masked names,
+  generic icons, concealed rarity. The GM reveals true identities with the identification wand.
+- **Cursed Item Pool:** Seed your campaign with SRD cursed items that blend seamlessly into
+  ordinary loot. Standalone management or full lifecycle integration with
+  [Ionrift Cursewright](https://patreon.com/ionrift) (premium companion module).
 - **Scroll Management:** Tagged spell scrolls with spell name, level, class hints, and party
   awareness. Scrolls the party already knows are deprioritised automatically.
 - **Signature Ledger:** Campaign-length item distribution planner. Per-character timelines,
-  party shelf, fairness tracking, power-score monitoring.
-- **Item Forge:** Focused UI for creating and editing items outside the sidebar clutter.
+  party shelf, fairness tracking, and power-score monitoring.
 - **Sonic Binding (Optional):** Bind Syrinscape sound effects to item actions.
   Requires `ionrift-resonance`.
 
@@ -41,8 +43,19 @@
 
 ## Dependencies
 
-- [`ionrift-library`](https://github.com/ionrift-gm/ionrift-library) v2.0.0+ (Required)
-- [`ionrift-resonance`](https://github.com/ionrift-gm/ionrift-resonance) (Optional, Sound Binding)
+| Module | Required? | What it enables |
+|--------|-----------|----------------|
+| [`ionrift-library`](https://github.com/ionrift-gm/ionrift-library) v2.0.0+ | **Yes** | Core shared utilities |
+| [`itempilesdnd5e`](https://foundryvtt.com/packages/itempilesdnd5e) | Recommended | Drag-to-canvas loot containers, player looting UI |
+| [`ionrift-cursewright`](https://patreon.com/ionrift) | Optional | Full cursed item lifecycle — escalation, activation, narration |
+| [`ionrift-resonance`](https://github.com/ionrift-gm/ionrift-resonance) | Optional | Sound effects bound to item actions |
+
+## Documentation
+
+Full guides on the **[Ionrift Wiki](https://github.com/ionrift-gm/ionrift-library/wiki)**:
+
+- **[Setup: Quartermaster](https://github.com/ionrift-gm/ionrift-library/wiki/10-Setup-Quartermaster)** — Installation, cache generation, and first-time configuration
+- **[Setup: Cursewright](https://github.com/ionrift-gm/ionrift-library/wiki/11-Setup-Cursewright)** — Cursed item lifecycle (premium companion)
 
 ## Bug Reports
 
