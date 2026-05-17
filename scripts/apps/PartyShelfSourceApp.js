@@ -22,9 +22,9 @@ export class PartyShelfSourceApp extends FormApplication {
         });
     }
 
-    getData() {
+    async getData() {
         const enabled = new Set(PartyShelfSourceApp.getEnabledSources());
-        const packs   = PartyShelfSourceApp._listEquipmentCompendiums();
+        const packs   = await PartyShelfSourceApp._listEquipmentCompendiums();
 
         const groups = {};
         for (const pack of packs) {
@@ -50,24 +50,30 @@ export class PartyShelfSourceApp extends FormApplication {
     /**
      * List only compendiums that contain equipment-type items.
      * Filters out spell packs, class packs, feature packs, etc.
+     *
+     * NOTE: Must be async — Forge lazy-loads compendium indexes, so
+     * pack.index.size is 0 on a cold boot until getIndex() is called.
      */
-    static _listEquipmentCompendiums() {
+    static async _listEquipmentCompendiums() {
         const results = [];
         for (const pack of game.packs) {
             if (pack.documentName !== "Item") continue;
 
-            let eqCount = 0;
-            if (pack.index?.size > 0) {
-                for (const entry of pack.index.values()) {
-                    if (EQUIPMENT_TYPES.has(entry.type)) eqCount++;
-                }
-                if (eqCount === 0) continue;
+            // Force-load the index so the type scan works on cold Forge instances.
+            if (!pack.index?.size) {
+                try { await pack.getIndex({ fields: ["type"] }); } catch { continue; }
             }
+
+            let eqCount = 0;
+            for (const entry of pack.index.values()) {
+                if (EQUIPMENT_TYPES.has(entry.type)) eqCount++;
+            }
+            if (eqCount === 0) continue;
 
             results.push({
                 id:    pack.collection,
                 label: pack.title ?? pack.metadata?.label ?? pack.collection,
-                count: eqCount || null
+                count: eqCount
             });
         }
         return results;
