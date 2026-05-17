@@ -389,6 +389,18 @@ Hooks.once('init', async () => {
 });
 
 Hooks.on('ready', () => {
+    // ── Dependency advisory ───────────────────────────────────────────────────
+    // Item Piles is required for cache placement and player transfers.
+    // Surface this clearly on a clean install rather than silently failing.
+    if (game.user.isGM && !game.modules.get("item-piles")?.active) {
+        ui.notifications.warn(
+            "Quartermaster: Item Piles is not installed. " +
+            "Cache placement on canvas and player loot transfers require it. " +
+            "Install Item Piles from the Foundry module browser to enable these features.",
+            { permanent: true }
+        );
+    }
+
     // Flush caches so every reload re-fetches fresh data
     CacheGenerator._tables = null;
     ItemPoolResolver._cache.clear();

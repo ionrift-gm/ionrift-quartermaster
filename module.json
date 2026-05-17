@@ -47,12 +47,11 @@
                 "compatibility": { "minimum": "2.0.0" }
             }
         ],
-        "optional": [
+        "recommends": [
             {
-                "id": "itempilesdnd5e",
+                "id": "item-piles",
                 "type": "module",
-                "compatibility": { "minimum": "2.0.0" },
-                "reason": "Enables drag-to-canvas placement of generated caches as interactive loot piles."
+                "reason": "Required for drag-to-canvas cache placement and player loot transfers. The module generates caches without it, but deployment requires Item Piles."
             }
         ]
     },
