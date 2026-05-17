@@ -248,6 +248,8 @@ export class ItemPoolResolver {
         if (!name) return true;
         if (this._isPlaceholderPoolEntry(entry, nameLower)) return true;
         if (this._isContainerContentOnly(entry, nameLower)) return true;
+        if (this._isTrapOrHazard(entry)) return true;
+        if (this._isZeroDataPlaceholder(entry)) return true;
         return false;
     }
 
@@ -270,6 +272,18 @@ export class ItemPoolResolver {
     }
 
     /**
+     * SRD compendium rows with no economy or rarity data (table pointers, variant
+     * shells). dnd5e.equipment24 ships many magic items at price 0, weight 0,
+     * rarity "" until a specific variant is chosen.
+     */
+    static _isZeroDataPlaceholder(entry) {
+        const price = this._extractPrice(entry);
+        const weight = this._extractWeight(entry);
+        const rarity = (entry.system?.rarity ?? "").trim();
+        return price === 0 && weight === 0 && rarity === "";
+    }
+
+    /**
      * Items that only exist as contents of a container and should never appear
      * as standalone loot drops. Bulk liquids measured in pints (water, common
      * wine, etc.) arrive in waterskins or flasks — they have no meaning as a
@@ -279,6 +293,22 @@ export class ItemPoolResolver {
      * unit of measure such as "(Pint)", "(Gallon)", "(Ounce)", or "(Portion)"
      * are treated as container-content stubs.
      */
+    /**
+     * Trap and hazard items from SRD 5.2 (Hidden Pit, Falling Net, etc.) are
+     * classified as equipment with no rarity, so they pass the mundane filter.
+     * Every trap stat block has a "Trigger:" line in its description — no real
+     * loot item uses that keyword — making it a safe, targeted rejection signal.
+     */
+    static _isTrapOrHazard(entry) {
+        const desc = this._entryDescriptionText(entry);
+        if (!desc) return false;
+        // "trigger:" is the canonical trap stat-block header in SRD 5.2
+        if (desc.includes("trigger:")) return true;
+        // Belt-and-suspenders: also catch "nuisance trap" and "setpiece trap" headers
+        if (/\b(?:nuisance|setpiece)\s+trap\b/.test(desc)) return true;
+        return false;
+    }
+
     static _isContainerContentOnly(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
         // Only applies to consumable food/drink items
         const subtype = (entry.system?.type?.value ?? "").toLowerCase();

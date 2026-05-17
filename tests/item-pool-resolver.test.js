@@ -132,11 +132,19 @@ describe("ItemPoolResolver._isExcluded", () => {
     });
 
     it("passes normal loot", () => {
-        expect(ItemPoolResolver._isExcluded({ type: "loot", name: "Gold Coin" })).toBe(false);
+        expect(ItemPoolResolver._isExcluded({
+            type: "loot",
+            name: "Gold Coin",
+            system: { price: 1, weight: 0.02, rarity: "common" }
+        })).toBe(false);
     });
 
     it("passes normal equipment", () => {
-        expect(ItemPoolResolver._isExcluded({ type: "equipment", name: "Chain Mail" })).toBe(false);
+        expect(ItemPoolResolver._isExcluded({
+            type: "equipment",
+            name: "Chain Mail",
+            system: { price: 75, weight: 55, rarity: "common" }
+        })).toBe(false);
     });
 
     it("excludes the SRD trinket table placeholder", () => {
@@ -367,6 +375,94 @@ describe("ItemPoolResolver._isPlaceholderPoolEntry", () => {
     it("rejects real loot items", () => {
         const entry = { name: "Longsword", system: {} };
         expect(ItemPoolResolver._isPlaceholderPoolEntry(entry)).toBe(false);
+    });
+});
+
+// ── _isZeroDataPlaceholder ───────────────────────────────────────────────
+
+describe("ItemPoolResolver._isZeroDataPlaceholder", () => {
+
+    it("flags Belt of Giant Strength equipment24 stub", () => {
+        const entry = {
+            name: "Belt of Giant Strength",
+            type: "equipment",
+            system: { price: 0, weight: 0, rarity: "" }
+        };
+        expect(ItemPoolResolver._isZeroDataPlaceholder(entry)).toBe(true);
+    });
+
+    it("does not flag Headband of Intellect when rarity is set", () => {
+        const entry = {
+            name: "Headband of Intellect",
+            type: "equipment",
+            system: { price: 0, weight: 0, rarity: "uncommon" }
+        };
+        expect(ItemPoolResolver._isZeroDataPlaceholder(entry)).toBe(false);
+    });
+
+    it("does not flag Deck of Many Things with populated economy fields", () => {
+        const entry = {
+            name: "Deck of Many Things",
+            type: "consumable",
+            system: {
+                price: { value: 6120, denomination: "gp" },
+                weight: { value: 0.1, units: "lb" },
+                rarity: "legendary"
+            }
+        };
+        expect(ItemPoolResolver._isZeroDataPlaceholder(entry)).toBe(false);
+    });
+
+    it("does not flag items with a nonzero price", () => {
+        const entry = {
+            name: "Torch",
+            type: "equipment",
+            system: { price: 1, weight: 0, rarity: "" }
+        };
+        expect(ItemPoolResolver._isZeroDataPlaceholder(entry)).toBe(false);
+    });
+
+    it("does not flag items with a nonzero weight", () => {
+        const entry = {
+            name: "Weighted Item",
+            type: "equipment",
+            system: { price: 0, weight: 1, rarity: "" }
+        };
+        expect(ItemPoolResolver._isZeroDataPlaceholder(entry)).toBe(false);
+    });
+
+    it("treats whitespace-only rarity as empty", () => {
+        const entry = {
+            name: "Odd Stub",
+            type: "equipment",
+            system: { price: 0, weight: 0, rarity: "   " }
+        };
+        expect(ItemPoolResolver._isZeroDataPlaceholder(entry)).toBe(true);
+    });
+
+    it("excludes Belt via _isExcluded but keeps Headband and Deck", () => {
+        const belt = {
+            type: "equipment",
+            name: "Belt of Giant Strength",
+            system: { price: 0, weight: 0, rarity: "" }
+        };
+        const headband = {
+            type: "equipment",
+            name: "Headband of Intellect",
+            system: { price: 0, weight: 0, rarity: "uncommon" }
+        };
+        const deck = {
+            type: "consumable",
+            name: "Deck of Many Things",
+            system: {
+                price: { value: 6120, denomination: "gp" },
+                weight: { value: 0.1, units: "lb" },
+                rarity: "legendary"
+            }
+        };
+        expect(ItemPoolResolver._isExcluded(belt)).toBe(true);
+        expect(ItemPoolResolver._isExcluded(headband)).toBe(false);
+        expect(ItemPoolResolver._isExcluded(deck)).toBe(false);
     });
 });
 
