@@ -364,10 +364,9 @@ Hooks.once('init', async () => {
         name: "Enable Debug Logging",
         hint: "Visible only in console. Useful for troubleshooting.",
         scope: "client",
-        config: true,
+        config: false,
         type: Boolean,
-        default: false,
-        restricted: true
+        default: false
     });
 
     // Sound integration (only if Resonance is present)

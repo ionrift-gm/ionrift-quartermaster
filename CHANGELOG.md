@@ -1,6 +1,28 @@
 # Changelog
 
-## [1.3.0-ea.1] - 2026-05-09
+## [1.3.2-ea.2] - 2026-05-17
+
+### Added
+- **Identified-twin promotion for cursed items.** When you identify a cursed weapon or piece of armor, the item now pulls its true mechanical state - name, damage formulas, magical bonus, activities, and properties - directly from the compiled twin rather than reconstructing it from flags. Cursed weapons like Oathcleaver now retain their full attack and damage activities after identification.
+- **Stale UUID recovery.** If you recompile your cursed items through CurseForge, caches that were generated before the recompile no longer break. The system automatically resolves items by name when the original document ID is no longer valid.
+- **Potion enrichment pipeline.** Healing potions placed in caches now reliably show their charges, weight, and "Consume" activity in the player's inventory - including 2024 PHB variants that shipped with blank consumable type data.
+- **Infected potion stack merging.** When poisoned potions are identified and merged into an existing stack, the infection count is now properly summed onto the target. Previously the count was lost during merge.
+
+### Changed
+- **All module settings are now GM-only.** Loot Abundance, Magic Frequency, Obscure Consumables, and other configuration dials are restricted to the GM. Players can no longer change cache generation parameters.
+- **Forged pool excludes identified twins.** The cursed pool now filters out the GM-reference "identified" docs that CurseForge emits alongside each lure. Only lure-form items appear in the pool.
+- **Pool UUID rematch after recompile.** Recompiling cursed items through the Signature Ledger now automatically re-links any pool entries whose UUIDs became stale.
+
+### Fixed
+- **Scroll level weighting overhauled.** Higher-tier caches now produce meaningfully higher-level scrolls. The previous weighting formula bottlenecked at level 1 regardless of tier settings.
+- **Zero-data placeholder items excluded from loot pools.** Generic placeholder entries (Belt of Giant Strength generic, Deck of Many Things cards, traps) are now filtered during pool seeding. Only items with real price/weight/rarity data enter the cache generator.
+- **Cursed pool name resolution stabilised.** The pool display no longer shows raw compendium IDs or stale names after a CurseForge recompile.
+- **Consumable activity data preserved.** Potions and scrolls no longer have their Consume/Cast activities stripped during the masking process.
+- **Ammunition included in consumable pools.** Ammunition subtypes (arrows, bolts, etc.) are now eligible for cache generation.
+- **Diagnostic console noise removed.** Development-only console.warn statements have been stripped from the production build.
+- **Cursed item identification no longer wipes weapon damage.** The _applyRecipe pipeline now conditionally preserves activity data for weapons and armor.
+
+## [1.3.2-ea.1] - 2026-05-09
 
 ### Added
 - **Swamp and Arctic terrain themes.** The Cache Generator now includes Swamp and Arctic alongside the existing seven terrains, bringing the terrain list into alignment with Respite. Each has its own discovery flavour text and mastercraft material weighting.
