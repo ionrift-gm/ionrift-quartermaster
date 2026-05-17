@@ -14,6 +14,36 @@
 export class ItemMaskingHelper {
 
     /**
+     * Regex matching the curse-reveal HTML block that CurseEngine.activate
+     * appends to `system.description.value` when a curse activates. We
+     * preserve this block across promotion patches so subsequent
+     * migrations / forge re-syncs don't strip the curse text and leave
+     * the player staring at the lure description on an activated curse.
+     *
+     * Keep in sync with the writer in CurseEngine.activate (cursewright).
+     */
+    static _CURSE_REVEAL_RE = /(<hr>\s*<p class="ionrift-curse-reveal">[\s\S]*?<\/p>|<section[^>]*\bionrift-curse-reveal\b[^>]*>[\s\S]*?<\/section>)/;
+
+    /**
+     * If the live item description contains an appended curse-reveal block,
+     * splice it back onto the new base description. Idempotent: if the new
+     * base already includes the block, returns it unchanged.
+     *
+     * @param {string} currentDesc Current live `system.description.value`
+     * @param {string} newBaseDesc Replacement base (lure or twin desc)
+     * @returns {string}
+     */
+    static _preserveCurseRevealBlock(currentDesc, newBaseDesc) {
+        if (typeof currentDesc !== "string" || !currentDesc) return newBaseDesc;
+        const match = currentDesc.match(ItemMaskingHelper._CURSE_REVEAL_RE);
+        if (!match) return newBaseDesc;
+        if (typeof newBaseDesc === "string" && newBaseDesc.includes("ionrift-curse-reveal")) {
+            return newBaseDesc;
+        }
+        return (newBaseDesc ?? "") + match[1];
+    }
+
+    /**
      * Default Foundry core `icons/` art when a masked consumable label has no
      * dedicated mapping (keep in sync with dnd5e `json/icon-migration.json`).
      */
@@ -409,7 +439,14 @@ export class ItemMaskingHelper {
 
         if (latent.originalName) patch["name"] = latent.originalName;
         if (latent.originalDescription !== undefined) {
-            patch["system.description.value"] = latent.originalDescription;
+            // Preserve any curse-reveal block already appended to the live
+            // description so an activated curse doesn't visually revert to
+            // the lure copy when promotion/migration re-runs.
+            const liveDesc = itemDoc?.system?.description?.value
+                ?? system?.description?.value
+                ?? "";
+            patch["system.description.value"] = ItemMaskingHelper
+                ._preserveCurseRevealBlock(liveDesc, latent.originalDescription);
         }
         if (latent.originalRarity) patch["system.rarity"] = latent.originalRarity;
         if (latent.originalPrice) {
@@ -486,7 +523,12 @@ export class ItemMaskingHelper {
 
         const desc = latent?.originalDescription ?? tSystem.description?.value;
         if (desc !== undefined) {
-            patch["system.description.value"] = desc;
+            // Preserve any curse-reveal block already appended to the live
+            // description so an activated curse doesn't visually revert to
+            // the lure copy when CurseMigrator / syncFromForgedTemplate runs.
+            const liveDesc = liveItem?.system?.description?.value ?? "";
+            patch["system.description.value"] = ItemMaskingHelper
+                ._preserveCurseRevealBlock(liveDesc, desc);
         }
 
         // Activities: per-id patch using the twin's raw activity data.
