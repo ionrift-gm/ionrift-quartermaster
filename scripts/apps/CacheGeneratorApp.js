@@ -1806,11 +1806,36 @@ export class CacheGeneratorApp extends Application {
             const pileItems = [];
             const mintBatch = result.meta?.mintBatch;
 
-            const squashedMap = SquashMerger.merge(result.items ?? []);
+            const squashedMap = SquashMerger.merge(result.items ?? [], {
+                log: (msg) => Logger.info(MODULE_LABEL, msg)
+            });
             for (const entry of squashedMap.values()) {
                 const resolved = await ItemResolutionPipeline.resolve(entry, mintBatch);
                 pileItems.push(ItemResolutionPipeline.stampQuantity(resolved, entry._totalQty ?? 1));
             }
+
+            // Diagnostic: full pile placement audit so the masking pipeline is
+            // observable end-to-end. Each row shows the masked surface name IP
+            // will see, the underlying lure (if any), infected count, and the
+            // canStack flag — the three things that decide whether IP merges
+            // identical-looking masked rows on pile creation or actor takes.
+            const QM_FLAG = "ionrift-quartermaster";
+            const pileAudit = pileItems.map((it) => ({
+                name:         it.name,
+                type:         it.type,
+                qty:          it.system?.quantity ?? 1,
+                _id:          it._id,
+                originalName: it.flags?.[QM_FLAG]?.latentMagic?.originalName ?? null,
+                forgedFrom:   it.flags?.[QM_FLAG]?.forgedFrom ?? null,
+                infectedCount: it.flags?.[QM_FLAG]?.infectedCount ?? 0,
+                canStack:     it.flags?.["item-piles"]?.item?.canStack ?? "(default)"
+            }));
+            const ipSimilarities = game.itempiles?.API?.ITEM_SIMILARITIES ?? [];
+            Logger.info(MODULE_LABEL,
+                `[CacheGen.placement] dropping ${pileItems.length} pile items at (${Math.round(x)}, ${Math.round(y)}). `
+                + `IP ITEM_SIMILARITIES: [${ipSimilarities.join(", ")}]`
+            );
+            console.table(pileAudit);
 
             const containerName = result.container?.name ?? "Loot Cache";
             const containerImg = result.container?.img ?? "icons/containers/chest/chest-worn-oak-tan.webp";
