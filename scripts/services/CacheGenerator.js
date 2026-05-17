@@ -343,7 +343,16 @@ export class CacheGenerator {
     static async _pickItem(slotType, theme, tierData, tables, priceCeiling = Infinity) {
         let item;
         switch (slotType) {
-            case "scroll":      item = await this._pickScroll(tierData, priceCeiling); break;
+            case "scroll": {
+                const scrollPricesByLevel = { 1: 60, 2: 120, 3: 200, 4: 320, 5: 640, 6: 1280, 7: 2560, 8: 5120, 9: 10240 };
+                const tierScrollMinLevel = [0, 1, 2, 3, 5][tierData._tier ?? 1] ?? 1;
+                const tierScrollMinPrice = scrollPricesByLevel[tierScrollMinLevel] ?? 60;
+                const scrollCeiling = priceCeiling >= tierScrollMinPrice
+                    ? priceCeiling
+                    : (Math.random() < 0.40 ? tierScrollMinPrice : priceCeiling);
+                item = await this._pickScroll(tierData, scrollCeiling);
+                break;
+            }
             case "consumable":  item = await this._pickConsumable(theme, tierData, tables, priceCeiling); break;
             case "mundane":     item = await this._pickMundane(theme, tierData, tables, priceCeiling); break;
             case "mastercraft": item = await this._pickMastercraft(theme, tierData, priceCeiling); break;
@@ -598,18 +607,22 @@ export class CacheGenerator {
             const forgedId = `world.${ScrollForge.WORLD_PACK_NAME}`;
             const pack = game.packs.get(forgedId);
             if (pack) {
-                const index = await pack.getIndex({ fields: ["name", "img", "system.price", "flags"] });
+                const index = await pack.getIndex({ fields: ["name", "img", "system.price", "system.level", "flags"] });
                 const scrollPrices = { 1: 60, 2: 120, 3: 200, 4: 320, 5: 640, 6: 1280, 7: 2560, 8: 5120, 9: 10240 };
+
+                const _resolveScrollLevel = (e) =>
+                    e.system?.level
+                    ?? e.flags?.["ionrift-quartermaster"]?.scrollMeta?.spellLevel;
 
                 // Exact level match first, fall back to <= level if empty
                 let eligible = index.filter(e => {
-                    const spellLevel = e.flags?.["ionrift-quartermaster"]?.scrollMeta?.spellLevel;
+                    const spellLevel = _resolveScrollLevel(e);
                     if (!spellLevel || spellLevel !== level) return false;
                     return (scrollPrices[spellLevel] ?? 60) <= priceCeiling;
                 });
                 if (eligible.length === 0) {
                     eligible = index.filter(e => {
-                        const spellLevel = e.flags?.["ionrift-quartermaster"]?.scrollMeta?.spellLevel;
+                        const spellLevel = _resolveScrollLevel(e);
                         if (!spellLevel || spellLevel > level) return false;
                         return (scrollPrices[spellLevel] ?? 60) <= priceCeiling;
                     });
@@ -626,15 +639,16 @@ export class CacheGenerator {
 
                     const pick = finalPool[Math.floor(Math.random() * finalPool.length)];
                     const scrollMeta = pick.flags?.["ionrift-quartermaster"]?.scrollMeta ?? {};
+                    const pickedLevel = pick.system?.level ?? scrollMeta.spellLevel;
                     return {
                         name: pick.name,
                         type: "consumable",
                         img: pick.img ?? ItemMaskingHelper._genericIconFor("scroll"),
-                        price: scrollPrices[scrollMeta.spellLevel] ?? 60,
+                        price: scrollPrices[pickedLevel] ?? 60,
                         weight: 0.1,
-                        rarity: scrollMeta.spellLevel <= 2 ? "common" : scrollMeta.spellLevel <= 4 ? "uncommon" : "rare",
+                        rarity: pickedLevel <= 2 ? "common" : pickedLevel <= 4 ? "uncommon" : "rare",
                         quantity: 1,
-                        spellLevel: scrollMeta.spellLevel,
+                        spellLevel: pickedLevel,
                         spellName: scrollMeta.spellName,
                         _compendiumId: pick._id,
                         sourceCompendium: forgedId
