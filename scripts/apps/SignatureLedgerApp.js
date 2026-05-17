@@ -2238,7 +2238,7 @@ export class SignatureLedgerApp extends Application {
         }
 
         ui.notifications.info("Cursewright: compiling cursed items from D&D 5e sources...");
-        await CurseForge.compile();
+        await CurseForge.compile({ force: true });
         CurseForge.enforceOwnership();
 
         await this._seedPoolFromForgedPack();
@@ -2260,7 +2260,13 @@ export class SignatureLedgerApp extends Application {
         }
 
         let docs;
-        try { docs = await pack.getDocuments(); }
+        try {
+            const all = await pack.getDocuments();
+            // The forged pack now contains paired lure + identified-twin docs
+            // for non-deceptive recipes. Twins are GM audit references only;
+            // the pool must contain LURES exclusively.
+            docs = all.filter(d => d.flags?.["ionrift-cursewright"]?.role !== "identified");
+        }
         catch (e) { Logger.error(MODULE_LABEL, "_seedPoolFromForgedPack: could not read forged pack", e); return; }
 
         // Strip existing CW items — their UUIDs are invalidated when the pack is rebuilt.
@@ -2281,6 +2287,9 @@ export class SignatureLedgerApp extends Application {
         }
 
         await getActiveCursedRegistry().setCursedPool(pool);
+        if (typeof getActiveCursedRegistry().rematchLedgerCursedUuids === "function") {
+            await getActiveCursedRegistry().rematchLedgerCursedUuids(docs);
+        }
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
         ui.notifications.info(`Cursewright: ${docs.length} item${docs.length !== 1 ? "s" : ""} in pool.`);
     }

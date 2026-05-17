@@ -3,11 +3,59 @@ import { PotionEnrichment } from "./PotionEnrichment.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
+const FORGED_PACK_IDS = new Set([
+    "world.ionrift-cursewright-forged",
+    "world.ionrift-forged-cursed"
+]);
+
 /**
  * Resolves cache generator meta-objects into Foundry-ready item data payloads
  * for Item Piles placement. Extracted from CacheGeneratorApp._onCanvasDrop.
  */
 export class ItemResolutionPipeline {
+
+    /**
+     * Load a compendium item, recovering from stale UUIDs after a CurseForge recompile.
+     *
+     * @param {object} metaObj
+     * @returns {Promise<Item|null>}
+     */
+    static async _resolveCompendiumDocument(metaObj) {
+        const packId = metaObj.sourceCompendium;
+        const docId  = metaObj._compendiumId;
+        if (!packId || !docId) return null;
+
+        const pack = game.packs.get(packId);
+        if (!pack) return null;
+
+        try {
+            const doc = await pack.getDocument(docId);
+            if (doc) return doc;
+        } catch { /* stale document id after pack recreate */ }
+
+        if (!FORGED_PACK_IDS.has(packId)) return null;
+
+        const nameKey = (metaObj._lureSurfaceName ?? metaObj.name ?? "").trim().toLowerCase();
+        if (!nameKey) return null;
+
+        const docs = await pack.getDocuments();
+        for (const candidate of docs) {
+            // Skip identified-twin reference docs — caches only ever place
+            // lures, and twin names can collide (lureIsSurface potions).
+            if (candidate.flags?.["ionrift-cursewright"]?.role === "identified") continue;
+            const qm = candidate.flags?.[MODULE_ID] ?? {};
+            const latent = qm.latentMagic ?? {};
+            const meta   = qm.cursedMeta ?? {};
+            const labels = [
+                latent.originalName,
+                meta.lureName,
+                candidate._source?.name,
+                candidate.name
+            ].filter(Boolean).map(n => String(n).trim().toLowerCase());
+            if (labels.includes(nameKey)) return candidate;
+        }
+        return null;
+    }
 
     /**
      * Resolve a cache meta-object into a Foundry-ready item data payload.
@@ -21,7 +69,7 @@ export class ItemResolutionPipeline {
         if (metaObj.sourceCompendium && metaObj._compendiumId) {
             const pack = game.packs.get(metaObj.sourceCompendium);
             if (pack) {
-                const doc = await pack.getDocument(metaObj._compendiumId);
+                const doc = await ItemResolutionPipeline._resolveCompendiumDocument(metaObj);
                 if (doc) {
                     data = doc.toObject();
                     // CurseForge items have system.identified=false by design.
@@ -34,17 +82,13 @@ export class ItemResolutionPipeline {
                             && (qmF.cursedMeta || qmF.forgedFrom)) {
                         data.system.identified = true;
                     }
-                    if (data.type === "consumable"
-                            && data.system?.type?.value === "potion") {
-                        const potionData = PotionEnrichment.getHealFormula(data.name);
-                        if (potionData) {
-                            PotionEnrichment.correctWeight(data, potionData.weight);
-                            if (!data.system?.activities
-                                    || Object.keys(data.system.activities).length === 0) {
-                                PotionEnrichment.injectHealActivity(data, potionData.formula);
-                            }
-                        }
-                    }
+                    // Potion enrichment runs on every healing-potion shape,
+                    // including dnd5e 2024 PHB entries that ship with a blank
+                    // `system.type.value`. The helper sets type, weight,
+                    // `system.uses.max = 1`, and injects a HealActivity when
+                    // none is present, so the masked actor item still shows
+                    // charges and a Consume activity in the inventory.
+                    PotionEnrichment.enrichPileItemData(data);
                     // Strip attunement from all consumables.
                     // dnd5e's #migrateAttunement runs on every getDocument() call and
                     // converts legacy integer attunement values (e.g. 1 → "required")

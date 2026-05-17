@@ -78,11 +78,22 @@ export class IdentificationService {
         const isCurseForgeLatent = !!(latent && forgedFrom && !latent.promoted);
 
         if (isCurseForgeLatent) {
-            Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type));
+            // Prefer twin-doc promotion: CurseForge emits a paired identified
+            // twin in the forged compendium that holds the true mechanical
+            // state (name, magical bonus, activities with damage, properties).
+            // Falls back to the latentMagic flag path for items compiled
+            // before the twin model landed.
+            const twin = await IdentificationService._resolveIdentifiedTwin(item);
+            if (twin) {
+                Object.assign(updates, ItemMaskingHelper.buildPromotionPatchFromTwin(item, twin, latent));
+                displayName = twin.name ?? latent.originalName ?? item.name;
+            } else {
+                Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type, item));
+                displayName = latent.originalName ?? item.name;
+            }
             kind = "cursed-lure";
-            displayName = latent.originalName ?? item.name;
         } else if (latent && !latent.promoted) {
-            Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type));
+            Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type, item));
             kind = "latent-magic";
             displayName = latent.originalName ?? item.name;
         } else if (cursedMeta?.lure && item.system?.identified === false) {
@@ -152,9 +163,10 @@ export class IdentificationService {
                 }
             }
 
-            // §5b: After clearing canStack, attempt to merge this scroll
-            // into any existing same-named stack in the actor's inventory.
-            await IdentificationService._tryMergeScrollStack(item);
+            // §5b: After clearing canStack, attempt to merge this newly-
+            // identified item into any existing same-named stack in the
+            // actor's inventory (scrolls, potions, anything with latentMagic).
+            await IdentificationService._tryMergeIdentifiedStack(item);
         }
 
         if (hasCursedOnlyMeta) {
@@ -183,6 +195,31 @@ export class IdentificationService {
 
         Logger.info("Quartermaster", `IdentificationService: ${kind} -> "${item.name}".`);
         return { identified: true, kind };
+    }
+
+    /**
+     * Resolve the identified-twin compendium doc for a CurseForge-minted
+     * item. Routed through the public Cursewright API so QM stays free of
+     * direct cross-module file imports.
+     *
+     * Returns null when:
+     *   - Cursewright isn't loaded
+     *   - The item is a deceptive single-use (no twin emitted)
+     *   - The forged pack was deleted manually
+     *   - The recipe key is missing (legacy item from a pre-twin compile)
+     *
+     * @param {Item} item
+     * @returns {Promise<Item|null>}
+     */
+    static async _resolveIdentifiedTwin(item) {
+        const forge = game.ionrift?.cursewright?.forge;
+        if (!forge || typeof forge.findIdentifiedTwin !== "function") return null;
+        try {
+            return await forge.findIdentifiedTwin(item);
+        } catch (err) {
+            Logger.warn("Quartermaster", `IdentificationService: twin lookup failed for "${item.name}":`, err.message);
+            return null;
+        }
     }
 
     /**
@@ -257,21 +294,23 @@ export class IdentificationService {
     }
 
     /**
-     * After a scroll is identified its name is restored (e.g. "Spell Scroll: Cure Wounds").
-     * If the owning actor already holds another stack with that exact name,
-     * merge this item's quantity into it and delete this item.
+     * After an item is identified its name is restored (e.g. "Spell Scroll:
+     * Cure Wounds" or "Potion of Healing"). If the owning actor already
+     * holds another stack with that exact name, merge this item's quantity
+     * into it and delete this item.
+     *
+     * `infectedCount` is summed onto the target before delete. Without that
+     * step the freshly-identified stack's poison count is destroyed when
+     * the source is deleted, leaving an understated count on the merged row.
      *
      * Only runs on actor-owned items; pile items are left alone.
      *
-     * @param {Item} item  The freshly-identified scroll item.
+     * @param {Item} item  The freshly-identified item.
      * @returns {Promise<void>}
      */
-    static async _tryMergeScrollStack(item) {
+    static async _tryMergeIdentifiedStack(item) {
         const actor = item.parent;
-        // Only merge into actor inventories, not piles or unowned items.
         if (!actor || actor.documentName !== "Actor") return;
-        // The name is now the restored spell name. Find a different item
-        // with the same name and a quantity flag (canStack:"yes").
         const resolvedName = item._source?.name ?? item.name;
         const siblings = actor.items.filter(
             (i) =>
@@ -279,24 +318,29 @@ export class IdentificationService {
                 (i._source?.name ?? i.name) === resolvedName
         );
         if (!siblings.length) return;
-        // Pick the first match and absorb this item's qty into it.
         const target = siblings[0];
-        const myQty  = item.system?.quantity ?? 1;
-        const tgtQty = target.system?.quantity ?? 1;
+        const myQty       = item.system?.quantity ?? 1;
+        const tgtQty      = target.system?.quantity ?? 1;
+        const myInfected  = Number(item.getFlag?.(MODULE_ID, "infectedCount") ?? 0) || 0;
+        const tgtInfected = Number(target.getFlag?.(MODULE_ID, "infectedCount") ?? 0) || 0;
+        const sumInfected = myInfected + tgtInfected;
+
+        const updates = { "system.quantity": tgtQty + myQty };
+        if (sumInfected > 0) {
+            updates[`flags.${MODULE_ID}.infectedCount`] = sumInfected;
+        }
+
         try {
-            await target.update(
-                { "system.quantity": tgtQty + myQty },
-                { curseBypass: true }
-            );
+            await target.update(updates, { curseBypass: true });
             await item.delete({ curseBypass: true });
             Logger.info(
                 "Quartermaster",
-                `IdentificationService: merged scroll "${resolvedName}" (qty +${myQty}) into existing stack.`
+                `IdentificationService: merged "${resolvedName}" (qty +${myQty}, infected +${myInfected} → ${sumInfected}) into existing stack.`
             );
         } catch (err) {
             Logger.warn(
                 "Quartermaster",
-                `IdentificationService: scroll merge failed for "${resolvedName}":`,
+                `IdentificationService: stack merge failed for "${resolvedName}":`,
                 err.message
             );
         }

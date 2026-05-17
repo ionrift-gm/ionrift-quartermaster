@@ -377,9 +377,11 @@ export class ItemMaskingHelper {
      *
      * @param {Object} system - Current system object (read-only)
      * @param {Object} latent - The latentMagic flag block
+     * @param {string} [itemType=""]
+     * @param {Item|null} [itemDoc=null] - Live item; required to replace activities on actor documents
      * @returns {Object} update patch
      */
-    static buildPromotionPatch(system, latent, itemType = "") {
+    static buildPromotionPatch(system, latent, itemType = "", itemDoc = null) {
         const patch = {};
 
         if (latent.magicalBonus) {
@@ -396,7 +398,10 @@ export class ItemMaskingHelper {
             patch["system.properties"] = [...new Set([...currentArr, ...latent.properties])];
         }
         if (latent.activities && Object.keys(latent.activities).length > 0) {
-            patch["system.activities"] = latent.activities;
+            Object.assign(
+                patch,
+                ItemMaskingHelper.buildActivityPromotionPatch(itemDoc, latent.activities)
+            );
         }
         if (latent.damageBonus) {
             patch["system.damage.bonus"] = latent.damageBonus;
@@ -415,6 +420,125 @@ export class ItemMaskingHelper {
         }
         if (latent.originalImg) patch["img"] = latent.originalImg;
 
+        return patch;
+    }
+
+    /**
+     * Build a promotion patch by copying the relevant `system.*` fields from
+     * a TWIN doc (the identified-form compendium item produced by CurseForge
+     * alongside the lure). The twin is the source of truth for the identified
+     * state — name, rarity, magical bonus, attunement, properties, damage
+     * bonus, description, image, AND activities — so promotion becomes a
+     * straight whitelist copy instead of a flag-serialise/deserialise round
+     * trip.
+     *
+     * The latent flag (`latentMagic.originalPrice`, `originalImg`, etc.)
+     * still wins on the few fields the twin doesn't carry sensibly.
+     *
+     * @param {Item} liveItem    The actor-owned item being identified
+     * @param {Item} twinDoc     The identified-form compendium doc
+     * @param {object} [latent]  Optional `latentMagic` flag for tiebreakers
+     * @returns {object} update patch
+     */
+    static buildPromotionPatchFromTwin(liveItem, twinDoc, latent = {}) {
+        const patch = {};
+        if (!twinDoc) return patch;
+
+        const tSrc    = twinDoc.toObject?.() ?? {};
+        const tSystem = tSrc.system ?? {};
+        const itemType = liveItem?.type ?? "";
+
+        patch["name"] = tSrc.name;
+        if (tSrc.img) patch["img"] = tSrc.img;
+
+        if (tSystem.rarity)       patch["system.rarity"] = tSystem.rarity;
+        if (tSystem.magicalBonus) patch["system.magicalBonus"] = tSystem.magicalBonus;
+        if (itemType !== "consumable" && tSystem.attunement) {
+            patch["system.attunement"] = tSystem.attunement;
+        }
+
+        if (Array.isArray(tSystem.properties) && tSystem.properties.length) {
+            const current = liveItem?.system?.properties;
+            const currentArr = Array.isArray(current)
+                ? current
+                : current instanceof Set ? Array.from(current) : [];
+            patch["system.properties"] = [...new Set([...currentArr, ...tSystem.properties])];
+        }
+
+        if (tSystem.damage?.bonus) {
+            patch["system.damage.bonus"] = tSystem.damage.bonus;
+        }
+        if (tSystem.damage?.base) {
+            patch["system.damage.base"] = foundry.utils.deepClone(tSystem.damage.base);
+        }
+        if (tSystem.damage?.versatile) {
+            patch["system.damage.versatile"] = foundry.utils.deepClone(tSystem.damage.versatile);
+        }
+        if (tSystem.type) {
+            patch["system.type"] = foundry.utils.deepClone(tSystem.type);
+        }
+        if (tSystem.range) {
+            patch["system.range"] = foundry.utils.deepClone(tSystem.range);
+        }
+        if (tSystem.mastery) {
+            patch["system.mastery"] = tSystem.mastery;
+        }
+
+        const desc = latent?.originalDescription ?? tSystem.description?.value;
+        if (desc !== undefined) {
+            patch["system.description.value"] = desc;
+        }
+
+        // Activities: per-id patch using the twin's raw activity data.
+        if (tSystem.activities && Object.keys(tSystem.activities).length > 0) {
+            Object.assign(
+                patch,
+                ItemMaskingHelper.buildActivityPromotionPatch(liveItem, tSystem.activities)
+            );
+        }
+
+        // Price comes from the latent flag — the twin keeps SRD pricing which
+        // is fine, but the lure's originalPrice is the authored intent.
+        if (latent?.originalPrice) {
+            patch["system.price"] = {
+                value:        latent.originalPrice.value ?? 0,
+                denomination: latent.originalPrice.denomination ?? "gp"
+            };
+        }
+
+        return patch;
+    }
+
+    /**
+     * Per-activity update keys for dnd5e 5.x. Live documents use a MappingField
+     * collection; assigning `system.activities` as one object is ignored.
+     *
+     * @param {Item|object|null} itemOrSystem - Live Item, or plain system data
+     * @param {object} latentActivities
+     * @returns {object}
+     */
+    static buildActivityPromotionPatch(itemOrSystem, latentActivities) {
+        const patch = {};
+        if (!latentActivities || !Object.keys(latentActivities).length) return patch;
+
+        const newIds = new Set(Object.keys(latentActivities));
+        const acts = itemOrSystem?.system?.activities ?? itemOrSystem?.activities;
+        if (acts) {
+            const liveIds = typeof acts.keys === "function" ? [...acts.keys()] : Object.keys(acts);
+            for (const id of liveIds) {
+                // Only delete IDs that aren't being replaced. Deleting and
+                // recreating the same key in one flat update conflicts —
+                // dnd5e's MappingField processes the delete and the new
+                // activity never lands.
+                if (!newIds.has(id)) {
+                    patch[`system.activities.-=${id}`] = null;
+                }
+            }
+        }
+
+        for (const [id, act] of Object.entries(latentActivities)) {
+            patch[`system.activities.${id}`] = foundry.utils.deepClone(act);
+        }
         return patch;
     }
 
