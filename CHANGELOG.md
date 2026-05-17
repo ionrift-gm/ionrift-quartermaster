@@ -1,6 +1,14 @@
 # Changelog
 
+## [1.3.2-ea.3] - 2026-05-17
+
+### Fixed
+- **Containers compendium now ships populated.** The containers LDB was excluded from the release zip, leaving the pack empty on clean Forge installs and preventing any cache from being deployed to the canvas. All 18 containers now ship correctly.
+- **Party Shelf source picker no longer lists non-equipment compendiums.** On The Forge, compendium indexes are lazy-loaded - the type filter was skipped entirely on a cold boot, causing class, monster, and feature packs to appear in the list. The picker now force-loads each index before filtering.
+- **Clear advisory when Item Piles is not installed.** GMs opening a world without Item Piles installed now see a persistent notification explaining that canvas placement requires it, rather than a silent "No container matched" message.
+
 ## [1.3.2-ea.2] - 2026-05-17
+
 
 ### Added
 - **Identified-twin promotion for cursed items.** When you identify a cursed weapon or piece of armor, the item now pulls its true mechanical state - name, damage formulas, magical bonus, activities, and properties - directly from the compiled twin rather than reconstructing it from flags. Cursed weapons like Oathcleaver now retain their full attack and damage activities after identification.
