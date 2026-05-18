@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.2-ea.4] - 2026-05-18
+
+### Fixed
+- **Forge import no longer fails with "Could not find module manifest."** The release archive contained a stale zip from a previous build, causing The Forge to detect two nested modules and reject the inner one. The packaging pipeline now excludes leftover archives.
+
 ## [1.3.2-ea.3] - 2026-05-17
 
 ### Fixed
