@@ -123,9 +123,9 @@ jobs:
           make_latest: ${{ !(contains(github.ref_name, '-ea') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha')) }}
 
       - name: Notify Foundry VTT
+        continue-on-error: true
         if: >
           github.event.inputs.dry_run_discord != 'true' &&
-          success() &&
           !contains(github.ref_name, '-ea') &&
           !contains(github.ref_name, '-rc') &&
           !contains(github.ref_name, '-beta') &&
