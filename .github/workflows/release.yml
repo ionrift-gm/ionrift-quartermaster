@@ -1,0 +1,250 @@
+name: Release Creation
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry_run_discord:
+        description: 'Post Discord notification only (no release artifact)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Validate Release
+        if: github.event.inputs.dry_run_discord != 'true'
+        run: |
+          MODULE_VERSION=$(python3 -c "import json; d=json.load(open('module.json')); print(d['version'])")
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$MODULE_VERSION" != "$TAG_VERSION" ]; then
+            echo "ERROR: module.json version ($MODULE_VERSION) does not match tag ($TAG_VERSION)"
+            exit 1
+          fi
+          echo "OK: module.json version $MODULE_VERSION matches tag $TAG_VERSION"
+
+      - name: Validate Assets
+        if: github.event.inputs.dry_run_discord != 'true'
+        run: |
+          FIRST_PNG=$(find assets -name '*.png' -type f | head -1)
+          if [ -z "$FIRST_PNG" ]; then
+            echo "WARNING: No PNG files found in assets/ — skipping validation"
+          else
+            SIZE=$(wc -c < "$FIRST_PNG")
+            if [ "$SIZE" -lt 1000 ]; then
+              echo "ERROR: $FIRST_PNG is only ${SIZE} bytes — likely an LFS pointer, not an image"
+              exit 1
+            fi
+            echo "OK: Asset files are real images (first file: $FIRST_PNG, ${SIZE} bytes)"
+          fi
+
+      - name: Set up Node
+        if: github.event.inputs.dry_run_discord != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        if: github.event.inputs.dry_run_discord != 'true'
+        run: npm ci
+
+      - name: Compile compendium packs
+        if: github.event.inputs.dry_run_discord != 'true'
+        run: node tools/compile-packs.mjs
+
+      - name: Validate compiled packs
+        if: github.event.inputs.dry_run_discord != 'true'
+        run: node tools/validate-packs-local.mjs
+
+      - name: Validate shipping manifest
+        if: github.event.inputs.dry_run_discord != 'true'
+        run: node tools/validate-shipping.mjs
+
+      - name: Build shipping manifest
+        if: github.event.inputs.dry_run_discord != 'true'
+        run: node tools/filter-manifest.mjs
+
+      - name: Stage filtered manifest for release
+        if: github.event.inputs.dry_run_discord != 'true'
+        run: cp .build/module.json module.json
+
+      - name: Zip Module
+        if: github.event.inputs.dry_run_discord != 'true'
+        run: |
+          zip -r module.zip . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x ".gitignore" \
+            -x ".gitattributes" \
+            -x ".cursor/*" \
+            -x "tests/*" \
+            -x "node_modules/*" \
+            -x "packs/src/*" \
+            -x "packs/.validation-staging/*" \
+            -x "packs/SHIPPING.json" \
+            -x ".build/*" \
+            -x "*.mjs" \
+            -x "*.bak" \
+            -x "*.lock" \
+            -x "*.ps1" \
+            -x "package.json" \
+            -x "package-lock.json" \
+            -x "BACKLOG.md" \
+            -x "task.md" \
+            -x "tools/*" \
+            -x "docs/*" \
+            -x "vitest*" \
+            -x ".eslintrc*"
+
+      - name: Create Release
+        if: github.event.inputs.dry_run_discord != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            module.zip
+            module.json
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-ea') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+          generate_release_notes: true
+          make_latest: ${{ !(contains(github.ref_name, '-ea') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha')) }}
+
+      - name: Notify Foundry VTT
+        if: >
+          github.event.inputs.dry_run_discord != 'true' &&
+          success() &&
+          !contains(github.ref_name, '-ea') &&
+          !contains(github.ref_name, '-rc') &&
+          !contains(github.ref_name, '-beta') &&
+          !contains(github.ref_name, '-alpha')
+        uses: actions/github-script@v7
+        env:
+          FOUNDRY_TOKEN: ${{ secrets.FOUNDRY_PACKAGE_TOKEN }}
+        with:
+          script: |
+            const fs = require('fs');
+            const manifest = JSON.parse(fs.readFileSync('module.json', 'utf8'));
+
+            const payload = {
+              id: manifest.id,
+              release: {
+                version: manifest.version,
+                manifest: `https://github.com/${context.repo.owner}/${context.repo.repo}/releases/latest/download/module.json`,
+                notes: `https://github.com/${context.repo.owner}/${context.repo.repo}/releases/tag/v${manifest.version}`,
+                compatibility: manifest.compatibility
+              }
+            };
+
+            console.log("Sending payload:", JSON.stringify(payload, null, 2));
+
+            const response = await fetch("https://foundryvtt.com/_api/packages/release_version/", {
+              method: "POST",
+              headers: { 'Content-Type': 'application/json', 'Authorization': process.env.FOUNDRY_TOKEN },
+              body: JSON.stringify(payload)
+            });
+
+            const text = await response.text();
+            let data;
+            try { data = JSON.parse(text); } catch { data = text; }
+            console.log("Response:", typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+
+            if (!response.ok) {
+              core.setFailed(`Foundry API Error (${response.status}): ${typeof data === 'string' ? data : JSON.stringify(data)}`);
+            } else {
+              console.log("Foundry VTT notified successfully.");
+            }
+
+  notify-discord:
+    name: Notify Discord
+    runs-on: ubuntu-latest
+    needs: build
+    if: >
+      success() &&
+      !contains(github.ref_name, '-ea') &&
+      !contains(github.ref_name, '-rc') &&
+      !contains(github.ref_name, '-beta') &&
+      !contains(github.ref_name, '-alpha')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Post to Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+
+            // Extract version from first ## heading
+            const versionMatch = changelog.match(/^## \[([^\]]+)\]/m);
+            const version = versionMatch ? versionMatch[1] : 'unknown';
+
+            // Extract body between first and second ## headings
+            const lines = changelog.split('\n');
+            let body = [];
+            let found = false;
+            for (const line of lines) {
+              if (line.startsWith('## ')) {
+                if (found) break;
+                found = true;
+                continue;
+              }
+              if (found) {
+                if (line.startsWith('### ')) {
+                  body.push('', `**${line.slice(4)}**`);
+                } else {
+                  body.push(line);
+                }
+              }
+            }
+            let desc = body.join('\n').trim();
+            if (desc.length > 3900) {
+              desc = desc.slice(0, 3900) + '\n\n_...see full notes on GitHub_';
+            }
+
+            const repo = process.env.GITHUB_REPOSITORY;
+            const tag = process.env.GITHUB_REF_NAME;
+            const payload = {
+              embeds: [{
+                title: `📦 Ionrift Quartermaster — v${version}`,
+                description: desc,
+                color: 0x8B5CF6,
+                url: `https://github.com/${repo}/releases/tag/${tag}`,
+                thumbnail: { url: `https://raw.githubusercontent.com/${repo}/master/assets/module-icon.png` }
+              }]
+            };
+
+            const webhook = process.env.DISCORD_WEBHOOK;
+            if (!webhook) {
+              core.warning('DISCORD_WEBHOOK_URL secret is not set — skipping Discord notification');
+              return;
+            }
+
+            const resp = await fetch(webhook, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (!resp.ok) {
+              const text = await resp.text();
+              core.setFailed(`Discord webhook failed (${resp.status}): ${text}`);
+            } else {
+              console.log('Discord notification posted successfully.');
+            }

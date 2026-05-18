@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "test": "vitest run",
+    "build:packs": "node tools/compile-packs.mjs",
+    "validate:packs": "node tools/validate-packs-local.mjs"
+  },
+  "dependencies": {
+    "classic-level": "^3.0.0",
+    "handlebars": "^4.7.9"
+  },
+  "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "^1.1.0",
+    "vitest": "^3.0.0"
+  }
+}

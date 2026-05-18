@@ -1,0 +1,29 @@
+<div class="ionrift-list-item entity-row binding-row" data-id="{{id}}" data-name="{{name}}" data-type="{{type}}"
+    data-meta="{{meta}}">
+    <!-- 1. Info (Flex 1) -->
+    <div class="entity-info" style="flex: 1; min-width: 0; margin-right: 10px;">
+        <div class="entity-name" title="{{name}}">{{name}}</div>
+        <div class="entity-meta">{{id}}</div>
+    </div>
+
+    <!-- 2. Configuration (Flex 0 - Fixed Width) -->
+    <div class="sound-config-group" title="Min/Max Delay (Seconds)">
+        <div class="config-input-col">
+            <label>Min</label>
+            <input type="number" name="delayMin" value="{{delayMin}}" step="0.1" min="0" max="10" placeholder="0">
+        </div>
+        <span class="separator">-</span>
+        <div class="config-input-col">
+            <label>Max</label>
+            <input type="number" name="delayMax" value="{{delayMax}}" step="0.1" min="0" max="10" placeholder="0">
+        </div>
+    </div>
+
+    <!-- 3. Actions (Flex 0) -->
+    <div class="entity-actions">
+        <button type="button" class="action-test-current" data-id="{{id}}" title="Play Preview"><i
+                class="fas fa-play"></i></button>
+        <button type="button" class="action-remove-binding" data-index="{{@index}}" title="Remove"><i
+                class="fas fa-times"></i></button>
+    </div>
+</div>

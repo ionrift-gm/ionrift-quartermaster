@@ -1,0 +1,60 @@
+{
+  "_key": "!items!c9933fcbbb24e2c0",
+  "_id": "c9933fcbbb24e2c0",
+  "name": "Tarred Reed Bundle",
+  "type": "container",
+  "img": "icons/containers/misc/basket-simple-yellow.webp",
+  "folder": "c9cb7fc62085af7d",
+  "system": {
+    "description": {
+      "value": "<p>Tightly bound river reeds sealed with pine tar along every seam. It floats. Whoever made this knew they might need to cross water in a hurry.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 1,
+    "price": {
+      "value": 2,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "capacity": {
+      "type": "weight",
+      "value": 20,
+      "weightlessContents": false
+    },
+    "currency": {
+      "cp": 0,
+      "sp": 0,
+      "ep": 0,
+      "gp": 0,
+      "pp": 0
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "container-tarred-reed-bundle",
+      "containerMeta": {
+        "terrains": [
+          "swamp",
+          "coastal",
+          "forest"
+        ],
+        "cacheTypes": [
+          "stash",
+          "camp_supplies"
+        ],
+        "capacityLbs": 20
+      }
+    }
+  }
+}

@@ -1,0 +1,690 @@
+<form class="ionrift-cache-generator">
+    <div class="cache-split-layout {{#if advisory}}has-advisory{{/if}}">
+
+        {{!-- LEFT PANEL  --  Progression Advisory (only renders when data exists) --}}
+        {{#if advisory}}
+        <div class="cache-advisory {{#if advisoryCollapsed}}advisory-strip{{/if}}">
+
+            {{!-- Collapsed strip view --}}
+            {{#if advisoryCollapsed}}
+            <div class="advisory-strip-bar action-toggle-advisory" title="Expand Progression Advisory">
+                <i class="fas fa-bolt advisory-strip-bolt"></i>
+
+                {{!-- Character portraits needing attention --}}
+                {{#each advisory.characters}}
+                <div class="strip-avatar-slot" title="{{this.actorName}}">
+                    <img src="{{this.actorImg}}" class="strip-avatar" alt="{{this.actorName}}" />
+                    {{#if this.plannedItem}}
+                    <img src="{{this.plannedItem.img}}" class="strip-item-pip" alt="{{this.plannedItem.name}}" title="{{this.plannedItem.name}} (Lv{{this.plannedItem.level}})" />
+                    {{/if}}
+                </div>
+                {{/each}}
+
+                {{!-- Party shelf count --}}
+                {{#if advisory.hasPartyShelf}}
+                <div class="strip-count-badge strip-shelf-badge" title="Party Shelf items available">
+                    <i class="fas fa-box-open"></i>
+                    <span>{{advisory.partyShelf.length}}</span>
+                </div>
+                {{/if}}
+
+                {{!-- Cursed pool count --}}
+                {{#if advisory.hasCursedPool}}
+                <div class="strip-count-badge strip-cursed-badge" title="Cursed items on offer">
+                    <i class="fas fa-skull"></i>
+                    <span>{{advisory.cursedPool.length}}</span>
+                </div>
+                {{/if}}
+
+                {{#if advisory.hasScrolls}}
+                <div class="strip-count-badge strip-scroll-badge" title="Scroll Plan pins in tier">
+                    <i class="fas fa-scroll"></i>
+                    <span>{{advisory.scrolls.length}}</span>
+                </div>
+                {{/if}}
+            </div>
+            {{else}}
+
+            {{!-- Expanded advisory --}}
+            <div class="advisory-column-header action-toggle-advisory" title="Collapse Advisory">
+                <span class="advisory-column-title">
+                    <i class="fas fa-bolt"></i> Progression Advisory
+                </span>
+                <i class="fas fa-chevron-left advisory-collapse-icon"></i>
+            </div>
+
+            <div class="advisory-column-body">
+
+                {{!-- CHARACTER MILESTONE CARDS --}}
+                {{#if advisory.characters.length}}
+                <div class="advisory-sub-section advisory-signatures-section">
+                    <div class="advisory-sub-header">
+                        <span><i class="fas fa-star"></i> Signatures</span>
+                    </div>
+                    <div class="advisory-sub-body">
+                        {{#each advisory.characters}}
+                        <div class="advisory-character-card">
+                            <div class="advisory-card-header">
+                                <img src="{{this.actorImg}}" class="advisory-card-portrait" alt="{{this.actorName}}" />
+                                <div class="advisory-card-identity">
+                                    <span class="advisory-card-name">{{this.actorName}}</span>
+                                    {{#if this.reason}}<span class="advisory-card-reason">{{this.reason}}</span>{{/if}}
+                                </div>
+                            </div>
+                            {{#if this.plannedItem}}
+                            <div class="advisory-card-item" draggable="true" data-uuid="{{this.plannedItem.uuid}}" data-item-name="{{this.plannedItem.name}}">
+                                {{#if this.plannedItem.img}}<img src="{{this.plannedItem.img}}" class="advisory-card-item-img" />{{/if}}
+                                <span class="advisory-card-item-name">{{this.plannedItem.name}}</span>
+                                <span class="advisory-card-item-level">Lv{{this.plannedItem.level}}</span>
+                            </div>
+                            {{/if}}
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                {{/if}}
+
+                {{!-- SCROLL PLAN (milestone pins; same row pattern as Party Shelf, drag into cache) --}}
+                {{#if advisory.hasScrolls}}
+                <div class="advisory-sub-section advisory-scroll-section">
+                    <div class="advisory-sub-header">
+                        <span><i class="fas fa-scroll"></i> Scroll Plan</span>
+                        {{#if advisory.scrollCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="scroll" title="Reroll scroll suggestions (ignores ripe gate)"><i class="fas fa-dice"></i></button>{{/if}}
+                    </div>
+                    <div class="advisory-sub-body">
+                        {{#each advisory.scrolls}}
+                        <div class="shelf-item shelf-item--scroll shelf-item--planned {{#if this.isRipe}}shelf-item--ripe{{/if}}"
+                            draggable="{{#if this.canInject}}true{{else}}false{{/if}}"
+                            data-uuid="{{this.uuid}}"
+                            data-level="{{this.level}}"
+                            data-spell-name="{{this.spellName}}"
+                            data-spell-level="{{this.spellLevel}}"
+                            title="{{#if @root.hasResult}}Drag into cache{{else}}Generate a cache first, then drag here{{/if}}">
+                            {{#if this.isRipe}}<span class="advisory-ripe-pip" title="Gate level reached"><i class="fas fa-fire-flame-curved"></i></span>{{/if}}
+                            <img src="{{this.img}}" class="shelf-item-img" alt="" />
+                            <div class="shelf-item-text">
+                                <span class="shelf-item-name">{{this.spellName}}</span>
+                                <span class="shelf-item-sub">Circle {{this.spellLevel}}</span>
+                            </div>
+                            {{#if this.level}}<span class="shelf-item-level">Lv{{this.level}}</span>{{/if}}
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                {{/if}}
+
+                {{!-- PARTY SHELF (Enrich Hoard domain list) --}}
+                {{#if advisory.hasPartyShelf}}
+                <div class="advisory-sub-section advisory-party-section">
+                    <div class="advisory-sub-header">
+                        <span><i class="fas fa-box-open"></i> Party Shelf</span>
+                        {{#if advisory.partyShelfCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="partyShelf" title="Reroll party shelf suggestions (ignores ripe gate)"><i class="fas fa-dice"></i></button>{{/if}}
+                    </div>
+                    <div class="advisory-sub-body">
+                        {{#each advisory.partyShelf}}
+                        <div class="shelf-item {{#if this.isPlanned}}shelf-item--planned{{/if}} {{#if this.isRipe}}shelf-item--ripe{{/if}}" draggable="true" data-uuid="{{this.uuid}}" {{#if this.level}}data-level="{{this.level}}"{{/if}} title="{{#if this.isRipe}}Ripe: party at or above gate level{{else}}Drag into cache{{/if}}">
+                            {{#if this.isRipe}}<span class="advisory-ripe-pip" title="Gate level reached"><i class="fas fa-fire-flame-curved"></i></span>{{/if}}
+                            <img src="{{this.img}}" class="shelf-item-img" alt="" />
+                            <div class="shelf-item-text">
+                                <span class="shelf-item-name">{{this.name}}</span>
+                            </div>
+                            {{#if this.level}}<span class="shelf-item-level">Lv{{this.level}}</span>{{/if}}
+                        </div>
+                        {{/each}}
+
+                    </div>
+                </div>
+                {{/if}}
+
+                {{!-- CURSED POOL (Curse Cache domain list) --}}
+                {{#if advisory.hasCursedPool}}
+                <div class="advisory-sub-section advisory-cursed-section">
+                    <div class="advisory-sub-header">
+                        <span><i class="fas fa-skull"></i> Cursed Pool</span>
+                        {{#if advisory.cursedCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="cursedPool" title="Reroll cursed pool suggestions (random from full pool)"><i class="fas fa-dice"></i></button>{{/if}}
+                    </div>
+                    <div class="advisory-sub-body">
+                        {{#each advisory.cursedPool}}
+                        <div class="shelf-item shelf-item--cursed {{#if this.isPlanned}}shelf-item--planned{{/if}} {{#if this.isRipe}}shelf-item--ripe{{/if}}"
+                            draggable="true"
+                            data-uuid="{{this.uuid}}"
+                            {{#if this.level}}data-level="{{this.level}}"{{/if}}
+                            title="{{#if this.isRipe}}Ripe: party at or above gate level{{else}}{{#if this.decoyAppearance}}{{this.decoyAppearance}}{{else}}Drag into cache{{/if}}{{/if}}">
+                            {{#if this.isRipe}}<span class="advisory-ripe-pip" title="Gate level reached"><i class="fas fa-fire-flame-curved"></i></span>{{/if}}
+                            <img src="{{this.img}}" class="shelf-item-img" alt="" />
+                            <div class="shelf-item-text">
+                                <span class="shelf-item-name">{{this.name}}</span>
+                                <span class="shelf-item-sub">{{this.curseType}}</span>
+                            </div>
+                            {{#if this.level}}<span class="shelf-item-level">Lv{{this.level}}</span>{{/if}}
+                        </div>
+                        {{/each}}
+
+                    </div>
+                </div>
+                {{/if}}
+
+                {{!-- Campaign pacing slot (reserved) --}}
+                {{!-- <div class="advisory-pacing">...</div> --}}
+            </div>
+
+            <div class="advisory-column-footer">
+                <i class="fas fa-masks-theater"></i>
+                Drag items into the cache when the moment is right.
+            </div>
+
+            {{/if}}
+        </div>
+        {{/if}}
+
+
+        {{!-- CENTER PANEL  --  Config + Item List --}}
+        <div class="cache-center">
+
+            {{!-- Controls --}}
+            <div class="cache-controls">
+
+                {{!-- Secondary context strip: Tier + Terrain (last-used, low priority) --}}
+                <div class="context-strip">
+                    <div class="context-pill">
+                        <i class="fas fa-layer-group"></i>
+                        <select name="tier" class="context-select">
+                            <option value="1" {{#if tierIs1}}selected{{/if}}>T1  - Lv 1-4</option>
+                            <option value="2" {{#if tierIs2}}selected{{/if}}>T2  - Lv 5-10</option>
+                            <option value="3" {{#if tierIs3}}selected{{/if}}>T3  - Lv 11-16</option>
+                            <option value="4" {{#if tierIs4}}selected{{/if}}>T4  - Lv 17-20</option>
+                        </select>
+                    </div>
+                    <div class="context-strip-divider"></div>
+                    <div class="context-pill">
+                        <i class="fas fa-mountain"></i>
+                        <select name="theme" class="context-select">
+                            {{#each themes}}
+                            <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                </div>
+
+                {{!-- Hero: Owner (the primary creative choice) --}}
+                <div class="owner-hero-group">
+                    <label class="owner-hero-label">
+                        <i class="fas fa-skull-crossbones"></i> Cache Origin
+                    </label>
+                    <select name="ownerTheme" class="owner-hero-select">
+                        {{#each ownerThemes}}
+                        <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+                        {{/each}}
+                    </select>
+                    <div class="cache-type-guidance">
+                        {{#each ownerThemes}}
+                        <span class="guidance-text guidance-{{this.id}}" style="display: {{#if this.selected}}inline{{else}}none{{/if}};">{{this.desc}}</span>
+                        {{/each}}
+                    </div>
+                </div>
+
+            </div>
+
+            {{!-- Results --}}
+            {{#if hasResult}}
+            <div class="cache-results visible drop-target">
+
+
+                <div class="results-header">
+                    <h3><i class="fas fa-treasure-chest"></i> {{meta.cacheLabel}}</h3>
+                    <span class="results-meta">{{meta.tierLabel}} | {{themeLabel}} | {{itemCount}} items</span>
+                </div>
+
+                {{#if gold}}
+                <div class="cache-gold-bar">
+                    {{#if coinage}}
+                        {{#if coinage.pp}}<span class="coin-chip coin-pp"><i class="fas fa-circle"></i> {{coinage.pp}} pp</span>{{/if}}
+                        {{#if coinage.gp}}<span class="coin-chip coin-gp"><i class="fas fa-circle"></i> {{coinage.gp}} gp</span>{{/if}}
+                        {{#if coinage.ep}}<span class="coin-chip coin-ep"><i class="fas fa-circle"></i> {{coinage.ep}} ep</span>{{/if}}
+                        {{#if coinage.sp}}<span class="coin-chip coin-sp"><i class="fas fa-circle"></i> {{coinage.sp}} sp</span>{{/if}}
+                        {{#if coinage.cp}}<span class="coin-chip coin-cp"><i class="fas fa-circle"></i> {{coinage.cp}} cp</span>{{/if}}
+                    {{else}}
+                        <span class="coin-chip coin-gp"><i class="fas fa-circle"></i> {{gold}} gp</span>
+                    {{/if}}
+                </div>
+                {{/if}}
+
+                {{!-- Special Items (Signatures / Party Shelf / Cursed injections) --}}
+                {{#if hasSpecial}}
+                <div class="cache-section cache-special-section">
+                    <div class="section-label special-label">
+                        <i class="fas fa-sparkles"></i> Special Items
+                    </div>
+
+                    {{!-- Signatures sub-group --}}
+                    {{#if specialSigs.length}}
+                    <div class="special-sub-group">
+                        <div class="special-sub-label"><i class="fas fa-star"></i> Signatures</div>
+                        {{#each specialSigs}}
+                        <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
+                            data-source-compendium="{{this.sourceCompendium}}"
+                            data-compendium-id="{{this._compendiumId}}"
+                            title="{{this.name}} | {{this.rarity}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                            <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
+                            <div class="cache-item-info">
+                                <span class="cache-item-name inspectable">{{this.name}}</span>
+                                <span class="cache-item-meta">{{#if this.price}}{{this.price}} gp{{/if}}{{#if this.rarity}} &bull; {{this.rarity}}{{/if}}</span>
+                            </div>
+                            <div class="cache-item-badges">
+                                {{#if this.cursed}}<span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>{{/if}}
+                                {{#if this._isMagical}}<span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>{{/if}}
+                            </div>
+                            {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </div>
+                        {{/each}}
+                    </div>
+                    {{/if}}
+
+                    {{!-- Party Shelf sub-group --}}
+                    {{#if specialShelf.length}}
+                    <div class="special-sub-group">
+                        <div class="special-sub-label"><i class="fas fa-box-open"></i> Party Shelf</div>
+                        {{#each specialShelf}}
+                        <div class="cache-item-row special-shelf-row"
+                            data-source-compendium="{{this.sourceCompendium}}"
+                            data-compendium-id="{{this._compendiumId}}"
+                            title="{{this.name}} | {{this.rarity}}">
+                            <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
+                            <div class="cache-item-info">
+                                <span class="cache-item-name inspectable">{{this.name}}</span>
+                                <span class="cache-item-meta">{{#if this.price}}{{this.price}} gp{{/if}}{{#if this.rarity}} &bull; {{this.rarity}}{{/if}}</span>
+                            </div>
+                            <div class="cache-item-badges">
+                                {{#if this._isMagical}}<span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>{{/if}}
+                            </div>
+                            {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </div>
+                        {{/each}}
+                    </div>
+                    {{/if}}
+
+                    {{!-- Cursed sub-group --}}
+                    {{#if specialCursed.length}}
+                    <div class="special-sub-group">
+                        <div class="special-sub-label special-sub-label--cursed"><i class="fas fa-skull"></i> Cursed</div>
+                        {{#each specialCursed}}
+                        <div class="cache-item-row cursed-item"
+                            data-source-compendium="{{this.sourceCompendium}}"
+                            data-compendium-id="{{this._compendiumId}}"
+                            title="{{this.name}}{{#if this.cursedAs}} | Cursed: {{this.cursedAs}}{{/if}}">
+                            <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
+                            <div class="cache-item-info">
+                                <span class="cache-item-name inspectable">{{this.name}}{{#if this.stacked}} <span class="qty-badge">x{{this.quantity}}</span>{{/if}}</span>
+                                <span class="cache-item-meta">{{#if this.rarity}}{{this.rarity}}{{/if}}</span>
+                            </div>
+                            {{!-- Skull = standard cursed. Droplet = infected potion stack. GM-only in both cases. --}}
+                            {{#if this.isInfectedStack}}
+                            <span class="cursed-pip cursed-pip--infected" title="Infected stack: {{this.cursedAs}}">
+                                <i class="fas fa-tint"></i>
+                            </span>
+                            {{else}}
+                            <span class="cursed-pip" title="Cursed{{#if this.cursedAs}}: {{this.cursedAs}}{{/if}}">
+                                <i class="fas fa-skull"></i>
+                            </span>
+                            {{/if}}
+                            {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </div>
+                        {{/each}}
+                    </div>
+                    {{/if}}
+
+                </div>
+                {{/if}}
+
+                {{!-- Spell Scrolls --}}
+                {{#if scrolls.length}}
+                <div class="cache-section">
+                    <div class="section-label scroll-label">Spell Scrolls</div>
+                    {{#each scrolls}}
+                    <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
+                        data-source-compendium="{{this.sourceCompendium}}"
+                        data-compendium-id="{{this._compendiumId}}"
+                        title="{{this.name}} | Level {{this.spellLevel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
+                        <div class="cache-item-info">
+                            <span class="cache-item-name inspectable">{{this.name}}</span>
+                            <span class="cache-item-meta">Level {{this.spellLevel}}</span>
+                        </div>
+                        <div class="cache-item-badges">
+                            {{#if this.cursed}}
+                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            {{/if}}
+                            {{#if this._isMagical}}
+                            <span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>
+                            {{/if}}
+                        </div>
+                        {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="scroll" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                            <i class="fas fa-dice"></i>
+                        </button>
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/if}}
+
+                {{!-- Weapons & Armour --}}
+                {{#if weapons.length}}
+                <div class="cache-section">
+                    <div class="section-label weapon-label">Weapons & Armour</div>
+                    {{#each weapons}}
+                    <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
+                        data-source-compendium="{{this.sourceCompendium}}"
+                        data-compendium-id="{{this._compendiumId}}"
+                        title="{{this.name}} | {{this.price}} gp | {{this.rarity}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
+                        <div class="cache-item-info">
+                            <span class="cache-item-name inspectable">{{this.name}}</span>
+                            <span class="cache-item-meta">{{this.price}} gp</span>
+                        </div>
+                        <div class="cache-item-badges">
+                            {{#if this.cursed}}
+                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            {{/if}}
+                            {{#if this._isMagical}}
+                            <span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>
+                            {{/if}}
+                        </div>
+                        {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="mastercraft" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                            <i class="fas fa-dice"></i>
+                        </button>
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/if}}
+
+                {{!-- Gemstones --}}
+                {{#if gemstones.length}}
+                <div class="cache-section">
+                    <div class="section-label gemstone-label">Gemstones</div>
+                    {{#each gemstones}}
+                    <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
+                        data-source-compendium="{{this.sourceCompendium}}"
+                        data-compendium-id="{{this._compendiumId}}"
+                        title="{{this.name}} | {{this.price}} gp{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
+                        <div class="cache-item-info">
+                            <span class="cache-item-name inspectable">{{this.name}}</span>
+                            <span class="cache-item-meta">{{this.price}} gp</span>
+                        </div>
+                        <div class="cache-item-badges">
+                            {{#if this.cursed}}
+                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            {{/if}}
+                        </div>
+                        {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="gemstone" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                            <i class="fas fa-dice"></i>
+                        </button>
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/if}}
+
+                {{!-- Treasure (Art Objects, Trade Goods, Coin Finds) --}}
+                {{#if treasures.length}}
+                <div class="cache-section">
+                    <div class="section-label treasure-label">Treasure</div>
+                    {{#each treasures}}
+                    <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
+                        data-source-compendium="{{this.sourceCompendium}}"
+                        data-compendium-id="{{this._compendiumId}}"
+                        title="{{this.name}} | {{this.price}} gp{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
+                        <div class="cache-item-info">
+                            <span class="cache-item-name inspectable">{{this.name}}</span>
+                            <span class="cache-item-meta">{{this.price}} gp</span>
+                        </div>
+                        <div class="cache-item-badges">
+                            {{#if this.cursed}}
+                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            {{/if}}
+                        </div>
+                        {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="treasure" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                            <i class="fas fa-dice"></i>
+                        </button>
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/if}}
+
+                {{!-- Consumables --}}
+                {{#if consumables.length}}
+                <div class="cache-section">
+                    <div class="section-label consumable-label">Consumables</div>
+                    {{#each consumables}}
+                    <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
+                        data-source-compendium="{{this.sourceCompendium}}"
+                        data-compendium-id="{{this._compendiumId}}"
+                        title="{{this.name}} | {{this.price}} gp{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
+                        <div class="cache-item-info">
+                            <span class="cache-item-name inspectable">{{this.name}}</span>
+                            <span class="cache-item-meta">{{this.price}} gp</span>
+                        </div>
+                        <div class="cache-item-badges">
+                            {{#if this.cursed}}
+                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            {{/if}}
+                            {{#if this._isMagical}}
+                            <span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>
+                            {{/if}}
+                        </div>
+                        {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="consumable" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                            <i class="fas fa-dice"></i>
+                        </button>
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/if}}
+
+                {{!-- Trade Goods / Mundane --}}
+                {{#if mundane.length}}
+                <div class="cache-section">
+                    <div class="section-label mundane-label">Trade Goods</div>
+                    {{#each mundane}}
+                    <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
+                        data-source-compendium="{{this.sourceCompendium}}"
+                        data-compendium-id="{{this._compendiumId}}"
+                        title="{{this.name}} | {{this.price}} gp{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
+                        <div class="cache-item-info">
+                            <span class="cache-item-name inspectable">{{this.name}}</span>
+                            <span class="cache-item-meta">{{this.price}} gp</span>
+                        </div>
+                        <div class="cache-item-badges">
+                            {{#if this.cursed}}
+                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            {{/if}}
+                        </div>
+                        {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="mundane" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                            <i class="fas fa-dice"></i>
+                        </button>
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/if}}
+
+                {{!-- Trinkets --}}
+                {{#if trinkets.length}}
+                <div class="cache-section">
+                    <div class="section-label mundane-label">Trinkets</div>
+                    {{#each trinkets}}
+                    <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
+                        data-source-compendium="{{this.sourceCompendium}}"
+                        data-compendium-id="{{this._compendiumId}}"
+                        title="{{this.name}} | {{this.price}} gp{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
+                        <div class="cache-item-info">
+                            <span class="cache-item-name inspectable">{{this.name}}</span>
+                            <span class="cache-item-meta">{{this.price}} gp</span>
+                        </div>
+                        <div class="cache-item-badges">
+                            {{#if this.cursed}}
+                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            {{/if}}
+                        </div>
+                        {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="trinket" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                            <i class="fas fa-dice"></i>
+                        </button>
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/if}}
+
+            </div>
+            {{else}}
+                {{#unless generating}}
+                <div class="cache-empty-state">
+                    <i class="fas fa-treasure-chest"></i>
+                    <p>Configure your cache above and hit Generate.</p>
+                    <p class="cache-hint">You can drag items from the left panel, or reroll individual slots after generating.</p>
+                </div>
+                {{/unless}}
+            {{/if}}
+
+            {{!-- Sticky footer --}}
+            {{#if hasResult}}
+            <div class="cache-sticky-footer">
+
+                {{!-- Left zone: slider + est total stacked --}}
+                <div class="cache-value-range">
+                    <span class="value-range-label-text"><i class="fas fa-coins"></i> Budget Range</span>
+                    <div class="value-range-track" id="cache-range-track"
+                        data-slider-min="{{budgetSliderMin}}"
+                        data-slider-max="{{budgetSliderMax}}">
+                        <div class="range-tooltip"></div>
+                        <div class="budget-pill-handle"></div>
+                        {{!-- hidden inputs keep budgetMin/Max in FormData --}}
+                        <input type="hidden" name="budgetMin" value="{{budgetMin}}" />
+                        <input type="hidden" name="budgetMax" value="{{budgetMax}}" />
+                    </div>
+                    <div class="cache-total">
+                        <i class="fas fa-scale-balanced"></i>
+                        Est. ~ <strong>{{totalValue}} gp</strong>
+                    </div>
+                </div>
+
+                {{!-- Right zone: dominant reroll button --}}
+                <button type="button" class="action-generate cache-btn-reroll-footer" {{#if generating}}disabled{{/if}}>
+                    {{#if generating}}
+                        <i class="fas fa-spinner fa-spin"></i> Generating...
+                    {{else}}
+                        <i class="fas fa-dice"></i> Reroll Cache
+                    {{/if}}
+                </button>
+            </div>
+            {{else}}
+            <div class="cache-sticky-footer">
+                <button type="button" class="action-generate cache-btn-primary" {{#if generating}}disabled{{/if}}>
+                    {{#if generating}}
+                        <i class="fas fa-spinner fa-spin"></i> Generating...
+                    {{else}}
+                        <i class="fas fa-treasure-chest"></i> Generate Cache
+                    {{/if}}
+                </button>
+            </div>
+            {{/if}}
+
+        </div>{{!-- /.cache-center --}}
+
+
+        {{!-- RIGHT PANEL -- Container / Delivery --}}
+        <div class="cache-right drop-target" id="cache-right-drop-zone">
+            {{#if hasResult}}
+
+                {{#if meta.flavor}}
+                <div class="cache-flavor-container" style="background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 6px; border: 1px solid var(--color-border-dark); margin-bottom: 12px;">
+                    <p class="cache-flavor" style="margin: 0; font-family: var(--ionrift-font, inherit); font-style: italic; color: var(--color-text-light-5); text-align: center; font-size: 0.95em;">{{meta.flavor}}</p>
+                </div>
+                {{/if}}
+
+                {{#if container}}
+                {{!-- Container card, draggable when Item Piles is active --}}
+                <div class="container-card" draggable="{{itemPilesActive}}" title="{{#if itemPilesActive}}Drag to canvas to place{{else}}Container preview{{/if}}">
+
+                    {{!-- Reroll container button --}}
+                    <button type="button" class="action-reroll-container btn-container-reroll" title="Reroll container">
+                        <i class="fas fa-dice"></i>
+                    </button>
+
+                    <img class="container-art" src="{{container.img}}" alt="{{container.name}}" />
+                    <div class="container-name">{{container.name}}</div>
+                    <div class="container-stats">{{statsLabel}}</div>
+
+                    <div class="capacity-bar">
+                        <div class="capacity-fill {{overweightClass}}" style="width: {{fillPct}}%"></div>
+                    </div>
+                    <div class="capacity-label {{overweightClass}}">{{capacityLabel}}{{#if container.isOverweight}}  - Over capacity{{/if}}</div>
+
+                </div>
+
+                {{!-- Primary action --}}
+                {{#if itemPilesActive}}
+                <p class="drag-hint"><i class="fas fa-hand-grab"></i> Drag container card to canvas to place</p>
+                {{else}}
+                <button type="button" class="action-add-items btn-add-items" id="cache-add-items-btn">
+                    <i class="fas fa-box-open"></i> Add to Items
+                </button>
+                <p class="drag-hint"><i class="fas fa-circle-info"></i> Install Item Piles for drag-to-canvas placement</p>
+                {{/if}}
+
+                {{else}}
+                {{!-- No container matched yet --}}
+                <div class="container-placeholder">
+                    <i class="fas fa-box"></i>
+                    <p>No container matched.<br>Try rerolling the cache.</p>
+                </div>
+                {{/if}}
+
+            {{else}}
+            {{!-- No result yet --}}
+            <div class="container-placeholder">
+                <i class="fas fa-treasure-chest"></i>
+                <p>Generate a cache<br>to see the container.</p>
+            </div>
+            {{/if}}
+        </div>{{!-- /.cache-right --}}
+
+    </div>{{!-- /.cache-split-layout --}}
+</form>
+

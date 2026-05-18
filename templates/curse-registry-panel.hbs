@@ -1,0 +1,190 @@
+<div class="curse-registry-panel">
+
+    <header class="curse-registry-header">
+        <h2 class="curse-registry-title"><i class="fas fa-eye"></i> Tracked Curses</h2>
+        <p class="curse-registry-summary">
+            <strong>{{liveCount}}</strong> active,
+            <strong>{{cleansedTrackedCount}}</strong> cleansed
+        </p>
+        <div class="curse-registry-toolbar">
+            <button type="button" class="curse-scan-world curse-toolbar-btn">
+                <i class="fas fa-search"></i> Scan World
+            </button>
+        </div>
+    </header>
+
+    <div class="curse-registry-body">
+
+    {{#if hasTracked}}
+        {{!-- LIVE ITEMS: flat grid sorted by heat/exposure --}}
+        {{#if liveRows.length}}
+            <div class="curse-registry-card-grid curse-registry-card-grid--2col">
+                {{#each liveRows}}
+                <article class="curse-track-card curse-track-card--heat-{{heat}}">
+                    <div class="curse-track-card-img-wrap">
+                        <img class="curse-track-card-img" src="{{itemImg}}" alt="" />
+                        {{#if activated}}
+                        <span class="curse-track-card-status-dot curse-status-cursed"><i class="fas fa-skull"></i></span>
+                        {{/if}}
+                    </div>
+                    <div class="curse-track-card-body">
+                        <div class="curse-track-card-titlerow">
+                            <strong class="curse-track-card-name">{{itemName}}</strong>
+                            <span class="curse-badge curse-badge-tier" style="--curse-tier-color: {{tierColor}};">T{{tier}} {{tierLabel}}</span>
+                            <span class="curse-badge curse-badge-type">{{curseType}}</span>
+                        </div>
+                        <div class="curse-track-card-owner"><i class="fas fa-user"></i> {{actorName}}
+                            {{#if showUnattuned}}<span class="curse-badge curse-badge-unattuned" title="Requires attunement. Exposure will not accumulate until attuned."><i class="fas fa-unlink"></i> Not Attuned</span>{{/if}}
+                        </div>
+                        <div class="curse-track-card-subtitle">{{curseDisplayName}}</div>
+                        <div class="curse-track-card-meta">
+                            <span class="curse-meta-chip">Trigger: <strong>{{triggerLabel}}</strong></span>
+                            <span class="curse-meta-chip curse-meta-chip--counter">
+                                {{counterLabel}}: <strong>{{currentCount}}</strong> / {{threshold}}
+                                {{#if canAdjustCounter}}
+                                <span class="curse-adjust-btns">
+                                    <button type="button" class="curse-adjust-btn curse-adjust-counter" data-item-uuid="{{itemUuid}}" data-delta="-10" title="{{counterLabel}} -10">&laquo;</button>
+                                    <button type="button" class="curse-adjust-btn curse-adjust-counter" data-item-uuid="{{itemUuid}}" data-delta="-1" title="{{counterLabel}} -1">&lsaquo;</button>
+                                    <button type="button" class="curse-adjust-btn curse-adjust-counter" data-item-uuid="{{itemUuid}}" data-delta="1" title="{{counterLabel}} +1">&rsaquo;</button>
+                                    <button type="button" class="curse-adjust-btn curse-adjust-counter" data-item-uuid="{{itemUuid}}" data-delta="10" title="{{counterLabel}} +10">&raquo;</button>
+                                </span>
+                                {{else}}
+                                <span class="curse-adjust-btns curse-adjust-btns--disabled" title="{{triggerLabel}} triggers are event-driven and cannot be manually adjusted">
+                                    <i class="fas fa-lock" style="opacity: 0.35; font-size: 0.8em; margin-left: 4px;"></i>
+                                </span>
+                                {{/if}}
+                            </span>
+                            <span class="curse-meta-chip">{{phaseLabel}}</span>
+                        </div>
+                        <div class="curse-progress-track">
+                            <div class="curse-progress-fill" style="width: {{progressPct}}%;"></div>
+                            {{#each phaseMarkers}}
+                            <span class="curse-progress-marker" style="left: {{pct}}%;" title="{{label}}"></span>
+                            {{/each}}
+                        </div>
+                        {{#if currentPhaseEffect}}
+                        <p class="curse-track-card-hint"><strong>Current:</strong> {{currentPhaseEffect}}</p>
+                        {{/if}}
+                        {{#if nextPhaseEffect}}
+                        <p class="curse-track-card-hint curse-track-card-hint--next"><strong>Next (at {{nextPhaseAt}}):</strong> {{nextPhaseEffect}}</p>
+                        {{/if}}
+                        {{#if activatedAtLabel}}
+                        <div class="curse-track-card-activated">Activated: {{activatedAtLabel}}</div>
+                        {{/if}}
+                        {{#if hasCustomRequirement}}
+                        <div class="curse-track-card-custom"><i class="fas fa-key"></i> {{customRequirement}}</div>
+                        {{/if}}
+                    </div>
+                    <div class="curse-track-card-actions">
+                        {{#if activated}}
+                        <button type="button" class="curse-action-btn curse-btn-break-bond" data-item-uuid="{{itemUuid}}" title="Attempt to break the bond">
+                            <i class="fas fa-unlock"></i><span>Break Bond</span>
+                        </button>
+                        <button type="button" class="curse-action-btn curse-btn-cleansed" data-item-uuid="{{itemUuid}}" title="Mark as cleansed">
+                            <i class="fas fa-check"></i><span>Cleansed</span>
+                        </button>
+                        {{else}}
+                        {{#unless atMaxPhase}}
+                        <button type="button" class="curse-action-btn curse-btn-activate" data-item-uuid="{{itemUuid}}" title="Preview activation effects">
+                            <i class="fas fa-bolt"></i><span>Activate</span>
+                        </button>
+                        {{/unless}}
+                        <button type="button" class="curse-action-btn curse-btn-whisper" data-item-uuid="{{itemUuid}}" title="Preview and send a whisper">
+                            <i class="fas fa-comment-dots"></i><span>Whisper</span>
+                        </button>
+                        {{/if}}
+                    </div>
+                </article>
+                {{/each}}
+            </div>
+        {{else}}
+            <p class="curse-registry-empty-line">No active tracked items. Use Scan World to pick up cursed gear.</p>
+        {{/if}}
+
+        {{!-- CLEANSED: collapsible --}}
+        {{#if cleansedCount}}
+            <div class="curse-registry-cleansed-toggle">
+                <button type="button" class="curse-toggle-cleansed curse-toolbar-btn">
+                    <i class="fas fa-{{#if showCleansed}}chevron-down{{else}}chevron-right{{/if}}"></i>
+                    Cleansed ({{cleansedCount}})
+                </button>
+                {{#if showCleansed}}
+                <button type="button" class="curse-clear-cleansed curse-toolbar-btn curse-toolbar-btn--subtle">
+                    <i class="fas fa-eraser"></i> Clear All
+                </button>
+                {{/if}}
+            </div>
+            {{#if showCleansed}}
+            <div class="curse-registry-card-grid curse-registry-card-grid--2col curse-registry-card-grid--compact">
+                {{#each cleansedRows}}
+                <article class="curse-track-card curse-track-card--cleansed">
+                    <div class="curse-track-card-img-wrap">
+                        <img class="curse-track-card-img" src="{{itemImg}}" alt="" />
+                        <span class="curse-track-card-status-dot curse-status-clean"><i class="fas fa-check"></i></span>
+                    </div>
+                    <div class="curse-track-card-body">
+                        <div class="curse-track-card-titlerow">
+                            <strong class="curse-track-card-name">{{itemName}}</strong>
+                        </div>
+                        <div class="curse-track-card-activated">{{actorName}} &middot; Cleansed</div>
+                    </div>
+                </article>
+                {{/each}}
+            </div>
+            {{/if}}
+        {{/if}}
+    {{else}}
+        <p class="curse-registry-empty">No curse engine tracking yet. Use Scan World after placing cursed items on actors.</p>
+    {{/if}}
+
+    {{#if count}}
+    <hr class="curse-registry-divider">
+
+    <header class="curse-registry-legacy-header">
+        <h2 class="curse-registry-title"><i class="fas fa-skull"></i> Legacy Batches</h2>
+        <p class="curse-registry-summary">Mint batch ledger: <strong>{{count}}</strong> {{ledgerEntryWord}}</p>
+    </header>
+
+    <div class="curse-registry-legacy-list">
+        {{#each entries}}
+        <article class="curse-legacy-card">
+            <div class="curse-legacy-head">
+                <strong>{{decoyName}}</strong>
+                <span class="curse-badge curse-badge-legacy">{{cursed}} of {{total}} cursed</span>
+            </div>
+            <p class="curse-legacy-truth">True nature: <strong>{{trueItem}}</strong></p>
+            <div class="curse-legacy-holders">
+                <h4>Currently held by</h4>
+                {{#if holders.length}}
+                    <ul>
+                        {{#each holders}}
+                            <li><strong>{{name}}</strong> ({{quantity}})</li>
+                        {{/each}}
+                    </ul>
+                {{else}}
+                    <span class="curse-legacy-none">Not found on any actor.</span>
+                {{/if}}
+            </div>
+            <div class="curse-legacy-actions">
+                <button type="button" class="resolve-curse curse-toolbar-btn" data-batch="{{batchId}}">
+                    <i class="fas fa-check"></i> Mark Used
+                </button>
+            </div>
+        </article>
+        {{/each}}
+    </div>
+
+    <footer class="curse-registry-footer">
+        <div class="curse-registry-footer-actions">
+            <button type="button" class="sweep-orphans curse-toolbar-btn" title="Remove legacy batch entries whose items no longer exist in the world">
+                <i class="fas fa-broom"></i> Sweep Orphans
+            </button>
+            <button type="button" class="purge-all curse-toolbar-btn curse-toolbar-btn--danger" title="Delete all legacy batch records. Tracked curses are not affected.">
+                <i class="fas fa-trash"></i> Reset Batches
+            </button>
+        </div>
+    </footer>
+    {{/if}}
+
+    </div>
+</div>

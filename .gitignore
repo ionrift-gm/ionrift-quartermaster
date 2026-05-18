@@ -1,0 +1,98 @@
+# === Ionrift Quartermaster ===
+
+# Compiled pack build artifacts (compile step output, not committed)
+packs/proving-grounds-compiled/
+packs/proving-grounds-guide-compiled/
+packs/quartermaster-containers/
+packs/*-backup*/
+
+# Dev packs (status: dev in SHIPPING.json, local only)
+packs/proving-grounds/
+packs/proving-grounds-guide/
+
+# Retired/legacy pack folders (status: retired in SHIPPING.json)
+packs/quartermaster-cursed/
+packs/quartermaster-core/
+packs/quartermaster-gemstones/
+packs/quartermaster-scrolls/
+packs/quartermaster-treasure/
+packs/workshop-containers-compiled/
+packs/workshop-containers-new/
+packs/workshop-containers-new2/
+packs/scrolls/
+
+# Pack source data (content IP — only containers src ships)
+packs/src/proving-grounds/
+packs/src/proving-grounds-guide/
+packs/src/quartermaster-core/
+packs/src/quartermaster-gemstones/
+packs/src/quartermaster-scrolls/
+packs/src/quartermaster-treasure/
+
+# Triage output (local item dumps, may contain homebrew references)
+data/triage-output/
+
+# Dev build scripts (internal compendium authoring tools)
+scripts/triage-riftitems.mjs
+scripts/build-scroll-compendium.mjs
+scripts/fetch-*.mjs
+scripts/pack-*.mjs
+compile-proving-grounds.mjs
+compile-containers.mjs
+swap-containers.ps1
+
+# Build output (filtered manifest for release)
+.build/
+
+# Dev composition profiles (local only)
+dev-profiles.json
+packs/.staging/
+
+# Test suites — montecarlo local deps excluded, all else tracked
+tests/montecarlo/node_modules/
+!scripts/tests/ForgeTestRunner.js
+
+# Node / dev tooling
+node_modules/
+package-lock.json
+
+# LevelDB runtime files (created by Foundry at boot, never ship)
+packs/*/LOCK
+packs/*/CURRENT
+packs/*/MANIFEST-*
+packs/*/*.log
+packs/*/LOG
+packs/*/LOG.old
+packs/*/lost/
+# Nested pack subdirectory structure (e.g. packs/workshop-containers-new/workshop-containers/)
+packs/*/*/LOCK
+packs/*/*/CURRENT
+packs/*/*/MANIFEST-*
+packs/*/*/*.log
+packs/*/*/LOG
+packs/*/*/LOG.old
+packs/*/*/lost/
+
+# Dev artifacts
+*.bak
+audit_*.json
+audit_*.txt
+
+# Agent handoff specs (ephemeral — see DEV_PROTOCOLS.md §30)
+.cursor/
+CURSOR_TASK_*
+CURSOR_SPEC_*
+CURSOR_PLAN_*
+
+BACKLOG.md
+ITEM_DESIGN_GUIDE.md
+
+# Internal engineering docs — never ship
+docs/
+
+# Release archives (local backup zips — never commit)
+*.zip
+
+# Agent lock files
+ionrift-workshop.lock
+ionrift-quartermaster.lock

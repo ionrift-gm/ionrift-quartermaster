@@ -1,0 +1,64 @@
+{
+    "id": "ionrift-quartermaster",
+    "title": "Ionrift Quartermaster",
+    "description": "The GM's loot engine for Foundry VTT. Terrain-aware cache generation, scroll management, and campaign item planning.",
+    "version": "1.3.2",
+    "compatibility": {
+        "minimum": "12",
+        "verified": "14"
+    },
+    "url": "https://github.com/ionrift-gm/ionrift-quartermaster",
+    "manifest": "https://github.com/ionrift-gm/ionrift-quartermaster/releases/latest/download/module.json",
+    "download": "https://github.com/ionrift-gm/ionrift-quartermaster/releases/download/v1.3.2/module.zip",
+    "bugs": "https://github.com/ionrift-gm/ionrift-quartermaster/issues",
+    "esmodules": [
+        "scripts/module.js"
+    ],
+    "styles": [
+        "styles/quartermaster.css"
+    ],
+    "packs": [
+        {
+            "name": "quartermaster-containers",
+            "label": "Quartermaster: Containers",
+            "type": "Item",
+            "path": "packs/quartermaster-containers",
+            "system": "dnd5e",
+            "ownership": { "GAMEMASTER": "OWNER" }
+        }
+    ],
+    "packFolders": [
+        {
+            "name": "Ionrift",
+            "color": "#8b5cf6",
+            "folders": [
+                {
+                    "name": "Quartermaster",
+                    "packs": ["quartermaster-containers"]
+                }
+            ]
+        }
+    ],
+    "relationships": {
+        "requires": [
+            {
+                "id": "ionrift-library",
+                "type": "module",
+                "compatibility": { "minimum": "2.0.0" }
+            }
+        ],
+        "recommends": [
+            {
+                "id": "item-piles",
+                "type": "module",
+                "reason": "Required for drag-to-canvas cache placement and player loot transfers. The module generates caches without it, but deployment requires Item Piles."
+            }
+        ]
+    },
+    "authors": [
+        {
+            "name": "Ionrift",
+            "url": "https://patreon.com/ionrift"
+        }
+    ]
+}

@@ -1,0 +1,68 @@
+<div class="ionrift-cache-card" style="font-family: var(--ionrift-font, inherit);">
+<h3 style="margin:0 0 2px; border-bottom: 1px solid rgba(255,255,255,0.15);"><i class="fas fa-treasure-chest" style="margin-right:4px;"></i> {{{meta.cacheLabel}}}</h3>
+<p style="margin:2px 0; opacity:0.8; font-size:0.85em;">{{meta.tierLabel}} | {{meta.themeDisplay}} terrain</p>
+{{#if meta.flavor}}
+<p style="margin:6px 0 8px; font-style:italic; opacity:0.75; font-size:0.9em; border-left:2px solid rgba(255,255,255,0.2); padding-left:8px;">{{{meta.flavor}}}</p>
+{{/if}}
+{{#if showGoldBlock}}
+<div style="margin:6px 0; padding:4px 8px; background:rgba(218,165,32,0.15); border-radius:4px;">
+<i class="fas fa-coins" style="color:gold;margin-right:4px;"></i> {{#if hasCoinage}}{{#each coinageRows}}{{#unless @first}}, {{/unless}}<strong>{{amount}} {{denom}}</strong>{{/each}}{{else}}<strong>{{gold}} gp</strong>{{/if}}</div>
+{{/if}}
+{{#if signatures}}
+<div style="margin:6px 0;"><strong style="color:#daa520;">Signature Items</strong>
+{{#each signatures}}
+<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">
+<img src="{{{img}}}" width="24" height="24" style="border:0;border-radius:3px;" />
+<span>{{{name}}}</span>
+<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{{rarity}}}</span>
+</div>
+{{/each}}
+</div>
+{{/if}}
+{{#if scrolls}}
+<div style="margin:6px 0;"><strong style="color:#7b68ee;">Spell Scrolls</strong>
+{{#each scrolls}}
+<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">
+<img src="{{{img}}}" width="24" height="24" style="border:0;border-radius:3px;" />
+<span>{{{name}}}</span>
+<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">Lvl {{spellLevel}}</span>
+</div>
+{{/each}}
+</div>
+{{/if}}
+{{#if treasures}}
+<div style="margin:6px 0;"><strong style="color:#e8c97a;">Treasure</strong>
+{{#each treasures}}
+<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">
+<img src="{{{img}}}" width="24" height="24" style="border:0;border-radius:3px;" />
+<span>{{{name}}}</span>
+<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{price}} gp</span>
+</div>
+{{/each}}
+</div>
+{{/if}}
+{{#if consumables}}
+<div style="margin:6px 0;"><strong style="color:#3cb371;">Consumables</strong>
+{{#each consumables}}
+<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">
+<img src="{{{img}}}" width="24" height="24" style="border:0;border-radius:3px;" />
+<span>{{{name}}}</span>
+<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{price}} gp</span>
+</div>
+{{/each}}
+</div>
+{{/if}}
+{{#if mundane}}
+<div style="margin:6px 0;"><strong style="color:#cd853f;">Trade Goods</strong>
+{{#each mundane}}
+<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">
+<img src="{{{img}}}" width="24" height="24" style="border:0;border-radius:3px;" />
+<span>{{{name}}}</span>
+<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{price}} gp</span>
+</div>
+{{/each}}
+</div>
+{{/if}}
+<div style="margin-top:8px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.1);font-size:0.85em;opacity:0.7;">Est. Total Value: {{totalValue}} gp | {{itemCount}} items</div>
+<button type="button" class="ionrift-cache-create" data-cache-id="{{cacheId}}" style="margin-top:6px;width:100%;cursor:pointer;"><i class="fas fa-box-open"></i> Create Items in World</button>
+</div>

@@ -1,0 +1,59 @@
+{
+  "_key": "!items!9a27e1408d685a95",
+  "_id": "9a27e1408d685a95",
+  "name": "Old Adventurer's Pack",
+  "type": "container",
+  "img": "icons/containers/bags/pack-simple-leather-brown.webp",
+  "folder": "c9cb7fc62085af7d",
+  "system": {
+    "description": {
+      "value": "<p>A weathered adventurer's pack that has clearly been through a great deal. Stains on the canvas.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 5,
+    "price": {
+      "value": 2,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "capacity": {
+      "type": "weight",
+      "value": 50,
+      "weightlessContents": false
+    },
+    "currency": {
+      "cp": 0,
+      "sp": 0,
+      "ep": 0,
+      "gp": 0,
+      "pp": 0
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "container-old-adventurer-s-pack",
+      "containerMeta": {
+        "terrains": [
+          "any"
+        ],
+        "cacheTypes": [
+          "stash",
+          "camp_supplies",
+          "merchant_wreck"
+        ],
+        "capacityLbs": 50
+      }
+    }
+  }
+}

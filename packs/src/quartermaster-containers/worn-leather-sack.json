@@ -1,0 +1,58 @@
+{
+  "_key": "!items!c1516a6b2e2a2719",
+  "_id": "c1516a6b2e2a2719",
+  "name": "Worn Leather Sack",
+  "type": "container",
+  "img": "icons/containers/bags/sack-worn-brown.webp",
+  "folder": "c9cb7fc62085af7d",
+  "system": {
+    "description": {
+      "value": "<p>A weathered leather sack, stitched crudely. It has seen better days, but still holds its contents.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 1,
+    "price": {
+      "value": 1,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "capacity": {
+      "type": "weight",
+      "value": 30,
+      "weightlessContents": false
+    },
+    "currency": {
+      "cp": 0,
+      "sp": 0,
+      "ep": 0,
+      "gp": 0,
+      "pp": 0
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "container-worn-leather-sack",
+      "containerMeta": {
+        "terrains": [
+          "any"
+        ],
+        "cacheTypes": [
+          "stash",
+          "camp_supplies"
+        ],
+        "capacityLbs": 30
+      }
+    }
+  }
+}

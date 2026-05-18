@@ -1,0 +1,57 @@
+name: CI — Lint & Static Analysis
+
+on:
+  push:
+    branches:
+      - master
+    # Explicitly skip tag pushes — release.yml owns those
+    tags-ignore:
+      - '**'
+
+  # Allow manual trigger for diagnosis
+  workflow_dispatch:
+
+  repository_dispatch:
+    types: [lib-updated]
+
+jobs:
+
+  lint:
+    uses: ionrift-gm/ionrift-ci/.github/workflows/lint.yml@main
+    with:
+      # Workshop uses ESLint v9 and has lower warning budget than Respite.
+      eslint_version: '9'
+      eslint_max_warnings: 50
+      # signal_check.js lives in ionrift-devtools, not shipped with the module.
+      signal_check_required: false
+      # ScrollForge and other services use dynamic compendium imports that the
+      # static checker flags as broken — they are correct runtime patterns.
+      skip_import_integrity: true
+
+  hygiene:
+    uses: ionrift-gm/ionrift-ci/.github/workflows/hygiene.yml@main
+
+  shipping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate shipping manifest
+        run: node tools/validate-shipping.mjs
+
+  vitest:
+    uses: ionrift-gm/ionrift-ci/.github/workflows/vitest.yml@main
+
+  forge-safety:
+    uses: ionrift-gm/ionrift-ci/.github/workflows/vitest.yml@main
+    with:
+      testharness_repo: 'ionrift-gm/ionrift-testharness'
+      testharness_config: 'vitest/forge-safety/vitest.config.js'
+    secrets:
+      CI_PAT: ${{ secrets.IONRIFT_CI_PAT }}

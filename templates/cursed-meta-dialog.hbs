@@ -1,0 +1,91 @@
+<form class="cursed-meta-dialog-form" autocomplete="off" style="display: flex; flex-direction: column; gap: 10px; color: var(--color-text-light-highlight, #eee);">
+    <div style="display: flex; gap: 10px; align-items: center; padding: 8px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;">
+        <img src="{{itemData.img}}" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); flex-shrink: 0;" />
+        <div style="min-width: 0;">
+            <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{itemData.name}}</div>
+            <div style="font-size: 0.8em; opacity: 0.65;">{{itemData.type}}</div>
+        </div>
+    </div>
+
+    <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+        <label for="cmd-tier" style="font-size: 0.85em; opacity: 0.9;">Tier</label>
+        <select id="cmd-tier" name="tier" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;">
+            <option value="1">1  - Nuisance</option>
+            <option value="2">2  - Moderate</option>
+            <option value="3">3  - Dangerous</option>
+            <option value="4">4  - Catastrophic</option>
+        </select>
+    </div>
+
+    {{!-- Tier commitment warning  - populated dynamically by _bindTierWarning --}}
+    <div class="cmd-tier-warning" style="display: none;"></div>
+
+    <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+        <label for="cmd-curse-type" style="font-size: 0.85em; opacity: 0.9;">Curse Type</label>
+        <select id="cmd-curse-type" name="curseType" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;">
+            {{#each curseTypes}}
+            <option value="{{this}}">{{this}}</option>
+            {{/each}}
+        </select>
+    </div>
+
+    <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+        <label for="cmd-decoy" style="font-size: 0.85em; opacity: 0.9;">Decoy Appearance</label>
+        <input id="cmd-decoy" type="text" name="decoyAppearance" value="{{itemData.name}}"
+               style="width: 100%; padding: 6px; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;" />
+    </div>
+
+    <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+        <label for="cmd-true-nature" style="font-size: 0.85em; opacity: 0.9;">True Nature</label>
+        <textarea id="cmd-true-nature" name="trueNature" rows="3"
+                  style="width: 100%; padding: 6px; box-sizing: border-box; resize: vertical; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;"
+                  placeholder="What the curse actually does (1-2 sentences)."></textarea>
+    </div>
+
+    <details class="cursed-meta-advanced" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px 8px; background: rgba(0,0,0,0.15);">
+        <summary style="cursor: pointer; font-size: 0.9em; color: var(--ionrift-accent, #8b5cf6); user-select: none;">Advanced</summary>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                <label for="cmd-arcana" style="font-size: 0.85em; opacity: 0.9;">Detection DC</label>
+                <input id="cmd-arcana" type="number" name="arcanaDC" value="15" min="1" max="40" step="1"
+                       style="width: 100%; max-width: 120px; padding: 6px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;" />
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                <label for="cmd-hints" style="font-size: 0.85em; opacity: 0.9;">Detection Hints (one per line)</label>
+                <textarea id="cmd-hints" name="hints" rows="3"
+                          style="width: 100%; padding: 6px; box-sizing: border-box; resize: vertical; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;"
+                          placeholder="Subtle clues for the GM."></textarea>
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                <label for="cmd-trigger" style="font-size: 0.85em; opacity: 0.9;">Trigger Type</label>
+                <select id="cmd-trigger" name="trigger" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;">
+                    {{#each triggers}}
+                    <option value="{{this}}">{{this}}</option>
+                    {{/each}}
+                </select>
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                <label for="cmd-threshold" style="font-size: 0.85em; opacity: 0.9;">Trigger Threshold</label>
+                <input id="cmd-threshold" type="number" name="threshold" value="3" min="1" max="20" step="1"
+                       style="width: 100%; max-width: 120px; padding: 6px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;" />
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                <label for="cmd-player-hint" style="font-size: 0.85em; opacity: 0.9;">Player Escalation Whisper</label>
+                <textarea id="cmd-player-hint" name="playerHint" rows="2"
+                          style="width: 100%; padding: 6px; box-sizing: border-box; resize: vertical; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;"
+                          placeholder="Atmospheric text whispered to the player at first escalation. No item or curse reference  - keep it eerie and source-agnostic."></textarea>
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                <label for="cmd-remove-level" style="font-size: 0.85em; opacity: 0.9;">Removal  - Remove Curse Level</label>
+                <input id="cmd-remove-level" type="number" name="removeCurseLevel" value="3" min="1" max="20" step="1"
+                       style="width: 100%; max-width: 120px; padding: 6px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;" />
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                <label for="cmd-remove-custom" style="font-size: 0.85em; opacity: 0.9;">Removal  - Custom Requirement (T3+ required)</label>
+                <input id="cmd-remove-custom" type="text" name="removalCustom" value=""
+                       style="width: 100%; padding: 6px; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;"
+                       placeholder="Quest text, if any." />
+            </div>
+        </div>
+    </details>
+</form>

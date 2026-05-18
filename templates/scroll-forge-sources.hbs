@@ -1,0 +1,61 @@
+<form class="ionrift-loot-pool-config ionrift-scroll-forge-sources">
+    {{#if firstRun}}
+    <div class="scroll-forge-welcome">
+        <div class="scroll-forge-welcome-icon">
+            <i class="fas fa-scroll"></i>
+        </div>
+        <h3>Welcome to Scroll Forge</h3>
+        <p class="scroll-forge-welcome-desc">
+            Scroll Forge reads your installed spell compendiums and compiles them into a
+            unified <strong>Spell Scrolls</strong> collection -ready to drop into
+            loot caches or the Quartermaster progression grid.
+        </p>
+        <p class="scroll-forge-welcome-action">
+            Choose which spell sources to include below, then hit
+            <strong>Save and compile</strong>. You can revisit this any time from the
+            Quartermaster ledger.
+        </p>
+        <p class="scroll-forge-welcome-note">
+            When the same spell appears in multiple compendiums (e.g. 2014 and 2024
+            versions of Counterspell), Scroll Forge keeps the first version it finds
+            and skips duplicates. Compendiums higher in the list take priority.
+        </p>
+    </div>
+    {{else}}
+    <p class="pool-instructions">
+        Select spell compendiums Scroll Forge may read. Third-party packs stay off until you enable them.
+        The "Quartermaster: Spell Scrolls" world compendium is rebuilt after you save.
+        Duplicate spell names across compendiums are resolved by first-seen priority (higher in the list wins).
+    </p>
+    {{/if}}
+
+    <div class="scroll-forge-toolbar">
+        <button type="button" class="cache-btn-accent scroll-forge-select-all">
+            <i class="fas fa-check-double"></i> Select all
+        </button>
+        <button type="button" class="cache-btn-accent scroll-forge-select-none">
+            <i class="fas fa-times"></i> Select none
+        </button>
+    </div>
+
+    {{#each groups}}
+    <div class="pool-group">
+        <div class="pool-group-header">
+            <i class="fas fa-box-archive"></i> {{this.label}}
+        </div>
+        {{#each this.packs}}
+        <label class="pool-pack-row">
+            <input type="checkbox" name="pack-{{this.id}}" {{#if this.enabled}}checked{{/if}} />
+            <span class="pool-pack-label">{{this.label}}</span>
+            <span class="pool-pack-id">{{this.id}} ({{this.count}} spells)</span>
+        </label>
+        {{/each}}
+    </div>
+    {{/each}}
+
+    <footer class="pool-footer">
+        <button type="submit" class="cache-btn-accent">
+            <i class="fas fa-save"></i> Save and compile
+        </button>
+    </footer>
+</form>
