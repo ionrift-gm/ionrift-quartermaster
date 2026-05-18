@@ -58,7 +58,7 @@ jobs:
 
       - name: Install dependencies
         if: github.event.inputs.dry_run_discord != 'true'
-        run: npm ci
+        run: npm install
 
       - name: Compile compendium packs
         if: github.event.inputs.dry_run_discord != 'true'
