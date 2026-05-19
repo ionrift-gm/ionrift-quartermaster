@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.4] - 2026-05-19
+
+### Changed
+- Item packs now reload automatically when content updates are applied.
+
 ## [1.3.3] - 2026-05-19
 
 Build to support Foundry VTT package listing submission. No user-facing changes.

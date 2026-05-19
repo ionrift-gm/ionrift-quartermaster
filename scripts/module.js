@@ -339,11 +339,12 @@ Hooks.once('init', async () => {
         restricted: true
     });
 
-    // Content Packs button (via kernel)
-    const SettingsLayoutForPack = game.ionrift?.library?.SettingsLayout;
-    SettingsLayoutForPack?.registerPackButton(MODULE_ID, WorkshopPackRegistryApp, {
-        hint: "Import and manage item packs, loot tables, and artwork."
-    });
+    if (!game.ionrift?.library?.isOverlayDistributionActive?.()) {
+        const SettingsLayoutForPack = game.ionrift?.library?.SettingsLayout;
+        SettingsLayoutForPack?.registerPackButton(MODULE_ID, WorkshopPackRegistryApp, {
+            hint: "Import and manage item packs, loot tables, and artwork."
+        });
+    }
 
     game.settings.registerMenu(MODULE_ID, "lootPoolConfig", {
         name: "Loot Pool Sources",
@@ -359,6 +360,12 @@ Hooks.once('init', async () => {
     // FOOTER: Discord + Wiki (standardised via ionrift-library)
     const SettingsLayout = game.ionrift?.library?.SettingsLayout;
     SettingsLayout?.registerFooter(MODULE_ID);
+
+    Hooks.on("ionrift.overlayContentChanged", async (detail) => {
+        if (detail?.moduleId !== MODULE_ID) return;
+        const { ContentPackLoader } = await import("./services/ContentPackLoader.js");
+        await ContentPackLoader.init();
+    });
 
     game.settings.register(MODULE_ID, "debug", {
         name: "Enable Debug Logging",
