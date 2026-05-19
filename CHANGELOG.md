@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.3] - 2026-05-19
+
+Build to support Foundry VTT package listing submission. No user-facing changes.
+
+
+
 ## [1.3.2] - 2026-05-18
 
 General availability release. Quartermaster is now publicly listed in the Foundry VTT module browser.
