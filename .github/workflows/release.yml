@@ -60,6 +60,10 @@ jobs:
         if: github.event.inputs.dry_run_discord != 'true'
         run: npm install
 
+      - name: Validate CHANGELOG
+        if: github.event.inputs.dry_run_discord != 'true'
+        run: node tools/validate-changelog.mjs
+
       - name: Compile compendium packs
         if: github.event.inputs.dry_run_discord != 'true'
         run: node tools/compile-packs.mjs
