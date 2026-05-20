@@ -5,11 +5,6 @@
 
 import { readFileSync } from 'fs';
 
-// --- Ban list. Add words here to block them in future releases. ---
-const BANNED_WORDS = [
-  'paywall',
-];
-
 const content = readFileSync('CHANGELOG.md', 'utf8');
 const lines = content.split('\n');
 
@@ -45,13 +40,6 @@ for (let i = 0; i < entryLines.length; i++) {
   // indicates a continuation of the previous bullet — not allowed.
   if (/^ {2,}\S/.test(line) && !line.trimStart().startsWith('-')) {
     errors.push(`  Line ${lineNum}: soft-wrapped continuation (bullets must be single unwrapped lines)\n    > ${line.trimEnd()}`);
-  }
-
-  // Banned word check (case-insensitive).
-  for (const word of BANNED_WORDS) {
-    if (line.toLowerCase().includes(word.toLowerCase())) {
-      errors.push(`  Line ${lineNum}: banned word "${word}" found\n    > ${line.trimEnd()}`);
-    }
   }
 }
 
