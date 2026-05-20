@@ -1,0 +1,13 @@
+{
+    "id": "coastal",
+    "flavorPhrases": [
+        "Jammed into a rock crevice above the tideline, sealed in a waterproofed oilcloth roll.",
+        "The sea-cave narrows at the back. A ledge, invisible at high tide, holds this.",
+        "Beneath a cairn of wave-smoothed stones on the strand.",
+        "Lashed to the underside of a pier strut, just above the high-water mark.",
+        "{container}, wedged in a hull breach. The seal held. Just.",
+        "The hollow in the driftwood is deeper than it looks. Oilcloth inside, still intact."
+    ],
+    "materials": ["Coral Steel", "Mastercraft"],
+    "itemDescriptions": {}
+}

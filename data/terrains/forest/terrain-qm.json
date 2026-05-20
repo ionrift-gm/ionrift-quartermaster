@@ -1,0 +1,13 @@
+{
+    "id": "forest",
+    "flavorPhrases": [
+        "Between the thick roots of an old oak, pressed flat under leaf litter -- {container}.",
+        "The mossy stump is hollow. Someone used it as a cache, and not long ago.",
+        "Bark stripped from a birch reveals a recess sealed with pine resin. Still dry inside.",
+        "A rock that doesn't sit right. The soil beneath is freshly turned.",
+        "Caught in a hollow branch just above eye level, a bundle wrapped in oilskin.",
+        "Pressed flat under a sheet of fallen bark -- {container}. Easy to miss."
+    ],
+    "materials": ["Ironwood", "Elven Steel", "Hardened Bamboo", "Mastercraft"],
+    "itemDescriptions": {}
+}

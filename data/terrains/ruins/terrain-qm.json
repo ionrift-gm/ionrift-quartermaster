@@ -1,0 +1,76 @@
+{
+    "id": "ruins",
+    "flavorPhrases": [
+        "Wedged behind a collapsed lintel, wrapped in rotting cloth -- {container}.",
+        "Under a flagstone that sits proud of the others. The mortar was chipped away on purpose.",
+        "Inside a hollow column, accessible through a crack at knee height.",
+        "Buried in rubble at the base of a standing wall. Someone stacked the stones deliberately.",
+        "In a niche behind a crumbled fresco. The painting is gone but the hiding place survived.",
+        "Beneath a fallen roof beam, protected by the angle of the collapse."
+    ],
+    "materials": ["Dwarven Steel", "Mastercraft", "Obsidian"],
+    "itemDescriptions": {
+        "sword": [
+            "A {name} in a rotted leather scabbard. Decades of dust cling to the guard, but the blade itself is strangely unblemished.",
+            "A {name} wound in ancient cobweb. The wrapping has crumbled but the steel beneath shows no sign of age.",
+            "A {name} wrapped in oilcloth that has dried to a crust. The crossguard is clean underneath."
+        ],
+        "axe": [
+            "A {name} coated in fine grey grit. The haft is dry and pale but the head is spotless beneath the dust.",
+            "A {name}. Cobweb fills every joint, but once wiped, the edge is as keen as the day it was stored."
+        ],
+        "dagger": [
+            "A {name} in a sheath so old the leather crumbles. The blade inside has not aged a day.",
+            "A {name} wrapped in oilcloth that falls apart at the fold. The steel is clean and bright."
+        ],
+        "bludgeon": [
+            "A {name} thick with stone dust. The grip wrapping has dried and split, but the head is unblemished.",
+            "A {name}. The shaft is pale and dry, but the striking face is smooth — not a pit, not a scratch."
+        ],
+        "polearm": [
+            "A {name} with cobweb strung along the haft. The shaft has dried but the head still holds a keen edge.",
+            "A {name} caked in old dust. The rivets are bright underneath, as if recently set."
+        ],
+        "ranged": [
+            "A {name} wrapped in mouldering canvas. The cloth falls away and the stave beneath is smooth and straight, the string still taut.",
+            "A {name} under a film of dust. The limbs flex without protest, as though it was strung yesterday."
+        ],
+        "heavy_armor": [
+            "A {name} webbed in cobweb. Dust an inch thick in the joints, but beneath the grime the plates are mirror-bright.",
+            "A {name}. The padding has gone stiff with age, but the steel itself shows no corrosion at all."
+        ],
+        "light_armor": [
+            "A {name} wrapped in cloth that has gone to tatters. The leather beneath is supple — impossibly so for something stored this long.",
+            "A {name}. The outer surface is dusty and stiff, but it flexes easily once handled. No cracking."
+        ],
+        "shield": [
+            "A {name} with a thick coat of dust on the face. The straps are dry and cracked, but the boss beneath is bright and true.",
+            "A {name}. Cobwebs bridge the grip. The rim shows no damage despite everything around it crumbling."
+        ],
+        "cloak": [
+            "A {name} that smells of old stone and damp. The wrapping has disintegrated, but the fabric itself is clean and whole.",
+            "A {name} folded in musty sacking. It shakes out without a single moth hole."
+        ],
+        "boots": [
+            "A pair of {name} wrapped in sacking that falls apart. The leather is soft and supple — not at all what you would expect.",
+            "A pair of {name} with dust packed into the tread but the uppers unmarked."
+        ],
+        "ring": [
+            "A ring under a thick patina. The tarnish wipes away too easily, revealing bright metal beneath.",
+            "A ring gone dark with age. It is heavier than it looks, and the metal is warm."
+        ],
+        "potion": [
+            "A glass vial cushioned in rotted cloth. The wax seal is white with age but unbroken. The liquid inside has not settled.",
+            "A stoppered flask that should have cracked decades ago. It hasn't."
+        ],
+        "scroll": [
+            "A scroll tube with a wax-sealed cap gone white with age. The seal is unbroken.",
+            "A leather scroll case gone stiff and dry. The parchment inside is crisp and the ink is vivid."
+        ],
+        "generic": [
+            "A {name} under a thick layer of dust. Wipe it clean and it looks as though it was made this year.",
+            "A {name} wrapped in cloth that is falling apart at the folds. The item inside is pristine.",
+            "A {name}. Everything around it has aged. It hasn't."
+        ]
+    }
+}

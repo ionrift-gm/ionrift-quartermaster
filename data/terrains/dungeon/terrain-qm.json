@@ -1,0 +1,13 @@
+{
+    "id": "dungeon",
+    "flavorPhrases": [
+        "Prising apart a loose floor tile, you find {container} concealed in the hollow beneath.",
+        "Wedged behind a supporting pillar and half-buried in rubble -- {container}.",
+        "A section of wall gives under pressure. In the shallow recess behind it, someone left this.",
+        "Scratched into the floor is a crude arrow. Following it leads to a collapsed niche.",
+        "The cell has a false bottom. It comes away cleanly. Whoever hid this knew what they were doing.",
+        "The skeleton in the alcove had its arms folded over something. It takes a moment to see why."
+    ],
+    "materials": ["Dwarven Steel", "Mastercraft"],
+    "itemDescriptions": {}
+}

@@ -8,9 +8,55 @@ import { ItemPoolResolver } from "./ItemPoolResolver.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { SignatureLedger } from "./SignatureLedger.js";
 import { ScrollForge } from "./ScrollForge.js";
+import { TerrainDataRegistry } from "./TerrainDataRegistry.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
+
+/**
+ * Compendium suffixes that identify Quartermaster pack roles regardless of
+ * delivery (module manifest packs vs world packs materialised from overlays).
+ */
+const PACK_SUFFIX = {
+    gemstones: "quartermaster-gemstones",
+    treasure: "quartermaster-treasure",
+    core: "quartermaster-core"
+};
+
+/**
+ * Resolve the first available compendium for a known QM role. Prefers the
+ * module-shipped pack id when present, falls back to a world.* pack created
+ * by `OverlayItemMaterialiser` from a Patreon Library overlay.
+ * @param {"gemstones"|"treasure"|"core"} role
+ * @returns {CompendiumCollection|null}
+ */
+function resolveQmPack(role) {
+    const suffix = PACK_SUFFIX[role];
+    if (!suffix) return null;
+
+    let enabled = null;
+    try {
+        const raw = game.settings.get(MODULE_ID, "lootPoolSources");
+        enabled = new Set(JSON.parse(raw));
+    } catch { /* missing or unparseable: treat as no constraint */ }
+
+    const candidates = [
+        game.packs.get(`${MODULE_ID}.${suffix}`),
+        game.packs.get(`world.${suffix}`)
+    ];
+
+    for (const pack of candidates) {
+        if (!pack) continue;
+        if (!enabled || enabled.has(pack.collection)) return pack;
+    }
+    return null;
+}
+
+function isQmPackRole(compendiumId, role) {
+    if (!compendiumId) return false;
+    const suffix = PACK_SUFFIX[role];
+    return !!suffix && compendiumId.endsWith(`.${suffix}`);
+}
 
 export class CacheGenerator {
 
@@ -86,8 +132,10 @@ export class CacheGenerator {
         const goldFillerFloor = [0, 5, 15, 40, 100][tier] ?? 5;
 
         // Pick a discovery flavor phrase for this terrain
-        const phrases = tables.flavorPhrases?.[theme];
-        if (phrases?.length) {
+        const phrases = TerrainDataRegistry.getFlavorPhrases(theme)
+            || tables.flavorPhrases?.[theme]  // legacy fallback
+            || [];
+        if (phrases.length) {
             result.meta.flavor = phrases[Math.floor(Math.random() * phrases.length)];
         }
 
@@ -172,12 +220,19 @@ export class CacheGenerator {
 
             let item = null;
             let pickAttempts = 0;
-            
+
+            // Weight ceiling for this slot: never accept an item whose single
+            // unit already exceeds what is left in the bag. Falls back to a
+            // 45 lb sanity cap when no container constrains the cache.
+            const weightCeiling = container
+                ? Math.max(2, weightBudget - currentWeight)
+                : 45;
+
             // Repick logic: reject items that are too heavy or on the GM ban list
             while (pickAttempts < 5) {
                 item = await this._pickItem(slotType, theme, tierData, tables, priceCeiling);
                 if (!item) break;
-                if ((Number(item.weight) || 0) > 45) {
+                if ((Number(item.weight) || 0) > weightCeiling) {
                     item = null;
                     pickAttempts++;
                 } else if (await this._isBanned(item.name)) {
@@ -191,10 +246,16 @@ export class CacheGenerator {
             slotsProcessed++;
 
             if (item) {
-                // Apply bulk quantity heuristic: cheap items stack to fill a sensible value band
+                // Quantity heuristic is capacity-aware: a single stack should
+                // never claim more than a fair share of what is left in the bag,
+                // so cheap bulky items (greatclubs, sacks of flour) cannot
+                // ramp themselves up to 70 lb in a 35 lb pack.
+                const remainingWeight = container
+                    ? Math.max(0, weightBudget - currentWeight)
+                    : null;
                 const qty = (item.quantity !== null && item.quantity !== undefined && item.quantity > 1)
                     ? item.quantity
-                    : this._resolveQuantity(item);
+                    : this._resolveQuantity(item, { remainingWeight });
                 const totalItemPrice = Math.round((item.price ?? 0) * qty * 100) / 100;
                 const totalItemWeight = (Number(item.weight) || 0) * qty;
 
@@ -293,6 +354,10 @@ export class CacheGenerator {
      * @returns {string[]}
      */
     static async getThemes() {
+        if (TerrainDataRegistry.isReady) {
+            return TerrainDataRegistry.getTerrainList().map(t => t.id);
+        }
+        // Legacy fallback: read from cache-tables.json
         const tables = await this._loadTables();
         return Object.keys(tables.flavorPhrases ?? {});
     }
@@ -364,7 +429,7 @@ export class CacheGenerator {
 
         // Enrich with magical identification masking metadata
         if (item) {
-            const mask = ItemMaskingHelper.detectMagical(item);
+            const mask = ItemMaskingHelper.detectMagical(item, { terrainTag: theme });
             if (mask.isMagical) {
                 item._isMagical    = true;
                 item._baseItemName = mask.baseItemName;
@@ -388,18 +453,7 @@ export class CacheGenerator {
         const priceMax = Math.min([0, 100, 400, 1500, 5000][tier], priceCeiling);
         const priceMin = [0, 5,   30,  200,  800 ][tier];
 
-        const terrainMaterials = {
-            jungle:     ['Obsidian', 'Hardened Bamboo', 'Jaguar Hide', 'Mastercraft'],
-            coastal:    ['Coral Steel', 'Mastercraft'],
-            forest:     ['Ironwood', 'Elven Steel', 'Hardened Bamboo', 'Mastercraft'],
-            swamp:      ['Ironwood', 'Mastercraft'],
-            dungeon:    ['Dwarven Steel', 'Mastercraft'],
-            desert:     ['Mastercraft', 'Obsidian'],
-            urban:      ['Mastercraft', 'Elven Steel'],
-            mountain:   ['Dwarven Steel', 'Mastercraft'],
-            arctic:     ['Dwarven Steel', 'Mastercraft'],
-        };
-        const preferredMaterials = terrainMaterials[theme] ?? ['Mastercraft'];
+        const preferredMaterials = TerrainDataRegistry.getMaterials(theme);
 
         // Primary: query enabled compendiums via ItemPoolResolver (includes SRD dnd5e.items)
         try {
@@ -474,26 +528,27 @@ export class CacheGenerator {
         const tierWeights = { 'Chips & Fragments': 4, 'Polished Common': 3, 'Semi-Precious': 2, 'Precious': 1, 'Flawless': 0.5 };
 
         try {
-            const pack = game.packs.get('ionrift-quartermaster.quartermaster-gemstones');
+            const pack = resolveQmPack("gemstones");
             if (pack) {
                 const index = await pack.getIndex({ fields: ['name', 'img', 'system.price', 'flags'] });
                 const eligible = index.filter(e => {
-                    const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier;
+                    const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier
+                        ?? e.flags?.['ionrift-workshop']?.gemMeta?.tier;
                     if (!eligibleTiers.includes(gemTier)) return false;
                     const price = e.system?.price?.value ?? 0;
                     return price <= priceCeiling;
                 });
                 if (eligible.length === 0) return null;
 
-                // Weighted random selection
                 const weighted = [];
                 for (const e of eligible) {
-                    const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier ?? 'Polished Common';
+                    const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier
+                        ?? e.flags?.['ionrift-workshop']?.gemMeta?.tier
+                        ?? 'Polished Common';
                     const w = tierWeights[gemTier] ?? 1;
                     for (let i = 0; i < w; i++) weighted.push(e);
                 }
 
-                // Apply terrain bias on top of tier weighting
                 const pick = this._terrainWeightedPick(weighted, theme);
                 return {
                     name: pick.name,
@@ -504,7 +559,7 @@ export class CacheGenerator {
                     rarity: pick.system?.rarity ?? 'common',
                     quantity: 1,
                     _compendiumId: pick._id,
-                    sourceCompendium: 'ionrift-quartermaster.quartermaster-gemstones'
+                    sourceCompendium: pack.collection
                 };
             }
         } catch (e) {
@@ -524,7 +579,7 @@ export class CacheGenerator {
         const priceMin = [0, 10,  40, 100,  250][tier] ?? 10;
 
         try {
-            const pack = game.packs.get('ionrift-quartermaster.quartermaster-treasure');
+            const pack = resolveQmPack("treasure");
             if (pack) {
                 const index = await pack.getIndex({ fields: ['name', 'img', 'system.price', 'system.weight', 'flags'] });
                 const eligible = index.filter(e => {
@@ -542,7 +597,7 @@ export class CacheGenerator {
                     rarity: 'common',
                     quantity: 1,
                     _compendiumId: pick._id,
-                    sourceCompendium: 'ionrift-quartermaster.quartermaster-treasure'
+                    sourceCompendium: pack.collection
                 };
             }
         } catch (e) {
@@ -915,15 +970,25 @@ export class CacheGenerator {
      *
      * Signature, scroll, gem, and magic items are never multiplied.
      *
+     * Weight awareness:
+     *   When `opts.remainingWeight` is supplied (the bag's remaining capacity
+     *   for this slot), a single stack is capped so it cannot exceed roughly
+     *   half of what is left in the bag, with an absolute floor of 5 lb. This
+     *   prevents one cheap bulky item (e.g. a 10 lb greatclub) from
+     *   monopolising the container and forcing every other slot into coinage.
+     *
      * @param {Object} item
+     * @param {Object} [opts]
+     * @param {number|null} [opts.remainingWeight] Remaining bag capacity in lb.
+     *   Pass `null` (or omit) for cache flows without a container.
      * @returns {number}
      */
-    static _resolveQuantity(item) {
+    static _resolveQuantity(item, opts = {}) {
         // Never stack these item classes
         if (item.isSignature || item.spellName) return 1;
         const rarity = (item.rarity ?? "common").toLowerCase();
         if (rarity !== "common" && rarity !== "none" && rarity !== "") return 1;
-        if (item.sourceCompendium === "ionrift-quartermaster.quartermaster-gemstones") return 1;
+        if (isQmPackRole(item.sourceCompendium, "gemstones")) return 1;
 
         const unitPrice = item.price ?? 0;
         if (unitPrice <= 0) return 1;
@@ -942,7 +1007,18 @@ export class CacheGenerator {
         }
 
         const targetValue = targetMin + Math.random() * (targetMax - targetMin);
-        const qty = Math.max(1, Math.min(qtyMax, Math.round(targetValue / unitPrice)));
+        let qty = Math.max(1, Math.min(qtyMax, Math.round(targetValue / unitPrice)));
+
+        const unitWeight = Number(item.weight) || 0;
+        if (unitWeight > 0) {
+            const remaining = opts.remainingWeight;
+            const stackWeightCap = (typeof remaining === "number" && remaining > 0)
+                ? Math.max(5, remaining * 0.5)
+                : 15;
+            const weightCappedQty = Math.max(1, Math.floor(stackWeightCap / unitWeight));
+            qty = Math.min(qty, weightCappedQty);
+        }
+
         return qty;
     }
 
@@ -1028,13 +1104,13 @@ export class CacheGenerator {
         const signatures  = items.filter(i => i.isSignature);
         const scrolls     = items.filter(i => i.spellName);
         const weapons     = items.filter(i => (i.type === "weapon" || i.type === "equipment") && !i.isSignature);
-        const treasures   = items.filter(i => i.sourceCompendium === "ionrift-quartermaster.quartermaster-treasure");
+        const treasures   = items.filter(i => isQmPackRole(i.sourceCompendium, "treasure"));
         const consumables = items.filter(i => i.type === "consumable" && !i.spellName && !i.isSignature);
         const mundane     = items.filter(i =>
             !i.isSignature && !i.spellName
             && i.type !== "weapon" && i.type !== "equipment"
-            && i.sourceCompendium !== "ionrift-quartermaster.quartermaster-gemstones"
-            && i.sourceCompendium !== "ionrift-quartermaster.quartermaster-treasure"
+            && !isQmPackRole(i.sourceCompendium, "gemstones")
+            && !isQmPackRole(i.sourceCompendium, "treasure")
             && (i.type === "loot" || i.type === "tool" || !i.type)
         );
         const totalValue = Math.round((gold + items.reduce((s, i) => s + (i.price ?? 0), 0)) * 100) / 100;

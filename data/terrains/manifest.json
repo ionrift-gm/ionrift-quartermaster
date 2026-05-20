@@ -1,0 +1,12 @@
+{
+    "released": [
+        "arctic",
+        "desert",
+        "dungeon",
+        "forest",
+        "mountain",
+        "swamp",
+        "urban"
+    ],
+    "_comment": "Only released terrains are loaded. Overlay packs add terrain folders; they appear here after extraction."
+}

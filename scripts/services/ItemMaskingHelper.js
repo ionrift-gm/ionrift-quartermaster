@@ -11,6 +11,8 @@
  * Backlog: server-authoritative pattern not client-inspectable.
  */
 
+import { TerrainDataRegistry } from "./TerrainDataRegistry.js";
+
 export class ItemMaskingHelper {
 
     /**
@@ -169,7 +171,7 @@ export class ItemMaskingHelper {
      * @param {Object} itemMeta - Cache item metadata
      * @returns {{ isMagical: boolean, baseItemName: string|null, mundaneDesc: string|null, obscuredImg: string|null }}
      */
-    static detectMagical(itemMeta) {
+    static detectMagical(itemMeta, { terrainTag } = {}) {
         if (!itemMeta) {
             return { isMagical: false, baseItemName: null, mundaneDesc: null, obscuredImg: null };
         }
@@ -194,7 +196,7 @@ export class ItemMaskingHelper {
         }
 
         const baseItemName = this._deriveBaseItemName(itemMeta);
-        const mundaneDesc = this._deriveMundaneDescription(itemMeta, baseItemName, rarity);
+        const mundaneDesc = this._deriveMundaneDescription(itemMeta, baseItemName, rarity, terrainTag);
 
         // Obscured art only applied when the corresponding setting is on.
         const obscuredImg = this._resolveObscuredArtPath({
@@ -938,7 +940,7 @@ export class ItemMaskingHelper {
 
     // ── Mundane Description Assembly ─────────────────────────────────
 
-    static _deriveMundaneDescription(itemMeta, baseItemName, rarity) {
+    static _deriveMundaneDescription(itemMeta, baseItemName, rarity, terrainTag) {
         const type = (itemMeta.type || "").toLowerCase();
         const baseItem = (itemMeta._baseItem || itemMeta.baseItem || "").toLowerCase();
         const displayName = baseItemName || itemMeta.name || "item";
@@ -955,7 +957,16 @@ export class ItemMaskingHelper {
 
         // Category physical description + quality hints
         const category = this._categorise(type, baseItem, itemMeta.name);
-        const physical = _pick(this._PHYSICAL_DESCRIPTIONS[category] ?? this._PHYSICAL_DESCRIPTIONS.generic);
+
+        // Terrain-specific description override (Layer 2).
+        // Check TerrainDataRegistry first; fall back to generic pools.
+        const terrainPool = terrainTag
+            ? TerrainDataRegistry.getItemDescriptions(terrainTag, category)
+            : [];
+        const pool = terrainPool.length
+            ? terrainPool
+            : (this._PHYSICAL_DESCRIPTIONS[category] ?? this._PHYSICAL_DESCRIPTIONS.generic);
+        const physical = _pick(pool);
         const hints = this._selectHints(rarity);
 
         const parts = [physical.replace(/\{name\}/g, displayName)];

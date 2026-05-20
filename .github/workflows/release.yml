@@ -90,6 +90,7 @@ jobs:
             -x ".gitattributes" \
             -x ".cursor/*" \
             -x "tests/*" \
+            -x "scripts/tests/*" \
             -x "node_modules/*" \
             -x "packs/src/*" \
             -x "packs/.validation-staging/*" \

@@ -15,9 +15,11 @@ import { ScrollForge } from "./services/ScrollForge.js";
 import { SrdCurseAdapter } from "./services/SrdCurseAdapter.js";
 import { ItemMaskingHelper } from "./services/ItemMaskingHelper.js";
 import { StandalonePoolRegistry } from "./services/StandalonePoolRegistry.js";
+import { TerrainDataRegistry } from "./services/TerrainDataRegistry.js";
 
 import { ContentPackLoader } from "./services/ContentPackLoader.js";
 import { ContentPackCompiler } from "./services/ContentPackCompiler.js";
+import { OverlayItemMaterialiser } from "./services/OverlayItemMaterialiser.js";
 import { WorkshopPackRegistryApp } from "./apps/WorkshopPackRegistryApp.js";
 
 import { Logger, MODULE_LABEL } from "./_logger.js";
@@ -112,6 +114,17 @@ Hooks.once('init', async () => {
         config: false,
         type: Boolean,
         default: true
+    });
+
+    // Feature flag for the Core Hoard Pack nudge banner. Defaults to false
+    // because the pack is not yet published; flip to true once the public zip
+    // exists to surface the banner in the Quartermaster Settings panel.
+    game.settings.register(MODULE_ID, "hoardPackNudgeEnabled", {
+        scope: "world",
+        config: false,
+        type: Boolean,
+        default: false,
+        restricted: true
     });
 
     // Pack management state
@@ -262,6 +275,14 @@ Hooks.once('init', async () => {
         restricted: true
     });
 
+    game.settings.register(MODULE_ID, "materialisedOverlayPacks", {
+        scope: "world",
+        config: false,
+        type: String,
+        default: "{}",
+        restricted: true
+    });
+
     game.settings.register(MODULE_ID, "partyShelfSources", {
         scope: "world",
         config: false,
@@ -361,10 +382,37 @@ Hooks.once('init', async () => {
     const SettingsLayout = game.ionrift?.library?.SettingsLayout;
     SettingsLayout?.registerFooter(MODULE_ID);
 
+    // Register Core Hoard Pack nudge with the shared library service.
+    // Gated by the hoardPackNudgeEnabled world flag; inert until enabled.
+    try {
+        const { registerHoardPackNudge } = await import("./hoardPackNudge.js");
+        registerHoardPackNudge();
+    } catch (e) {
+        Logger.warn(MODULE_LABEL, "Hoard pack nudge registration failed:", e);
+    }
+
     Hooks.on("ionrift.overlayContentChanged", async (detail) => {
         if (detail?.moduleId !== MODULE_ID) return;
         const { ContentPackLoader } = await import("./services/ContentPackLoader.js");
         await ContentPackLoader.init();
+        await TerrainDataRegistry.init(true);
+
+        if (detail.installed && detail.active) {
+            try { await OverlayItemMaterialiser.materialiseSublayer(detail.sublayer); }
+            catch (err) {
+                Logger.error(MODULE_LABEL, "OverlayItemMaterialiser sublayer rebuild failed:", err);
+            }
+        } else if (detail.installed && detail.overlayId) {
+            try { await OverlayItemMaterialiser.setOverlayActive(detail.overlayId, false); }
+            catch (err) {
+                Logger.error(MODULE_LABEL, "OverlayItemMaterialiser deactivate failed:", err);
+            }
+        } else if (!detail.installed && detail.overlayId) {
+            try { await OverlayItemMaterialiser.removeForOverlay(detail.overlayId); }
+            catch (err) {
+                Logger.error(MODULE_LABEL, "OverlayItemMaterialiser teardown failed:", err);
+            }
+        }
     });
 
     game.settings.register(MODULE_ID, "debug", {
@@ -445,7 +493,19 @@ Hooks.on('ready', () => {
             }
         });
 
-
+        game.ionrift.library.tests.register("ionrift-quartermaster-spine", {
+            name: "Quartermaster Terrain Spine",
+            description: "Verifies QM reads the spine faithfully and never pollutes it",
+            runFn: async () => {
+                try {
+                    const { runTerrainSpineTests } = await import("./tests/TerrainSpineTests.js");
+                    return runTerrainSpineTests();
+                } catch {
+                    return { passed: 0, failed: 0, total: 0, skipped: true,
+                        results: [{ name: "TerrainSpineTests", status: "skip", message: "Test file not present (production build)." }] };
+                }
+            }
+        });
     }
 
 
@@ -476,16 +536,19 @@ Hooks.on('ready', () => {
 
     // Content Pack discovery + auto-compile
     if (game.user.isGM) {
-        // Register QM-specific terrains into the lib spine so other modules can see them.
-        const registerQmTerrains = (terrains) => {
-            terrains.register({ id: "jungle", label: "Jungle" });
-            terrains.register({ id: "coastal", label: "Coastal" });
-            terrains.register({ id: "swamp", label: "Swamp" });
-            terrains.register({ id: "arctic", label: "Arctic" });
-        };
-        Hooks.on("ionrift.terrainsReady", registerQmTerrains);
-        const libTerrains = game.ionrift?.library?.terrains;
-        if (libTerrains) registerQmTerrains(libTerrains);
+        // Initialize terrain data registry from built-in manifests.
+        // QM reads the spine for shared terrains but does NOT write into it.
+        TerrainDataRegistry.init().then(() => {
+            // QM reads the spine for its dropdown but does NOT register its own
+            // terrain-data folders into the shared spine. QM has loot data for
+            // terrains like coastal/jungle, but that data is local to the cache
+            // generator — it should not add terrains to the ecosystem-wide spine.
+            // The spine's authority comes from the library seeds + overlay packs.
+            Logger.log(MODULE_LABEL,
+                `TerrainDataRegistry loaded ${TerrainDataRegistry.getAll().length} terrain data folders.`);
+        }).catch(err => {
+            Logger.error(MODULE_LABEL, "TerrainDataRegistry init failed:", err);
+        });
 
         ContentPackLoader.init().then(() => {
             if (ContentPackLoader.loaded && ContentPackLoader.getLoadedPacks().length > 0) {
@@ -495,6 +558,10 @@ Hooks.on('ready', () => {
             }
         }).catch(err => {
             Logger.error(MODULE_LABEL, "Content Pack loader failed:", err);
+        });
+
+        OverlayItemMaterialiser.materialiseAll().catch(err => {
+            Logger.error(MODULE_LABEL, "OverlayItemMaterialiser boot run failed:", err);
         });
     }
 });

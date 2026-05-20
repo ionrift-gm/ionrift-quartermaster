@@ -1,0 +1,13 @@
+{
+    "id": "mountain",
+    "flavorPhrases": [
+        "Wedged into a crack in the cliff face, barely visible from below.",
+        "Beneath a cairn at the ridge line, the stones placed with purpose.",
+        "The mountain hut's floorboards are loose. Someone used the crawlspace.",
+        "A narrow chimney in the rock face. The opening at the top conceals {container}.",
+        "The goat trail ends at a shelf. Someone camped here, and left something behind.",
+        "Ice-crusted and half-buried in scree. The oilcloth wrapping saved it."
+    ],
+    "materials": ["Dwarven Steel", "Mastercraft"],
+    "itemDescriptions": {}
+}

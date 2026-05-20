@@ -1,0 +1,13 @@
+{
+    "id": "arctic",
+    "flavorPhrases": [
+        "Buried under a cairn of stones, the gaps packed with snow. Still frozen solid inside.",
+        "Wedged into a crevasse in the ice shelf, wrapped in skins. The cold preserved it better than any vault.",
+        "The snow here is the wrong kind of flat -- packed, not drifted. Beneath it, wrapped in oilcloth.",
+        "A depression cut into the permafrost and deliberately refilled. Whoever made this expected to return.",
+        "Sealed inside a frozen hollow in the rock face. The ice has to be chipped away to reach it.",
+        "Lashed beneath the overhang of a glacial shelf, just above the freeze line. Still solid."
+    ],
+    "materials": ["Dwarven Steel", "Mastercraft"],
+    "itemDescriptions": {}
+}

@@ -8,6 +8,7 @@ import { takeVisibleCapped } from "../services/AdvisoryStripUtils.js";
 import { CursedItemResolver } from "../services/CursedItemResolver.js";
 import { ItemResolutionPipeline } from "../services/ItemResolutionPipeline.js";
 import { SquashMerger } from "../services/SquashMerger.js";
+import { TerrainDataRegistry } from "../services/TerrainDataRegistry.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -109,15 +110,8 @@ export class CacheGeneratorApp extends Application {
         const tier  = this._currentResult?.meta?.tier  ?? game.settings?.get(MODULE_ID, "defaultCacheTier")  ?? 1;
         const theme = this._currentResult?.meta?.theme ?? game.settings?.get(MODULE_ID, "defaultCacheTheme") ?? "dungeon";
 
-        const themes = [
-            { id: "dungeon", label: "Dungeon"  },
-            { id: "forest",  label: "Forest"   },
-            { id: "swamp",   label: "Swamp"    },
-            { id: "desert",  label: "Desert"   },
-            { id: "urban",   label: "Urban"    },
-            { id: "mountain",label: "Mountain" },
-            { id: "arctic",  label: "Arctic"   }
-        ].map(t => ({ ...t, selected: t.id === theme }));
+        const themes = TerrainDataRegistry.getTerrainList()
+            .map(t => ({ ...t, selected: t.id === theme }));
 
         const themeObj = themes.find(t => t.selected) ?? themes[0];
 
@@ -508,8 +502,8 @@ export class CacheGeneratorApp extends Application {
         const isScroll         = i => !!i.spellName && !isSpecialSection(i);
         const isConsumable     = i => i.type === "consumable" && !i.spellName && !isSpecialSection(i);
         const isWeapon         = i => (i.type === "weapon" || i.type === "equipment") && !isSpecialSection(i);
-        const isGemstone       = i => i.sourceCompendium === "ionrift-quartermaster.quartermaster-gemstones" && !isSpecialSection(i);
-        const isTreasure       = i => i.sourceCompendium === "ionrift-quartermaster.quartermaster-treasure" && !isSpecialSection(i);
+        const isGemstone       = i => !!i.sourceCompendium && i.sourceCompendium.endsWith(".quartermaster-gemstones") && !isSpecialSection(i);
+        const isTreasure       = i => !!i.sourceCompendium && i.sourceCompendium.endsWith(".quartermaster-treasure") && !isSpecialSection(i);
         const isMundane        = i => !isScroll(i) && !isSpecialSection(i) && !isConsumable(i)
                                       && !isWeapon(i) && !isGemstone(i) && !isTreasure(i)
                                       && (i.type === "loot" || i.type === "tool" || !i.type);

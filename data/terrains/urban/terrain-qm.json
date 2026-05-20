@@ -1,0 +1,13 @@
+{
+    "id": "urban",
+    "flavorPhrases": [
+        "A loose brick in the alley wall. The mortar around it is barely set.",
+        "Under a market stall's false floor, sealed with a cloth rag. The stall has been empty for weeks.",
+        "A locked strongbox beneath a floorboard. The key was around the last occupant's neck.",
+        "Stuffed inside a chimney breast, wrapped in wax paper against the soot.",
+        "The cellar drain runs deeper than it should. A bundle is wedged into the bend.",
+        "Behind a panel in the wainscoting, the wood slightly proud of the wall if you know to look."
+    ],
+    "materials": ["Mastercraft", "Elven Steel"],
+    "itemDescriptions": {}
+}

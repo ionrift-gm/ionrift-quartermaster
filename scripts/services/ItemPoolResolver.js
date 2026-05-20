@@ -417,12 +417,20 @@ export class ItemPoolResolver {
             "rules"
         ]);
 
+        // Cursewright manages injection of cursed items into caches via its
+        // own pipeline — these packs must never appear as manual loot sources.
+        const CURSEWRIGHT_MANAGED_PACKS = new Set([
+            "ionrift-cursewright-forged",
+            "ionrift-srd-cursed"
+        ]);
+
         return game.packs
             .filter(p => {
                 if (p.documentName !== "Item") return false;
 
                 const packName = p.collection.split(".").pop() ?? "";
                 if (EXCLUDED_PACK_SUFFIXES.has(packName)) return false;
+                if (CURSEWRIGHT_MANAGED_PACKS.has(packName)) return false;
 
                 if (p.index?.size > 0) {
                     return [...p.index.values()].some(e => LOOT_TYPES.has(e.type));
