@@ -1,30 +1,18 @@
 # Changelog
 
-## [1.3.6] - 2026-05-20
+## [1.3.7] - 2026-05-20
 
 ### Added
-- Loot pools now exclude Cursewright-managed compendiums automatically. If
-  Cursewright handles injection for a source, it will not appear in the
-  Quartermaster pool configuration.
+- Loot pools now exclude Cursewright-managed compendiums automatically. If Cursewright handles injection for a source, it will not appear in the Quartermaster pool configuration.
 
 ### Changed
-- The content nudge now uses the shared Ionrift Library banner. Your prior
-  "snooze" or "don't show again" choices carry over.
+- The content nudge now uses the shared Ionrift Library banner. Your prior "snooze" or "don't show again" choices carry over.
 
 ### Fixed
-- Caches now correctly discover compendiums delivered through content overlays.
-  Previously the generator only looked up compendiums by their module-shipped
-  ids and missed the world packs the overlay produced.
-- Disabling a content pack in the Library now actually removes its items from
-  newly generated caches. The pack's compendium stays on disk so any GM edits
-  survive, but it is withdrawn from Loot Pool Sources on the next roll.
-- Bulky low-value items can no longer dominate an entire cache. A cheap heavy
-  item like a greatclub used to multiply itself into a 70 lb stack inside a
-  35 lb pack, leaving every other slot to backfill as coinage. Stacks are now
-  capped against the bag's remaining capacity, and slot repicks consider the
-  same budget so the cache stays varied even when space is tight.
-- Cache previews no longer show stale terrain data after changing the active
-  terrain in the same session.
+- Caches now correctly discover compendiums delivered through content overlays. Previously the generator only looked up compendiums by their module-shipped ids and missed the world packs the overlay produced.
+- Disabling a content pack in the Library now actually removes its items from newly generated caches. The pack's compendium stays on disk so any GM edits survive, but it is withdrawn from Loot Pool Sources on the next roll.
+- Bulky low-value items can no longer dominate an entire cache. A cheap heavy item like a greatclub used to multiply itself into a 70 lb stack inside a 35 lb pack, leaving every other slot to backfill as coinage. Stacks are now capped against the bag's remaining capacity, and slot repicks consider the same budget so the cache stays varied even when space is tight.
+- Cache previews no longer show stale terrain data after changing the active terrain in the same session.
 
 ## [1.3.4] - 2026-05-19
 
