@@ -550,6 +550,18 @@ export class ItemMaskingHelper {
             };
         }
 
+        const minting = game.ionrift?.library?.minting;
+        if (minting?.guardPatch) {
+            const recipeKey = liveItem?.flags?.["ionrift-cursewright"]?.recipeKey
+                ?? twinDoc?.flags?.["ionrift-cursewright"]?.recipeKey
+                ?? "";
+            minting.guardPatch(patch, {
+                moduleId: "ionrift-quartermaster",
+                recipeKey: recipeKey || undefined,
+                mode: "update"
+            });
+        }
+
         return patch;
     }
 
