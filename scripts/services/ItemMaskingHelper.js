@@ -459,7 +459,25 @@ export class ItemMaskingHelper {
         }
         if (latent.originalImg) patch["img"] = latent.originalImg;
 
+        const recipeKey = itemDoc?.flags?.["ionrift-cursewright"]?.recipeKey ?? "";
+        ItemMaskingHelper._guardPromotionPatch(patch, recipeKey);
+
         return patch;
+    }
+
+    /**
+     * @param {object} patch
+     * @param {string} [recipeKey]
+     * @private
+     */
+    static _guardPromotionPatch(patch, recipeKey = "") {
+        const minting = game.ionrift?.library?.minting;
+        if (!minting?.guardPatch) return;
+        minting.guardPatch(patch, {
+            moduleId: "ionrift-quartermaster",
+            recipeKey: recipeKey || undefined,
+            mode: "update"
+        });
     }
 
     /**
@@ -550,17 +568,10 @@ export class ItemMaskingHelper {
             };
         }
 
-        const minting = game.ionrift?.library?.minting;
-        if (minting?.guardPatch) {
-            const recipeKey = liveItem?.flags?.["ionrift-cursewright"]?.recipeKey
-                ?? twinDoc?.flags?.["ionrift-cursewright"]?.recipeKey
-                ?? "";
-            minting.guardPatch(patch, {
-                moduleId: "ionrift-quartermaster",
-                recipeKey: recipeKey || undefined,
-                mode: "update"
-            });
-        }
+        const recipeKey = liveItem?.flags?.["ionrift-cursewright"]?.recipeKey
+            ?? twinDoc?.flags?.["ionrift-cursewright"]?.recipeKey
+            ?? "";
+        ItemMaskingHelper._guardPromotionPatch(patch, recipeKey);
 
         return patch;
     }

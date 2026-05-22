@@ -155,6 +155,11 @@ export class SrdCurseAdapter {
         pack = game.packs.get(this.worldCollectionId) ?? pack;
 
         try {
+            const minting = game.ionrift?.library?.minting;
+            if (minting?.guardAll) {
+                minting.guardAll(pendingItems, { moduleId: MODULE_ID, mode: "pack" });
+            }
+
             const ItemClass = CONFIG.Item.documentClass;
             await ItemClass.createDocuments(pendingItems, { pack: pack.collection });
         } catch (err) {

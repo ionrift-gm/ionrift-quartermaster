@@ -272,6 +272,11 @@ export class ScrollForge {
             scrollItems.push(row.data);
         }
 
+        const minting = game.ionrift?.library?.minting;
+        if (minting?.guardAll) {
+            minting.guardAll(scrollItems, { moduleId: MODULE_ID, mode: "pack" });
+        }
+
         const chunkSize = 50;
         let writeOk = false;
         try {

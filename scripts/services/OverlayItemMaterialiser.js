@@ -240,6 +240,11 @@ export class OverlayItemMaterialiser {
             return item;
         });
 
+        const minting = game.ionrift?.library?.minting;
+        if (minting?.guardAll) {
+            minting.guardAll(prepared, { moduleId: MODULE_ID, mode: "pack" });
+        }
+
         const ItemClass = CONFIG.Item.documentClass;
         const chunkSize = 50;
         for (let i = 0; i < prepared.length; i += chunkSize) {
@@ -282,7 +287,10 @@ export class OverlayItemMaterialiser {
     static _labelFor(packDir) {
         const map = {
             gemstones: "Quartermaster: Gemstones",
-            treasure: "Quartermaster: Treasure"
+            treasure: "Quartermaster: Treasure",
+            core: "Quartermaster: Core",
+            "terrain-treasure": "Quartermaster: Terrain Treasure",
+            "terrain-trinkets": "Quartermaster: Terrain Trinkets"
         };
         if (map[packDir]) return map[packDir];
         const titled = packDir.replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase());

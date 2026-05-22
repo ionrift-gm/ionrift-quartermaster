@@ -63,6 +63,16 @@ export class CacheGenerator {
     /** @type {Object|null} Loaded cache table data */
     static _tables = null;
 
+    /**
+     * @param {object[]} sources
+     * @param {"create"|"update"|"pack"} [mode="create"]
+     */
+    static _guardMintSources(sources, mode = "create") {
+        const minting = game.ionrift?.library?.minting;
+        if (!minting?.guardAll || !sources?.length) return;
+        minting.guardAll(sources, { moduleId: MODULE_ID, mode });
+    }
+
     // ── Public API ────────────────────────────────────────────────
 
     /**
@@ -1237,21 +1247,25 @@ export class CacheGenerator {
             const container = await this._pickContainer(containerTerrain);
             if (container) {
                 // Create the container, then place all generated items inside it
-                const [containerItem] = await Item.create([{
+                const containerData = [{
                     name: container.name,
-                    type: 'container',
+                    type: "container",
                     img: container.img,
                     folder: folder.id,
                     system: container.system ?? {}
-                }]);
+                }];
+                CacheGenerator._guardMintSources(containerData);
+                const [containerItem] = await Item.create(containerData);
                 // Place all items inside the container using dnd5e container system
                 const innerItems = toCreate.map(i => ({ ...i, folder: folder.id, system: { ...i.system, container: containerItem.id } }));
+                CacheGenerator._guardMintSources(innerItems);
                 await Item.create(innerItems);
                 ui.notifications.info(`Created "${container.name}" with ${innerItems.length} items in "${folderName}".`);
                 return;
             }
         }
 
+        CacheGenerator._guardMintSources(toCreate);
         const created = await Item.create(toCreate);
         ui.notifications.info(`Created ${created.length} items in "${folderName}".`);
     }
@@ -1395,6 +1409,7 @@ export class CacheGenerator {
             }
         }
 
+        CacheGenerator._guardMintSources(toCreate);
         const created = await Item.create(toCreate);
 
         ui.notifications.info(`Cache added to Items directory: ${created.length} items in "${folderName}".`);
