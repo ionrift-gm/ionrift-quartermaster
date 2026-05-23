@@ -132,8 +132,9 @@ export class ItemMaskingHelper {
      * when `obscureConsumables` is on. Food, feed, and similar mundane consumables
      * stay readable (ItemPoolResolver already puts them in the consumable loot pool).
      *
-     * Adventuring gear (holy water, acid, alchemist's fire, antitoxin, basic poison vials)
+     * Adventuring gear (lamp oil, holy water, acid, alchemist's fire, antitoxin, basic poison)
      * is excluded: it is sold labeled and is not treated like unidentified magic potions.
+     * dnd5e often gives lamp oil consumable subtype "potion"; only "oil of …" is obscured.
      * Obscuring targets potions, oils of, and other named magical consumable tropes.
      *
      * @param {Object} itemMeta
@@ -155,6 +156,8 @@ export class ItemMaskingHelper {
         if (/alchemist'?s\s+fire/i.test(nameLower)) return false;
         if (/holy water/i.test(nameLower)) return false;
         if (/antitoxin/i.test(nameLower)) return false;
+        // PHB lamp oil (not Oil of Sharpness, Oil of Slipperiness, etc.)
+        if (/\boil\b/i.test(nameLower) && !/oil\s+of/i.test(nameLower)) return false;
 
         // Subtype can be wrong on flattened rows; keep mundane provisions readable.
         if (/\bfeed\b|\brations?\b/i.test(nameLower)) return false;
@@ -606,6 +609,7 @@ export class ItemMaskingHelper {
         for (const [id, act] of Object.entries(latentActivities)) {
             patch[`system.activities.${id}`] = foundry.utils.deepClone(act);
         }
+        ItemMaskingHelper._guardPromotionPatch(patch);
         return patch;
     }
 

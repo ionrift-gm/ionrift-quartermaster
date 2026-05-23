@@ -1,10 +1,12 @@
 {
     "released": [
         "arctic",
+        "catacombs",
         "desert",
         "dungeon",
         "forest",
         "mountain",
+        "ruins",
         "swamp",
         "urban"
     ],

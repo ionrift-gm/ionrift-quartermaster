@@ -1,0 +1,58 @@
+{
+  "_key": "!items!7407762d2c5b73b3",
+  "_id": "7407762d2c5b73b3",
+  "name": "Sealed Crypt Urn",
+  "type": "container",
+  "img": "icons/containers/kitchenware/jug-clay-brown-sealed.webp",
+  "folder": "c9cb7fc62085af7d",
+  "system": {
+    "description": {
+      "value": "<p>A tall, narrow funerary urn of dark stone, its mouth sealed with old wax bearing the impression of death wards. The seal has cracked with age but held well enough to keep the contents dry.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 8,
+    "price": {
+      "value": 1,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "capacity": {
+      "type": "weight",
+      "value": 25,
+      "weightlessContents": false
+    },
+    "currency": {
+      "cp": 0,
+      "sp": 0,
+      "ep": 0,
+      "gp": 0,
+      "pp": 0
+    },
+    "properties": []
+  },
+  "flags": {
+    "ionrift-quartermaster": {
+      "itemRef": "container-sealed-crypt-urn",
+      "containerMeta": {
+        "terrains": [
+          "catacombs"
+        ],
+        "cacheTypes": [
+          "hoard",
+          "arcane_cache"
+        ],
+        "capacityLbs": 25
+      }
+    }
+  }
+}

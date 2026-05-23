@@ -235,19 +235,31 @@
                     <span class="results-meta">{{meta.tierLabel}} | {{themeLabel}} | {{itemCount}} items</span>
                 </div>
 
-                {{#if gold}}
                 <div class="cache-gold-bar">
-                    {{#if coinage}}
-                        {{#if coinage.pp}}<span class="coin-chip coin-pp"><i class="fas fa-circle"></i> {{coinage.pp}} pp</span>{{/if}}
-                        {{#if coinage.gp}}<span class="coin-chip coin-gp"><i class="fas fa-circle"></i> {{coinage.gp}} gp</span>{{/if}}
-                        {{#if coinage.ep}}<span class="coin-chip coin-ep"><i class="fas fa-circle"></i> {{coinage.ep}} ep</span>{{/if}}
-                        {{#if coinage.sp}}<span class="coin-chip coin-sp"><i class="fas fa-circle"></i> {{coinage.sp}} sp</span>{{/if}}
-                        {{#if coinage.cp}}<span class="coin-chip coin-cp"><i class="fas fa-circle"></i> {{coinage.cp}} cp</span>{{/if}}
-                    {{else}}
-                        <span class="coin-chip coin-gp"><i class="fas fa-circle"></i> {{gold}} gp</span>
-                    {{/if}}
+                    <div class="cache-gold-chips">
+                        {{#if gold}}
+                        {{#if coinage}}
+                            {{#if coinage.pp}}<span class="coin-chip coin-pp"><i class="fas fa-circle"></i> {{coinage.pp}} pp</span>{{/if}}
+                            {{#if coinage.gp}}<span class="coin-chip coin-gp"><i class="fas fa-circle"></i> {{coinage.gp}} gp</span>{{/if}}
+                            {{#if coinage.ep}}<span class="coin-chip coin-ep"><i class="fas fa-circle"></i> {{coinage.ep}} ep</span>{{/if}}
+                            {{#if coinage.sp}}<span class="coin-chip coin-sp"><i class="fas fa-circle"></i> {{coinage.sp}} sp</span>{{/if}}
+                            {{#if coinage.cp}}<span class="coin-chip coin-cp"><i class="fas fa-circle"></i> {{coinage.cp}} cp</span>{{/if}}
+                        {{else}}
+                            <span class="coin-chip coin-gp"><i class="fas fa-circle"></i> {{gold}} gp</span>
+                        {{/if}}
+                        {{else}}
+                        <span class="cache-gold-empty">No coinage</span>
+                        {{/if}}
+                    </div>
+                    <div class="cache-gold-actions">
+                        <button type="button" class="action-reroll-gold reroll-btn" title="Roll a fresh gold total for this tier; items unchanged">
+                            <i class="fas fa-dice"></i>
+                        </button>
+                        <button type="button" class="action-clear-gold remove-btn" title="Clear all coinage">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
                 </div>
-                {{/if}}
 
                 {{!-- Special Items (Signatures / Party Shelf / Cursed injections) --}}
                 {{#if hasSpecial}}
@@ -577,7 +589,7 @@
                 <div class="cache-empty-state">
                     <i class="fas fa-treasure-chest"></i>
                     <p>Configure your cache above and hit Generate.</p>
-                    <p class="cache-hint">You can drag items from the left panel, or reroll individual slots after generating.</p>
+                    <p class="cache-hint">Generate a cache, then drag items from the left panel, compendiums, or the Items directory into the preview.</p>
                 </div>
                 {{/unless}}
             {{/if}}

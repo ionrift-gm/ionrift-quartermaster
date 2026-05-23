@@ -348,6 +348,43 @@ export class CacheGenerator {
         return false;
     }
 
+    /** Remove all coinage from a cache preview without touching items. */
+    static clearCacheGold(cacheResult) {
+        if (!cacheResult) return;
+        cacheResult.gold = 0;
+        delete cacheResult.coinage;
+    }
+
+    /**
+     * Roll a fresh base gold total for the cache tier and owner theme.
+     * Items are unchanged. Uses the same dice and multipliers as initial generation.
+     */
+    static async rerollCacheGold(cacheResult) {
+        if (!cacheResult?.meta) return cacheResult;
+
+        const tables = await this._loadTables();
+        const tier = cacheResult.meta.tier ?? 1;
+        const ownerTheme = cacheResult.meta.ownerTheme ?? "unspecified";
+        const tierData = tables.tiers?.[String(tier)];
+        const ownerDef = tables.ownerThemes?.[ownerTheme] ?? tables.ownerThemes?.unspecified;
+        if (!tierData) return cacheResult;
+
+        const economy = game.settings.get("ionrift-quartermaster", "lootEconomy") ?? 1.0;
+        const rawGold = await this._rollGold(tierData.goldDice);
+        cacheResult.gold = Math.max(
+            0,
+            Math.round(rawGold * (ownerDef?.budgetMultiplier ?? 1.0) * economy)
+        );
+
+        if (cacheResult.gold > 0 && game.settings.get("ionrift-quartermaster", "distributeCoins") !== false) {
+            cacheResult.coinage = this._distributeCoinage(cacheResult.gold);
+        } else {
+            delete cacheResult.coinage;
+        }
+
+        return cacheResult;
+    }
+
     /**
      * Returns the list of available owner themes.
      * @returns {Object[]} [{ id, label, desc }]

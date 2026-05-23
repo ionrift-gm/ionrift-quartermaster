@@ -13,6 +13,12 @@ import { Logger, MODULE_LABEL } from "../_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
+/** Foundry compendium / sidebar item drags (v12 and v13). */
+function getFoundryDragData(event) {
+    const TE = foundry.applications?.ux?.TextEditor?.implementation ?? globalThis.TextEditor;
+    return TE?.getDragEventData?.(event) ?? null;
+}
+
 /** Rows shown in Party Shelf and Cursed Pool strips (ledger + pool combined). */
 const ADVISORY_SIDE_POOL_CAP = 2;
 
@@ -571,6 +577,8 @@ export class CacheGeneratorApp extends Application {
         html.find(".action-reroll-container").click(this._onRerollContainer.bind(this));
         html.find(".action-inject-signature").click(this._onInjectSignature.bind(this));
         html.find(".action-add-items").click(this._onAddToItems.bind(this));
+        html.find(".action-clear-gold").click(this._onClearGold.bind(this));
+        html.find(".action-reroll-gold").click(this._onRerollGold.bind(this));
 
         // Advisory panel toggle
         html.find(".action-toggle-advisory").click(this._onToggleAdvisory.bind(this));
@@ -994,21 +1002,26 @@ export class CacheGeneratorApp extends Application {
 
     // ── Cache Results Drop Target ─────────────────────────────────────────────
 
+    _canAcceptCacheDrop(event) {
+        if (!this._currentResult) return false;
+        const types = [...(event.dataTransfer?.types ?? [])];
+        return types.includes("text/plain") || types.includes("application/json");
+    }
+
     /**
      * Increment the drag-enter counter and activate the drop-zone highlight.
      * Using a counter (instead of just dragover/dragleave) prevents flickering
      * when the cursor crosses child-element boundaries inside the zone.
      */
     _onCacheResultsDragEnter(event) {
-        if (!event.dataTransfer.types.includes("text/plain")) return;
+        if (!this._canAcceptCacheDrop(event)) return;
         event.preventDefault();
         this._dragEnterCount = (this._dragEnterCount ?? 0) + 1;
         event.currentTarget.classList.add("drop-target-active");
     }
 
     _onCacheResultsDragOver(event) {
-        // Only accept our own left-panel items
-        if (!event.dataTransfer.types.includes("text/plain")) return;
+        if (!this._canAcceptCacheDrop(event)) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = "copy";
     }
@@ -1020,101 +1033,165 @@ export class CacheGeneratorApp extends Application {
         }
     }
 
+    _parseLeftPanelDropPayload(event) {
+        try {
+            const raw = event.dataTransfer.getData("text/plain");
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return parsed?.type === "ionrift-left-panel-item" && parsed.uuid ? parsed : null;
+        } catch {
+            return null;
+        }
+    }
+
+    async _isDropBanned(uuid) {
+        const doc = await fromUuid(uuid);
+        if (!doc) return false;
+        const banSet = await SignatureLedger.getBanSet();
+        const key = (doc.name ?? "").toLowerCase();
+        if (key && banSet.has(key)) return true;
+        const list = await SignatureLedger.getBanList();
+        const uuidKey = uuid.toLowerCase();
+        return list.some(b => (b.uuid || "").toLowerCase() === uuidKey);
+    }
+
+    _recalcContainerCapacity() {
+        const result = this._currentResult;
+        if (!result?.container) return;
+
+        const contentWeightLbs = (result.items ?? []).reduce((sum, item) => {
+            const w = Number(item.weight ?? item.system?.weight?.value) || 0;
+            const qty = item.quantity ?? 1;
+            return sum + w * qty;
+        }, 0);
+
+        const cap = result.container.capacityLbs ?? 0;
+        const fillPercent = cap > 0
+            ? Math.min(100, Math.round((contentWeightLbs / cap) * 100))
+            : 0;
+
+        result.container = {
+            ...result.container,
+            contentWeightLbs,
+            fillPercent,
+            isOverweight: cap > 0 && contentWeightLbs > cap
+        };
+    }
+
+    async _handleLeftPanelDrop(payload) {
+        const panelSource = payload.panelSource
+            ?? (payload.isCursed ? "cursed" : "signature");
+
+        if (panelSource === "scroll") {
+            await this._injectAdvisoryScroll({
+                uuid:        payload.uuid,
+                spellName:   payload.spellName ?? "",
+                spellLevel:  payload.spellLevel,
+                level:       payload.level,
+                img:         ""
+            });
+            return;
+        }
+
+        const badge = payload.isCursed ? "Cursed"
+            : panelSource === "partyShelf" ? "Party Shelf"
+            : "Advisory";
+
+        await this._injectItem(
+            { uuid: payload.uuid, level: payload.level },
+            {
+                badge,
+                treatAsSignature: panelSource === "signature",
+                markDelivered: panelSource === "partyShelf",
+                markCursed: panelSource === "cursed"
+            }
+        );
+
+        if (payload.isCursed) {
+            await CacheGenerator.applyCacheCurses(this._currentResult, { forceCurse: false });
+        }
+    }
+
+    async _handleExternalItemDrop(dropUuid) {
+        if (await this._isDropBanned(dropUuid)) {
+            const doc = await fromUuid(dropUuid);
+            ui.notifications.warn(
+                `"${doc?.name ?? "Item"}" is on the ban list and cannot be added to a cache.`
+            );
+            return;
+        }
+
+        const adv = this._buildAdvisoryContext();
+        const shelfMatch  = (adv?.partyShelf ?? []).find(s => s.uuid === dropUuid);
+        const cursedMatch = (adv?.cursedPool ?? []).find(c => c.uuid === dropUuid);
+        const scrollMatch = (adv?.scrolls ?? []).find(s => s.uuid === dropUuid);
+
+        if (scrollMatch) {
+            await this._injectAdvisoryScroll({
+                uuid:        dropUuid,
+                spellName:   scrollMatch.spellName ?? "",
+                spellLevel:  scrollMatch.spellLevel ?? 0,
+                level:       scrollMatch.level,
+                img:         scrollMatch.img ?? ""
+            });
+            return;
+        }
+
+        if (cursedMatch) {
+            await this._injectItem(
+                { uuid: dropUuid },
+                { badge: "Cursed", markCursed: true }
+            );
+            await CacheGenerator.applyCacheCurses(this._currentResult, { forceCurse: false });
+            return;
+        }
+
+        if (shelfMatch) {
+            await this._injectItem(
+                { uuid: dropUuid, level: shelfMatch.level },
+                { badge: "Party Shelf", markDelivered: true }
+            );
+            return;
+        }
+
+        await this._injectItem({ uuid: dropUuid }, { badge: "Added" });
+    }
+
     async _onCacheResultsDrop(event) {
         event.preventDefault();
-        this._dragEnterCount = 0;  // Reset counter on any drop
+        this._dragEnterCount = 0;
         event.currentTarget.classList.remove("drop-target-active");
 
         if (!this._currentResult) return;
 
-        let payload;
-        try {
-            payload = JSON.parse(event.dataTransfer.getData("text/plain"));
-        } catch { return; }
-
-        // Accept internal left-panel drags
-        if (payload?.type === "ionrift-left-panel-item" && payload.uuid) {
-            const panelSource = payload.panelSource
-                ?? (payload.isCursed ? "cursed" : "signature");
-
-            if (panelSource === "scroll") {
-                await this._injectAdvisoryScroll({
-                    uuid:        payload.uuid,
-                    spellName:   payload.spellName ?? "",
-                    spellLevel:  payload.spellLevel,
-                    level:       payload.level,
-                    img:         ""
-                });
-                this.render();
-                return;
-            }
-
-            const badge = payload.isCursed ? "Cursed"
-                : panelSource === "partyShelf" ? "Party Shelf"
-                : "Advisory";
-
-            await this._injectItem(
-                { uuid: payload.uuid, level: payload.level },
-                {
-                    badge,
-                    treatAsSignature: panelSource === "signature",
-                    markDelivered: panelSource === "partyShelf",
-                    markCursed: panelSource === "cursed"
-                }
-            );
-
-            if (payload.isCursed) {
-                const curseEngine = game.ionrift?.cursewright?.engine;
-                if (curseEngine) {
-                    await curseEngine.applyCacheCurses(this._currentResult, { forceCurse: false });
-                }
-
-                this.render();
-            }
+        const leftPayload = this._parseLeftPanelDropPayload(event);
+        if (leftPayload) {
+            await this._handleLeftPanelDrop(leftPayload);
+            this.render();
             return;
         }
 
-        // Accept standard Foundry item drops (compendium / sidebar).
-        // Check whether the dropped item matches a known shelf or cursed entry
-        // so it routes to Special Items instead of generic loot.
-        if (payload?.type === "Item" && payload.uuid) {
-            const dropUuid = payload.uuid;
-            const adv = this._buildAdvisoryContext();
-
-            const shelfMatch   = (adv?.partyShelf ?? []).find(s => s.uuid === dropUuid);
-            const cursedMatch  = (adv?.cursedPool ?? []).find(c => c.uuid === dropUuid);
-            const scrollMatch  = (adv?.scrolls ?? []).find(s => s.uuid === dropUuid);
-
-            if (scrollMatch) {
-                await this._injectAdvisoryScroll({
-                    uuid:        dropUuid,
-                    spellName:   scrollMatch.spellName ?? "",
-                    spellLevel:  scrollMatch.spellLevel ?? 0,
-                    level:       scrollMatch.level,
-                    img:         scrollMatch.img ?? ""
-                });
-                this.render();
-            } else if (cursedMatch) {
-                await this._injectItem(
-                    { uuid: dropUuid },
-                    { badge: "Cursed", markCursed: true }
-                );
-                await CacheGenerator._applyCurses(this._currentResult, { forceCurse: false });
-
-                this.render();
-            } else if (shelfMatch) {
-                await this._injectItem(
-                    { uuid: dropUuid, level: shelfMatch.level },
-                    { badge: "Party Shelf", markDelivered: true }
-                );
-            } else {
-                await this._injectItem(
-                    { uuid: dropUuid },
-                    { badge: "Added" }
-                );
-            }
-            return;
+        const data = getFoundryDragData(event);
+        if (data?.type === "Item" && data.uuid) {
+            await this._handleExternalItemDrop(data.uuid);
+            this.render();
         }
+    }
+
+    // ── Coinage controls ──────────────────────────────────────────────────────
+
+    _onClearGold(event) {
+        event.preventDefault();
+        if (!this._currentResult) return;
+        CacheGenerator.clearCacheGold(this._currentResult);
+        this.render();
+    }
+
+    async _onRerollGold(event) {
+        event.preventDefault();
+        if (!this._currentResult) return;
+        await CacheGenerator.rerollCacheGold(this._currentResult);
+        this.render();
     }
 
     // ── Advisory Panel ────────────────────────────────────────────────────────
@@ -1265,6 +1342,7 @@ export class CacheGeneratorApp extends Application {
 
         this._currentResult.items.push(itemData);
         await this._refreshAdvisoryForCurrentCache();
+        this._recalcContainerCapacity();
     }
 
     /** Shared inject helper — resolves UUID to item data and pushes to result. */
@@ -1304,6 +1382,7 @@ export class CacheGeneratorApp extends Application {
                         img:               raw.img,
                         type:              raw.type ?? "loot",
                         price:             priceVal,
+                        weight:            raw.system?.weight?.value ?? raw.weight ?? 0,
                         rarity:            raw.system?.rarity ?? "",
                         isSignature:       treatAsSignature,
                         sourceCompendium,
@@ -1408,6 +1487,7 @@ export class CacheGeneratorApp extends Application {
         }
 
         await this._refreshAdvisoryForCurrentCache();
+        this._recalcContainerCapacity();
         this.render();
     }
 
@@ -1537,7 +1617,7 @@ export class CacheGeneratorApp extends Application {
         btn.prop("disabled", true).html("<i class='fas fa-spinner fa-spin'></i> Cursing...");
 
         try {
-            const didCurse = await CacheGenerator._applyCurses(this._currentResult, { forceCurse: true });
+            const didCurse = await CacheGenerator.applyCacheCurses(this._currentResult, { forceCurse: true });
             this.render();
             if (didCurse) {
                 ui.notifications.info("A curse has been woven into the cache.");

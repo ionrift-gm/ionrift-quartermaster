@@ -1,0 +1,75 @@
+{
+    "id": "catacombs",
+    "flavorPhrases": [
+        "Sealed behind a mortared niche. The brickwork was newer than the wall around it — someone hid this deliberately.",
+        "Inside a collapsed ossuary alcove, half-buried under bone and stone dust.",
+        "Beneath a toppled sarcophagus lid. The weight of the stone kept everything underneath dry.",
+        "In a recess behind a votive shelf. The offerings in front were undisturbed — this was placed after the burial.",
+        "Wrapped in a funeral shroud and tucked behind a row of skulls. Not part of the interment.",
+        "Under loose flagstones in a side passage. The mortar was old, but the chisel marks were not."
+    ],
+    "materials": ["Obsidian", "Mastercraft"],
+    "itemDescriptions": {
+        "sword": [
+            "A {name} wrapped in waxed linen that has gone brittle. The blade is dry and clean — the wrapping did its job.",
+            "A {name} in a scabbard stiff with verdigris. The steel inside is untouched by the damp. Cold to the touch."
+        ],
+        "axe": [
+            "A {name} coated in bone dust. The haft is pale and waxy but the head is spotless beneath the grime.",
+            "A {name}. The leather grip has gone hard and white, but the edge beneath the dust is keen."
+        ],
+        "dagger": [
+            "A {name} in a sheath stained green with copper corrosion. The blade inside is bright and cold.",
+            "A {name} wrapped in funeral linen. The cloth is stiff but the steel is clean."
+        ],
+        "bludgeon": [
+            "A {name} thick with calcium deposits. Scrape them away and the surface beneath is smooth.",
+            "A {name}. The grip wrapping has calcified but the head is pristine underneath."
+        ],
+        "polearm": [
+            "A {name} propped against the wall like a walking staff. Bone dust has settled in every joint, but the blade is clean.",
+            "A {name} with a film of white mineral residue. It wipes away to reveal bright steel."
+        ],
+        "ranged": [
+            "A {name} stored in an alcove away from the damp. The string has survived — unusual underground.",
+            "A {name} wrapped in oiled cloth that has gone stiff. The limbs are straight and the draw is smooth."
+        ],
+        "heavy_armor": [
+            "A {name} standing upright in a burial niche, as though placed on a stand that has since rotted away. The plates are clean.",
+            "A {name} laid flat on a stone shelf. Mineral seepage has crusted the surface, but underneath the steel is bright."
+        ],
+        "light_armor": [
+            "A {name} folded inside a stone container. The cold and the dark have preserved it better than any tanner could.",
+            "A {name} wrapped in waxed cloth. The wax has gone white but the leather beneath is supple."
+        ],
+        "shield": [
+            "A {name} propped face-down against the wall. The back is thick with dust but the face is unmarked.",
+            "A {name} stored behind a row of urns. Bone dust coats the grip but the boss is clean."
+        ],
+        "cloak": [
+            "A {name} folded inside a sealed stone box. The seal crumbles but the fabric inside is whole.",
+            "A {name} that smells of old incense and cold stone. No moth damage. The underground cold kept them out."
+        ],
+        "boots": [
+            "A pair of {name} wrapped in funeral cloth. The leather is cold but supple — the crypt conditions preserved them.",
+            "A pair of {name} tucked behind a sarcophagus. Dust-caked but undamaged."
+        ],
+        "ring": [
+            "A ring inside a small clay vessel, sealed with wax. The seal is intact. The metal inside is warm to the touch.",
+            "A ring on a skeletal finger. It slides free easily. The metal has not corroded."
+        ],
+        "potion": [
+            "A glass vial bedded in wax inside a stone niche. The cold has kept the contents stable.",
+            "A stoppered flask wrapped in strips of linen. The wax seal is white with age but unbroken."
+        ],
+        "scroll": [
+            "A scroll tube sealed with lead solder. The cold and the dark have preserved the contents perfectly.",
+            "A bone scroll case with a wax-sealed cap. The parchment inside is dry and crisp."
+        ],
+        "generic": [
+            "A {name} wrapped in funeral cloth. The linen is stiff with age but what it protected is pristine.",
+            "A {name} sealed inside a stone niche. Mineral deposits frame the opening but the contents are untouched.",
+            "A {name}. The crypt has preserved it better than any vault. Cold, dark, and dry."
+        ]
+    }
+}
