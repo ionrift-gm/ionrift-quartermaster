@@ -1,0 +1,41 @@
+{
+    "_id":  "1cd09757f2bf5613",
+    "name":  "Vial of Dark Perfume",
+    "type":  "loot",
+    "img":  "ionrift-data/overlays/ionrift-quartermaster/free/art/items/treasure/vial-of-dark-perfume.png",
+    "folder":  "f0a1b2c3d4e5f602",
+    "system":  {
+                   "description":  {
+                                       "value":  "\u003cp\u003eA dark glass vial stoppered with wax. Rich and heavy -- night-blooming flowers and cedar resin. A city scent.\u003c/p\u003e",
+                                       "chat":  ""
+                                   },
+                   "source":  {
+                                  "custom":  "",
+                                  "book":  "Ionrift Quartermaster",
+                                  "page":  "",
+                                  "license":  ""
+                              },
+                   "quantity":  1,
+                   "weight":  0.1,
+                   "price":  {
+                                 "value":  40,
+                                 "denomination":  "gp"
+                             },
+                   "rarity":  "common",
+                   "identified":  true,
+                   "attunement":  0,
+                   "equipped":  false,
+                   "properties":  [
+
+                                  ]
+               },
+    "flags":  {
+                  "ionrift-workshop":  {
+                                           "itemRef":  "treasure-vial-of-dark-perfume",
+                                           "treasureMeta":  {
+                                                                "category":  "tradeGood",
+                                                                "priceGp":  40
+                                                            }
+                                       }
+              }
+}

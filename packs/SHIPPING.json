@@ -29,8 +29,8 @@
       "reason": "Legacy pack from pre-1.0 layout"
     },
     "quartermaster-treasure": {
-      "status": "retired",
-      "reason": "Legacy pack from pre-1.0 layout"
+      "status": "dev",
+      "reason": "WIP. Migrated out of legacy _ea4_build tree on 2026-05-23 so it can be iterated under version control. Currently composed into quartermaster-core-overlay as raw JSON (not an LDB pack in module.json). Promote to approved once pricing, naming, and SIGNOFF pass review."
     },
     "quartermaster-cursed": {
       "status": "retired",

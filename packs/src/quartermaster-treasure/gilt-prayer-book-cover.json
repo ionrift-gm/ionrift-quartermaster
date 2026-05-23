@@ -1,0 +1,49 @@
+﻿{
+    "_id":  "a1b2c3d4e5f6b204",
+    "name":  "Gilt Prayer Book Cover",
+    "type":  "loot",
+    "img":  "ionrift-data/overlays/ionrift-quartermaster/subscriber/art/items/terrain-treasure/gilt-prayer-book-cover.webp",
+    "folder":  null,
+    "system":  {
+                   "description":  {
+                                       "value":  "\u003cp\u003eJust the cover. The pages rotted decades ago. Gold leaf over bronze, hinged spine. A devotional object from a faith that moved on.\u003c/p\u003e",
+                                       "chat":  ""
+                                   },
+                   "source":  {
+                                  "custom":  "",
+                                  "book":  "Ionrift Quartermaster",
+                                  "page":  "",
+                                  "license":  ""
+                              },
+                   "quantity":  1,
+                   "weight":  1,
+                   "price":  {
+                                 "value":  20,
+                                 "denomination":  "gp"
+                             },
+                   "rarity":  "",
+                   "identified":  true,
+                   "properties":  [
+
+                                  ],
+                   "type":  {
+                                "value":  "art",
+                                "subtype":  ""
+                            }
+               },
+    "flags":  {
+                  "ionrift-workshop":  {
+                                           "itemRef":  "ruins-gilt-prayer-book-cover",
+                                           "coreMeta":  {
+                                                            "category":  "Treasure",
+                                                            "material":  "Treasure",
+                                                            "priceGp":  20
+                                                        }
+                                       },
+                  "ionrift-quartermaster":  {
+                                                "terrain":  [
+                                                                "ruins"
+                                                            ]
+                                            }
+              }
+}

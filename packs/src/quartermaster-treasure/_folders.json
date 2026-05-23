@@ -1,0 +1,68 @@
+[
+  {
+    "_id": "6db93f9bfcfc4acd",
+    "name": "Art Objects",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 100,
+    "color": null,
+    "folder": null,
+    "flags": {}
+  },
+  {
+    "_id": "d509c12f51438bf5",
+    "name": "Trade Goods",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 200,
+    "color": null,
+    "folder": null,
+    "flags": {}
+  },
+  {
+    "_id": "175a6040a4faa4f4",
+    "name": "Coin Finds",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 300,
+    "color": null,
+    "folder": null,
+    "flags": {}
+  },
+  {
+    "_id": "f0a1b2c3d4e5f601",
+    "name": "Common (≤30 gp)",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 1,
+    "color": null,
+    "folder": null,
+    "flags": { "ionrift-quartermaster": { "qualityTier": "common" } }
+  },
+  {
+    "_id": "f0a1b2c3d4e5f602",
+    "name": "Fine (35–100 gp)",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 2,
+    "color": null,
+    "folder": null,
+    "flags": { "ionrift-quartermaster": { "qualityTier": "fine" } }
+  },
+  {
+    "_id": "f0a1b2c3d4e5f603",
+    "name": "Exquisite (120+ gp)",
+    "_type": "folder",
+    "type": "Item",
+    "sorting": "a",
+    "sort": 3,
+    "color": null,
+    "folder": null,
+    "flags": { "ionrift-quartermaster": { "qualityTier": "exquisite" } }
+  }
+]

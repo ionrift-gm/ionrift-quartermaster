@@ -1,0 +1,49 @@
+﻿{
+    "_id":  "c1d2e3f4a5b6d204",
+    "name":  "Embalming Jar (Sealed)",
+    "type":  "loot",
+    "img":  "ionrift-data/overlays/ionrift-quartermaster/subscriber/art/items/terrain-treasure/embalming-jar-sealed.webp",
+    "folder":  null,
+    "system":  {
+                   "description":  {
+                                       "value":  "\u003cp\u003eAlabaster, sealed with ancient wax. The contents are unknown. A collector of antiquities would pay more than the jar is worth in material.\u003c/p\u003e",
+                                       "chat":  ""
+                                   },
+                   "source":  {
+                                  "custom":  "",
+                                  "book":  "Ionrift Quartermaster",
+                                  "page":  "",
+                                  "license":  ""
+                              },
+                   "quantity":  1,
+                   "weight":  3,
+                   "price":  {
+                                 "value":  20,
+                                 "denomination":  "gp"
+                             },
+                   "rarity":  "",
+                   "identified":  true,
+                   "properties":  [
+
+                                  ],
+                   "type":  {
+                                "value":  "art",
+                                "subtype":  ""
+                            }
+               },
+    "flags":  {
+                  "ionrift-workshop":  {
+                                           "itemRef":  "catacombs-embalming-jar-sealed",
+                                           "coreMeta":  {
+                                                            "category":  "Treasure",
+                                                            "material":  "Treasure",
+                                                            "priceGp":  20
+                                                        }
+                                       },
+                  "ionrift-quartermaster":  {
+                                                "terrain":  [
+                                                                "catacombs"
+                                                            ]
+                                            }
+              }
+}

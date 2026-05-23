@@ -1,0 +1,45 @@
+{
+  "_id": "c1d2e3f4a5b6d202",
+  "name": "Inlaid Ossuary Plaque",
+  "type": "loot",
+  "img": "ionrift-data/overlays/ionrift-quartermaster/subscriber/art/items/terrain-treasure/jeweled-ossuary-plaque.webp",
+  "folder": null,
+  "system": {
+    "description": {
+      "value": "<p>A stone tablet inlaid with semi-precious stones. It once marked a family crypt. The family name has been deliberately chiseled away.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 2,
+    "price": {
+      "value": 40,
+      "denomination": "gp"
+    },
+    "rarity": "",
+    "identified": true,
+    "properties": [],
+    "type": {
+      "value": "art",
+      "subtype": ""
+    }
+  },
+  "flags": {
+    "ionrift-workshop": {
+      "itemRef": "catacombs-inlaid-ossuary-plaque",
+      "coreMeta": {
+        "category": "Treasure",
+        "material": "Treasure",
+        "priceGp": 40
+      }
+    },
+    "ionrift-quartermaster": {
+      "terrain": ["catacombs"]
+    }
+  }
+}

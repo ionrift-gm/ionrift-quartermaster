@@ -1,0 +1,49 @@
+﻿{
+    "_id":  "c1d2e3f4a5b6d201",
+    "name":  "Gold Phylactery Pendant",
+    "type":  "loot",
+    "img":  "ionrift-data/overlays/ionrift-quartermaster/subscriber/art/items/terrain-treasure/gold-phylactery-pendant.webp",
+    "folder":  null,
+    "system":  {
+                   "description":  {
+                                       "value":  "\u003cp\u003eA small hinged gold case meant to hold a prayer scroll. Empty now. The filigree is exquisite.\u003c/p\u003e",
+                                       "chat":  ""
+                                   },
+                   "source":  {
+                                  "custom":  "",
+                                  "book":  "Ionrift Quartermaster",
+                                  "page":  "",
+                                  "license":  ""
+                              },
+                   "quantity":  1,
+                   "weight":  0.25,
+                   "price":  {
+                                 "value":  60,
+                                 "denomination":  "gp"
+                             },
+                   "rarity":  "",
+                   "identified":  true,
+                   "properties":  [
+
+                                  ],
+                   "type":  {
+                                "value":  "art",
+                                "subtype":  ""
+                            }
+               },
+    "flags":  {
+                  "ionrift-workshop":  {
+                                           "itemRef":  "catacombs-gold-phylactery-pendant",
+                                           "coreMeta":  {
+                                                            "category":  "Treasure",
+                                                            "material":  "Treasure",
+                                                            "priceGp":  60
+                                                        }
+                                       },
+                  "ionrift-quartermaster":  {
+                                                "terrain":  [
+                                                                "catacombs"
+                                                            ]
+                                            }
+              }
+}

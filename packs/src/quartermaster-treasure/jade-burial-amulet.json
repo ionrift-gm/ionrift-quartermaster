@@ -1,0 +1,49 @@
+﻿{
+    "_id":  "c1d2e3f4a5b6d209",
+    "name":  "Jade Burial Amulet",
+    "type":  "loot",
+    "img":  "ionrift-data/overlays/ionrift-quartermaster/subscriber/art/items/terrain-treasure/jade-burial-amulet.webp",
+    "folder":  null,
+    "system":  {
+                   "description":  {
+                                       "value":  "\u003cp\u003eA flat disc of jade carved with protective symbols. Placed on the chest of the dead. Cool to the touch regardless of the air temperature.\u003c/p\u003e",
+                                       "chat":  ""
+                                   },
+                   "source":  {
+                                  "custom":  "",
+                                  "book":  "Ionrift Quartermaster",
+                                  "page":  "",
+                                  "license":  ""
+                              },
+                   "quantity":  1,
+                   "weight":  0.25,
+                   "price":  {
+                                 "value":  40,
+                                 "denomination":  "gp"
+                             },
+                   "rarity":  "",
+                   "identified":  true,
+                   "properties":  [
+
+                                  ],
+                   "type":  {
+                                "value":  "art",
+                                "subtype":  ""
+                            }
+               },
+    "flags":  {
+                  "ionrift-workshop":  {
+                                           "itemRef":  "catacombs-jade-burial-amulet",
+                                           "coreMeta":  {
+                                                            "category":  "Treasure",
+                                                            "material":  "Treasure",
+                                                            "priceGp":  40
+                                                        }
+                                       },
+                  "ionrift-quartermaster":  {
+                                                "terrain":  [
+                                                                "catacombs"
+                                                            ]
+                                            }
+              }
+}

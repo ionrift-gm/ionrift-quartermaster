@@ -21,13 +21,12 @@ packs/workshop-containers-new/
 packs/workshop-containers-new2/
 packs/scrolls/
 
-# Pack source data (content IP — only containers src ships)
+# Pack source data (content IP, restricted to approved packs only)
 packs/src/proving-grounds/
 packs/src/proving-grounds-guide/
 packs/src/quartermaster-core/
 packs/src/quartermaster-gemstones/
 packs/src/quartermaster-scrolls/
-packs/src/quartermaster-treasure/
 
 # Triage output (local item dumps, may contain homebrew references)
 data/triage-output/

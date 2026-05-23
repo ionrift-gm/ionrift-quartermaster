@@ -1,0 +1,49 @@
+﻿{
+    "_id":  "a1b2c3d4e5f6b205",
+    "name":  "Agate Cameo Brooch",
+    "type":  "loot",
+    "img":  "ionrift-data/overlays/ionrift-quartermaster/subscriber/art/items/terrain-treasure/agate-cameo-brooch.webp",
+    "folder":  null,
+    "system":  {
+                   "description":  {
+                                       "value":  "\u003cp\u003ePortrait carved in banded agate. The face is anonymous now. The stonework is fine enough that the subject was important.\u003c/p\u003e",
+                                       "chat":  ""
+                                   },
+                   "source":  {
+                                  "custom":  "",
+                                  "book":  "Ionrift Quartermaster",
+                                  "page":  "",
+                                  "license":  ""
+                              },
+                   "quantity":  1,
+                   "weight":  0.05,
+                   "price":  {
+                                 "value":  35,
+                                 "denomination":  "gp"
+                             },
+                   "rarity":  "",
+                   "identified":  true,
+                   "properties":  [
+
+                                  ],
+                   "type":  {
+                                "value":  "art",
+                                "subtype":  ""
+                            }
+               },
+    "flags":  {
+                  "ionrift-workshop":  {
+                                           "itemRef":  "ruins-agate-cameo-brooch",
+                                           "coreMeta":  {
+                                                            "category":  "Treasure",
+                                                            "material":  "Treasure",
+                                                            "priceGp":  35
+                                                        }
+                                       },
+                  "ionrift-quartermaster":  {
+                                                "terrain":  [
+                                                                "ruins"
+                                                            ]
+                                            }
+              }
+}

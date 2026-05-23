@@ -1,0 +1,41 @@
+{
+    "_id":  "05d3173fa2c1b10d",
+    "name":  "Ivory Hair Comb",
+    "type":  "loot",
+    "img":  "ionrift-data/overlays/ionrift-quartermaster/free/art/items/treasure/ivory-hair-comb.png",
+    "folder":  "f0a1b2c3d4e5f601",
+    "system":  {
+                   "description":  {
+                                       "value":  "\u003cp\u003eA carved ivory comb, teeth intact. Floral motifs along the spine.\u003c/p\u003e",
+                                       "chat":  ""
+                                   },
+                   "source":  {
+                                  "custom":  "",
+                                  "book":  "Ionrift Quartermaster",
+                                  "page":  "",
+                                  "license":  ""
+                              },
+                   "quantity":  1,
+                   "weight":  0.1,
+                   "price":  {
+                                 "value":  20,
+                                 "denomination":  "gp"
+                             },
+                   "rarity":  "common",
+                   "identified":  true,
+                   "attunement":  0,
+                   "equipped":  false,
+                   "properties":  [
+
+                                  ]
+               },
+    "flags":  {
+                  "ionrift-workshop":  {
+                                           "itemRef":  "treasure-ivory-hair-comb",
+                                           "treasureMeta":  {
+                                                                "category":  "artObject",
+                                                                "priceGp":  20
+                                                            }
+                                       }
+              }
+}

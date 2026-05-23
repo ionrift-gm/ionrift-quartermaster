@@ -1,0 +1,45 @@
+{
+  "_id": "a1b2c3d4e5f6b201",
+  "name": "Brass Sundial Gnomon",
+  "type": "loot",
+  "img": "ionrift-data/overlays/ionrift-quartermaster/subscriber/art/items/terrain-treasure/jeweled-sundial-gnomon.webp",
+  "folder": null,
+  "system": {
+    "description": {
+      "value": "<p>The pointer from a precision sundial, set with a small garnet at the tip. The brass is green but the stone catches light.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 0.5,
+    "price": {
+      "value": 60,
+      "denomination": "gp"
+    },
+    "rarity": "",
+    "identified": true,
+    "properties": [],
+    "type": {
+      "value": "art",
+      "subtype": ""
+    }
+  },
+  "flags": {
+    "ionrift-workshop": {
+      "itemRef": "ruins-brass-sundial-gnomon",
+      "coreMeta": {
+        "category": "Treasure",
+        "material": "Treasure",
+        "priceGp": 60
+      }
+    },
+    "ionrift-quartermaster": {
+      "terrain": ["ruins"]
+    }
+  }
+}

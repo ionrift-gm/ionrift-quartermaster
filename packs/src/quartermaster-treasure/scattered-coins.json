@@ -1,0 +1,41 @@
+{
+    "_id":  "d8d03f0eb3250cc3",
+    "name":  "Scattered Coins",
+    "type":  "loot",
+    "img":  "ionrift-data/overlays/ionrift-quartermaster/free/art/items/treasure/scattered-coins.png",
+    "folder":  "f0a1b2c3d4e5f601",
+    "system":  {
+                   "description":  {
+                                       "value":  "\u003cp\u003eA loose scatter of gold and silver coins. Enough to matter.\u003c/p\u003e",
+                                       "chat":  ""
+                                   },
+                   "source":  {
+                                  "custom":  "",
+                                  "book":  "Ionrift Quartermaster",
+                                  "page":  "",
+                                  "license":  ""
+                              },
+                   "quantity":  1,
+                   "weight":  0.1,
+                   "price":  {
+                                 "value":  10,
+                                 "denomination":  "gp"
+                             },
+                   "rarity":  "common",
+                   "identified":  true,
+                   "attunement":  0,
+                   "equipped":  false,
+                   "properties":  [
+
+                                  ]
+               },
+    "flags":  {
+                  "ionrift-workshop":  {
+                                           "itemRef":  "treasure-scattered-coins",
+                                           "treasureMeta":  {
+                                                                "category":  "coinFind",
+                                                                "priceGp":  10
+                                                            }
+                                       }
+              }
+}

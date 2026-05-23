@@ -1,0 +1,39 @@
+{
+  "_id": "b9fe472d6b31e244",
+  "name": "Slim Gold Anklet",
+  "type": "loot",
+  "img": "ionrift-data/overlays/ionrift-quartermaster/free/art/items/treasure/jeweled-anklet.png",
+  "folder": "f0a1b2c3d4e5f602",
+  "system": {
+    "description": {
+      "value": "<p>A slim gold anklet set with small garnets. Delicate enough to suggest it was not made for travel.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "Ionrift Quartermaster",
+      "page": "",
+      "license": ""
+    },
+    "quantity": 1,
+    "weight": 0.1,
+    "price": {
+      "value": 45,
+      "denomination": "gp"
+    },
+    "rarity": "common",
+    "identified": true,
+    "attunement": 0,
+    "equipped": false,
+    "properties": []
+  },
+  "flags": {
+    "ionrift-workshop": {
+      "itemRef": "treasure-slim-gold-anklet",
+      "treasureMeta": {
+        "category": "artObject",
+        "priceGp": 45
+      }
+    }
+  }
+}
