@@ -28,10 +28,7 @@
       "status": "retired",
       "reason": "Legacy pack from pre-1.0 layout"
     },
-    "quartermaster-treasure": {
-      "status": "dev",
-      "reason": "WIP. Migrated out of legacy _ea4_build tree on 2026-05-23 so it can be iterated under version control. Currently composed into quartermaster-core-overlay as raw JSON (not an LDB pack in module.json). Promote to approved once pricing, naming, and SIGNOFF pass review."
-    },
+    "_quartermaster-treasure_MOVED": "RELOCATED 2026-05-24: Source moved out of this module to ionrift-pack-workshop/packs/quartermaster/core/items/treasure/ so it ships only via overlay download, not as part of the module binary. Composed into quartermaster-core-overlay 0.2.0.",
     "quartermaster-cursed": {
       "status": "retired",
       "reason": "Merged into proving-grounds in v1.3.0-ea.2"
