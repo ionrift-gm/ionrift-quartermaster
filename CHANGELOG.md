@@ -1,6 +1,13 @@
 # Changelog
 
-## [1.3.7] - 2026-05-20
+## [1.3.8] - 2026-05-24
+
+### Added
+- **Drag-and-drop to cache preview.** Items from compendiums or the world item sidebar can now be dropped directly onto the loot builder preview to inject them into the cache.
+- **Coin reroll and clear.** The coinage row in the cache preview now has reroll and clear buttons, so you can re-randomise or zero out the gold without regenerating the whole cache.
+
+### Fixed
+- Item creation during cache generation no longer fails when the source item has an unexpected data shape. Guards added to the promotion and mint paths prevent silent drops.
 
 ### Added
 - Loot pools now exclude Cursewright-managed compendiums automatically. If Cursewright handles injection for a source, it will not appear in the Quartermaster pool configuration.
