@@ -536,14 +536,10 @@ Hooks.on('ready', () => {
 
     // Content Pack discovery + auto-compile
     if (game.user.isGM) {
-        // Initialize terrain data registry from built-in manifests.
-        // QM reads the spine for shared terrains but does NOT write into it.
+        // Initialise terrain data: the module ships data only for the kernel
+        // base, and the registry merges in any active overlay's data/terrains
+        // folders so packs are plug-and-play with no module patch required.
         TerrainDataRegistry.init().then(() => {
-            // QM reads the spine for its dropdown but does NOT register its own
-            // terrain-data folders into the shared spine. QM has loot data for
-            // terrains like coastal/jungle, but that data is local to the cache
-            // generator — it should not add terrains to the ecosystem-wide spine.
-            // The spine's authority comes from the library seeds + overlay packs.
             Logger.log(MODULE_LABEL,
                 `TerrainDataRegistry loaded ${TerrainDataRegistry.getAll().length} terrain data folders.`);
         }).catch(err => {

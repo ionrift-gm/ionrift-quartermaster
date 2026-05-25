@@ -46,8 +46,7 @@
       "containerMeta": {
         "terrains": [
           "dungeon",
-          "urban",
-          "underground"
+          "urban"
         ],
         "cacheTypes": [
           "hoard",

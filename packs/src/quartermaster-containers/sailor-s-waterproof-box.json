@@ -45,9 +45,7 @@
       "itemRef": "container-sailor-s-waterproof-box",
       "containerMeta": {
         "terrains": [
-          "coastal",
-          "ship",
-          "port"
+          "coastal"
         ],
         "cacheTypes": [
           "merchant_wreck",

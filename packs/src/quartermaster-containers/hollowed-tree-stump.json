@@ -46,7 +46,6 @@
       "containerMeta": {
         "terrains": [
           "forest",
-          "wilderness",
           "jungle"
         ],
         "cacheTypes": [

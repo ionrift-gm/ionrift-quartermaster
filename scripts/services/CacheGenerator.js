@@ -20,7 +20,8 @@ const MODULE_ID = "ionrift-quartermaster";
 const PACK_SUFFIX = {
     gemstones: "quartermaster-gemstones",
     treasure: "quartermaster-treasure",
-    core: "quartermaster-core"
+    core: "quartermaster-core",
+    containers: "quartermaster-containers"
 };
 
 /**
@@ -56,6 +57,79 @@ function isQmPackRole(compendiumId, role) {
     if (!compendiumId) return false;
     const suffix = PACK_SUFFIX[role];
     return !!suffix && compendiumId.endsWith(`.${suffix}`);
+}
+
+/**
+ * Container compendiums for cache generation. Merges the module pack with every
+ * materialised overlay pack whose collection id starts with quartermaster-containers.
+ * @returns {CompendiumCollection[]}
+ */
+function resolveQmContainerPacks() {
+    const packs = [];
+    const seen = new Set();
+    const prefix = PACK_SUFFIX.containers;
+
+    const mod = game.packs.get(`${MODULE_ID}.${prefix}`);
+    if (mod) {
+        packs.push(mod);
+        seen.add(mod.collection);
+    }
+
+    for (const pack of game.packs) {
+        if (pack.metadata?.type !== "Item") continue;
+        const col = pack.collection;
+        if (!col.startsWith("world.")) continue;
+        const role = col.slice(6);
+        if (role !== prefix && !role.startsWith(`${prefix}-`)) continue;
+        if (seen.has(col)) continue;
+        packs.push(pack);
+        seen.add(col);
+    }
+
+    return packs;
+}
+
+/** @param {string} html */
+function parseDiscoveryPhrases(html) {
+    if (!html || typeof html !== "string") return [];
+    return html
+        .split(/<\/p>/i)
+        .map(part => part.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim())
+        .filter(Boolean);
+}
+
+/** @param {object} entry @param {string} theme */
+function containerMatchesTerrain(entry, theme) {
+    const terrains = entry.flags?.["ionrift-quartermaster"]?.containerMeta?.terrains ?? ["any"];
+    return terrains.includes(theme);
+}
+
+/** True when tagged for this terrain and not a generic any-only entry. */
+function containerIsTerrainSpecific(entry, theme) {
+    const terrains = entry.flags?.["ionrift-quartermaster"]?.containerMeta?.terrains ?? ["any"];
+    return terrains.includes(theme) && !(terrains.length === 1 && terrains[0] === "any");
+}
+
+/**
+ * @returns {Promise<object[]>}
+ */
+async function loadContainerPoolIndex() {
+    const packs = resolveQmContainerPacks();
+    if (!packs.length) return [];
+
+    const merged = [];
+    for (const pack of packs) {
+        try {
+            const index = await pack.getIndex({ fields: ["name", "img", "system", "flags", "type"] });
+            const chunk = index.contents || Array.from(index) || [];
+            for (const entry of chunk) {
+                merged.push({ ...entry, _sourceCollection: pack.collection });
+            }
+        } catch (err) {
+            Logger.warn(MODULE_LABEL, `Container index failed for ${pack.collection}:`, err.message);
+        }
+    }
+    return merged;
 }
 
 export class CacheGenerator {
@@ -141,13 +215,8 @@ export class CacheGenerator {
         // Tier-specific GP floor for filler slots
         const goldFillerFloor = [0, 5, 15, 40, 100][tier] ?? 5;
 
-        // Pick a discovery flavor phrase for this terrain
-        const phrases = TerrainDataRegistry.getFlavorPhrases(theme)
-            || tables.flavorPhrases?.[theme]  // legacy fallback
-            || [];
-        if (phrases.length) {
-            result.meta.flavor = phrases[Math.floor(Math.random() * phrases.length)];
-        }
+        // Discovery flavor is resolved after the container is picked (container
+        // description paragraphs take priority over terrain phrases).
 
         // ── Gold: always roll, scaled by owner theme ────────────────
         const rawGold = await this._rollGold(tierData.goldDice);
@@ -302,12 +371,7 @@ export class CacheGenerator {
                 isOverweight: currentWeight > container.capacityLbs
             };
 
-            // Resolve {container} token in flavor phrase now that we know the actual container
-            if (result.meta.flavor?.includes("{container}")) {
-                const name = container.name.toLowerCase();
-                const article = /^[aeiou]/i.test(name) ? "an" : "a";
-                result.meta.flavor = result.meta.flavor.replaceAll("{container}", `${article} ${name}`);
-            }
+            CacheGenerator.applyContainerFlavor(result, theme, tables);
         }
 
         // Curse injection point — reserved for ionrift-cursewright.
@@ -330,6 +394,39 @@ export class CacheGenerator {
         }
 
         return result;
+    }
+
+    /**
+     * Set result.meta.flavor from the picked container description (one random
+     * paragraph) or fall back to terrain discovery phrases.
+     * @param {Object} result
+     * @param {string} theme
+     * @param {Object} [tables]
+     */
+    static applyContainerFlavor(result, theme, tables = null) {
+        const container = result.container;
+        if (!container) return;
+
+        const descPhrases = parseDiscoveryPhrases(container.system?.description?.value);
+        if (descPhrases.length) {
+            result.meta.flavor = descPhrases[Math.floor(Math.random() * descPhrases.length)];
+            return;
+        }
+
+        const fromRegistry = TerrainDataRegistry.getFlavorPhrases(theme);
+        const phrases = (fromRegistry?.length ? fromRegistry : null)
+            ?? tables?.flavorPhrases?.[theme]
+            ?? this._tables?.flavorPhrases?.[theme]
+            ?? [];
+        if (!phrases.length) return;
+
+        let line = phrases[Math.floor(Math.random() * phrases.length)];
+        if (line.includes("{container}")) {
+            const name = container.name.toLowerCase();
+            const article = /^[aeiou]/i.test(name) ? "an" : "a";
+            line = line.replaceAll("{container}", `${article} ${name}`);
+        }
+        result.meta.flavor = line;
     }
 
     /**
@@ -1314,13 +1411,7 @@ export class CacheGenerator {
      */
     static async _pickContainer(ownerTheme = 'unspecified', theme = 'any', contentWeightLbs = 0) {
         try {
-            const pack = game.packs.get('ionrift-quartermaster.quartermaster-containers');
-            if (!pack) {
-                return null;
-            }
-            const index = await pack.getIndex({ fields: ['name', 'img', 'system', 'flags'] });
-            const pool = index.contents || Array.from(index) || [];
-
+            const pool = await loadContainerPoolIndex();
             if (pool.length === 0) return null;
 
             // Primary filter: matches ownerTheme (check both new and legacy flag fields)
@@ -1333,12 +1424,12 @@ export class CacheGenerator {
             // If no theme match, fall back to all containers
             const activePool = byTheme.length > 0 ? byTheme : pool;
 
-            // Secondary filter: prefer terrain-matched
-            const byTerrain = activePool.filter(e => {
-                const terrains = e.flags?.['ionrift-quartermaster']?.containerMeta?.terrains ?? ['any'];
-                return terrains.includes(theme);
-            });
-            const terrainPool = byTerrain.length > 0 ? byTerrain : activePool;
+            // Secondary filter: prefer terrain-matched, favor terrain-specific tags
+            const byTerrain = activePool.filter(e => containerMatchesTerrain(e, theme));
+            const terrainSpecific = byTerrain.filter(e => containerIsTerrainSpecific(e, theme));
+            const terrainPool = terrainSpecific.length > 0
+                ? terrainSpecific
+                : (byTerrain.length > 0 ? byTerrain : activePool);
 
             // Prefer containers with sufficient capacity
             const withCapacity = terrainPool.filter(e => {
@@ -1351,7 +1442,7 @@ export class CacheGenerator {
             const pick = finalPool[Math.floor(Math.random() * finalPool.length)];
 
             const emptyWeightLbs = ItemPoolResolver._extractWeight(pick);
-            const packId = `${MODULE_ID}.quartermaster-containers`;
+            const packId = pick._sourceCollection ?? `${MODULE_ID}.${PACK_SUFFIX.containers}`;
 
             return {
                 name: pick.name,

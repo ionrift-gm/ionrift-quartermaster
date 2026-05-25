@@ -45,9 +45,8 @@
       "itemRef": "container-clay-burial-urn",
       "containerMeta": {
         "terrains": [
-          "tomb",
-          "ruin",
-          "temple"
+          "catacombs",
+          "ruins"
         ],
         "cacheTypes": [
           "hoard",

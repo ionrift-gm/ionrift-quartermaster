@@ -1,14 +1,17 @@
 /**
  * TerrainDataRegistry
  * Data-driven terrain configuration for Quartermaster.
- * Loads terrain manifests from data/terrains/{id}/terrain-qm.json at boot.
  *
- * This is the QM-scoped registry. It holds module-specific content
- * (flavor phrases, mastercraft materials, terrain-aware item descriptions).
- * For canonical terrain identity (id + label), delegate to the lib spine:
- *   game.ionrift.library.terrains
- *
- * Follows the same manifest-driven pattern as Respite's TerrainRegistry.
+ * Under strict sovereignty this is the sole source of truth for QM's terrain
+ * picker. The module ships only its base set; every other terrain is
+ * delivered by an overlay. At init the registry loads
+ * `data/terrains/{id}/terrain-qm.json` for each id in the module's release
+ * manifest, then scans every installed and active overlay for matching files
+ * under `data/terrains/<id>/terrain-qm.json` and merges them in. Installing
+ * a new overlay introduces its terrains without any module patch; the
+ * library kernel base from `game.ionrift.library.terrains.getBase()` is the
+ * only thing read from outside the module, and only for canonical id/label
+ * alignment in the picker dropdown.
  */
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
@@ -26,18 +29,33 @@ export class TerrainDataRegistry {
     // ── Initialization ────────────────────────────────────────────────
 
     /**
-     * Initialize the registry from the release manifest.
-     * Loads data/terrains/manifest.json, then fetches each terrain's
-     * terrain-qm.json in parallel.
+     * Initialize the registry. Loads the module's released base terrains, then
+     * scans every installed and active overlay for additional terrain folders
+     * and merges them in. The module ships data only for the kernel base set;
+     * everything else is delivered plug-and-play by the active overlays.
      *
      * @param {boolean} [force=false] - Force reload (e.g. after overlay install)
      */
     static async init(force = false) {
         if (this._ready && !force) return;
 
-        // On force reload, clear stale data so removed terrains disappear
         if (force) this._terrains.clear();
 
+        await this._loadModuleBase();
+        await this._loadFromOverlays();
+
+        this._ready = true;
+
+        const sorted = [...this._terrains.keys()].sort().join(", ");
+        Logger.info(MODULE_LABEL,
+            `TerrainDataRegistry: Loaded ${this._terrains.size} terrains: ${sorted}`);
+    }
+
+    /**
+     * Load the module-shipped terrains listed in data/terrains/manifest.json.
+     * @private
+     */
+    static async _loadModuleBase() {
         let released = [];
         try {
             const resp = await fetch(`modules/${MODULE_ID}/data/terrains/manifest.json`);
@@ -69,11 +87,60 @@ export class TerrainDataRegistry {
         });
 
         await Promise.all(loadPromises);
-        this._ready = true;
+    }
 
-        const sorted = [...this._terrains.keys()].sort().join(", ");
-        Logger.info(MODULE_LABEL,
-            `TerrainDataRegistry: Loaded ${this._terrains.size} terrains: ${sorted}`);
+    /**
+     * Scan every installed overlay for `data/terrains/<id>/terrain-qm.json`
+     * files and merge them into the local registry. An overlay that ships a
+     * terrain id matching a module-shipped id wins. Only active overlays are
+     * scanned.
+     * @private
+     */
+    static async _loadFromOverlays() {
+        const overlay = game.ionrift?.library?.overlay;
+        if (!overlay) return;
+
+        let sublayers = [];
+        try {
+            sublayers = await overlay.listInstalledSublayers(MODULE_ID);
+        } catch (e) {
+            Logger.warn(MODULE_LABEL, "TerrainDataRegistry: overlay sublayer scan failed:", e);
+            return;
+        }
+
+        for (const sublayer of sublayers) {
+            try {
+                const manifest = await overlay.getLocalManifest(MODULE_ID, sublayer);
+                if (!manifest?.overlayId) continue;
+
+                const active = await overlay.isOverlayActive(
+                    manifest.overlayId, MODULE_ID, sublayer
+                );
+                if (!active) continue;
+
+                const listing = await overlay.listOverlayDir(
+                    MODULE_ID, sublayer, "data/terrains"
+                );
+                const terrainDirs = listing?.dirs ?? [];
+
+                for (const terrainId of terrainDirs) {
+                    try {
+                        const data = await overlay.readOverlayFile(
+                            MODULE_ID, sublayer, `data/terrains/${terrainId}/terrain-qm.json`
+                        );
+                        if (!data) continue;
+                        data.id = data.id ?? terrainId;
+                        this._terrains.set(data.id, data);
+                    } catch (e) {
+                        Logger.warn(MODULE_LABEL,
+                            `TerrainDataRegistry: Failed to read overlay terrain "${terrainId}" from ${sublayer}:`, e);
+                    }
+                }
+            } catch (e) {
+                Logger.warn(MODULE_LABEL,
+                    `TerrainDataRegistry: Failed to scan overlay sublayer "${sublayer}":`, e);
+            }
+        }
     }
 
     // ── Accessors ─────────────────────────────────────────────────────
@@ -98,21 +165,48 @@ export class TerrainDataRegistry {
     }
 
     /**
-     * Terrain list for UI dropdowns. Reads the spine only.
-     * QM never adds its own terrains — the spine is the sole authority.
+     * Terrain list for UI dropdowns. Built locally from the kernel base plus
+     * any QM-shipped terrains that have been loaded. The library spine is
+     * never consulted at runtime under strict sovereignty.
      *
      * @returns {{ id: string, label: string, category: string }[]}
      */
     static getTerrainList() {
-        const libTerrains = game.ionrift?.library?.terrains;
-        if (libTerrains) {
-            return libTerrains.getAll().map(t => ({
+        const baseTerrains = game.ionrift?.library?.terrains?.getBase?.() ?? [];
+        const out = [];
+        const seen = new Set();
+
+        for (const t of baseTerrains) {
+            const local = this._terrains.get(t.id);
+            out.push({
                 id: t.id,
-                label: t.label,
-                category: t.flags?.category ?? "wilderness"
-            }));
+                label: local?.label ?? t.label,
+                category: local?.category ?? t.category ?? "wilderness"
+            });
+            seen.add(t.id);
         }
-        return [];
+
+        for (const local of this._terrains.values()) {
+            if (seen.has(local.id)) continue;
+            out.push({
+                id: local.id,
+                label: local.label ?? this._deriveLabel(local.id),
+                category: local.category ?? "wilderness"
+            });
+        }
+
+        return out;
+    }
+
+    /**
+     * Derive a Title-Case label from an id when one was not declared.
+     * Internal use only.
+     * @param {string} id
+     */
+    static _deriveLabel(id) {
+        return id.split(/[-_\s]+/)
+            .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(" ");
     }
 
     /**

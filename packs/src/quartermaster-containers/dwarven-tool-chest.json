@@ -45,9 +45,7 @@
       "itemRef": "container-dwarven-tool-chest",
       "containerMeta": {
         "terrains": [
-          "dungeon",
-          "underground",
-          "mountain"
+          "dungeon"
         ],
         "cacheTypes": [
           "hoard",

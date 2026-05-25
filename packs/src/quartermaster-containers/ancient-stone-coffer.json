@@ -45,9 +45,8 @@
       "itemRef": "container-ancient-stone-coffer",
       "containerMeta": {
         "terrains": [
-          "tomb",
-          "temple",
-          "ruin"
+          "catacombs",
+          "ruins"
         ],
         "cacheTypes": [
           "hoard",

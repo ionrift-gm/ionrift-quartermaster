@@ -47,8 +47,7 @@
         "terrains": [
           "coastal",
           "jungle",
-          "forest",
-          "wilderness"
+          "forest"
         ],
         "cacheTypes": [
           "stash",

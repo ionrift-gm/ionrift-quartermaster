@@ -1,5 +1,26 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- The Cache Generator terrain picker is now sovereign. It seeds from the library kernel base and extends with terrains the module itself ships data for; nothing is read from Respite or any other module at runtime. With both modules' packs installed the picker looks the same as before. Worlds running a partial pack set may see Quartermaster and Respite list different terrains, which matches the strict per-module pack story.
+- The released terrain set is now the kernel base: forest, swamp, desert, urban, dungeon. Arctic, mountain, catacombs, and ruins move out of the module entirely and ship inside their content overlays.
+- Terrain data is plug-and-play. The cache generator scans every installed and active overlay for `data/terrains/<id>/terrain-qm.json` and merges those into its picker. Installing a new content overlay adds its terrains the next time the registry refreshes, with no module patch required.
+
+## [1.3.9] - 2026-05-25
+
+### Added
+- Cache generation favours terrain-specific containers. When a content pack ships containers tagged for the current terrain, those are preferred over generic fallbacks before the pool selects on owner theme and capacity.
+- Cache discovery narration can now come from the container itself. Containers that ship with multiple paragraphs in their description provide one discovery line per cache; terrain-level phrases remain the fallback when a container has no narration of its own.
+
+### Changed
+- Container resolution now spans every materialised overlay pack that follows the `world.quartermaster-containers*` naming. Previously only the canonical pack was consulted, which excluded named drops.
+- The bundled container compendium realigns its terrain tags with the released spine. Caches generated for catacombs, ruins, dungeon, and urban now reliably surface the matching bundled containers instead of falling through to the generic pool.
+- The bundled compendium is now scoped to multi-terrain workhorses and universal containers. Single-terrain flavour pieces ship through content overlays so the base module stays compact and the spine terrains are the only ones the bundled pack is responsible for.
+
+### Removed
+- Two arctic/mountain containers (fur-wrapped pack, ironbound cold chest) no longer ship in the base module. Frost-and-stone terrain coverage moves to a dedicated content overlay; worlds without that overlay will fall back to the universal containers when arctic or mountain terrain is selected.
+
 ## [1.3.8] - 2026-05-24
 
 ### Added

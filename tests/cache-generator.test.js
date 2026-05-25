@@ -283,3 +283,40 @@ describe("CacheGenerator._terrainWeightedPick", () => {
         expect(CacheGenerator._terrainWeightedPick(pool, "forest").name).toBe("Only");
     });
 });
+
+// ── applyContainerFlavor ─────────────────────────────────────────────────
+
+describe("CacheGenerator.applyContainerFlavor", () => {
+
+    beforeEach(() => {
+        CacheGenerator._tables = { flavorPhrases: { forest: ["A trail-side {container}."] } };
+    });
+
+    it("picks a random paragraph from the container description", () => {
+        const result = {
+            container: {
+                name: "Bark-Wrapped Bundle",
+                system: {
+                    description: {
+                        value: "<p>First line.</p><p>Second line.</p>"
+                    }
+                }
+            },
+            meta: {}
+        };
+        CacheGenerator.applyContainerFlavor(result, "forest");
+        expect(["First line.", "Second line."]).toContain(result.meta.flavor);
+    });
+
+    it("falls back to terrain phrases with container substitution", () => {
+        const result = {
+            container: {
+                name: "Iron Lockbox",
+                system: { description: { value: "" } }
+            },
+            meta: {}
+        };
+        CacheGenerator.applyContainerFlavor(result, "forest");
+        expect(result.meta.flavor).toBe("A trail-side an iron lockbox.");
+    });
+});

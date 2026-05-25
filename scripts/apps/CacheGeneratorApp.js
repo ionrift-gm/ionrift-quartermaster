@@ -1830,6 +1830,8 @@ export class CacheGeneratorApp extends Application {
             isOverweight: contentWeightLbs > container.capacityLbs
         };
 
+        CacheGenerator.applyContainerFlavor(this._currentResult, theme);
+
         this.render();
     }
 

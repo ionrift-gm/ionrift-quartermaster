@@ -23,7 +23,7 @@ const STAGING = path.join(MODULE_ROOT, "packs", ".validation-staging");
 // ── Expected pack contents ──────────────────────────────────────────────
 const EXPECTED = {
     "quartermaster-containers": {
-        minEntries: 18,  // 17 containers + 1 folder
+        minEntries: 16,  // 15 containers + 1 folder. Base pack ships multi-terrain workhorses only; single-terrain specialty and arctic/mountain ship via overlay.
         requiredKeys: [
             "!items!cad633fce7164c9f",   // Ancient Stone Coffer
             "!items!cac5a45974b8a96b",   // Battered Wooden Chest
@@ -31,10 +31,8 @@ const EXPECTED = {
             "!items!7ec84679167cdc90",   // Clay Burial Urn
             "!items!8f74223eda8fbb3d",   // Clay Sealed Urn
             "!items!92404d5855536ff3",   // Dwarven Tool Chest
-            "!items!032eb6dda4c251af",   // Fur-Wrapped Pack
             "!items!17dcc25742e2735c",   // Hollowed Tree Stump
             "!items!f02d7c531943fa21",   // Iron Lockbox
-            "!items!5e372125a419d300",   // Ironbound Cold Chest
             "!items!9a27e1408d685a95",   // Old Adventurer's Pack
             "!items!89ad937677946cea",   // Reed Basket
             "!items!9085f6df4d29c628",   // Sailor's Waterproof Box

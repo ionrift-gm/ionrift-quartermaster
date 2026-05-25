@@ -1,14 +1,10 @@
 {
     "released": [
-        "arctic",
-        "catacombs",
         "desert",
         "dungeon",
         "forest",
-        "mountain",
-        "ruins",
         "swamp",
         "urban"
     ],
-    "_comment": "Only released terrains are loaded. Overlay packs add terrain folders; they appear here after extraction."
+    "_comment": "Released terrains are loaded into the picker. The kernel base from ionrift-library is the canonical set; arctic and mountain ship with the Frost & Stone overlay, catacombs and ruins with the Bone & Dust overlay. Their terrain-qm.json folders stay staged here so they can be re-added to this list when each overlay graduates from WIP."
 }

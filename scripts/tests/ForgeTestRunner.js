@@ -5,6 +5,9 @@ export class QuartermasterForgeTestRunner {
         let failed = 0;
 
         // 1. Partial registration
+        // Foundry's loadTemplates registers under the path key, but the exact
+        // form (with or without ".hbs") varies by Foundry version. Accept
+        // either to keep this stable across upgrades.
         try {
             const expected = [
                 "modules/ionrift-quartermaster/templates/partials/slot-cell",
@@ -12,7 +15,10 @@ export class QuartermasterForgeTestRunner {
                 "modules/ionrift-quartermaster/templates/scroll-forge-sources"
             ];
 
-            const missing = expected.filter(key => !Handlebars.partials[key]);
+            const isRegistered = (key) => !!(
+                Handlebars.partials[key] || Handlebars.partials[`${key}.hbs`]
+            );
+            const missing = expected.filter(key => !isRegistered(key));
 
             if (missing.length === 0) {
                 passed++;
