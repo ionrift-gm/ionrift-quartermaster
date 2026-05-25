@@ -40,7 +40,10 @@ export class ScrollForge {
     static SETTING_SNAPSHOT = "scrollForgeCandidateSnapshot";
 
     /**
-     * GM ready hook: resolve spell sources (dialog if needed), then compile.
+     * GM ready hook: silently compile with saved sources.
+     * Never opens the source-picker dialog on load — that violates the nudge
+     * policy. If the available compendium set changed, update the snapshot and
+     * log a console note so the GM can revisit sources from the Ledger UI.
      */
     static async runAfterReady() {
         if (!game.user.isGM) return;
@@ -49,21 +52,26 @@ export class ScrollForge {
 
         const candidates = await this.discoverSpellCompendiums();
         if (!candidates.length) {
-            ui.notifications.warn(
+            Logger.log(MODULE_LABEL,
                 "Scroll Forge: no Item compendiums with spells were found. Nothing to compile."
             );
             return;
         }
 
-        const shouldPrompt = this._shouldPromptSourceDialog(candidates);
-        if (shouldPrompt) {
-            const { ScrollForgeSourceApp } = await import("../apps/ScrollForgeSourceApp.js");
-            const saved = await ScrollForgeSourceApp.waitForClose(candidates, { firstRun: true });
-            if (!saved) return;
+        // Detect snapshot drift but do NOT open the dialog — just log.
+        const currentSnap = this._candidateSnapshot(candidates);
+        const lastSnap = game.settings.get(MODULE_ID, this.SETTING_SNAPSHOT) || "";
+        if (lastSnap && currentSnap !== lastSnap) {
+            Logger.log(MODULE_LABEL,
+                "Scroll Forge: available spell compendiums changed since last save. " +
+                "Compiling with existing sources. Open the Quartermaster to review spell sources."
+            );
+            // Update the snapshot so we don't log every reload
+            await game.settings.set(MODULE_ID, this.SETTING_SNAPSHOT, currentSnap);
         }
 
         await this.compile();
-        this.enforceOwnership();
+        await this.ensureSidebarPlacement();
     }
 
     /**
@@ -190,7 +198,10 @@ export class ScrollForge {
 
         const sourceHash = await this._computeSourceHash(spellPacks);
         const lastHash = game.settings.get(MODULE_ID, this.SETTING_HASH);
-        if (sourceHash === lastHash) return;
+        if (sourceHash === lastHash) {
+            await this.ensureSidebarPlacement();
+            return;
+        }
 
         const ItemClass = CONFIG.Item.documentClass;
         /** @type {{ data: object, schoolKey: string, level: number }[]} */
@@ -294,7 +305,7 @@ export class ScrollForge {
         if (scrollItems.length > 0 && writeOk) {
             await game.settings.set(MODULE_ID, this.SETTING_HASH, sourceHash);
         }
-        await this.assignForgedPackSidebarFolder(pack);
+        await this.ensureSidebarPlacement();
         const skipNote = skipCount > 0 ? ` (${skipCount} spell${skipCount !== 1 ? 's' : ''} skipped, see console)` : "";
         ui.notifications.info(
             `Scroll Forge: compiled ${scrollItems.length} spell scrolls into "${this.PACK_LABEL}"${skipNote}. Opening it now.`
@@ -327,13 +338,22 @@ export class ScrollForge {
         return a === b;
     }
 
+    /** Lock ownership and place an existing forged pack under Ionrift / Quartermaster. */
+    static async ensureSidebarPlacement() {
+        if (!game.user.isGM) return;
+        const pack = this.getForgedPack();
+        if (!pack) return;
+        this.enforceOwnership();
+        await this.assignForgedPackSidebarFolder(pack);
+    }
+
     /**
      * Place the forged world pack next to other Quartermaster compendiums (Ionrift / Quartermaster).
      * Uses core.compendiumConfiguration like the sidebar drag target.
      */
     static async assignForgedPackSidebarFolder(pack) {
         if (!game.user.isGM) return;
-        const folderId = this._findQuartermasterCompendiumFolderId();
+        const folderId = await this._ensureQuartermasterCompendiumFolderId();
         if (!folderId) {
             Logger.log(MODULE_LABEL,
                 "Scroll Forge: no Ionrift / Quartermaster compendium folder found. Leave ionrift-quartermaster enabled so pack folders exist, or drag the forged pack in the sidebar."
@@ -342,30 +362,57 @@ export class ScrollForge {
         }
         const packId = pack.collection;
         const cfg = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
+        const currentFolder = cfg[packId]?.folder;
+        if (currentFolder === folderId) return;
         cfg[packId] = foundry.utils.mergeObject(cfg[packId] ?? {}, { folder: folderId });
         await game.settings.set("core", "compendiumConfiguration", cfg);
     }
 
-    /** @returns {string|null} Compendium-type Folder id for Quartermaster under Ionrift */
-    static _findQuartermasterCompendiumFolderId() {
+    /**
+     * Finds the "Quartermaster" compendium browser folder (child of "Ionrift").
+     * Falls back to creating the folder hierarchy if it does not exist yet.
+     * @returns {Promise<string|null>}
+     */
+    static async _ensureQuartermasterCompendiumFolderId() {
         const cfg = game.settings.get("core", "compendiumConfiguration") ?? {};
-        const refPackId = "ionrift-quartermaster.quartermaster-core";
+        const refPackId = "ionrift-quartermaster.quartermaster-containers";
         const fromRef = cfg[refPackId]?.folder;
         if (fromRef) {
             const f = game.folders.get(fromRef);
-            if (f?.type === "Compendium" && f.name === "Quartermaster") return fromRef;
+            if (f?.name === "Quartermaster") return fromRef;
         }
 
-        const ionriftRoots = game.folders.filter(f =>
-            f.type === "Compendium" && f.name === "Ionrift" && !f.folder
-        );
+        const allFolders = [
+            ...game.folders.filter(f => f.type === "Compendium"),
+            ...(game.packs?.folders?.filter(f => f.type === "Compendium") ?? [])
+        ];
+        const ionriftRoots = allFolders.filter(f => f.name === "Ionrift" && !f.folder);
         for (const ion of ionriftRoots) {
-            const qm = game.folders.find(f =>
-                f.type === "Compendium" && f.name === "Quartermaster" && f.folder === ion.id
-            );
+            const qm = allFolders.find(f => f.name === "Quartermaster" && f.folder === ion.id);
             if (qm) return qm.id;
         }
-        return null;
+
+        try {
+            let ionrift = ionriftRoots[0];
+            if (!ionrift) {
+                ionrift = await Folder.create({
+                    name: "Ionrift",
+                    type: "Compendium",
+                    color: "#8b5cf6",
+                    sorting: "a"
+                });
+            }
+            const qm = await Folder.create({
+                name: "Quartermaster",
+                type: "Compendium",
+                folder: ionrift.id,
+                sorting: "a"
+            });
+            return qm.id;
+        } catch (err) {
+            Logger.warn(MODULE_LABEL, "Scroll Forge: could not create compendium folder hierarchy:", err);
+            return null;
+        }
     }
 
     /**
