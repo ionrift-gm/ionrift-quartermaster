@@ -169,6 +169,30 @@ export class IdentificationService {
             await IdentificationService._tryMergeIdentifiedStack(item);
         }
 
+        // For CurseForge lures (latentMagic + forgedFrom + cursedMeta), the
+        // BlueprintRegistry.registerItemBlueprint called from the createItem hook
+        // asynchronously unsets the inline cursedMeta flag and lifts it into
+        // BlueprintStore. That async lift races with identify — by the time
+        // identify's own awaits (update, setFlag) yield, the lift may have
+        // completed and the inline flag is gone.
+        //
+        // Re-set the inline flag here from the snapshot taken at identify-start
+        // so callers see cursedMeta immediately on the document after identify()
+        // resolves. This does NOT interfere with the hasCursedOnlyMeta.gmRevealed
+        // branch below — that path only runs when !isCurseForgeLatent.
+        // _onLureRevealed (async hook) subsequently writes { ...cursedMeta, lureRevealed: true }
+        // which correctly extends the restored inline value.
+        if (isCurseForgeLatent && cursedMeta) {
+            const liveCursedMeta = item.getFlag?.(MODULE_ID, FLAG_CURSED_META);
+            if (!liveCursedMeta) {
+                try {
+                    await item.setFlag(MODULE_ID, FLAG_CURSED_META, cursedMeta);
+                } catch (err) {
+                    Logger.warn("Quartermaster", `IdentificationService: failed to restore cursedMeta on ${item.name}:`, err.message);
+                }
+            }
+        }
+
         if (hasCursedOnlyMeta) {
             try {
                 await item.setFlag(MODULE_ID, FLAG_CURSED_META, { ...cursedMeta, gmRevealed: true });
