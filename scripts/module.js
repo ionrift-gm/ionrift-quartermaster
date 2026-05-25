@@ -116,17 +116,6 @@ Hooks.once('init', async () => {
         default: true
     });
 
-    // Feature flag for the Core Hoard Pack nudge banner. Defaults to false
-    // because the pack is not yet published; flip to true once the public zip
-    // exists to surface the banner in the Quartermaster Settings panel.
-    game.settings.register(MODULE_ID, "hoardPackNudgeEnabled", {
-        scope: "world",
-        config: false,
-        type: Boolean,
-        default: false,
-        restricted: true
-    });
-
     // Pack management state
     game.settings.register(MODULE_ID, "workshopEnabledPacks", {
         scope: "world",
@@ -382,13 +371,13 @@ Hooks.once('init', async () => {
     const SettingsLayout = game.ionrift?.library?.SettingsLayout;
     SettingsLayout?.registerFooter(MODULE_ID);
 
-    // Register Core Hoard Pack nudge with the shared library service.
-    // Gated by the hoardPackNudgeEnabled world flag; inert until enabled.
+    // Core pack nudge: shared library banner in Module Settings when the core
+    // overlay is offered but not installed (see hoardPackNudge.js).
     try {
         const { registerHoardPackNudge } = await import("./hoardPackNudge.js");
         registerHoardPackNudge();
     } catch (e) {
-        Logger.warn(MODULE_LABEL, "Hoard pack nudge registration failed:", e);
+        Logger.warn(MODULE_LABEL, "Core pack nudge registration failed:", e);
     }
 
     Hooks.on("ionrift.overlayContentChanged", async (detail) => {

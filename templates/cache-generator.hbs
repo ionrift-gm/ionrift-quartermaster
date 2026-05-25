@@ -199,8 +199,12 @@
                     <div class="context-pill">
                         <i class="fas fa-mountain"></i>
                         <select name="theme" class="context-select">
-                            {{#each themes}}
-                            <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+                            {{#each themeOptionGroups}}
+                            <optgroup label="{{group}}">
+                                {{#each options}}
+                                <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+                                {{/each}}
+                            </optgroup>
                             {{/each}}
                         </select>
                     </div>

@@ -630,7 +630,7 @@
     border: none !important;
     box-shadow: none !important;
     color: rgba(255, 255, 255, 0.55);
-    font-size: 0.8em;
+    font-size: 0.92em;
     padding: 4px 2px;
     cursor: pointer;
     appearance: none;
@@ -641,6 +641,39 @@
     outline: none !important;
     box-shadow: none !important;
     color: rgba(255, 255, 255, 0.9);
+}
+
+/* Terrain optgroups: native popup uses OS defaults unless forced dark + option colors */
+#ionrift-cache-generator .context-select,
+.ionrift-cache-generator .context-select {
+    color-scheme: dark;
+}
+
+#ionrift-cache-generator .context-select optgroup,
+.ionrift-cache-generator .context-select optgroup {
+    background: rgb(14, 12, 24);
+    color: rgba(210, 185, 255, 0.98);
+    font-style: normal;
+    font-weight: 700;
+    font-size: 0.9em;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+#ionrift-cache-generator .context-select option,
+.ionrift-cache-generator .context-select option {
+    background: rgb(22, 18, 38);
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 400;
+    font-size: 0.95em;
+    text-transform: none;
+    padding: 6px 10px;
+}
+
+#ionrift-cache-generator .context-select option:checked,
+.ionrift-cache-generator .context-select option:checked {
+    background: rgba(120, 90, 200, 0.45);
+    color: #fff;
 }
 
 .context-strip-divider {

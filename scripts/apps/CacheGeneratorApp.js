@@ -116,6 +116,7 @@ export class CacheGeneratorApp extends Application {
         const tier  = this._currentResult?.meta?.tier  ?? game.settings?.get(MODULE_ID, "defaultCacheTier")  ?? 1;
         const theme = this._currentResult?.meta?.theme ?? game.settings?.get(MODULE_ID, "defaultCacheTheme") ?? "dungeon";
 
+        const themeOptionGroups = TerrainDataRegistry.getTerrainOptionGroups(theme);
         const themes = TerrainDataRegistry.getTerrainList()
             .map(t => ({ ...t, selected: t.id === theme }));
 
@@ -173,6 +174,7 @@ export class CacheGeneratorApp extends Application {
             tierLabel,
             themeLabel: themeObj.label,
             themes,
+            themeOptionGroups,
             ownerThemes,
             currentOwnerTheme,
             result:    this._currentResult,

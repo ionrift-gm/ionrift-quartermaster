@@ -3,6 +3,7 @@
 ## [1.3.8] - 2026-05-24
 
 ### Added
+- Cache Generator terrain dropdown is grouped into **Dungeon**, **Safe Haven**, and **Wilderness**, matching Respite.
 - **Drag-and-drop to cache preview.** Items from compendiums or the world item sidebar can now be dropped directly onto the loot builder preview to inject them into the cache.
 - **Coin reroll and clear.** The coinage row in the cache preview now has reroll and clear buttons, so you can re-randomise or zero out the gold without regenerating the whole cache.
 

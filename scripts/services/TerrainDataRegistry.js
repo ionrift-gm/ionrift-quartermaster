@@ -101,14 +101,41 @@ export class TerrainDataRegistry {
      * Terrain list for UI dropdowns. Reads the spine only.
      * QM never adds its own terrains — the spine is the sole authority.
      *
-     * @returns {{ id: string, label: string }[]}
+     * @returns {{ id: string, label: string, category: string }[]}
      */
     static getTerrainList() {
         const libTerrains = game.ionrift?.library?.terrains;
         if (libTerrains) {
-            return libTerrains.getAll().map(t => ({ id: t.id, label: t.label }));
+            return libTerrains.getAll().map(t => ({
+                id: t.id,
+                label: t.label,
+                category: t.flags?.category ?? "wilderness"
+            }));
         }
         return [];
+    }
+
+    /**
+     * Terrain dropdown groups aligned with Respite (Dungeon, Safe Haven, Wilderness).
+     * @param {string} [selectedId]
+     * @returns {{ group: string, options: { id: string, label: string, selected?: boolean }[] }[]}
+     */
+    static getTerrainOptionGroups(selectedId) {
+        const list = this.getTerrainList();
+        const dungeon = [];
+        const safeHaven = [];
+        const wilderness = [];
+        for (const t of list) {
+            const opt = { ...t, selected: t.id === selectedId };
+            if (t.category === "dungeon") dungeon.push(opt);
+            else if (t.category === "safe-haven") safeHaven.push(opt);
+            else wilderness.push(opt);
+        }
+        const groups = [];
+        if (dungeon.length) groups.push({ group: "Dungeon", options: dungeon });
+        if (safeHaven.length) groups.push({ group: "Safe Haven", options: safeHaven });
+        if (wilderness.length) groups.push({ group: "Wilderness", options: wilderness });
+        return groups;
     }
 
     /**
