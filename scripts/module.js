@@ -518,9 +518,20 @@ Hooks.on('ready', () => {
     }
 
     if (game.user.isGM && game.system?.id === "dnd5e") {
-        SrdCurseAdapter.compile().catch(err => {
-            Logger.error(MODULE_LABEL, "SrdCurseAdapter failed:", err);
-        });
+        // Only compile SRD cursed items if the source is still enabled.
+        // GMs who remove it from cursedItemSources shouldn't see compile
+        // errors for data they've opted out of.
+        let srdSourceEnabled = true;
+        try {
+            const sources = JSON.parse(game.settings.get(MODULE_ID, "cursedItemSources") ?? "[]");
+            srdSourceEnabled = sources.includes(SrdCurseAdapter.worldCollectionId);
+        } catch { /* default to enabled on parse failure */ }
+
+        if (srdSourceEnabled) {
+            SrdCurseAdapter.compile().catch(err => {
+                Logger.error(MODULE_LABEL, "SrdCurseAdapter failed:", err);
+            });
+        }
     }
 
     // Content Pack discovery + auto-compile
