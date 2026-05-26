@@ -45,8 +45,7 @@
       "itemRef": "container-hollowed-tree-stump",
       "containerMeta": {
         "terrains": [
-          "forest",
-          "jungle"
+          "forest"
         ],
         "cacheTypes": [
           "stash",

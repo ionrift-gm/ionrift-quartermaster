@@ -46,8 +46,7 @@
       "containerMeta": {
         "terrains": [
           "swamp",
-          "forest",
-          "coastal"
+          "forest"
         ],
         "cacheTypes": [
           "stash",

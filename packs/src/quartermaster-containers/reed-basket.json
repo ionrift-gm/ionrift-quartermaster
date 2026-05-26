@@ -45,8 +45,6 @@
       "itemRef": "container-reed-basket",
       "containerMeta": {
         "terrains": [
-          "coastal",
-          "jungle",
           "forest"
         ],
         "cacheTypes": [

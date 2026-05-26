@@ -46,7 +46,6 @@
       "containerMeta": {
         "terrains": [
           "dungeon",
-          "ruins",
           "urban"
         ],
         "cacheTypes": [

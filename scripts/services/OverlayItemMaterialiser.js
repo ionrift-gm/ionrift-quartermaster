@@ -11,19 +11,30 @@
  *     {item}.json         One file per item, Foundry pack-source shape
  *
  * Materialisation rules:
- *   - One overlay items/{packDir} -> one world compendium
- *     `world.quartermaster-{packDir}` (e.g. world.quartermaster-gemstones).
- *     CacheGenerator looks up these collections by suffix.
- *   - Folder hierarchy from _folders.json is recreated inside the pack.
- *   - Items keep their original folder reference (resolved to new folder ids).
- *   - Hash-based idempotency: re-running with the same overlay version is
- *     a no-op. A version change or new file count rebuilds the pack.
- *   - Each materialised pack is placed in the Ionrift/Quartermaster sidebar
- *     folder and locked to GM ownership.
+ *   - One overlay sublayer -> exactly one world compendium named
+ *     `world.quartermaster-{sublayer}` (e.g. world.quartermaster-core,
+ *     world.quartermaster-bone-dust). Strict pack ownership: a pack only
+ *     ever writes into its own compendium; no overlay touches another
+ *     overlay's compendium or the module-shipped one.
+ *   - Each packDir inside the sublayer becomes a top-level folder in that
+ *     compendium when it represents a distinct category (e.g. "containers"
+ *     becomes a "Containers/" folder). Generic packDirs are hoisted: their
+ *     `_folders.json` children sit at the compendium root.
+ *   - Items keep their original folder reference (resolved through a
+ *     synthetic folder id map).
+ *   - Hash-based idempotency: re-running with the same overlay version and
+ *     file count is a no-op. A version change rebuilds the compendium.
+ *   - Compendiums land under Ionrift/Quartermaster in the sidebar and are
+ *     locked to GM ownership.
  *
- * After a successful build, the world compendium ids are added to the
- * `lootPoolSources` setting so they appear checked in the Loot Pool Sources
- * dialog and feed the cache generator without extra GM action.
+ * Legacy state from the previous "one compendium per packDir" model is
+ * detected on materialise and the orphaned `world.quartermaster-{packDir}`
+ * compendiums are removed so a stale Stone Niche Cache or Driftwood entry
+ * cannot survive the refactor.
+ *
+ * After a successful build, the world compendium id is added to the
+ * `lootPoolSources` setting so the cache generator draws from it without
+ * extra GM action.
  */
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
@@ -61,7 +72,7 @@ export class OverlayItemMaterialiser {
     }
 
     /**
-     * Materialise one sublayer. Iterates every items/{packDir} inside it.
+     * Materialise one sublayer into a single world compendium.
      * @param {string} sublayer
      */
     static async materialiseSublayer(sublayer) {
@@ -80,39 +91,26 @@ export class OverlayItemMaterialiser {
             return;
         }
 
-        const listing = await overlay.listOverlayDir(MODULE_ID, sublayer, "items");
-        const packDirs = listing?.dirs ?? [];
-        if (!packDirs.length) {
-            Logger.log(MODULE_LABEL,
-                `OverlayItemMaterialiser | "${manifest.overlayId}" has no items/ payload.`
+        const overlayVersion = manifest.version ?? "0.0.0";
+
+        await this._cleanupLegacyCompendiums(manifest.overlayId, sublayer);
+
+        let result;
+        try {
+            result = await this._materialiseSublayerContent(sublayer, manifest.overlayId, overlayVersion);
+        } catch (err) {
+            Logger.error(MODULE_LABEL,
+                `OverlayItemMaterialiser | "${manifest.overlayId}" failed:`, err
             );
             return;
         }
 
-        const overlayVersion = manifest.version ?? "0.0.0";
-        let totalItems = 0;
-        const materialisedIds = [];
+        if (!result?.collection) return;
 
-        for (const packDir of packDirs) {
-            try {
-                const result = await this._materialisePackDir(sublayer, packDir, overlayVersion);
-                if (result?.collection) {
-                    totalItems += result.itemCount;
-                    materialisedIds.push(result.collection);
-                }
-            } catch (err) {
-                Logger.error(MODULE_LABEL,
-                    `OverlayItemMaterialiser | items/${packDir} failed:`, err
-                );
-            }
-        }
-
-        if (materialisedIds.length) {
-            await this._registerLootSources(materialisedIds);
-            ui.notifications.info(
-                `Quartermaster: ${manifest.overlayId} materialised — ${totalItems} items across ${materialisedIds.length} compendium${materialisedIds.length === 1 ? "" : "s"}.`
-            );
-        }
+        await this._registerLootSources([result.collection]);
+        ui.notifications.info(
+            `Quartermaster: ${manifest.overlayId} materialised — ${result.itemCount} items in ${result.collection}.`
+        );
     }
 
     /**
@@ -181,19 +179,60 @@ export class OverlayItemMaterialiser {
     //  INTERNALS
     // ─────────────────────────────────────────────────────────────
 
-    static async _materialisePackDir(sublayer, packDir, overlayVersion) {
+    /**
+     * Build (or rebuild) the single world compendium for a sublayer.
+     * Walks every items/{packDir} folder under the overlay, merges them into
+     * one compendium, and assembles a folder hierarchy. PackDirs that carry
+     * a discrete content category (e.g. "containers") get a synthetic
+     * top-level wrapper folder; others hoist their `_folders.json` children
+     * straight to the compendium root.
+     *
+     * @param {string} sublayer
+     * @param {string} overlayId
+     * @param {string} overlayVersion
+     * @returns {Promise<{ collection: string, itemCount: number }|null>}
+     * @private
+     */
+    static async _materialiseSublayerContent(sublayer, overlayId, overlayVersion) {
         const overlay = game.ionrift?.library?.overlay;
-        const itemsPath = `items/${packDir}`;
-        const listing = await overlay.listOverlayDir(MODULE_ID, sublayer, itemsPath);
-        const files = (listing?.files ?? []).filter(f => f.endsWith(".json"));
-        if (!files.length) return null;
 
-        const collection = `world.quartermaster-${packDir}`;
+        const itemsListing = await overlay.listOverlayDir(MODULE_ID, sublayer, "items");
+        const packDirs = (itemsListing?.dirs ?? []).filter(d => d && !d.startsWith("."));
+        if (!packDirs.length) {
+            Logger.log(MODULE_LABEL,
+                `OverlayItemMaterialiser | "${overlayId}" has no items/ payload.`
+            );
+            return null;
+        }
 
+        const collection = `world.quartermaster-${sublayer}`;
+        const label = this._labelForSublayer(sublayer);
+
+        const sectionPlans = [];
+        let totalFileCount = 0;
+        for (const packDir of packDirs.sort()) {
+            const itemsPath = `items/${packDir}`;
+            const listing = await overlay.listOverlayDir(MODULE_ID, sublayer, itemsPath);
+            const files = (listing?.files ?? []).filter(f => f.endsWith(".json") && f !== FOLDERS_FILE);
+            totalFileCount += files.length;
+            if (!files.length) continue;
+
+            const folderDefs = await this._readFolders(sublayer, itemsPath);
+            const items = [];
+            for (const file of files) {
+                const data = await overlay.readOverlayFile(MODULE_ID, sublayer, `${itemsPath}/${file}`);
+                if (data && data.name) items.push(data);
+            }
+            if (!items.length) continue;
+
+            sectionPlans.push({ packDir, folderDefs, items });
+        }
+
+        if (!sectionPlans.length) return null;
+
+        const hashKey = `${overlayId}:${sublayer}:${overlayVersion}:${totalFileCount}`;
         const state = this._getState();
-        const overlayId = await this._readOverlayId(sublayer);
-        const hashKey = `${overlayId}:${packDir}:${overlayVersion}:${files.length}`;
-        const existingHash = state[overlayId]?.packHashes?.[packDir];
+        const existingHash = state[overlayId]?.packHashes?.[sublayer];
 
         const existing = game.packs.get(collection);
         if (existing && existingHash === hashKey) {
@@ -202,16 +241,6 @@ export class OverlayItemMaterialiser {
             );
             return { collection, itemCount: existing.index?.size ?? 0 };
         }
-
-        const folderDefs = await this._readFolders(sublayer, itemsPath);
-        const items = [];
-        for (const file of files) {
-            if (file === FOLDERS_FILE) continue;
-            const data = await overlay.readOverlayFile(MODULE_ID, sublayer, `${itemsPath}/${file}`);
-            if (data && data.name) items.push(data);
-        }
-
-        if (!items.length) return null;
 
         if (existing) {
             try { await existing.deleteCompendium(); }
@@ -222,33 +251,57 @@ export class OverlayItemMaterialiser {
             }
         }
 
-        const label = this._labelFor(packDir);
-        const pack = await this._createWorldCompendium(`quartermaster-${packDir}`, label);
+        const pack = await this._createWorldCompendium(`quartermaster-${sublayer}`, label);
         if (!pack) return null;
-
         const fresh = game.packs.get(collection) ?? pack;
-        const folderIdMap = await this._createFolders(fresh, folderDefs);
 
-        const prepared = items.map(raw => {
-            const item = foundry.utils.duplicate(raw);
-            if (item.folder && folderIdMap.has(item.folder)) {
-                item.folder = folderIdMap.get(item.folder);
-            } else {
-                delete item.folder;
+        const folderIdMap = new Map();
+        let preparedItems = [];
+
+        let sectionSort = 100;
+        for (const section of sectionPlans) {
+            const wrapperName = this._sectionWrapperName(section.packDir);
+
+            let parentId = null;
+            if (wrapperName) {
+                try {
+                    const wrapper = await Folder.create(
+                        { name: wrapperName, type: "Item", sorting: "a", sort: sectionSort },
+                        { pack: fresh.collection }
+                    );
+                    const folder = Array.isArray(wrapper) ? wrapper[0] : wrapper;
+                    parentId = folder?.id ?? null;
+                } catch (err) {
+                    Logger.warn(MODULE_LABEL,
+                        `OverlayItemMaterialiser | Section wrapper "${wrapperName}" failed:`, err.message
+                    );
+                }
+                sectionSort += 100;
             }
-            delete item._id;
-            return item;
-        });
+
+            await this._createFolderTree(fresh, section.folderDefs, folderIdMap, parentId);
+
+            for (const raw of section.items) {
+                const item = foundry.utils.duplicate(raw);
+                if (item.folder && folderIdMap.has(item.folder)) {
+                    item.folder = folderIdMap.get(item.folder);
+                } else {
+                    item.folder = parentId ?? null;
+                }
+                delete item._id;
+                preparedItems.push(item);
+            }
+        }
 
         const minting = game.ionrift?.library?.minting;
         if (minting?.guardAll) {
-            minting.guardAll(prepared, { moduleId: MODULE_ID, mode: "pack" });
+            minting.guardAll(preparedItems, { moduleId: MODULE_ID, mode: "pack" });
         }
 
         const ItemClass = CONFIG.Item.documentClass;
         const chunkSize = 50;
-        for (let i = 0; i < prepared.length; i += chunkSize) {
-            const chunk = prepared.slice(i, i + chunkSize);
+        for (let i = 0; i < preparedItems.length; i += chunkSize) {
+            const chunk = preparedItems.slice(i, i + chunkSize);
             await ItemClass.createDocuments(chunk, { pack: fresh.collection });
         }
 
@@ -258,23 +311,60 @@ export class OverlayItemMaterialiser {
         const newState = this._getState();
         newState[overlayId] = newState[overlayId] ?? { version: overlayVersion, packs: [], packHashes: {} };
         newState[overlayId].version = overlayVersion;
-        if (!newState[overlayId].packs.includes(collection)) {
-            newState[overlayId].packs.push(collection);
-        }
-        newState[overlayId].packHashes[packDir] = hashKey;
+        newState[overlayId].packs = [collection];
+        newState[overlayId].packHashes = { [sublayer]: hashKey };
         await this._setState(newState);
 
         Logger.info(MODULE_LABEL,
-            `OverlayItemMaterialiser | Built "${collection}" — ${prepared.length} items.`
+            `OverlayItemMaterialiser | Built "${collection}" — ${preparedItems.length} items across ${sectionPlans.length} section(s).`
         );
 
-        return { collection, itemCount: prepared.length };
+        return { collection, itemCount: preparedItems.length };
     }
 
-    static async _readOverlayId(sublayer) {
-        const overlay = game.ionrift?.library?.overlay;
-        const manifest = await overlay.getLocalManifest(MODULE_ID, sublayer);
-        return manifest?.overlayId ?? `unknown-${sublayer}`;
+    /**
+     * Delete any `world.quartermaster-{packDir}` compendiums this materialiser
+     * (or its predecessor) registered for the overlay before the per-sublayer
+     * refactor, and any compendiums living in state that no longer match the
+     * new sublayer-keyed naming. Keeps state in sync so reinstall is clean.
+     *
+     * @param {string} overlayId
+     * @param {string} sublayer
+     * @private
+     */
+    static async _cleanupLegacyCompendiums(overlayId, sublayer) {
+        const state = this._getState();
+        const entry = state[overlayId];
+        if (!entry?.packs?.length) return;
+
+        const newName = `world.quartermaster-${sublayer}`;
+        const stale = entry.packs.filter(id => id !== newName);
+        if (!stale.length) return;
+
+        for (const collection of stale) {
+            const pack = game.packs.get(collection);
+            if (!pack) continue;
+            try {
+                await pack.deleteCompendium();
+                Logger.info(MODULE_LABEL,
+                    `OverlayItemMaterialiser | Removed legacy compendium "${collection}".`
+                );
+            } catch (err) {
+                Logger.warn(MODULE_LABEL,
+                    `OverlayItemMaterialiser | Could not delete legacy "${collection}":`, err.message
+                );
+            }
+        }
+
+        await this._unregisterLootSources(stale);
+
+        entry.packs = entry.packs.filter(id => id === newName);
+        if (entry.packHashes && typeof entry.packHashes === "object") {
+            for (const key of Object.keys(entry.packHashes)) {
+                if (key !== sublayer) delete entry.packHashes[key];
+            }
+        }
+        await this._setState(state);
     }
 
     static async _readFolders(sublayer, itemsPath) {
@@ -284,17 +374,40 @@ export class OverlayItemMaterialiser {
         return [];
     }
 
-    static _labelFor(packDir) {
+    /**
+     * Compendium label per sublayer. Each overlay owns its own compendium.
+     * @param {string} sublayer
+     * @returns {string}
+     */
+    static _labelForSublayer(sublayer) {
         const map = {
-            gemstones: "Quartermaster: Gemstones",
-            treasure: "Quartermaster: Treasure",
             core: "Quartermaster: Core",
-            "terrain-treasure": "Quartermaster: Terrain Treasure",
-            "terrain-trinkets": "Quartermaster: Terrain Trinkets"
+            "bone-dust": "Quartermaster: Bone & Dust",
+            "frost-stone": "Quartermaster: Frost & Stone",
+            wanderers: "Quartermaster: Wanderer's"
         };
-        if (map[packDir]) return map[packDir];
-        const titled = packDir.replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+        if (map[sublayer]) return map[sublayer];
+        const titled = sublayer.replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
         return `Quartermaster: ${titled}`;
+    }
+
+    /**
+     * Synthetic top-level folder name to wrap a packDir's content. Returning
+     * null hoists the packDir's `_folders.json` children directly to the
+     * compendium root (used for generic packDirs like "core" so we don't
+     * stack a redundant "Core" folder inside "Quartermaster: Core").
+     *
+     * @param {string} packDir
+     * @returns {string|null}
+     */
+    static _sectionWrapperName(packDir) {
+        const map = {
+            containers: "Containers",
+            gemstones: "Gemstones",
+            "terrain-treasure": "Terrain Treasure",
+            "terrain-trinkets": "Terrain Trinkets"
+        };
+        return map[packDir] ?? null;
     }
 
     static async _createWorldCompendium(name, label) {
@@ -334,24 +447,36 @@ export class OverlayItemMaterialiser {
         return null;
     }
 
-    static async _createFolders(pack, folderDefs) {
-        const map = new Map();
+    /**
+     * Materialise a list of folder defs into the pack, populating the shared
+     * id map so items can reference them. Supports a parent folder id so a
+     * packDir's folders can sit inside a synthetic section wrapper.
+     *
+     * @param {CompendiumCollection} pack
+     * @param {object[]} folderDefs
+     * @param {Map<string, string>} folderIdMap  Mutated in place.
+     * @param {string|null} parentId
+     */
+    static async _createFolderTree(pack, folderDefs, folderIdMap, parentId = null) {
         for (const def of folderDefs) {
             try {
-                const folder = await Folder.create(
-                    { name: def.name, type: "Item", sorting: def.sorting ?? "a", sort: def.sort ?? 0 },
-                    { pack: pack.collection }
-                );
+                const payload = {
+                    name: def.name,
+                    type: "Item",
+                    sorting: def.sorting ?? "a",
+                    sort: def.sort ?? 0
+                };
+                if (parentId) payload.folder = parentId;
+                const folder = await Folder.create(payload, { pack: pack.collection });
                 const created = Array.isArray(folder) ? folder[0] : folder;
-                if (def._id) map.set(def._id, created.id);
-                map.set(def.name, created.id);
+                if (def._id) folderIdMap.set(def._id, created.id);
+                folderIdMap.set(def.name, created.id);
             } catch (err) {
                 Logger.warn(MODULE_LABEL,
                     `OverlayItemMaterialiser | Folder "${def.name}" failed:`, err.message
                 );
             }
         }
-        return map;
     }
 
     static async _assignSidebarFolder(pack) {

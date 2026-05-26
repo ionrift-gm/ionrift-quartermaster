@@ -45,8 +45,6 @@
       "itemRef": "container-woven-bamboo-box",
       "containerMeta": {
         "terrains": [
-          "jungle",
-          "coastal",
           "forest"
         ],
         "cacheTypes": [

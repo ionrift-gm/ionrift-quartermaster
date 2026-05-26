@@ -60,27 +60,28 @@ function isQmPackRole(compendiumId, role) {
 }
 
 /**
- * Container compendiums for cache generation. Merges the module pack with every
- * materialised overlay pack whose collection id starts with quartermaster-containers.
+ * Container compendiums for cache generation. Pulls the module-shipped pack
+ * plus every materialised overlay pack under `world.quartermaster-*` (one per
+ * overlay sublayer). The overlay packs hold mixed content, so the index merge
+ * in {@link loadContainerPoolIndex} filters to `type === "container"`.
+ *
  * @returns {CompendiumCollection[]}
  */
 function resolveQmContainerPacks() {
     const packs = [];
     const seen = new Set();
-    const prefix = PACK_SUFFIX.containers;
 
-    const mod = game.packs.get(`${MODULE_ID}.${prefix}`);
+    const mod = game.packs.get(`${MODULE_ID}.${PACK_SUFFIX.containers}`);
     if (mod) {
         packs.push(mod);
         seen.add(mod.collection);
     }
 
+    const worldPrefix = "world.quartermaster-";
     for (const pack of game.packs) {
         if (pack.metadata?.type !== "Item") continue;
         const col = pack.collection;
-        if (!col.startsWith("world.")) continue;
-        const role = col.slice(6);
-        if (role !== prefix && !role.startsWith(`${prefix}-`)) continue;
+        if (!col.startsWith(worldPrefix)) continue;
         if (seen.has(col)) continue;
         packs.push(pack);
         seen.add(col);
@@ -117,12 +118,15 @@ async function loadContainerPoolIndex() {
     const packs = resolveQmContainerPacks();
     if (!packs.length) return [];
 
+    const modulePackId = `${MODULE_ID}.${PACK_SUFFIX.containers}`;
     const merged = [];
     for (const pack of packs) {
         try {
             const index = await pack.getIndex({ fields: ["name", "img", "system", "flags", "type"] });
             const chunk = index.contents || Array.from(index) || [];
+            const isModulePack = pack.collection === modulePackId;
             for (const entry of chunk) {
+                if (!isModulePack && entry.type !== "container") continue;
                 merged.push({ ...entry, _sourceCollection: pack.collection });
             }
         } catch (err) {

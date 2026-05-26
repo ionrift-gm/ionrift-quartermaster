@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Changed
+- The bundled container compendium now tags only kernel-base terrains (forest, swamp, desert, urban, dungeon) or universal. Catacombs, ruins, coastal, and jungle containers moved to their content-pack workshop homes so Bone & Dust and future coastal drops own those pools exclusively.
 - The Cache Generator terrain picker is now sovereign. It seeds from the library kernel base and extends with terrains the module itself ships data for; nothing is read from Respite or any other module at runtime. With both modules' packs installed the picker looks the same as before. Worlds running a partial pack set may see Quartermaster and Respite list different terrains, which matches the strict per-module pack story.
 - The released terrain set is now the kernel base: forest, swamp, desert, urban, dungeon. Arctic, mountain, catacombs, and ruins move out of the module entirely and ship inside their content overlays.
 - Terrain data is plug-and-play. The cache generator scans every installed and active overlay for `data/terrains/<id>/terrain-qm.json` and merges those into its picker. Installing a new content overlay adds its terrains the next time the registry refreshes, with no module patch required.
