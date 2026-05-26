@@ -28,7 +28,10 @@
       "status": "retired",
       "reason": "Legacy pack from pre-1.0 layout"
     },
-    "_quartermaster-treasure_MOVED": "RELOCATED 2026-05-24: Source moved out of this module to ionrift-pack-workshop/packs/quartermaster/core/items/treasure/ so it ships only via overlay download, not as part of the module binary. Composed into quartermaster-core-overlay 0.2.0.",
+    "_quartermaster-treasure_MOVED": {
+      "status": "retired",
+      "reason": "RELOCATED 2026-05-24: Source moved to ionrift-pack-workshop overlay. Ships via quartermaster-core-overlay 0.2.0."
+    },
     "quartermaster-cursed": {
       "status": "retired",
       "reason": "Merged into proving-grounds in v1.3.0-ea.2"
