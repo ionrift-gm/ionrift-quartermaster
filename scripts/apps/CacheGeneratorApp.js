@@ -153,12 +153,15 @@ export class CacheGeneratorApp extends Application {
             { id: "abandoned",   label: "Abandoned",   desc: "Forgotten junk. Mostly worthless, occasionally surprising." }
         ].map(t => ({ ...t, selected: t.id === currentOwnerTheme }));
 
-        // Budget slider bounds: tier-specific sensible defaults
+        // Budget slider bounds: tier-specific sensible defaults.
+        // `pillGp` controls the smallest budget window the GM can drag to;
+        // smaller values let the lower end of the range be tightened further
+        // (e.g. T2 200 gp window instead of the previous 25% / 750 gp).
         const tierBudgetDefaults = {
-            1: { min: 50,   max: 500,   sliderMin: 0,   sliderMax: 1000  },
-            2: { min: 200,  max: 1500,  sliderMin: 0,   sliderMax: 3000  },
-            3: { min: 800,  max: 5000,  sliderMin: 0,   sliderMax: 10000 },
-            4: { min: 2000, max: 15000, sliderMin: 0,   sliderMax: 30000 }
+            1: { min: 50,   max: 500,   sliderMin: 0,   sliderMax: 1000,  pillGp: 100  },
+            2: { min: 200,  max: 1500,  sliderMin: 0,   sliderMax: 3000,  pillGp: 250  },
+            3: { min: 800,  max: 5000,  sliderMin: 0,   sliderMax: 10000, pillGp: 750  },
+            4: { min: 2000, max: 15000, sliderMin: 0,   sliderMax: 30000, pillGp: 2000 }
         };
         const tbd = tierBudgetDefaults[tier] ?? tierBudgetDefaults[1];
         const budgetMin = this._budgetMin ?? tbd.min;
@@ -192,6 +195,7 @@ export class CacheGeneratorApp extends Application {
             budgetMax,
             budgetSliderMin: tbd.sliderMin,
             budgetSliderMax: tbd.sliderMax,
+            budgetPillGp:    tbd.pillGp,
             ...(this._currentResult ? this._groupItems(this._currentResult) : {})
         };
     }
@@ -727,7 +731,7 @@ export class CacheGeneratorApp extends Application {
             const sliderMin = parseInt(track.dataset.sliderMin ?? 0);
             const sliderMax = parseInt(track.dataset.sliderMax ?? 3000);
             const gpRange   = sliderMax - sliderMin;
-            const pillGp    = Math.round(gpRange * 0.25);
+            const pillGp    = parseInt(track.dataset.pillGp) || Math.round(gpRange * 0.25);
             const pillWPct  = pillGp / gpRange * 100;
             const dxPct = (e.clientX - startX) / trackRect.width * 100;
             const newLeft = Math.max(0, Math.min(100 - pillWPct, startAnchorPct + dxPct));
@@ -754,7 +758,7 @@ export class CacheGeneratorApp extends Application {
         const sliderMin = parseInt(track.dataset.sliderMin ?? 0);
         const sliderMax = parseInt(track.dataset.sliderMax ?? 3000);
         const gpRange   = sliderMax - sliderMin;
-        const pillGp    = Math.round(gpRange * 0.25);
+        const pillGp    = parseInt(track.dataset.pillGp) || Math.round(gpRange * 0.25);
         const pillWPct  = (pillGp / gpRange * 100).toFixed(1);
         // Prefer explicit drag state; fall back to the template-provided tier default (not raw sliderMin=0)
         const hiddenDefault = parseInt(html.find("[name='budgetMin']").val()) || sliderMin;
@@ -778,9 +782,9 @@ export class CacheGeneratorApp extends Application {
         const sliderMax = parseInt(track.dataset.sliderMax ?? 3000);
         const hiddenDefault2 = parseInt(html.find("[name='budgetMin']").val()) || sliderMin;
         const anchor  = this._budgetMin ?? hiddenDefault2;
-        const pillGp  = Math.round((sliderMax - sliderMin) * 0.25);
-        const maxVal  = Math.min(sliderMax, anchor + pillGp);
         const gpRange = sliderMax - sliderMin;
+        const pillGp  = parseInt(track.dataset.pillGp) || Math.round(gpRange * 0.25);
+        const maxVal  = Math.min(sliderMax, anchor + pillGp);
         const lPct = (anchor - sliderMin) / gpRange * 100;
         const rPct = lPct + pillGp / gpRange * 100;
         this._updateRangeTooltip(html, anchor, maxVal, lPct, rPct);
