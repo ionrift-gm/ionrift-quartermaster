@@ -184,6 +184,72 @@ export async function runOverlayMaterialiserTests() {
         }
     } catch (e) { fail("nameless-items-dropped", e.message); }
 
+    // ── 7. Deeply nested directories (3+ levels) are walked ──────────
+    // Guards against any future "we walk N levels deep" assumption.
+    // No overlay author has needed depth 3 yet, but the contract is
+    // "walk until you hit the leaves", not "walk one level".
+    try {
+        const deep = buildFakeOverlay({
+            "items/treasure/region/sub-region/locality/buried-cache.json": { name: "Buried Cache" },
+            "items/treasure/region/sub-region/surface-find.json":           { name: "Surface Find" }
+        });
+        const items = await OverlayItemMaterialiser._collectItemsRecursive(
+            "demo", "items/treasure", { overlay: deep, moduleId: "ionrift-quartermaster" }
+        );
+        const names = items.map(i => i.name).sort();
+        if (names.length === 2 && names.includes("Buried Cache") && names.includes("Surface Find")) {
+            pass("deeply-nested-dirs-walked");
+        } else {
+            fail("deeply-nested-dirs-walked",
+                `expected Buried Cache + Surface Find, got: ${names.join(", ")}`);
+        }
+    } catch (e) { fail("deeply-nested-dirs-walked", e.message); }
+
+    // ── 8. Runtime guard: every installed sublayer has content ────────
+    // The bug we just fixed was silent: install completed, manifest was
+    // healthy, the world compendium simply did not exist. This live-world
+    // check asserts that every materialised overlay carries at least one
+    // item, so a future silent regression surfaces here instead of in
+    // "where are my containers" support tickets.
+    //
+    // Skips cleanly when no QM overlays are installed (default world).
+    try {
+        const lib = game.ionrift?.library?.overlay;
+        const sublayers = lib?.listInstalledSublayers
+            ? await lib.listInstalledSublayers("ionrift-quartermaster")
+            : [];
+
+        if (!sublayers.length) {
+            results.push({
+                name: "every-installed-sublayer-has-materialised-pack",
+                status: "pass",
+                message: "Skipped: no QM overlays installed in this world."
+            });
+        } else {
+            const broken = [];
+            for (const sublayer of sublayers) {
+                const manifest = await lib.getLocalManifest("ionrift-quartermaster", sublayer);
+                if (!manifest?.overlayId) continue;
+                const active = await lib.isOverlayActive(
+                    manifest.overlayId, "ionrift-quartermaster", sublayer
+                );
+                if (!active) continue;
+                const pack = game.packs.get(`world.quartermaster-${sublayer}`);
+                const size = pack?.index?.size ?? 0;
+                if (!pack || size === 0) {
+                    broken.push(`${sublayer} (active, ${pack ? "pack exists but empty" : "no pack"})`);
+                }
+            }
+            if (broken.length === 0) {
+                pass("every-installed-sublayer-has-materialised-pack",
+                    `checked ${sublayers.length} sublayer(s).`);
+            } else {
+                fail("every-installed-sublayer-has-materialised-pack",
+                    `Silent materialisation failure: ${broken.join("; ")}.`);
+            }
+        }
+    } catch (e) { fail("every-installed-sublayer-has-materialised-pack", e.message); }
+
     return finalise(results);
 }
 

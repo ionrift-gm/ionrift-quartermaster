@@ -33,6 +33,9 @@ plus the materialiser walker fix that surfaced during validation.
 - Overlay materialisation no longer pops a notification on every world reload. The toast now only fires when the materialiser actually rebuilt a compendium (install, version bump, or content change); the idempotent boot-time pass over already-current sublayers stays silent.
 - Cache drop no longer toasts "Placed X on the canvas". The token appearing under the cursor is sufficient feedback.
 
+### Tests
+- The overlay materialiser suite grew two further cases: `deeply-nested-dirs-walked` (guards against any future "we only walk N levels" assumption) and `every-installed-sublayer-has-materialised-pack` (live-world guard that catches the silent empty-pack mode the 1.3.10 walker exhibited).
+
 ## [1.3.9] - 2026-05-25
 
 ### Added
