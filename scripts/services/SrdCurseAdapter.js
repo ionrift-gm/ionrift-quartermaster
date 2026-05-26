@@ -1,6 +1,6 @@
 /**
  * SrdCurseAdapter: seeds the Quartermaster cursed pool with the 12 canonical
- * SRD cursed items. Real names, minimal metadata — no Ionrift IP.
+ * SRD cursed items. Real names, minimal metadata, no Ionrift IP.
  *
  * Structural pattern mirrors CurseForge.js in Cursewright, stripped of all
  * recipe lore, lure names, escalation, and Ionrift-branded content.
@@ -28,7 +28,7 @@ const SRD_CURSE_MANIFEST = [
         curseType: "deceptive",
         // masking: instruct QM's ItemMaskingHelper to obscure this item as a
         // Potion of Healing until the GM identifies it. Activities and effects
-        // from the raw SRD item are preserved — the midi-qol save fires on use.
+        // from the raw SRD item are preserved; the midi-qol save fires on use.
         // This is purely presentation masking; no lure trickery is needed.
         masking: {
             originalName: "Potion of Healing",
@@ -146,24 +146,18 @@ export class SrdCurseAdapter {
             return;
         }
 
-        // Rebuild world compendium
+        // Get or create the world compendium, then reconcile contents.
         let pack = game.packs.get(this.worldCollectionId);
-        if (pack) await this._destroyWorldPack(pack);
-
-        pack = await this._createWorldPack();
-        if (!pack) return;
-        pack = game.packs.get(this.worldCollectionId) ?? pack;
+        if (!pack) {
+            pack = await this._createWorldPack();
+            if (!pack) return;
+            pack = game.packs.get(this.worldCollectionId) ?? pack;
+        }
 
         try {
-            const minting = game.ionrift?.library?.minting;
-            if (minting?.guardAll) {
-                minting.guardAll(pendingItems, { moduleId: MODULE_ID, mode: "pack" });
-            }
-
-            const ItemClass = CONFIG.Item.documentClass;
-            await ItemClass.createDocuments(pendingItems, { pack: pack.collection });
+            await this._reconcilePack(pack, pendingItems);
         } catch (err) {
-            Logger.error(MODULE_LABEL, "SrdCurseAdapter: createDocuments failed:", err);
+            Logger.error(MODULE_LABEL, "SrdCurseAdapter: reconcile failed:", err);
             ui.notifications.error("Quartermaster: SRD cursed item compile failed. Check the console.");
             return;
         }
@@ -182,7 +176,7 @@ export class SrdCurseAdapter {
     /**
      * Patch price and weight on a plain item data object when the compendium
      * entry carries zero/absent values. Only overwrites if the current value
-     * is 0 or missing — never downgrades a valid compendium value.
+     * is 0 or missing. Never downgrades a valid compendium value.
      *
      * @param {object} data       Plain item data (mutated in place).
      * @param {string} entryName  Manifest match name (e.g. "Berserker Axe").
@@ -191,7 +185,7 @@ export class SrdCurseAdapter {
         const fallback = SRD_ITEM_FALLBACKS[entryName.trim().toLowerCase()];
         if (!fallback) return;
         const system = data.system ??= {};
-        // Weight — handles both object { value, units } and legacy number forms
+        // Weight: handles both object { value, units } and legacy number forms
         const w = system.weight;
         const currentWeight = (w !== null && typeof w === "object") ? (w.value ?? 0) : (w ?? 0);
         if (currentWeight === 0 && fallback.weight > 0) {
@@ -201,7 +195,7 @@ export class SrdCurseAdapter {
                 system.weight = { value: fallback.weight, units: "lb" };
             }
         }
-        // Price — only patch if current value is 0 (legacy entry)
+        // Price: only patch if current value is 0 (legacy entry)
         const p = system.price ?? {};
         if ((p.value ?? 0) === 0 && fallback.price > 0) {
             system.price = {
@@ -213,7 +207,7 @@ export class SrdCurseAdapter {
 
     /**
      * Clone a source item and stamp minimal cursedMeta.
-     * No lure names, no escalation, no Ionrift prose — SRD only.
+     * No lure names, no escalation, no Ionrift prose. SRD only.
      *
      * @param {Item} sourceItem
      * @param {{ match: string, tier: number, curseType: string }} entry
@@ -226,7 +220,7 @@ export class SrdCurseAdapter {
         this._applyFallbacks(data, entry.match);
 
         // All SRD items are identified=true so the GM pool card renders the
-        // real item name and icon. This is a GM-only compendium — hiding the
+        // real item name and icon. This is a GM-only compendium; hiding the
         // identity here serves no purpose and breaks pool card rendering.
         //
         // For entries with a masking blob (e.g. Potion of Poison disguised as
@@ -252,7 +246,7 @@ export class SrdCurseAdapter {
         }
 
         // Minimal cursedMeta: tier + curseType only.
-        // decoyAppearance and trueNature are intentionally empty — no Ionrift IP.
+        // decoyAppearance and trueNature are intentionally empty, no Ionrift IP.
         const cursedMeta = {
             tier:             entry.tier,
             curseType:        entry.curseType,
@@ -324,15 +318,159 @@ export class SrdCurseAdapter {
         return game.packs.get(this.worldCollectionId) ?? null;
     }
 
-    static async _destroyWorldPack(pack) {
+    /**
+     * Reconcile the world pack's contents with the pending items list.
+     * Instead of clearing and re-inserting (which fails on phantom entries),
+     * this reads what's already in the pack, updates existing items in-place,
+     * creates missing ones, and removes items no longer in the manifest.
+     *
+     * @param {CompendiumCollection} pack
+     * @param {object[]} pendingItems  Plain item data from _stampItem
+     */
+    static async _reconcilePack(pack, pendingItems) {
+        const ItemClass = CONFIG.Item.documentClass;
+        const minting   = game.ionrift?.library?.minting;
+
+        // Build name -> doc[] map. Tracks ALL docs per name so duplicates
+        // left over from a corrupted clear cycle can be pruned.
+        const existingByName = new Map();
         try {
-            await pack.deleteCompendium();
-        } catch (err) {
-            Logger.error(MODULE_LABEL, "SrdCurseAdapter: failed to delete existing compendium:", err);
+            const docs = await pack.getDocuments();
+            for (const doc of docs) {
+                const key = (doc.name || "").trim().toLowerCase();
+                if (!key) continue;
+                const arr = existingByName.get(key);
+                if (arr) arr.push(doc);
+                else existingByName.set(key, [doc]);
+            }
+        } catch {
+            // Can't read the pack; treat as empty and insert everything fresh.
+        }
+
+        const pendingNames = new Set();
+        const toCreate     = [];
+        const toUpdate     = [];
+        const toDelete     = [];
+
+        for (const data of pendingItems) {
+            const key  = (data.name || "").trim().toLowerCase();
+            pendingNames.add(key);
+            const docs = existingByName.get(key);
+            if (docs?.length) {
+                // Keep the first, update it. Mark extras for deletion.
+                toUpdate.push({ ...data, _id: docs[0].id });
+                for (let i = 1; i < docs.length; i++) toDelete.push(docs[i].id);
+            } else {
+                toCreate.push(data);
+            }
+        }
+
+        // Any name in the pack that isn't in the manifest: delete all copies.
+        for (const [key, docs] of existingByName) {
+            if (pendingNames.has(key)) continue;
+            for (const doc of docs) toDelete.push(doc.id);
+        }
+
+        // Guard new items through the minting pipeline.
+        if (minting?.guardAll && toCreate.length) {
+            minting.guardAll(toCreate, { moduleId: MODULE_ID, mode: "pack" });
+        }
+
+        if (toCreate.length) {
+            await ItemClass.createDocuments(toCreate, { pack: pack.collection });
+        }
+
+        // Update existing items in-place (refreshes stale data).
+        for (const data of toUpdate) {
+            try {
+                await ItemClass.updateDocuments([data], { pack: pack.collection });
+            } catch { /* phantom; leave existing data */ }
+        }
+
+        // Prune duplicates and orphans (best effort).
+        for (const id of toDelete) {
+            try {
+                await ItemClass.deleteDocuments([id], { pack: pack.collection });
+            } catch { /* phantom or locked; skip */ }
+        }
+    }
+
+    /**
+     * Clear all documents from an existing world pack so it can be re-populated.
+     * Never calls deleteCompendium(); destroying and recreating the pack leaves
+     * Foundry's backend in a broken state on Windows (missing packData).
+     * Instead, tolerates stale/phantom entries by deleting items individually.
+     *
+     * @param {CompendiumCollection} pack
+     * @returns {Promise<boolean>}
+     */
+    static async _clearOrDestroyPack(pack) {
+        const ids = await this._collectPackItemIds(pack);
+        if (!ids.length) return true;
+
+        const ItemClass = CONFIG.Item.documentClass;
+
+        // Try batch delete first (fast path).
+        try {
+            await ItemClass.deleteDocuments(ids, { pack: pack.collection });
+            return true;
+        } catch {
+            // Batch failed, likely stale/phantom entries. Fall through.
+        }
+
+        // Delete one at a time, tolerating phantom IDs.
+        let failures = 0;
+        for (const id of ids) {
+            try {
+                await ItemClass.deleteDocuments([id], { pack: pack.collection });
+            } catch {
+                failures++;
+            }
+        }
+
+        if (failures > 0) {
+            Logger.warn(MODULE_LABEL,
+                `SrdCurseAdapter: ${failures}/${ids.length} stale entries could not be removed (phantom IDs in index).`);
+        }
+        return true;
+    }
+
+    /**
+     * Collect item IDs from a pack, preferring getDocuments() but falling back
+     * to getIndex() if the pack's LevelDB is partially corrupted.
+     *
+     * @param {CompendiumCollection} pack
+     * @returns {Promise<string[]>}
+     */
+    static async _collectPackItemIds(pack) {
+        try {
+            const docs = await pack.getDocuments();
+            if (docs.length) return docs.map(d => d.id);
+            return [];
+        } catch {
+            // getDocuments failed; try the lighter-weight index.
+        }
+
+        try {
+            const index = await pack.getIndex();
+            const ids = [];
+            for (const entry of index) {
+                if (entry._id) ids.push(entry._id);
+            }
+            return ids;
+        } catch {
+            // Both failed. Return empty; compile will insert fresh.
+            Logger.warn(MODULE_LABEL,
+                "SrdCurseAdapter: could not read pack contents or index. Will attempt to insert directly.");
+            return [];
         }
     }
 
     static async _createWorldPack() {
+        // If the pack already exists (race condition or stale reference), return it.
+        const existing = game.packs.get(this.worldCollectionId);
+        if (existing) return existing;
+
         const base = {
             label:     this.PACK_LABEL,
             name:      this.WORLD_PACK_NAME,
@@ -352,6 +490,9 @@ export class SrdCurseAdapter {
                 return await foundry.documents.collections.CompendiumCollection.createCompendium(meta);
             } catch (err) {
                 lastErr = err;
+                // "already exists" from a concurrent tab or stale state: return it.
+                const recheck = game.packs.get(this.worldCollectionId);
+                if (recheck) return recheck;
             }
         }
         Logger.error(MODULE_LABEL, "SrdCurseAdapter: failed to create world compendium:", lastErr);
@@ -412,7 +553,7 @@ export class SrdCurseAdapter {
             if (qm) return qm.id;
         }
 
-        // 3. Not found — create the hierarchy so the pack is placed correctly.
+        // 3. Not found: create the hierarchy so the pack is placed correctly.
         try {
             let ionrift = ionriftRoots[0];
             if (!ionrift) {
