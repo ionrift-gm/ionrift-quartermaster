@@ -868,9 +868,6 @@ export class CacheGeneratorApp extends Application {
                 this._refreshPartyShelfPool(tier),
                 this._refreshCursedPool(tier)
             ]);
-
-            // ~20% chance to surface a ripe / eligible party shelf item automatically
-            await this._tryAutoInjectShelfItem(tier);
         } catch (e) {
             Logger.error(MODULE_LABEL, "Generation failed:", e);
             ui.notifications.error("Cache generation failed.");
@@ -878,76 +875,6 @@ export class CacheGeneratorApp extends Application {
             this._generating = false;
             this.render();
         }
-    }
-
-    /**
-     * On each generate, roll a ~20% chance to auto-inject one eligible party shelf
-     * item into the cache as a Special Item. Only picks ledger items that are:
-     *   - not yet delivered
-     *   - not locked (held back by GM)
-     *   - within the current tier's level cap
-     * Does not mark the item as delivered; the GM confirms delivery separately.
-     */
-    async _tryAutoInjectShelfItem(tier = 1) {
-        if (Math.random() >= 0.20) return;
-
-        const levelCap = ProgressionAdvisor.TIER_LEVEL_CAP[tier] ?? 10;
-        let shelf;
-        try {
-            shelf = await SignatureLedger.getPartyShelf();
-        } catch {
-            return;
-        }
-
-        const eligible = shelf.filter(s =>
-            s.uuid &&
-            !s.delivered &&
-            !s.locked &&
-            s.level &&
-            s.level <= levelCap
-        );
-        if (!eligible.length) return;
-
-        const pick = eligible[Math.floor(Math.random() * eligible.length)];
-
-        // Resolve to item data without triggering a render mid-generate
-        let itemData;
-        try {
-            const doc = await fromUuid(pick.uuid);
-            if (doc) {
-                const raw     = doc.toObject();
-                const priceVal = raw.system?.price?.value ?? raw.system?.cost ?? raw.price ?? 0;
-                const uuidParts = pick.uuid.split(".");
-                itemData = {
-                    ...raw,
-                    name:             raw.name,
-                    img:              raw.img,
-                    type:             raw.type ?? "loot",
-                    price:            priceVal,
-                    rarity:           raw.system?.rarity ?? "",
-                    isSignature:      false,
-                    sourceCompendium: uuidParts.length >= 4 ? `${uuidParts[1]}.${uuidParts[2]}` : "",
-                    _compendiumId:    uuidParts.at(-1) ?? ""
-                };
-            }
-        } catch { /* fall through to stub */ }
-
-        if (!itemData) {
-            itemData = {
-                name:  pick.name || "Party Item",
-                type:  "loot",
-                img:   pick.img  || "icons/svg/item-bag.svg",
-                price: 0,
-                rarity: pick.rarity ?? ""
-            };
-        }
-
-        itemData._injected      = true;
-        itemData._badgeLabel    = "Party Shelf";
-        itemData._specialSection = true;
-        itemData._specialType   = "partyShelf";
-
-        this._currentResult.items.push(itemData);
     }
 
     // ── Left Panel Item Drag ──────────────────────────────────────────────────
@@ -1342,6 +1269,23 @@ export class CacheGeneratorApp extends Application {
             };
         }
 
+        const mask = ItemMaskingHelper.detectMagical({
+            name: itemData.name,
+            rarity: itemData.system?.rarity ?? "",
+            type: itemData.type ?? "consumable",
+            _baseItem: itemData.system?.type?.baseItem
+        });
+        if (mask.isMagical) {
+            itemData._isMagical    = true;
+            itemData._baseItemName = mask.baseItemName;
+            itemData._mundaneDesc  = mask.mundaneDesc;
+            if (mask.obscuredImg) {
+                itemData._maskSourceImg = itemData.img;
+                itemData._obscuredImg   = mask.obscuredImg;
+                itemData.img            = mask.obscuredImg;
+            }
+        }
+
         this._currentResult.items.push(itemData);
         await this._refreshAdvisoryForCurrentCache();
         this._recalcContainerCapacity();
@@ -1653,19 +1597,12 @@ export class CacheGeneratorApp extends Application {
         }
         const theme = this._currentResult.meta.theme;
 
-        // Helper: pick one replacement
+        // Helper: pick one replacement (routed through _pickItem for masking)
         const pickOne = async () => {
-            switch (slotType) {
-                case "signature":  return CacheGenerator._generateSignatureStub(this._currentResult.meta.tier, theme);
-                case "scroll":     return CacheGenerator._pickScroll(tierData);
-                case "consumable": return CacheGenerator._pickConsumable(theme, tierData, tables);
-                case "mundane":    return CacheGenerator._pickMundane(theme, tierData, tables);
-                case "mastercraft":return CacheGenerator._pickMastercraft(theme, tierData);
-                case "gemstone":   return CacheGenerator._pickGemstone(tierData);
-                case "treasure":   return CacheGenerator._pickTreasure(tierData);
-                case "trinket":    return CacheGenerator._pickTrinket(tierData);
-                default:           return null;
+            if (slotType === "signature") {
+                return CacheGenerator._generateSignatureStub(this._currentResult.meta.tier, theme);
             }
+            return CacheGenerator._pickItem(slotType, theme, tierData, tables);
         };
 
         if (stackCount > 1 && stackName) {
