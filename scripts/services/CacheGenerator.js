@@ -46,7 +46,12 @@ export const __testables__ = {
     containerOwnerThemeMatches: (entry, ownerTheme) => containerOwnerThemeMatches(entry, ownerTheme),
     isBundledContainerEntry: (entry) => isBundledContainerEntry(entry),
     selectBlendedContainerPool: (byTerrain) => selectBlendedContainerPool(byTerrain),
-    get CONTAINER_BUNDLED_BIAS() { return CONTAINER_BUNDLED_BIAS; }
+    get CONTAINER_BUNDLED_BIAS() { return CONTAINER_BUNDLED_BIAS; },
+    flavorMatchesTerrain: (entry, theme) => flavorMatchesTerrain(entry, theme),
+    flavorIsTerrainBound: (entry) => flavorIsTerrainBound(entry),
+    flavorEligibleForTheme: (entry, theme) => flavorEligibleForTheme(entry, theme),
+    get FLAVOR_TERRAIN_MATCH_MULTIPLIER() { return FLAVOR_TERRAIN_MATCH_MULTIPLIER; },
+    get FLAVOR_TERRAIN_SPECIFIC_BIAS() { return FLAVOR_TERRAIN_SPECIFIC_BIAS; }
 };
 
 /**
@@ -214,6 +219,46 @@ function containerOwnerThemeMatches(entry, ownerTheme) {
  * @returns {object[]}  The pool to uniform-random-pick from.
  */
 const CONTAINER_BUNDLED_BIAS = 0.5;
+
+/**
+ * Per-entry weight when `flags.ionrift-quartermaster.terrain` includes the
+ * active theme. Only applies inside the eligible pool after exclusivity filter.
+ */
+const FLAVOR_TERRAIN_MATCH_MULTIPLIER = 2;
+
+/**
+ * When both terrain-exclusive and generic entries are eligible, prefer the
+ * exclusive subset this often before the weighted draw.
+ */
+const FLAVOR_TERRAIN_SPECIFIC_BIAS = 0.7;
+
+/** @param {object} entry */
+function flavorTerrainTags(entry) {
+    return entry.flags?.["ionrift-quartermaster"]?.terrain ?? [];
+}
+
+/** True when the item declares at least one terrain (not universal). */
+function flavorIsTerrainBound(entry) {
+    return flavorTerrainTags(entry).length > 0;
+}
+
+/** @param {object} entry @param {string} theme */
+function flavorMatchesTerrain(entry, theme) {
+    return flavorTerrainTags(entry).includes(theme);
+}
+
+/**
+ * Universal items (no terrain flag) are eligible everywhere. Terrain-bound
+ * items are eligible only when the active theme is listed.
+ *
+ * @param {object} entry
+ * @param {string} theme
+ */
+function flavorEligibleForTheme(entry, theme) {
+    if (!flavorIsTerrainBound(entry)) return true;
+    return flavorMatchesTerrain(entry, theme);
+}
+
 function selectBlendedContainerPool(byTerrain) {
     const bundled = byTerrain.filter(isBundledContainerEntry);
     const overlay = byTerrain.filter(e => !isBundledContainerEntry(e));
@@ -381,8 +426,11 @@ export class CacheGenerator {
             }
         };
 
-        // Tier-specific GP floor for filler slots
-        const goldFillerFloor = [0, 5, 15, 40, 100][tier] ?? 5;
+        // Tier-specific GP floor for filler slots. Tuned down from the
+        // previous 5/15/40/100 set so failed slots and weight-overflow
+        // contributions do not dominate the cache value with coin. The
+        // floor still gates filler-slot price ceilings.
+        const goldFillerFloor = [0, 3, 9, 25, 60][tier] ?? 3;
 
         // Discovery flavor is resolved after the container is picked (container
         // description paragraphs take priority over terrain phrases).
@@ -828,7 +876,7 @@ export class CacheGenerator {
      */
     static async _pickGemstone(theme, tierData, priceCeiling = Infinity) {
         const tier = tierData._tier ?? 1;
-        // Tier 1 = chips+common, Tier 2 = +semi-precious, Tier 3 = +precious, Tier 4 = +flawless
+        // Tier gates which quality bands are eligible per cache tier.
         const eligibleTiers = [
             [],
             ['Chips & Fragments', 'Polished Common'],
@@ -837,8 +885,18 @@ export class CacheGenerator {
             ['Semi-Precious', 'Precious', 'Flawless']
         ][tier] ?? ['Polished Common'];
 
-        // Weight toward lower tiers so chips/fragments appear more often at low tier
-        const tierWeights = { 'Chips & Fragments': 4, 'Polished Common': 3, 'Semi-Precious': 2, 'Precious': 1, 'Flawless': 0.5 };
+        // Tier-aware tier weights. The picker scales the gem-quality curve
+        // with the cache tier so that T1 caches still favour chips and
+        // common, but T2+ pushes meaningful weight onto semi-precious and
+        // up. Without this, flat weights drowned out the (already rare)
+        // mid-tier gems that overlay packs ship.
+        const tierWeightsByCacheTier = {
+            1: { 'Chips & Fragments': 3, 'Polished Common': 3 },
+            2: { 'Chips & Fragments': 1, 'Polished Common': 2, 'Semi-Precious': 3 },
+            3: { 'Polished Common': 1, 'Semi-Precious': 3, 'Precious': 2 },
+            4: { 'Semi-Precious': 1, 'Precious': 3, 'Flawless': 2 }
+        };
+        const tierWeights = tierWeightsByCacheTier[tier] ?? { 'Polished Common': 1 };
 
         try {
             const packs = resolveQmGemPacks();
@@ -863,22 +921,52 @@ export class CacheGenerator {
             }
 
             const pick = this._terrainWeightedPick(weighted, theme);
+            if (!pick) return null;
+
+            const pickedTier = pick.flags?.['ionrift-quartermaster']?.gemMeta?.tier
+                ?? pick.flags?.['ionrift-workshop']?.gemMeta?.tier
+                ?? 'Polished Common';
+            const pickPrice = pick.system?.price?.value ?? 10;
+
             return {
                 name: pick.name,
                 type: 'loot',
                 img: pick.img,
-                price: pick.system?.price?.value ?? 10,
+                price: pickPrice,
                 weight: pick.system?.weight?.value ?? 0.1,
                 rarity: pick.system?.rarity ?? 'common',
-                quantity: 1,
+                quantity: this._resolveGemQuantity(pickedTier, pickPrice),
                 _compendiumId: pick._id,
                 _qmKind: "gemstones",
+                _gemTier: pickedTier,
                 sourceCompendium: pick._sourceCollection
             };
         } catch (e) {
             Logger.warn(MODULE_LABEL, "Gemstone pool query failed:", e.message);
         }
         return null;
+    }
+
+    /**
+     * Stack count for a picked gem.
+     *
+     * Low-tier damaged variants are routinely scattered finds, so chips and
+     * cheap polished common stones can stack into handfuls. Mid- and high-tier
+     * gems are individual finds and never stack. Honest pricing is preserved;
+     * this only changes the *count* the GM sees.
+     *
+     * @param {string} tier
+     * @param {number} unitPrice
+     * @returns {number}
+     */
+    static _resolveGemQuantity(tier, unitPrice) {
+        if (tier === 'Chips & Fragments') {
+            return 3 + Math.floor(Math.random() * 4);
+        }
+        if (tier === 'Polished Common' && unitPrice <= 12) {
+            return 2 + Math.floor(Math.random() * 3);
+        }
+        return 1;
     }
 
     /**
@@ -901,6 +989,7 @@ export class CacheGenerator {
             });
             if (eligible.length === 0) return null;
             const pick = this._terrainWeightedPick([...eligible], theme);
+            if (!pick) return null;
             return {
                 name: pick.name,
                 type: 'loot',
@@ -935,6 +1024,7 @@ export class CacheGenerator {
             });
             if (eligible.length === 0) return null;
             const pick = this._terrainWeightedPick([...eligible], theme);
+            if (!pick) return null;
             return {
                 name: pick.name,
                 type: pick.type ?? 'loot',
@@ -1078,22 +1168,39 @@ export class CacheGenerator {
 
     /**
      * Terrain-weighted random pick from a pool of compendium index entries.
-     * Items with a matching `flags["ionrift-quartermaster"].terrain` array entry
-     * get a 2x weight multiplier. Items without the flag are terrain-neutral
-     * and always eligible at 1x weight.
+     *
+     * Terrain-bound items (non-empty `terrain` flag) are exclusive: they
+     * never appear outside their listed terrains. Items with no terrain flag
+     * are universal and eligible everywhere.
+     *
+     * When both terrain-matched and generic entries are eligible, the picker
+     * restricts to the matched subset with {@link FLAVOR_TERRAIN_SPECIFIC_BIAS}
+     * probability so overlay kits are not drowned out by the core pool.
      *
      * @param {Object[]} pool - Array of compendium index entries
      * @param {string} theme - Current terrain theme
-     * @returns {Object} The selected item
+     * @returns {Object|undefined} The selected item
      */
     static _terrainWeightedPick(pool, theme) {
-        if (!theme || pool.length === 0) return pool[Math.floor(Math.random() * pool.length)];
+        if (pool.length === 0) return undefined;
+        if (!theme) return pool[Math.floor(Math.random() * pool.length)];
 
-        const weighted = pool.map(item => {
-            const terrains = item.flags?.['ionrift-quartermaster']?.terrain ?? [];
-            const multiplier = terrains.includes(theme) ? 2 : 1;
-            return { item, weight: multiplier };
-        });
+        const eligible = pool.filter(item => flavorEligibleForTheme(item, theme));
+        if (eligible.length === 0) return undefined;
+
+        const specific = eligible.filter(item => flavorIsTerrainBound(item));
+        const generic = eligible.filter(item => !flavorIsTerrainBound(item));
+
+        let activePool = eligible;
+        if (specific.length > 0 && generic.length > 0
+            && Math.random() < FLAVOR_TERRAIN_SPECIFIC_BIAS) {
+            activePool = specific;
+        }
+
+        const weighted = activePool.map(item => ({
+            item,
+            weight: flavorMatchesTerrain(item, theme) ? FLAVOR_TERRAIN_MATCH_MULTIPLIER : 1
+        }));
         const total = weighted.reduce((sum, w) => sum + w.weight, 0);
         let roll = Math.random() * total;
         for (const { item, weight } of weighted) {
@@ -1279,7 +1386,10 @@ export class CacheGenerator {
      *   < 5    gp  -> target 2-6 gp     -> e.g. 1-2 flasks of oil
      *   >= 5   gp  -> quantity 1 always
      *
-     * Signature, scroll, gem, and magic items are never multiplied.
+     * Signature, scroll, and magic items are never multiplied. Gem stacks
+     * are pre-resolved by {@link _resolveGemQuantity} in {@link _pickGemstone}
+     * so the slot loop's `item.quantity > 1` short-circuit honours that count
+     * before this resolver is consulted.
      *
      * Weight awareness:
      *   When `opts.remainingWeight` is supplied (the bag's remaining capacity

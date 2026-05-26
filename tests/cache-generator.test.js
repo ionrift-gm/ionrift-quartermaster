@@ -268,8 +268,8 @@ describe("CacheGenerator._terrainWeightedPick", () => {
         for (let i = 0; i < 1000; i++) {
             if (CacheGenerator._terrainWeightedPick(pool, "forest").name === "Matched") matched++;
         }
-        // Matched has 2x weight, so should appear ~66% of the time
-        expect(matched).toBeGreaterThan(550); // safe threshold
+        // 70% restrict to matched subset; remainder uses 2x weight (~79% overall)
+        expect(matched).toBeGreaterThan(720);
     });
 
     it("works with null theme", () => {
@@ -281,6 +281,27 @@ describe("CacheGenerator._terrainWeightedPick", () => {
     it("works with single-item pool", () => {
         const pool = [{ name: "Only" }];
         expect(CacheGenerator._terrainWeightedPick(pool, "forest").name).toBe("Only");
+    });
+
+    it("excludes terrain-bound items from other terrains", () => {
+        const pool = [
+            { name: "Catacombs Only", flags: { "ionrift-quartermaster": { terrain: ["catacombs"] } } },
+            { name: "Generic" }
+        ];
+        for (let i = 0; i < 200; i++) {
+            const result = CacheGenerator._terrainWeightedPick(pool, "desert");
+            expect(result.name).toBe("Generic");
+        }
+    });
+
+    it("never returns wrong-terrain bound items when generic exists", () => {
+        const pool = [
+            { name: "Ruins Gem", flags: { "ionrift-quartermaster": { terrain: ["ruins"] } } },
+            { name: "Core Chalice" }
+        ];
+        for (let i = 0; i < 200; i++) {
+            expect(CacheGenerator._terrainWeightedPick(pool, "desert").name).toBe("Core Chalice");
+        }
     });
 });
 
