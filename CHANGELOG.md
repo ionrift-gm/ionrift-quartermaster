@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.3.10] - 2026-05-26
 
 ### Changed
 - The bundled container compendium now tags only kernel-base terrains (forest, swamp, desert, urban, dungeon) or universal. Catacombs, ruins, coastal, and jungle containers moved to their content-pack workshop homes so Bone & Dust and future coastal drops own those pools exclusively.
