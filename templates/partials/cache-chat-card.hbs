@@ -52,6 +52,17 @@
 {{/each}}
 </div>
 {{/if}}
+{{#if trinkets}}
+<div style="margin:6px 0;"><strong style="color:#b69cff;">Trinkets</strong>
+{{#each trinkets}}
+<div style="display:flex;align-items:center;gap:6px;margin:3px 0;">
+<img src="{{{img}}}" width="24" height="24" style="border:0;border-radius:3px;" />
+<span>{{{name}}}</span>
+<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{price}} gp</span>
+</div>
+{{/each}}
+</div>
+{{/if}}
 {{#if mundane}}
 <div style="margin:6px 0;"><strong style="color:#cd853f;">Trade Goods</strong>
 {{#each mundane}}

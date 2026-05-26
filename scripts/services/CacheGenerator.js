@@ -30,9 +30,35 @@ function isQmPackRole(compendiumId, role) {
     return !!suffix && compendiumId.endsWith(`.${suffix}`);
 }
 
+export const __testables__ = {
+    MODULE_ID,
+    PACK_SUFFIX,
+    isQmPackRole,
+    readEnabledPackSources: () => readEnabledPackSources(),
+    resolveQmAnyPacks: (suffix) => resolveQmAnyPacks(suffix),
+    resolveQmContainerPacks: () => resolveQmContainerPacks(),
+    resolveQmTreasurePacks: () => resolveQmTreasurePacks(),
+    resolveQmGemPacks: () => resolveQmGemPacks(),
+    resolveQmCorePacks: () => resolveQmCorePacks(),
+    loadContainerPoolIndex: () => loadContainerPoolIndex(),
+    containerMatchesTerrain: (entry, theme) => containerMatchesTerrain(entry, theme),
+    containerIsTerrainSpecific: (entry, theme) => containerIsTerrainSpecific(entry, theme),
+    containerOwnerThemeMatches: (entry, ownerTheme) => containerOwnerThemeMatches(entry, ownerTheme),
+    isBundledContainerEntry: (entry) => isBundledContainerEntry(entry),
+    selectBlendedContainerPool: (byTerrain) => selectBlendedContainerPool(byTerrain),
+    get CONTAINER_BUNDLED_BIAS() { return CONTAINER_BUNDLED_BIAS; }
+};
+
 /**
- * Read the GM-managed `lootPoolSources` allowlist. Returns `null` when the
- * setting is missing or unparseable, which callers treat as "no constraint".
+ * Read the GM-managed `lootPoolSources` setting as a Set. This setting is the
+ * third-party source list consumed by {@link ItemPoolResolver} (dnd5e.items,
+ * dnd5e.tradegoods, world.ionrift-forged-scrolls by default). It is also where
+ * {@link OverlayItemMaterialiser} records materialised `world.quartermaster-*`
+ * packs so the GM can toggle them via the LootPoolConfigApp.
+ *
+ * Returns `null` when the setting is missing or unparseable; callers treat
+ * `null` as "no constraint" and include every candidate overlay pack.
+ *
  * @returns {Set<string>|null}
  */
 function readEnabledPackSources() {
@@ -45,11 +71,19 @@ function readEnabledPackSources() {
 }
 
 /**
- * Generic pool scanner. Returns the module-shipped pack for a role (if it
- * exists) plus every materialised overlay pack under `world.quartermaster-*`,
- * filtered through the `lootPoolSources` allowlist when the GM has set one.
- * Callers filter the merged index by item kind because overlay packs hold
- * mixed content (containers + gems + treasure + trinkets in one sublayer).
+ * Generic pool scanner for a Quartermaster role (containers, treasure, gems,
+ * core). Returns:
+ *   1. The module-shipped pack for the role (always included; this is
+ *      canonical QM content and is never gated by `lootPoolSources`).
+ *   2. Every materialised overlay pack under `world.quartermaster-*` whose
+ *      collection id is present in `lootPoolSources` (or all of them when the
+ *      setting is missing). Overlays self-register on install via
+ *      {@link OverlayItemMaterialiser._registerLootSources}, so the GM can
+ *      disable an installed overlay via the LootPoolConfigApp without
+ *      uninstalling it.
+ *
+ * Overlay packs hold mixed content (containers + gems + treasure + trinkets
+ * in one sublayer), so callers filter the merged index by item kind.
  *
  * @param {string} modulePackSuffix  e.g. PACK_SUFFIX.containers
  * @returns {CompendiumCollection[]}
@@ -61,7 +95,7 @@ function resolveQmAnyPacks(modulePackSuffix) {
 
     if (modulePackSuffix) {
         const mod = game.packs.get(`${MODULE_ID}.${modulePackSuffix}`);
-        if (mod && (!enabled || enabled.has(mod.collection))) {
+        if (mod) {
             packs.push(mod);
             seen.add(mod.collection);
         }
@@ -117,16 +151,78 @@ function parseDiscoveryPhrases(html) {
         .filter(Boolean);
 }
 
-/** @param {object} entry @param {string} theme */
+/**
+ * True if the entry is valid for the given terrain. A container is valid when
+ * its tags name the theme explicitly OR include the universal "any" marker.
+ * Bundled fallback containers ship tagged ["any"] so they remain candidates
+ * for every terrain alongside any terrain-specific containers shipped by
+ * content overlays.
+ *
+ * @param {object} entry
+ * @param {string} theme
+ */
 function containerMatchesTerrain(entry, theme) {
     const terrains = entry.flags?.["ionrift-quartermaster"]?.containerMeta?.terrains ?? ["any"];
-    return terrains.includes(theme);
+    return terrains.includes(theme) || terrains.includes("any");
 }
 
 /** True when tagged for this terrain and not a generic any-only entry. */
 function containerIsTerrainSpecific(entry, theme) {
     const terrains = entry.flags?.["ionrift-quartermaster"]?.containerMeta?.terrains ?? ["any"];
     return terrains.includes(theme) && !(terrains.length === 1 && terrains[0] === "any");
+}
+
+/**
+ * True when a container pool entry comes from the bundled module pack
+ * (ionrift-quartermaster.quartermaster-containers), as opposed to an
+ * overlay-materialised pack under `world.quartermaster-*`.
+ */
+function isBundledContainerEntry(entry) {
+    return entry._sourceCollection === `${MODULE_ID}.${PACK_SUFFIX.containers}`;
+}
+
+/**
+ * True when a container is appropriate for the given owner theme.
+ *
+ * An entry that declares `containerMeta.ownerThemes` must list the active
+ * theme. An entry that does NOT declare ownerThemes is treated as universal
+ * and matches every owner theme. This is critical for the bundled compendium,
+ * which ships with legacy `cacheTypes` ("stash", "camp_supplies", "hoard")
+ * but no `ownerThemes` — those two fields name orthogonal axes and the legacy
+ * cacheTypes vocabulary does not overlap with the owner theme vocabulary
+ * ("unspecified", "arcana", "armaments", etc.). Treating missing ownerThemes
+ * as a hard mismatch silently dropped every bundled container the moment any
+ * overlay declared `ownerThemes`, because the picker would prefer the
+ * overlay-matched subset and never fall through.
+ */
+function containerOwnerThemeMatches(entry, ownerTheme) {
+    const themes = entry.flags?.["ionrift-quartermaster"]?.containerMeta?.ownerThemes;
+    if (!Array.isArray(themes) || themes.length === 0) return true;
+    return themes.includes(ownerTheme);
+}
+
+/**
+ * Blended container picker. When the pool contains entries from both the
+ * bundled module pack and one or more overlay-materialised packs, the picker
+ * biases the choice between the two sources so a content overlay does not
+ * shadow the bundled compendium entirely. Falls through cleanly when one
+ * side is empty.
+ *
+ * Tuned by {@link CONTAINER_BUNDLED_BIAS}; 0.5 means equal chance per side.
+ *
+ * @param {object[]} byTerrain  Pre-filtered to entries valid for `theme`.
+ * @returns {object[]}  The pool to uniform-random-pick from.
+ */
+const CONTAINER_BUNDLED_BIAS = 0.5;
+function selectBlendedContainerPool(byTerrain) {
+    const bundled = byTerrain.filter(isBundledContainerEntry);
+    const overlay = byTerrain.filter(e => !isBundledContainerEntry(e));
+    if (bundled.length > 0 && overlay.length > 0) {
+        return Math.random() < CONTAINER_BUNDLED_BIAS ? bundled : overlay;
+    }
+    if (bundled.length > 0) return bundled;
+    if (overlay.length > 0) return overlay;
+    return byTerrain;
 }
 
 /**
@@ -1321,12 +1417,14 @@ export class CacheGenerator {
         const weapons     = items.filter(i => (i.type === "weapon" || i.type === "equipment") && !i.isSignature);
         const isKind = (i, role) => i._qmKind === role || isQmPackRole(i.sourceCompendium, role);
         const treasures   = items.filter(i => isKind(i, "treasure"));
+        const trinkets    = items.filter(i => isKind(i, "trinkets"));
         const consumables = items.filter(i => i.type === "consumable" && !i.spellName && !i.isSignature);
         const mundane     = items.filter(i =>
             !i.isSignature && !i.spellName
             && i.type !== "weapon" && i.type !== "equipment"
             && !isKind(i, "gemstones")
             && !isKind(i, "treasure")
+            && !isKind(i, "trinkets")
             && (i.type === "loot" || i.type === "tool" || !i.type)
         );
         const totalValue = Math.round((gold + items.reduce((s, i) => s + (i.price ?? 0), 0)) * 100) / 100;
@@ -1336,7 +1434,7 @@ export class CacheGenerator {
             { meta, gold, coinage, coinageRows, hasCoinage: coinageRows.length > 0,
                 showGoldBlock: gold > 0,
                 cacheId, totalValue, itemCount: items.length,
-                signatures, scrolls, weapons, treasures, consumables, mundane }
+                signatures, scrolls, weapons, treasures, trinkets, consumables, mundane }
         );
 
         await ChatMessage.create({
@@ -1486,22 +1584,24 @@ export class CacheGenerator {
             const pool = await loadContainerPoolIndex();
             if (pool.length === 0) return null;
 
-            // Primary filter: matches ownerTheme (check both new and legacy flag fields)
-            const byTheme = pool.filter(e => {
-                const meta = e.flags?.['ionrift-quartermaster']?.containerMeta ?? {};
-                const themes = meta.ownerThemes ?? meta.cacheTypes ?? [];
-                return themes.includes(ownerTheme);
-            });
+            // Primary filter: matches ownerTheme. Entries without an
+            // ownerThemes array are treated as universal so the bundled
+            // compendium (which has cacheTypes but no ownerThemes) stays
+            // eligible alongside overlay entries that do declare it.
+            const byTheme = pool.filter(e => containerOwnerThemeMatches(e, ownerTheme));
 
-            // If no theme match, fall back to all containers
+            // If no theme match, fall back to all containers (only possible
+            // when every entry in the pool declares an ownerThemes set that
+            // excludes the active theme).
             const activePool = byTheme.length > 0 ? byTheme : pool;
 
-            // Secondary filter: prefer terrain-matched, favor terrain-specific tags
+            // Secondary filter: terrain-matched (named or universal "any"),
+            // then blend bundled-module entries with overlay-shipped entries
+            // to avoid a content overlay shadowing the bundled compendium.
             const byTerrain = activePool.filter(e => containerMatchesTerrain(e, theme));
-            const terrainSpecific = byTerrain.filter(e => containerIsTerrainSpecific(e, theme));
-            const terrainPool = terrainSpecific.length > 0
-                ? terrainSpecific
-                : (byTerrain.length > 0 ? byTerrain : activePool);
+            const terrainPool = byTerrain.length > 0
+                ? selectBlendedContainerPool(byTerrain)
+                : activePool;
 
             // Prefer containers with sufficient capacity
             const withCapacity = terrainPool.filter(e => {

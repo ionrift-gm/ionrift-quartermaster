@@ -212,23 +212,26 @@ export class OverlayItemMaterialiser {
         let totalFileCount = 0;
         for (const packDir of packDirs.sort()) {
             const itemsPath = `items/${packDir}`;
-            const listing = await overlay.listOverlayDir(MODULE_ID, sublayer, itemsPath);
-            const files = (listing?.files ?? []).filter(f => f.endsWith(".json") && f !== FOLDERS_FILE);
-            totalFileCount += files.length;
-            if (!files.length) continue;
-
             const folderDefs = await this._readFolders(sublayer, itemsPath);
-            const items = [];
-            for (const file of files) {
-                const data = await overlay.readOverlayFile(MODULE_ID, sublayer, `${itemsPath}/${file}`);
-                if (data && data.name) items.push(data);
+            const items = await this._collectItemsRecursive(sublayer, itemsPath);
+            if (!items.length) {
+                Logger.warn(MODULE_LABEL,
+                    `OverlayItemMaterialiser | "${overlayId}" packDir "${packDir}" yielded zero items; ` +
+                    `check items/${packDir}/ on disk and any nested terrain folders.`
+                );
+                continue;
             }
-            if (!items.length) continue;
-
+            totalFileCount += items.length;
             sectionPlans.push({ packDir, folderDefs, items });
         }
 
-        if (!sectionPlans.length) return null;
+        if (!sectionPlans.length) {
+            Logger.warn(MODULE_LABEL,
+                `OverlayItemMaterialiser | "${overlayId}" produced no section plans; ` +
+                `no compendium will be created.`
+            );
+            return null;
+        }
 
         const hashKey = `${overlayId}:${sublayer}:${overlayVersion}:${totalFileCount}`;
         const state = this._getState();
@@ -372,6 +375,46 @@ export class OverlayItemMaterialiser {
         const data = await overlay.readOverlayFile(MODULE_ID, sublayer, `${itemsPath}/${FOLDERS_FILE}`);
         if (Array.isArray(data)) return data;
         return [];
+    }
+
+    /**
+     * Walk every `.json` item file under `items/{packDir}` recursively.
+     * Required because some overlays nest items inside terrain subfolders
+     * (e.g. `items/containers/catacombs/*.json`) with the destination folder
+     * pre-tagged in `_folders.json` at the packDir root. Folder defs are
+     * loaded separately via {@link _readFolders}; only `_folders.json` files
+     * are skipped here.
+     *
+     * @param {string} sublayer
+     * @param {string} itemsPath  Path relative to the overlay root (e.g. "items/containers").
+     * @param {object} [deps]     Optional injection for unit tests.
+     * @returns {Promise<object[]>}
+     * @private
+     */
+    static async _collectItemsRecursive(sublayer, itemsPath, deps = null) {
+        const overlay = deps?.overlay ?? game.ionrift?.library?.overlay;
+        const moduleId = deps?.moduleId ?? MODULE_ID;
+        if (!overlay) return [];
+
+        const collected = [];
+
+        const walk = async (path) => {
+            const listing = await overlay.listOverlayDir(moduleId, sublayer, path);
+            const files = (listing?.files ?? []).filter(f =>
+                f.endsWith(".json") && f !== FOLDERS_FILE
+            );
+            for (const file of files) {
+                const data = await overlay.readOverlayFile(moduleId, sublayer, `${path}/${file}`);
+                if (data && data.name) collected.push(data);
+            }
+            const dirs = (listing?.dirs ?? []).filter(d => d && !d.startsWith("."));
+            for (const dir of dirs) {
+                await walk(`${path}/${dir}`);
+            }
+        };
+
+        await walk(itemsPath);
+        return collected;
     }
 
     /**

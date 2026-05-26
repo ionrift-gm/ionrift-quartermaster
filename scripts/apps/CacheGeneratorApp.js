@@ -510,10 +510,21 @@ export class CacheGeneratorApp extends Application {
         const isScroll         = i => !!i.spellName && !isSpecialSection(i);
         const isConsumable     = i => i.type === "consumable" && !i.spellName && !isSpecialSection(i);
         const isWeapon         = i => (i.type === "weapon" || i.type === "equipment") && !isSpecialSection(i);
-        const isGemstone       = i => !!i.sourceCompendium && i.sourceCompendium.endsWith(".quartermaster-gemstones") && !isSpecialSection(i);
-        const isTreasure       = i => !!i.sourceCompendium && i.sourceCompendium.endsWith(".quartermaster-treasure") && !isSpecialSection(i);
+        // Kind matchers accept either the runtime _qmKind tag (set by the
+        // cache generator when picking from any QM role pool, including
+        // overlay-materialised packs) or a legacy role-named compendium
+        // suffix. Without _qmKind, items shipped via the kind-first overlay
+        // path (world.quartermaster-core, world.quartermaster-bone-dust,
+        // etc.) would fall through to the mundane section and render under
+        // the Trade Goods header.
+        const qmKindOrSuffix = (i, kind, suffix) =>
+            i._qmKind === kind
+            || (!!i.sourceCompendium && i.sourceCompendium.endsWith(`.${suffix}`));
+        const isGemstone = i => qmKindOrSuffix(i, "gemstones", "quartermaster-gemstones") && !isSpecialSection(i);
+        const isTreasure = i => qmKindOrSuffix(i, "treasure",  "quartermaster-treasure")  && !isSpecialSection(i);
+        const isTrinket  = i => qmKindOrSuffix(i, "trinkets",  "quartermaster-trinkets")  && !isSpecialSection(i);
         const isMundane        = i => !isScroll(i) && !isSpecialSection(i) && !isConsumable(i)
-                                      && !isWeapon(i) && !isGemstone(i) && !isTreasure(i)
+                                      && !isWeapon(i) && !isGemstone(i) && !isTreasure(i) && !isTrinket(i)
                                       && (i.type === "loot" || i.type === "tool" || !i.type);
 
         // Merge same-name items into stacks
@@ -554,6 +565,7 @@ export class CacheGeneratorApp extends Application {
             gemstones:   squash(items.filter(isGemstone)),
             treasures:   squash(items.filter(isTreasure)),
             consumables: squash(items.filter(isConsumable)),
+            trinkets:    squash(items.filter(isTrinket)),
             mundane:     squash(items.filter(isMundane)),
             totalValue:  Math.round((result.gold + items.reduce((sum, i) => sum + (i.price ?? 0), 0)) * 100) / 100,
             signatureOpportunity: result.signatureOpportunity ? {
