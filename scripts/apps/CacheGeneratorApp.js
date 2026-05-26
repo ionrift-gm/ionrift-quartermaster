@@ -1919,8 +1919,6 @@ export class CacheGeneratorApp extends Application {
                     ...currencyOverrides
                 }
             });
-
-            ui.notifications.info(`Placed "${result.container?.name ?? "Loot Cache"}" on the canvas.`);
         } catch (e) {
             Logger.error(MODULE_LABEL, "Item Piles createItemPile failed:", e);
             ui.notifications.error("Failed to place cache. Check console for details.");

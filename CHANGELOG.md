@@ -29,6 +29,10 @@ plus the materialiser walker fix that surfaced during validation.
 - New regression suite `ionrift-quartermaster-overlay-materialiser` (six cases) covers flat layouts, nested terrain layouts, mixed root + nested layouts, `_folders.json` exclusion, dot-prefixed directory skipping, and nameless item filtering. Run via `game.ionrift.library.tests.runSuite("ionrift-quartermaster-overlay-materialiser")`.
 - New regression suite `ionrift-quartermaster-pool-resolver` (ten cases) covers the bundled pack always being included in the loot pool, owner-theme universal matching, source-based container blending, and the `terrains: ["any"]` universal match. Run via `game.ionrift.library.tests.runSuite("ionrift-quartermaster-pool-resolver")`.
 
+### Removed
+- Overlay materialisation no longer pops a notification on every world reload. The toast now only fires when the materialiser actually rebuilt a compendium (install, version bump, or content change); the idempotent boot-time pass over already-current sublayers stays silent.
+- Cache drop no longer toasts "Placed X on the canvas". The token appearing under the cursor is sufficient feedback.
+
 ## [1.3.9] - 2026-05-25
 
 ### Added

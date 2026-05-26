@@ -108,9 +108,15 @@ export class OverlayItemMaterialiser {
         if (!result?.collection) return;
 
         await this._registerLootSources([result.collection]);
-        ui.notifications.info(
-            `Quartermaster: ${manifest.overlayId} materialised — ${result.itemCount} items in ${result.collection}.`
-        );
+
+        // Only surface a toast when content actually changed. Boot-time
+        // re-runs hit the idempotent hash-match branch and stay silent
+        // so the GM does not see "materialised" on every world reload.
+        if (result.changed) {
+            ui.notifications.info(
+                `Quartermaster: ${manifest.overlayId} materialised — ${result.itemCount} items in ${result.collection}.`
+            );
+        }
     }
 
     /**
@@ -242,7 +248,7 @@ export class OverlayItemMaterialiser {
             Logger.log(MODULE_LABEL,
                 `OverlayItemMaterialiser | "${collection}" already at hash ${hashKey}; skipping.`
             );
-            return { collection, itemCount: existing.index?.size ?? 0 };
+            return { collection, itemCount: existing.index?.size ?? 0, changed: false };
         }
 
         if (existing) {
@@ -322,7 +328,7 @@ export class OverlayItemMaterialiser {
             `OverlayItemMaterialiser | Built "${collection}" — ${preparedItems.length} items across ${sectionPlans.length} section(s).`
         );
 
-        return { collection, itemCount: preparedItems.length };
+        return { collection, itemCount: preparedItems.length, changed: true };
     }
 
     /**
