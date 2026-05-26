@@ -7,6 +7,12 @@
 - The Cache Generator terrain picker is now sovereign. It seeds from the library kernel base and extends with terrains the module itself ships data for; nothing is read from Respite or any other module at runtime. With both modules' packs installed the picker looks the same as before. Worlds running a partial pack set may see Quartermaster and Respite list different terrains, which matches the strict per-module pack story.
 - The released terrain set is now the kernel base: forest, swamp, desert, urban, dungeon. Arctic, mountain, catacombs, and ruins move out of the module entirely and ship inside their content overlays.
 - Terrain data is plug-and-play. The cache generator scans every installed and active overlay for `data/terrains/<id>/terrain-qm.json` and merges those into its picker. Installing a new content overlay adds its terrains the next time the registry refreshes, with no module patch required.
+- Cache generator pools for gems, treasure, trinkets, and mastercraft now scan every materialised overlay compendium under `world.quartermaster-*` in addition to the role-named module pack. Previously only the canonical role pack was consulted, which meant items shipped through sublayer overlays (one compendium per overlay) were invisible to the loot picker. Containers already worked this way; the other four pools now match.
+- Picked items carry a `_qmKind` tag (`gemstones`, `treasure`, `trinkets`, `mastercraft`) so downstream categorisation in the chat card and stack-quantity rules work regardless of which compendium the item came from.
+- Overlay materialiser now wraps `gems`, `treasure`, and `trinkets` pack dirs in named top-level folders, matching the existing wrapper behaviour for `containers`. Compendiums materialised from kind-first overlays now render with Containers / Gems / Treasure / Trinkets at the top and terrain sub-folders beneath each.
+
+### Fixed
+- Bone & Dust gems, treasure, and trinkets can now reach the cache generator. They were previously gated behind a role-pack lookup that only matched the canonical compendium id.
 
 ## [1.3.9] - 2026-05-25
 

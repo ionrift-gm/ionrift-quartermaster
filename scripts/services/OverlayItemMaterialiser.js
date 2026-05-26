@@ -403,7 +403,10 @@ export class OverlayItemMaterialiser {
     static _sectionWrapperName(packDir) {
         const map = {
             containers: "Containers",
+            gems: "Gems",
             gemstones: "Gemstones",
+            treasure: "Treasure",
+            trinkets: "Trinkets",
             "terrain-treasure": "Terrain Treasure",
             "terrain-trinkets": "Terrain Trinkets"
         };

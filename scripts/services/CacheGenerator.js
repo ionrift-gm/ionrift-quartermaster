@@ -24,39 +24,61 @@ const PACK_SUFFIX = {
     containers: "quartermaster-containers"
 };
 
-/**
- * Resolve the first available compendium for a known QM role. Prefers the
- * module-shipped pack id when present, falls back to a world.* pack created
- * by `OverlayItemMaterialiser` from a Patreon Library overlay.
- * @param {"gemstones"|"treasure"|"core"} role
- * @returns {CompendiumCollection|null}
- */
-function resolveQmPack(role) {
-    const suffix = PACK_SUFFIX[role];
-    if (!suffix) return null;
-
-    let enabled = null;
-    try {
-        const raw = game.settings.get(MODULE_ID, "lootPoolSources");
-        enabled = new Set(JSON.parse(raw));
-    } catch { /* missing or unparseable: treat as no constraint */ }
-
-    const candidates = [
-        game.packs.get(`${MODULE_ID}.${suffix}`),
-        game.packs.get(`world.${suffix}`)
-    ];
-
-    for (const pack of candidates) {
-        if (!pack) continue;
-        if (!enabled || enabled.has(pack.collection)) return pack;
-    }
-    return null;
-}
-
 function isQmPackRole(compendiumId, role) {
     if (!compendiumId) return false;
     const suffix = PACK_SUFFIX[role];
     return !!suffix && compendiumId.endsWith(`.${suffix}`);
+}
+
+/**
+ * Read the GM-managed `lootPoolSources` allowlist. Returns `null` when the
+ * setting is missing or unparseable, which callers treat as "no constraint".
+ * @returns {Set<string>|null}
+ */
+function readEnabledPackSources() {
+    try {
+        const raw = game.settings.get(MODULE_ID, "lootPoolSources");
+        return new Set(JSON.parse(raw));
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Generic pool scanner. Returns the module-shipped pack for a role (if it
+ * exists) plus every materialised overlay pack under `world.quartermaster-*`,
+ * filtered through the `lootPoolSources` allowlist when the GM has set one.
+ * Callers filter the merged index by item kind because overlay packs hold
+ * mixed content (containers + gems + treasure + trinkets in one sublayer).
+ *
+ * @param {string} modulePackSuffix  e.g. PACK_SUFFIX.containers
+ * @returns {CompendiumCollection[]}
+ */
+function resolveQmAnyPacks(modulePackSuffix) {
+    const enabled = readEnabledPackSources();
+    const packs = [];
+    const seen = new Set();
+
+    if (modulePackSuffix) {
+        const mod = game.packs.get(`${MODULE_ID}.${modulePackSuffix}`);
+        if (mod && (!enabled || enabled.has(mod.collection))) {
+            packs.push(mod);
+            seen.add(mod.collection);
+        }
+    }
+
+    const worldPrefix = "world.quartermaster-";
+    for (const pack of game.packs) {
+        if (pack.metadata?.type !== "Item") continue;
+        const col = pack.collection;
+        if (!col.startsWith(worldPrefix)) continue;
+        if (seen.has(col)) continue;
+        if (enabled && !enabled.has(col)) continue;
+        packs.push(pack);
+        seen.add(col);
+    }
+
+    return packs;
 }
 
 /**
@@ -68,26 +90,22 @@ function isQmPackRole(compendiumId, role) {
  * @returns {CompendiumCollection[]}
  */
 function resolveQmContainerPacks() {
-    const packs = [];
-    const seen = new Set();
+    return resolveQmAnyPacks(PACK_SUFFIX.containers);
+}
 
-    const mod = game.packs.get(`${MODULE_ID}.${PACK_SUFFIX.containers}`);
-    if (mod) {
-        packs.push(mod);
-        seen.add(mod.collection);
-    }
+/** Treasure pool. Module ships none today; overlays fill this in. */
+function resolveQmTreasurePacks() {
+    return resolveQmAnyPacks(PACK_SUFFIX.treasure);
+}
 
-    const worldPrefix = "world.quartermaster-";
-    for (const pack of game.packs) {
-        if (pack.metadata?.type !== "Item") continue;
-        const col = pack.collection;
-        if (!col.startsWith(worldPrefix)) continue;
-        if (seen.has(col)) continue;
-        packs.push(pack);
-        seen.add(col);
-    }
+/** Gemstone pool. Module ships none today; overlays fill this in. */
+function resolveQmGemPacks() {
+    return resolveQmAnyPacks(PACK_SUFFIX.gemstones);
+}
 
-    return packs;
+/** Core pool (cultural, mastercraft, trinkets). Module ships none today. */
+function resolveQmCorePacks() {
+    return resolveQmAnyPacks(PACK_SUFFIX.core);
 }
 
 /** @param {string} html */
@@ -134,6 +152,57 @@ async function loadContainerPoolIndex() {
         }
     }
     return merged;
+}
+
+/**
+ * Build a merged pool index from one or more compendiums and apply a
+ * caller-supplied kind filter. Used by gem, treasure, and trinket pickers
+ * which need to scan both their role pack and every overlay sublayer pack.
+ *
+ * @param {CompendiumCollection[]} packs
+ * @param {(entry: object) => boolean} kindFilter
+ * @param {string} label  Human-readable kind name for log messages.
+ * @returns {Promise<object[]>}
+ */
+async function loadFilteredPoolIndex(packs, kindFilter, label) {
+    const merged = [];
+    for (const pack of packs) {
+        try {
+            const index = await pack.getIndex({ fields: ["name", "img", "system", "flags", "type"] });
+            const chunk = index.contents || Array.from(index) || [];
+            for (const entry of chunk) {
+                if (!kindFilter(entry)) continue;
+                merged.push({ ...entry, _sourceCollection: pack.collection });
+            }
+        } catch (err) {
+            Logger.warn(MODULE_LABEL, `${label} index failed for ${pack.collection}:`, err.message);
+        }
+    }
+    return merged;
+}
+
+/** Treasure entries: loot type tagged as Treasure category. */
+function isTreasureEntry(entry) {
+    if (entry.type !== "loot") return false;
+    const cat = entry.flags?.["ionrift-quartermaster"]?.coreMeta?.category;
+    return cat === "Treasure";
+}
+
+/** Trinket entries: loot type tagged as Trinkets category. */
+function isTrinketEntry(entry) {
+    if (entry.type !== "loot") return false;
+    const cat = entry.flags?.["ionrift-quartermaster"]?.coreMeta?.category;
+    return cat === "Trinkets";
+}
+
+/** Gem entries: loot subtype "gem" or carrying a gemMeta.tier. */
+function isGemEntry(entry) {
+    if (entry.type !== "loot") return false;
+    const sub = entry.system?.type?.value;
+    if (sub === "gem") return true;
+    const tier = entry.flags?.["ionrift-quartermaster"]?.gemMeta?.tier
+        ?? entry.flags?.["ionrift-workshop"]?.gemMeta?.tier;
+    return !!tier;
 }
 
 export class CacheGenerator {
@@ -616,43 +685,43 @@ export class CacheGenerator {
             Logger.warn(MODULE_LABEL, "ItemPoolResolver failed for mastercraft:", e.message);
         }
 
-        // Fallback: quartermaster-core cultural and mastercraft items
+        // Fallback: scan all core-role packs for cultural / mastercraft entries.
         try {
-            const pack = game.packs.get('ionrift-quartermaster.quartermaster-core');
-            if (pack) {
-                const index = await pack.getIndex({ fields: ['name', 'img', 'system.price', 'system.weight', 'system.rarity', 'system.type', 'flags'] });
-                const eligible = index.filter(e => {
-                    const price = e.system?.price?.value ?? 0;
-                    const meta = e.flags?.['ionrift-quartermaster']?.coreMeta;
-                    if (!meta) return false;
-                    const cat = meta.category;
-                    if (!['Cultural Weapons', 'Cultural Armor', 'Mastercraft'].includes(cat)) return false;
-                    return price >= priceMin && price <= priceMax;
-                });
+            const packs = resolveQmCorePacks();
+            if (packs.length === 0) return null;
+            const kindFilter = (e) => {
+                const cat = e.flags?.['ionrift-quartermaster']?.coreMeta?.category;
+                return ['Cultural Weapons', 'Cultural Armor', 'Mastercraft'].includes(cat);
+            };
+            const pool = await loadFilteredPoolIndex(packs, kindFilter, "Mastercraft");
+            const eligible = pool.filter(e => {
+                const price = e.system?.price?.value ?? 0;
+                return price >= priceMin && price <= priceMax;
+            });
 
-                if (eligible.length === 0) return null;
+            if (eligible.length === 0) return null;
 
-                const themed = eligible.filter(e => {
-                    const mat = e.flags?.['ionrift-quartermaster']?.coreMeta?.material ?? '';
-                    return preferredMaterials.includes(mat);
-                });
-                const pool = themed.length > 0 ? themed : eligible;
-                const pick = pool[Math.floor(Math.random() * pool.length)];
-                return {
-                    name: pick.name,
-                    type: pick.type ?? 'weapon',
-                    img: pick.img,
-                    price: pick.system?.price?.value ?? 30,
-                    weight: pick.system?.weight?.value ?? 3,
-                    rarity: pick.system?.rarity ?? 'common',
-                    _baseItem: pick.system?.type?.baseItem ?? '',
-                    quantity: 1,
-                    _compendiumId: pick._id,
-                    sourceCompendium: 'ionrift-quartermaster.quartermaster-core'
-                };
-            }
+            const themed = eligible.filter(e => {
+                const mat = e.flags?.['ionrift-quartermaster']?.coreMeta?.material ?? '';
+                return preferredMaterials.includes(mat);
+            });
+            const finalPool = themed.length > 0 ? themed : eligible;
+            const pick = finalPool[Math.floor(Math.random() * finalPool.length)];
+            return {
+                name: pick.name,
+                type: pick.type ?? 'weapon',
+                img: pick.img,
+                price: pick.system?.price?.value ?? 30,
+                weight: pick.system?.weight?.value ?? 3,
+                rarity: pick.system?.rarity ?? 'common',
+                _baseItem: pick.system?.type?.baseItem ?? '',
+                quantity: 1,
+                _compendiumId: pick._id,
+                _qmKind: "mastercraft",
+                sourceCompendium: pick._sourceCollection
+            };
         } catch (e) {
-            Logger.warn(MODULE_LABEL, "quartermaster-core mastercraft query failed:", e.message);
+            Logger.warn(MODULE_LABEL, "Mastercraft pool query failed:", e.message);
         }
         return null;
     }
@@ -676,42 +745,42 @@ export class CacheGenerator {
         const tierWeights = { 'Chips & Fragments': 4, 'Polished Common': 3, 'Semi-Precious': 2, 'Precious': 1, 'Flawless': 0.5 };
 
         try {
-            const pack = resolveQmPack("gemstones");
-            if (pack) {
-                const index = await pack.getIndex({ fields: ['name', 'img', 'system.price', 'flags'] });
-                const eligible = index.filter(e => {
-                    const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier
-                        ?? e.flags?.['ionrift-workshop']?.gemMeta?.tier;
-                    if (!eligibleTiers.includes(gemTier)) return false;
-                    const price = e.system?.price?.value ?? 0;
-                    return price <= priceCeiling;
-                });
-                if (eligible.length === 0) return null;
+            const packs = resolveQmGemPacks();
+            if (packs.length === 0) return null;
+            const pool = await loadFilteredPoolIndex(packs, isGemEntry, "Gemstone");
+            const eligible = pool.filter(e => {
+                const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier
+                    ?? e.flags?.['ionrift-workshop']?.gemMeta?.tier;
+                if (!eligibleTiers.includes(gemTier)) return false;
+                const price = e.system?.price?.value ?? 0;
+                return price <= priceCeiling;
+            });
+            if (eligible.length === 0) return null;
 
-                const weighted = [];
-                for (const e of eligible) {
-                    const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier
-                        ?? e.flags?.['ionrift-workshop']?.gemMeta?.tier
-                        ?? 'Polished Common';
-                    const w = tierWeights[gemTier] ?? 1;
-                    for (let i = 0; i < w; i++) weighted.push(e);
-                }
-
-                const pick = this._terrainWeightedPick(weighted, theme);
-                return {
-                    name: pick.name,
-                    type: 'loot',
-                    img: pick.img,
-                    price: pick.system?.price?.value ?? 10,
-                    weight: pick.system?.weight?.value ?? 0.1,
-                    rarity: pick.system?.rarity ?? 'common',
-                    quantity: 1,
-                    _compendiumId: pick._id,
-                    sourceCompendium: pack.collection
-                };
+            const weighted = [];
+            for (const e of eligible) {
+                const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier
+                    ?? e.flags?.['ionrift-workshop']?.gemMeta?.tier
+                    ?? 'Polished Common';
+                const w = tierWeights[gemTier] ?? 1;
+                for (let i = 0; i < w; i++) weighted.push(e);
             }
+
+            const pick = this._terrainWeightedPick(weighted, theme);
+            return {
+                name: pick.name,
+                type: 'loot',
+                img: pick.img,
+                price: pick.system?.price?.value ?? 10,
+                weight: pick.system?.weight?.value ?? 0.1,
+                rarity: pick.system?.rarity ?? 'common',
+                quantity: 1,
+                _compendiumId: pick._id,
+                _qmKind: "gemstones",
+                sourceCompendium: pick._sourceCollection
+            };
         } catch (e) {
-            Logger.warn(MODULE_LABEL, "quartermaster-gemstones query failed:", e.message);
+            Logger.warn(MODULE_LABEL, "Gemstone pool query failed:", e.message);
         }
         return null;
     }
@@ -727,29 +796,29 @@ export class CacheGenerator {
         const priceMin = [0, 10,  40, 100,  250][tier] ?? 10;
 
         try {
-            const pack = resolveQmPack("treasure");
-            if (pack) {
-                const index = await pack.getIndex({ fields: ['name', 'img', 'system.price', 'system.weight', 'flags'] });
-                const eligible = index.filter(e => {
-                    const price = e.system?.price?.value ?? 0;
-                    return price >= priceMin && price <= priceMax;
-                });
-                if (eligible.length === 0) return null;
-                const pick = this._terrainWeightedPick([...eligible], theme);
-                return {
-                    name: pick.name,
-                    type: 'loot',
-                    img: pick.img,
-                    price: pick.system?.price?.value ?? 20,
-                    weight: pick.system?.weight?.value ?? 0.5,
-                    rarity: 'common',
-                    quantity: 1,
-                    _compendiumId: pick._id,
-                    sourceCompendium: pack.collection
-                };
-            }
+            const packs = resolveQmTreasurePacks();
+            if (packs.length === 0) return null;
+            const pool = await loadFilteredPoolIndex(packs, isTreasureEntry, "Treasure");
+            const eligible = pool.filter(e => {
+                const price = e.system?.price?.value ?? 0;
+                return price >= priceMin && price <= priceMax;
+            });
+            if (eligible.length === 0) return null;
+            const pick = this._terrainWeightedPick([...eligible], theme);
+            return {
+                name: pick.name,
+                type: 'loot',
+                img: pick.img,
+                price: pick.system?.price?.value ?? 20,
+                weight: pick.system?.weight?.value ?? 0.5,
+                rarity: 'common',
+                quantity: 1,
+                _compendiumId: pick._id,
+                _qmKind: "treasure",
+                sourceCompendium: pick._sourceCollection
+            };
         } catch (e) {
-            Logger.warn(MODULE_LABEL, "quartermaster-treasure query failed:", e.message);
+            Logger.warn(MODULE_LABEL, "Treasure pool query failed:", e.message);
         }
         return null;
     }
@@ -761,31 +830,29 @@ export class CacheGenerator {
         const trinketCeiling = Math.min([0, 25, 75, 200, 500][tier] ?? 25, priceCeiling);
 
         try {
-            const pack = game.packs.get('ionrift-quartermaster.quartermaster-core');
-            if (pack) {
-                const index = await pack.getIndex({ fields: ['name', 'img', 'system.price', 'system.weight', 'flags'] });
-                const eligible = index.filter(e => {
-                    const cat = e.flags?.['ionrift-quartermaster']?.coreMeta?.category;
-                    if (cat !== 'Trinkets') return false;
-                    const price = e.system?.price?.value ?? 0;
-                    return price <= trinketCeiling;
-                });
-                if (eligible.length === 0) return null;
-                const pick = this._terrainWeightedPick([...eligible], theme);
-                return {
-                    name: pick.name,
-                    type: pick.type ?? 'loot',
-                    img: pick.img,
-                    price: pick.system?.price?.value ?? 5,
-                    weight: pick.system?.weight?.value ?? 0.1,
-                    rarity: pick.system?.rarity ?? 'common',
-                    quantity: 1,
-                    _compendiumId: pick._id,
-                    sourceCompendium: 'ionrift-quartermaster.quartermaster-core'
-                };
-            }
+            const packs = resolveQmCorePacks();
+            if (packs.length === 0) return null;
+            const pool = await loadFilteredPoolIndex(packs, isTrinketEntry, "Trinket");
+            const eligible = pool.filter(e => {
+                const price = e.system?.price?.value ?? 0;
+                return price <= trinketCeiling;
+            });
+            if (eligible.length === 0) return null;
+            const pick = this._terrainWeightedPick([...eligible], theme);
+            return {
+                name: pick.name,
+                type: pick.type ?? 'loot',
+                img: pick.img,
+                price: pick.system?.price?.value ?? 5,
+                weight: pick.system?.weight?.value ?? 0.1,
+                rarity: pick.system?.rarity ?? 'common',
+                quantity: 1,
+                _compendiumId: pick._id,
+                _qmKind: "trinkets",
+                sourceCompendium: pick._sourceCollection
+            };
         } catch (e) {
-            Logger.warn(MODULE_LABEL, "quartermaster-core trinket query failed:", e.message);
+            Logger.warn(MODULE_LABEL, "Trinket pool query failed:", e.message);
         }
         return null;
     }
@@ -1136,7 +1203,7 @@ export class CacheGenerator {
         if (item.isSignature || item.spellName) return 1;
         const rarity = (item.rarity ?? "common").toLowerCase();
         if (rarity !== "common" && rarity !== "none" && rarity !== "") return 1;
-        if (isQmPackRole(item.sourceCompendium, "gemstones")) return 1;
+        if (item._qmKind === "gemstones" || isQmPackRole(item.sourceCompendium, "gemstones")) return 1;
 
         const unitPrice = item.price ?? 0;
         if (unitPrice <= 0) return 1;
@@ -1252,13 +1319,14 @@ export class CacheGenerator {
         const signatures  = items.filter(i => i.isSignature);
         const scrolls     = items.filter(i => i.spellName);
         const weapons     = items.filter(i => (i.type === "weapon" || i.type === "equipment") && !i.isSignature);
-        const treasures   = items.filter(i => isQmPackRole(i.sourceCompendium, "treasure"));
+        const isKind = (i, role) => i._qmKind === role || isQmPackRole(i.sourceCompendium, role);
+        const treasures   = items.filter(i => isKind(i, "treasure"));
         const consumables = items.filter(i => i.type === "consumable" && !i.spellName && !i.isSignature);
         const mundane     = items.filter(i =>
             !i.isSignature && !i.spellName
             && i.type !== "weapon" && i.type !== "equipment"
-            && !isQmPackRole(i.sourceCompendium, "gemstones")
-            && !isQmPackRole(i.sourceCompendium, "treasure")
+            && !isKind(i, "gemstones")
+            && !isKind(i, "treasure")
             && (i.type === "loot" || i.type === "tool" || !i.type)
         );
         const totalValue = Math.round((gold + items.reduce((s, i) => s + (i.price ?? 0), 0)) * 100) / 100;
