@@ -164,8 +164,20 @@ export class CacheGeneratorApp extends Application {
             4: { min: 2000, max: 15000, sliderMin: 0,   sliderMax: 30000, pillGp: 2000 }
         };
         const tbd = tierBudgetDefaults[tier] ?? tierBudgetDefaults[1];
-        const budgetMin = this._budgetMin ?? tbd.min;
-        const budgetMax = this._budgetMax ?? tbd.max;
+
+        // If the GM previously dragged the pill, restore it relative to the
+        // current tier's slider range. Stored as a 0-1 fraction so the
+        // position scales naturally when the tier changes.
+        const savedAnchorPct = game.settings?.get(MODULE_ID, "cacheBudgetAnchorPct") ?? -1;
+        let derivedMin = tbd.min;
+        let derivedMax = tbd.max;
+        if (this._budgetMin === null && this._budgetMax === null && savedAnchorPct >= 0) {
+            const range = tbd.sliderMax - tbd.sliderMin;
+            derivedMin = Math.round((savedAnchorPct * range) / 50) * 50 + tbd.sliderMin;
+            derivedMax = Math.min(tbd.sliderMax, derivedMin + tbd.pillGp);
+        }
+        const budgetMin = this._budgetMin ?? derivedMin;
+        const budgetMax = this._budgetMax ?? derivedMax;
 
         return {
             tier,
@@ -738,6 +750,7 @@ export class CacheGeneratorApp extends Application {
             this._budgetMin = Math.round((newLeft / 100) * gpRange / 50) * 50 + sliderMin;
             this._budgetMax = Math.min(sliderMax, this._budgetMin + pillGp);
             this._updatePillPosition(html);
+            this._persistBudgetAnchor(sliderMin, sliderMax);
             this._debouncedBudgetReroll();
         };
 
@@ -841,6 +854,22 @@ export class CacheGeneratorApp extends Application {
         if (!this._currentResult) return;
         clearTimeout(this._sliderDebounce);
         this._sliderDebounce = setTimeout(() => this._onGenerate(), 600);
+    }
+
+    /**
+     * Persist the budget pill anchor as a 0-1 fraction of the active slider
+     * range so its relative position survives reopens and tier swaps.
+     * Debounced via the same timer chain as the reroll, so we only write on
+     * drag-end (next animation frame) instead of every pixel.
+     */
+    _persistBudgetAnchor(sliderMin, sliderMax) {
+        const range = sliderMax - sliderMin;
+        if (range <= 0 || this._budgetMin === null) return;
+        const pct = Math.max(0, Math.min(1, (this._budgetMin - sliderMin) / range));
+        clearTimeout(this._sliderPersistTimer);
+        this._sliderPersistTimer = setTimeout(() => {
+            game.settings?.set(MODULE_ID, "cacheBudgetAnchorPct", pct).catch(() => {});
+        }, 200);
     }
 
     async _onGenerate(event) {

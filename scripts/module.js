@@ -116,6 +116,16 @@ Hooks.once('init', async () => {
         default: true
     });
 
+    // Persisted budget pill position. Stored as a 0-1 fraction of the active
+    // slider range so it stays in roughly the same relative spot when the
+    // tier changes (the slider scales). -1 means "use tier default".
+    game.settings.register(MODULE_ID, "cacheBudgetAnchorPct", {
+        scope: "client",
+        config: false,
+        type: Number,
+        default: -1
+    });
+
     // Pack management state
     game.settings.register(MODULE_ID, "workshopEnabledPacks", {
         scope: "world",

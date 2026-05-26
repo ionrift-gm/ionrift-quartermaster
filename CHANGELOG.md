@@ -7,7 +7,7 @@ was never tagged; the changes below absorb everything that was in flight
 plus the materialiser walker fix that surfaced during validation.
 
 ### Changed
-- The bundled container compendium now tags only kernel-base terrains (forest, swamp, desert, urban, dungeon) or universal. Catacombs, ruins, coastal, and jungle containers moved to their content-pack workshop homes so Bone & Dust and future coastal drops own those pools exclusively.
+- The bundled container compendium now tags only kernel-base terrains (forest, swamp, desert, urban, dungeon) or universal. Catacombs, ruins, coastal, and jungle containers moved to their content-pack workshop homes so terrain-specific drops own those pools exclusively.
 - The Cache Generator terrain picker is now sovereign. It seeds from the library kernel base and extends with terrains the module itself ships data for; nothing is read from Respite or any other module at runtime. With both modules' packs installed the picker looks the same as before. Worlds running a partial pack set may see Quartermaster and Respite list different terrains, which matches the strict per-module pack story.
 - The released terrain set is now the kernel base: forest, swamp, desert, urban, dungeon. Arctic, mountain, catacombs, and ruins move out of the module entirely and ship inside their content overlays.
 - Terrain data is plug-and-play. The cache generator scans every installed and active overlay for `data/terrains/<id>/terrain-qm.json` and merges those into its picker. Installing a new content overlay adds its terrains the next time the registry refreshes, with no module patch required.
@@ -16,25 +16,18 @@ plus the materialiser walker fix that surfaced during validation.
 - Overlay materialiser now wraps `gems`, `treasure`, and `trinkets` pack dirs in named top-level folders, matching the existing wrapper behaviour for `containers`. Compendiums materialised from kind-first overlays now render with Containers / Gems / Treasure / Trinkets at the top and terrain sub-folders beneath each.
 
 ### Fixed
-- Overlays that nest items inside terrain subfolders (e.g. `items/containers/catacombs/*.json`) now materialise into a world compendium. The previous walker only enumerated files one level deep, so the Bone & Dust overlay produced no `Quartermaster: Bone & Dust` compendium even with all 58 item files present on disk and the overlay marked active. The materialiser now descends recursively under each pack directory and reads items wherever they live, with a loud warning logged when a pack directory yields zero items so the failure mode is observable instead of silent.
-- Bone & Dust gems, treasure, and trinkets can now reach the cache generator. They were previously gated behind a role-pack lookup that only matched the canonical compendium id.
+- Overlays that nest items inside terrain subfolders now materialise correctly into a world compendium. The previous walker only enumerated files one level deep, so overlays with nested layouts produced empty compendiums. The materialiser now descends recursively under each pack directory and reads items wherever they live.
+- Terrain-specific gems, treasure, and trinkets from content overlays can now reach the cache generator. They were previously gated behind a role-pack lookup that only matched the canonical compendium id.
 - The cache generator no longer drops the bundled container pack on fresh worlds. The role-pack resolver was incorrectly filtering canonical Quartermaster content through the `lootPoolSources` allowlist, which by default lists only `dnd5e.items`, `dnd5e.tradegoods`, and `world.ionrift-forged-scrolls`. The bundled `quartermaster-containers` pack is now always included; the allowlist only gates materialised overlay packs as intended. Surfaced as "No container matched" in the Cache Generator even when the container compendium was visibly populated.
 - Treasure and trinket items now render in their own cache sections. The Cache Generator UI was matching only on the legacy role-named compendium id (`*.quartermaster-treasure`, `*.quartermaster-trinkets`), so items shipped through kind-first overlay compendiums (`world.quartermaster-core`, `world.quartermaster-bone-dust`) fell through to the Trade Goods section. The classifier now also honours the runtime `_qmKind` tag set by the cache generator at pick time, and the trinkets section is wired up in the UI and chat card.
 - Bundled container compendium can no longer be shadowed by a content overlay. Two compounding bugs were dropping every bundled entry whenever an overlay container was active:
   1. The owner-theme filter compared the picker's `ownerTheme` argument (vocabulary "unspecified", "arcana", "armaments", "relics", etc.) against `cacheTypes` (vocabulary "stash", "camp_supplies", "hoard"). The two fields name orthogonal axes and the legacy fallback `ownerThemes ?? cacheTypes` silently failed. The filter now uses `ownerThemes` only and treats a missing or empty array as a universal match, so legacy bundled entries stay eligible.
   2. The terrain match dropped `["any"]`-tagged entries whenever the active theme was named (e.g. forest). `containerMatchesTerrain` now treats `terrains: ["any"]` as a match for every theme, so the universal containers shipped in the bundled pack are eligible everywhere.
-- Container selection now blends bundled-module entries with overlay-shipped entries 50/50 (configurable via `CONTAINER_BUNDLED_BIAS`), falling cleanly through when one side is empty. Source attribution is by `_sourceCollection`, not by terrain-specificity, which matches the user-visible intent: the baked-in compendium keeps a real share of rolls regardless of which overlays are installed.
-
-### Added
-- New regression suite `ionrift-quartermaster-overlay-materialiser` (six cases) covers flat layouts, nested terrain layouts, mixed root + nested layouts, `_folders.json` exclusion, dot-prefixed directory skipping, and nameless item filtering. Run via `game.ionrift.library.tests.runSuite("ionrift-quartermaster-overlay-materialiser")`.
-- New regression suite `ionrift-quartermaster-pool-resolver` (ten cases) covers the bundled pack always being included in the loot pool, owner-theme universal matching, source-based container blending, and the `terrains: ["any"]` universal match. Run via `game.ionrift.library.tests.runSuite("ionrift-quartermaster-pool-resolver")`.
+- Container selection now blends bundled-module entries with overlay-shipped entries, falling cleanly through when one side is empty. The baked-in compendium keeps a real share of rolls regardless of which overlays are installed.
 
 ### Removed
-- Overlay materialisation no longer pops a notification on every world reload. The toast now only fires when the materialiser actually rebuilt a compendium (install, version bump, or content change); the idempotent boot-time pass over already-current sublayers stays silent.
+- Overlay materialisation no longer pops a notification on every world reload. The toast now only fires when the materialiser actually rebuilt a compendium (install, version bump, or content change).
 - Cache drop no longer toasts "Placed X on the canvas". The token appearing under the cursor is sufficient feedback.
-
-### Tests
-- The overlay materialiser suite grew two further cases: `deeply-nested-dirs-walked` (guards against any future "we only walk N levels" assumption) and `every-installed-sublayer-has-materialised-pack` (live-world guard that catches the silent empty-pack mode the 1.3.10 walker exhibited).
 
 ## [1.3.9] - 2026-05-25
 
