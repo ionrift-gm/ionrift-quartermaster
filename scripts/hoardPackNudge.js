@@ -8,7 +8,7 @@
 
 const MODULE_ID = "ionrift-quartermaster";
 const CORE_OVERLAY_ID = "quartermaster-core-overlay";
-const CORE_PACK_URL = "https://www.patreon.com/ionrift";
+const CORE_PACK_URL = "https://www.patreon.com/posts/quartermaster-159373428";
 const MATERIALISED_STATE_KEY = "materialisedOverlayPacks";
 
 /** @returns {object|null} Cached registry entry for the core overlay. */
@@ -67,7 +67,9 @@ export function hasMaterialisedCoreCompendiums() {
 }
 
 /**
- * True when the core overlay is installed on disk (core or legacy free sublayer).
+ * True when the core overlay is installed on disk AND active in this world.
+ * Presence alone is not enough — if the GM disabled the overlay in Patreon
+ * Library, the nudge should still surface.
  * @returns {Promise<boolean>}
  */
 async function hasCoreOverlayOnDisk() {
@@ -77,7 +79,12 @@ async function hasCoreOverlayOnDisk() {
     for (const sublayer of ["core", "free"]) {
         try {
             const manifest = await overlay.getLocalManifest(MODULE_ID, sublayer);
-            if (manifest?.overlayId === CORE_OVERLAY_ID) return true;
+            if (manifest?.overlayId === CORE_OVERLAY_ID) {
+                if (typeof overlay.isOverlayActive === "function") {
+                    return await overlay.isOverlayActive(CORE_OVERLAY_ID, MODULE_ID, sublayer);
+                }
+                return true;
+            }
         } catch { /* ignore */ }
     }
 
@@ -86,7 +93,12 @@ async function hasCoreOverlayOnDisk() {
         for (const sublayer of sublayers) {
             try {
                 const manifest = await overlay.getLocalManifest(MODULE_ID, sublayer);
-                if (manifest?.overlayId === CORE_OVERLAY_ID) return true;
+                if (manifest?.overlayId === CORE_OVERLAY_ID) {
+                    if (typeof overlay.isOverlayActive === "function") {
+                        return await overlay.isOverlayActive(CORE_OVERLAY_ID, MODULE_ID, sublayer);
+                    }
+                    return true;
+                }
             } catch { /* ignore */ }
         }
     }
@@ -96,11 +108,23 @@ async function hasCoreOverlayOnDisk() {
 
 /**
  * Canonical "core loot content is ready" check for the nudge gate.
+ *
+ * When the overlay system is available, active state is the single source
+ * of truth. Materialised compendiums and compiled packs persist on disk
+ * after an overlay is disabled, so they must not suppress the nudge.
+ * Legacy checks only run when the overlay system is absent.
  * @returns {Promise<boolean>}
  */
 export async function hasCoreOverlayContent() {
+    const overlay = game.ionrift?.library?.overlay;
+
+    // Primary path: overlay system available — active state is authoritative.
+    if (overlay?.getLocalManifest && typeof overlay.isOverlayActive === "function") {
+        return await hasCoreOverlayOnDisk();
+    }
+
+    // Fallback: no overlay system (older library or standalone install).
     if (hasMaterialisedCoreCompendiums()) return true;
-    if (await hasCoreOverlayOnDisk()) return true;
 
     try {
         const compiled = JSON.parse(game.settings.get(MODULE_ID, "compiledContentPacks") || "{}");
@@ -144,8 +168,8 @@ export function registerHoardPackNudge() {
         secondaryIcon: "fas fa-download",
         findSettingsAnchor: ($html) => {
             const candidates = [
-                { selector: `button[data-key="${MODULE_ID}.lootPoolConfig"]`, position: "after" },
-                { selector: `button[data-key="${MODULE_ID}.contentPacks"]`, position: "after" }
+                { selector: `button[data-key="${MODULE_ID}.lootPoolConfig"]`, position: "before" },
+                { selector: `button[data-key="${MODULE_ID}.contentPacks"]`, position: "before" }
             ];
             for (const { selector, position } of candidates) {
                 const $btn = $html.find(selector);
