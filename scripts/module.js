@@ -116,10 +116,16 @@ Hooks.once('init', async () => {
         default: true
     });
 
-    // Persisted budget pill position. Stored as a 0-1 fraction of the active
-    // slider range so it stays in roughly the same relative spot when the
-    // tier changes (the slider scales). -1 means "use tier default".
+    // Legacy pill anchor (0-1). Migrated to bracket index on first open.
     game.settings.register(MODULE_ID, "cacheBudgetAnchorPct", {
+        scope: "client",
+        config: false,
+        type: Number,
+        default: -1
+    });
+
+    // Selected budget segment index for the cache generator footer. -1 = lowest bracket.
+    game.settings.register(MODULE_ID, "cacheBudgetBracketIndex", {
         scope: "client",
         config: false,
         type: Number,
@@ -415,12 +421,13 @@ Hooks.once('init', async () => {
     });
 
     game.settings.register(MODULE_ID, "debug", {
-        name: "Enable Debug Logging",
-        hint: "Visible only in console. Useful for troubleshooting.",
+        name: "Cache Generator Debug Logging",
+        hint: "Logs per-slot budget and scroll picks to the browser console (F12).",
         scope: "client",
-        config: false,
+        config: true,
         type: Boolean,
-        default: false
+        default: false,
+        restricted: true
     });
 
     // Sound integration (only if Resonance is present)
@@ -516,6 +523,21 @@ Hooks.on('ready', () => {
                 } catch {
                     return { passed: 0, failed: 0, total: 0, skipped: true,
                         results: [{ name: "PoolResolverTests", status: "skip", message: "Test file not present (production build)." }] };
+                }
+            }
+        });
+
+        game.ionrift.library.tests.register("ionrift-quartermaster-scroll-balance", {
+            name: "Quartermaster Scroll Balance",
+            description: "Monte Carlo scroll level distribution per tier (live Scroll Forge pack)",
+            runFn: async () => {
+                try {
+                    const { runScrollBalanceTests } = await import("./tests/ScrollBalanceTests.js");
+                    return runScrollBalanceTests();
+                } catch {
+                    return { passed: 0, failed: 0, total: 0, skipped: true,
+                        results: [{ name: "ScrollBalanceTests", status: "skip",
+                            message: "Test file not present (production build)." }] };
                 }
             }
         });

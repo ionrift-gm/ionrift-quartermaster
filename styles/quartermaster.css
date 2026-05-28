@@ -770,7 +770,7 @@
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(0, 0, 0, 0.25);
     flex-shrink: 0;
-    min-height: 48px;
+    min-height: 76px;
 }
 
 /* LEFT zone: slider track + est. total stacked vertically */
@@ -783,67 +783,66 @@
     gap: 4px;
 }
 
-/* Track container — fill zone driven by --fill-left / --fill-right custom props */
-.value-range-track {
+/* Discrete budget segments — click a section to pick a gp window */
+.value-range-track.budget-segments {
     position: relative;
     height: 20px;
     display: flex;
     align-items: center;
-    overflow: visible; /* allow thumb glow and tooltip to escape */
-    /* Amber fill between handles via gradient on the track background */
-    --fill-left: 20%;
-    --fill-right: 80%;
+    gap: 3px;
+    overflow: visible;
 }
 
-/* Dim base rail — full width, sits behind the pill */
-.value-range-track::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 6px;
-    border-radius: 3px;
-    background: rgba(255, 255, 255, 0.06);
-    pointer-events: none;
-    z-index: 0;
-}
-
-/* Amber pill — spans fill zone, this IS the primary visual */
-.value-range-track::after {
-    content: none;
-}
-
-
-/* Draggable budget pill — the only interactive element on the track */
-.budget-pill-handle {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    left: var(--pill-left, 10%);
-    width: var(--pill-width-pct, 25%);
+.budget-segment {
+    flex: 1 1 0;
+    min-width: 0;
     height: 8px;
+    padding: 0;
+    margin: 0;
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 4px;
+    background: rgba(255, 255, 255, 0.07);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.budget-segment:hover:not(.is-selected) {
+    background: rgba(200, 151, 42, 0.22);
+    border-color: rgba(200, 151, 42, 0.35);
+}
+
+.budget-segment.is-selected {
     background: linear-gradient(
         to right,
         rgba(180, 130, 20, 0.75),
-        rgba(230, 180, 60, 0.95) 35%,
-        rgba(230, 180, 60, 0.95) 65%,
+        rgba(230, 180, 60, 0.95) 50%,
         rgba(180, 130, 20, 0.75)
     );
-    box-shadow: 0 0 8px rgba(200, 151, 42, 0.3);
-    cursor: grab;
-    z-index: 2;
-    user-select: none;
-    transition: box-shadow 0.15s ease;
+    border-color: rgba(200, 151, 42, 0.55);
+    box-shadow: 0 0 10px rgba(200, 151, 42, 0.35);
 }
 
-.budget-pill-handle:hover {
-    box-shadow: 0 0 14px rgba(200, 151, 42, 0.55);
+.budget-segment:focus-visible {
+    outline: 1px solid rgba(200, 151, 42, 0.8);
+    outline-offset: 2px;
 }
 
-.budget-pill-handle.dragging {
-    cursor: grabbing;
-    box-shadow: 0 0 18px rgba(200, 151, 42, 0.7);
+.cache-budget-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: nowrap;
+    min-height: 1.35em;
+}
+
+.budget-range-display {
+    font-size: 0.75em;
+    color: rgba(200, 151, 42, 0.85);
+    font-weight: 600;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    min-width: 5.75em;
 }
 
 
@@ -857,37 +856,7 @@
     user-select: none;
 }
 
-/* Hover tooltip — floats above the track, centred on active fill zone */
-.range-tooltip {
-    display: none;
-    position: absolute;
-    bottom: calc(100% + 7px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(10, 9, 18, 0.92);
-    border: 1px solid rgba(200, 151, 42, 0.45);
-    color: #c8972a;
-    font-size: 0.75em;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 4px;
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 20;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-}
-
-.range-tooltip::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 4px solid transparent;
-    border-top-color: rgba(200, 151, 42, 0.45);
-}
-
-/* Est. total — sits below the track, left-aligned */
+/* Est. total — sits below the track, right-aligned in the footer row */
 .cache-total {
     font-size: 0.8em;
     color: rgba(200, 151, 42, 0.75);
@@ -907,11 +876,30 @@
 .cache-total strong {
     color: #c8972a;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
 }
 
-/* RIGHT zone: dominant Reroll Cache button */
-.cache-btn-reroll-footer {
+.cache-sticky-footer .cache-total {
+    flex: 0 1 auto;
+    min-width: 7.5em;
+    justify-content: flex-end;
+    font-size: 0.8em;
+    color: rgba(200, 151, 42, 0.75);
+}
+
+.cache-sticky-footer .cache-total strong {
+    color: rgba(216, 180, 254, 0.95);
+    font-size: 1.05em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* RIGHT zone: dominant Reroll Cache button — stretches to match budget column */
+.cache-sticky-footer .cache-btn-reroll-footer {
     flex: 0 0 42%;
+    align-self: stretch;
+    min-height: 100%;
+    height: auto;
+    min-width: 9.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -923,21 +911,20 @@
     font-size: 0.95em;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
     white-space: nowrap;
     box-shadow: 0 0 12px rgba(139, 92, 246, 0.18), inset 0 1px 0 rgba(255,255,255,0.07);
     letter-spacing: 0.01em;
 }
 
-.cache-btn-reroll-footer:hover:not(:disabled) {
+.cache-sticky-footer .cache-btn-reroll-footer:hover:not(:disabled) {
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.65), rgba(99, 62, 206, 0.55));
     border-color: rgba(167, 130, 255, 0.8);
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.35), inset 0 1px 0 rgba(255,255,255,0.1);
-    transform: translateY(-1px);
     color: #ede9fe;
 }
 
-.cache-btn-reroll-footer:disabled {
+.cache-sticky-footer .cache-btn-reroll-footer:disabled {
     opacity: 0.55;
     cursor: wait;
 }
@@ -2154,40 +2141,12 @@
 .cache-center .cache-sticky-footer {
     flex: 0 0 auto;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 12px;
     padding: 8px 12px;
+    min-height: 76px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     background: rgba(0, 0, 0, 0.1);
-}
-
-.cache-btn-reroll-footer {
-    flex: 1 1 auto;
-    max-width: 220px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #aaa;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.85em;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-
-.cache-btn-reroll-footer:hover:not(:disabled) {
-    color: #fff;
-    border-color: rgba(139, 92, 246, 0.5);
-    background: rgba(139, 92, 246, 0.12);
-}
-
-.cache-btn-reroll-footer:disabled {
-    opacity: 0.5;
-    cursor: wait;
 }
 
 .cache-center .cache-empty-state {
@@ -4756,63 +4715,7 @@
 
 .cache-sticky-footer {
     flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 8px 12px;
     margin-top: auto;
-    background: rgba(0, 0, 0, 0.3);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.cache-sticky-footer .cache-total {
-    font-size: 0.95em;
-    color: #ccc;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-}
-
-.cache-sticky-footer .cache-total i {
-    color: rgba(251, 191, 36, 0.7);
-}
-
-.cache-sticky-footer .cache-total strong {
-    color: rgba(216, 180, 254, 0.95);
-    font-size: 1.05em;
-}
-
-/* Reroll button in the sticky footer */
-.cache-btn-reroll-footer {
-    height: 32px;
-    padding: 0 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    background: rgba(139, 92, 246, 0.18);
-    border: 1px solid rgba(139, 92, 246, 0.4);
-    color: rgba(196, 167, 247, 0.9);
-    border-radius: 5px;
-    font-size: 0.84em;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.cache-btn-reroll-footer:hover:not(:disabled) {
-    background: rgba(139, 92, 246, 0.32);
-    border-color: rgba(139, 92, 246, 0.65);
-    color: #fff;
-    transform: translateY(-1px);
-}
-
-.cache-btn-reroll-footer:disabled {
-    opacity: 0.5;
-    cursor: wait;
 }
 
 /* ── Progression Registry: Cursed Pool Tab ──────────────── */

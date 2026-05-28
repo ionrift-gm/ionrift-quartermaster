@@ -342,6 +342,118 @@ export async function runPoolResolverTests() {
                 `containerOwnerThemeMatches misclassifies: ${failed.join("; ")}`);
         } catch (e) { fail("owner-theme-missing-is-universal", e.message); }
 
+        // ── Scroll level resolution (Scroll Forge index entries) ─────
+        try {
+            const {
+                resolveScrollLevel,
+                weightedScrollLevel,
+                tierScrollMinLevel,
+                pickScrollFromEligible
+            } = __testables__;
+
+            const forgedEntry = {
+                system: { level: 1 },
+                flags: {
+                    "ionrift-quartermaster": { scrollMeta: { spellLevel: 3, spellName: "Fireball" } }
+                }
+            };
+            const dndEntry = {
+                system: { level: 1 },
+                flags: { dnd5e: { spellLevel: { value: 4 } } }
+            };
+
+            if (resolveScrollLevel(forgedEntry) !== 3) {
+                fail("scroll-level-prefers-scroll-meta",
+                    `expected 3 from scrollMeta, got ${resolveScrollLevel(forgedEntry)}`);
+            } else {
+                pass("scroll-level-prefers-scroll-meta");
+            }
+
+            if (resolveScrollLevel(dndEntry) !== 4) {
+                fail("scroll-level-reads-dnd5e-flag",
+                    `expected 4 from dnd5e.spellLevel, got ${resolveScrollLevel(dndEntry)}`);
+            } else {
+                pass("scroll-level-reads-dnd5e-flag");
+            }
+
+            if (tierScrollMinLevel(2) !== 2) {
+                fail("tier-scroll-min-level-t2", `expected min 2 for tier 2, got ${tierScrollMinLevel(2)}`);
+            } else {
+                pass("tier-scroll-min-level-t2");
+            }
+
+            let sawBelowMin = false;
+            for (let i = 0; i < 80; i++) {
+                if (weightedScrollLevel(4, 2) < 2) sawBelowMin = true;
+            }
+            if (sawBelowMin) fail("weighted-scroll-respects-tier-floor", "rolled below minLevel 2");
+            else pass("weighted-scroll-respects-tier-floor");
+
+            const pool = [
+                { name: "L1", flags: { "ionrift-quartermaster": { scrollMeta: { spellLevel: 1 } } } },
+                { name: "L3", flags: { "ionrift-quartermaster": { scrollMeta: { spellLevel: 3 } } } },
+                { name: "L4", flags: { "ionrift-quartermaster": { scrollMeta: { spellLevel: 4 } } } }
+            ];
+            if (pickScrollFromEligible(pool, 4, 3) !== undefined) {
+                fail("scroll-pick-never-below-tier-min",
+                    "must not pick level 1-2 when minLevel is 3");
+            } else {
+                pass("scroll-pick-never-below-tier-min");
+            }
+
+            let topPicks = 0;
+            for (let i = 0; i < 40; i++) {
+                const pick = pickScrollFromEligible(pool, 4, 2);
+                if (pick && resolveScrollLevel(pick) >= 3) topPicks++;
+            }
+            if (topPicks < 20) {
+                fail("scroll-pick-favors-higher-fallback",
+                    `expected mostly level 3-4 in fallback pool, got ${topPicks}/40`);
+            } else {
+                pass("scroll-pick-favors-higher-fallback");
+            }
+        } catch (e) { fail("scroll-level-resolution", e.message); }
+
+        try {
+            const {
+                consolidateScrollStacks,
+                scrollSlotCap,
+                resolveScrollQuantity
+            } = __testables__;
+
+            const tier3 = { _tier: 3, scrollLevelMax: 7 };
+            const merged = consolidateScrollStacks([
+                { name: "Spell Scroll: Fireball", spellName: "Fireball", spellLevel: 3, price: 200, quantity: 1 },
+                { name: "Spell Scroll: Fireball", spellName: "Fireball", spellLevel: 3, price: 200, quantity: 1 },
+                { name: "Spell Scroll: Fly", spellName: "Fly", spellLevel: 3, price: 200, quantity: 1 }
+            ], tier3);
+            const fire = merged.find(i => i.spellName === "Fireball");
+            if (!fire || fire.quantity !== 2) {
+                fail("scroll-consolidate-same-name", `expected Fireball x2, got ${fire?.quantity}`);
+            } else {
+                pass("scroll-consolidate-same-name");
+            }
+
+            if (scrollSlotCap(4, "arcana") !== 7) {
+                fail("scroll-slot-cap-arcana-t4", `expected 7, got ${scrollSlotCap(4, "arcana")}`);
+            } else {
+                pass("scroll-slot-cap-arcana-t4");
+            }
+
+            const highQty = resolveScrollQuantity(8, { _tier: 4, scrollLevelMax: 9 }, 20000);
+            const lowQty = resolveScrollQuantity(3, { _tier: 3, scrollLevelMax: 7 }, 2000);
+            if (highQty > 2) {
+                fail("scroll-qty-high-level-capped", `expected <=2 for level 8, got ${highQty}`);
+            } else {
+                pass("scroll-qty-high-level-capped");
+            }
+            if (lowQty < 2) {
+                fail("scroll-qty-low-cohort-stacks", `expected >=2 for level 3 T3, got ${lowQty}`);
+            } else {
+                pass("scroll-qty-low-cohort-stacks");
+            }
+        } catch (e) { fail("scroll-stack-policy", e.message); }
+
         return finalise(results, restore);
     } catch (e) {
         fail("test-harness", `Unexpected harness error: ${e.message}`);

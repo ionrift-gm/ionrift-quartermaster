@@ -605,19 +605,26 @@
                 {{!-- Left zone: slider + est total stacked --}}
                 <div class="cache-value-range">
                     <span class="value-range-label-text"><i class="fas fa-coins"></i> Budget Range</span>
-                    <div class="value-range-track" id="cache-range-track"
-                        data-slider-min="{{budgetSliderMin}}"
-                        data-slider-max="{{budgetSliderMax}}"
-                        data-pill-gp="{{budgetPillGp}}">
-                        <div class="range-tooltip"></div>
-                        <div class="budget-pill-handle"></div>
-                        {{!-- hidden inputs keep budgetMin/Max in FormData --}}
+                    <div class="value-range-track budget-segments" id="cache-range-track" role="group" aria-label="Budget range">
+                        {{#each budgetBrackets}}
+                        <button type="button"
+                            class="budget-segment{{#if this.selected}} is-selected{{/if}}"
+                            data-index="{{@index}}"
+                            data-min="{{this.min}}"
+                            data-max="{{this.max}}"
+                            title="{{this.label}}"
+                            aria-pressed="{{#if this.selected}}true{{else}}false{{/if}}">
+                        </button>
+                        {{/each}}
                         <input type="hidden" name="budgetMin" value="{{budgetMin}}" />
                         <input type="hidden" name="budgetMax" value="{{budgetMax}}" />
                     </div>
-                    <div class="cache-total">
-                        <i class="fas fa-scale-balanced"></i>
-                        Est. ~ <strong>{{totalValue}} gp</strong>
+                    <div class="cache-budget-footer-row">
+                        <span class="budget-range-display">{{budgetRangeLabel}}</span>
+                        <div class="cache-total">
+                            <i class="fas fa-scale-balanced"></i>
+                            Est. ~ <strong>{{totalValue}} gp</strong>
+                        </div>
                     </div>
                 </div>
 

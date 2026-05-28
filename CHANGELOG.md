@@ -1,10 +1,24 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **Scroll balance tests.** Vitest and a Forge harness run Monte Carlo picks per tier so scroll level spread can be tuned without hand-rolling caches.
+- **Budget brackets.** The cache generator budget control uses tier-sized gp windows instead of a single draggable pill.
+
+### Changed
+- **Arcana scroll slots.** High-tier Arcana caches cap scroll slots and stack duplicate spells (2-4 copies on lower circles) so the list stays short.
+- **Scroll tier bands.** Cache scrolls respect tier min/max spell level and a fair per-slot share of the item budget.
+
+### Fixed
+- **Coin vs item budget.** Rolled coin no longer spends the item budget before slots are filled, which caused gold-only Arcana caches at high tiers.
+- **Scroll level reads.** Picks use Scroll Forge metadata for spell circle, not the template item level that often stayed at 1.
+
 ## [1.3.13] - 2026-05-28
 
 ### Added
 - **Healing potion tiering.** Higher-tier caches now favour stronger healing potions instead of flooding every cache with basic healing.
-- **Bulk provisions.** Cheap consumables like rations, feed, and ammunition now appear in realistic stacks of 10-50 rather than individual units.
+- **Bulk provisions.** Cheap consumables like feed and ammunition now appear in realistic stacks of 10-50 rather than individual units. Rations and water stay in smaller stacks (about 2-10) and respect container weight.
 
 ### Fixed
 - Terrain-bound items no longer appear in caches for other terrains. Items without a terrain tag remain available everywhere.

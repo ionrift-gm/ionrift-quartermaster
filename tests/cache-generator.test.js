@@ -58,13 +58,17 @@ describe("CacheGenerator._weightedScrollLevel", () => {
     it("favors mid-range levels over edges (probabilistic)", () => {
         const counts = {};
         for (let i = 0; i < 2000; i++) {
-            const lvl = CacheGenerator._weightedScrollLevel(5);
+            const lvl = CacheGenerator._weightedScrollLevel(5, 1, 1);
             counts[lvl] = (counts[lvl] ?? 0) + 1;
         }
-        // Level 3 (middle) should appear more often than level 1 or 5 (edges)
-        // Mid-level weight = min(3, 5-3+1) = 3; Edge weight = min(1, 5-1+1) = 1
         expect(counts[3]).toBeGreaterThan(counts[1]);
         expect(counts[3]).toBeGreaterThan(counts[5]);
+    });
+
+    it("respects tier floor (T2 min level 2)", () => {
+        for (let i = 0; i < 200; i++) {
+            expect(CacheGenerator._weightedScrollLevel(4, 2, 2)).toBeGreaterThanOrEqual(2);
+        }
     });
 });
 

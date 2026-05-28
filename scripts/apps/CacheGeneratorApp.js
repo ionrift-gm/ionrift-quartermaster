@@ -28,6 +28,63 @@ const ADVISORY_SIDE_POOL_CAP_NO_SCROLLS = ADVISORY_SIDE_POOL_CAP + 1;
 /** Ephemeral compendium draw size before cache visibility filter (must exceed cap). */
 const ADVISORY_EPHEMERAL_FETCH = 12;
 
+/** Discrete budget windows per tier (click a segment to select). */
+const TIER_BUDGET_BRACKETS = {
+    1: [
+        { min: 50, max: 150 },
+        { min: 150, max: 300 },
+        { min: 300, max: 450 },
+        { min: 450, max: 500 }
+    ],
+    2: [
+        { min: 200, max: 450 },
+        { min: 450, max: 750 },
+        { min: 750, max: 1100 },
+        { min: 1100, max: 1500 }
+    ],
+    3: [
+        { min: 800, max: 1800 },
+        { min: 1800, max: 3200 },
+        { min: 3200, max: 4200 },
+        { min: 4200, max: 5000 }
+    ],
+    4: [
+        { min: 2000, max: 5000 },
+        { min: 5000, max: 8000 },
+        { min: 8000, max: 11000 },
+        { min: 11000, max: 15000 }
+    ]
+};
+
+function formatGpShort(gp) {
+    if (gp >= 1000) {
+        const k = gp / 1000;
+        return Number.isInteger(k) ? `${k}k` : `${k.toFixed(1)}k`;
+    }
+    return `${gp}`;
+}
+
+function formatBracketLabel(min, max) {
+    return `${formatGpShort(min)}–${formatGpShort(max)} gp`;
+}
+
+function bracketMidpoint(bracket) {
+    return (bracket.min + bracket.max) / 2;
+}
+
+function nearestBracketIndex(brackets, gp) {
+    let best = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < brackets.length; i++) {
+        const dist = Math.abs(gp - bracketMidpoint(brackets[i]));
+        if (dist < bestDist) {
+            bestDist = dist;
+            best = i;
+        }
+    }
+    return best;
+}
+
 /** Same registry Quartermaster uses: Cursewright when present, else QM settings + SRD pool. */
 function getCursedPoolRegistry() {
     return game.ionrift?.cursewright?.registry ?? StandalonePoolRegistry;
@@ -75,9 +132,10 @@ export class CacheGeneratorApp extends Application {
         // Tracks pools manually rerolled via dice button: suppresses isPlanned (recipe) items.
         // Reset on _onGenerate so fresh generation restores milestone priority.
         this._poolRerollMode = new Set();
-        // Budget range slider state (null = use tier default)
+        // Budget segment state (null = use saved bracket or tier default)
         this._budgetMin = null;
         this._budgetMax = null;
+        this._budgetBracketIndex = null;
         this._sliderDebounce = null;
         /** @type {number|undefined} Pool row index to refocus after a qty-step re-render. */
         this._qtyStepFocusIndex = undefined;
@@ -153,31 +211,18 @@ export class CacheGeneratorApp extends Application {
             { id: "abandoned",   label: "Abandoned",   desc: "Forgotten junk. Mostly worthless, occasionally surprising." }
         ].map(t => ({ ...t, selected: t.id === currentOwnerTheme }));
 
-        // Budget slider bounds: tier-specific sensible defaults.
-        // `pillGp` controls the smallest budget window the GM can drag to;
-        // smaller values let the lower end of the range be tightened further
-        // (e.g. T2 200 gp window instead of the previous 25% / 750 gp).
-        const tierBudgetDefaults = {
-            1: { min: 50,   max: 500,   sliderMin: 0,   sliderMax: 1000,  pillGp: 100  },
-            2: { min: 200,  max: 1500,  sliderMin: 0,   sliderMax: 3000,  pillGp: 250  },
-            3: { min: 800,  max: 5000,  sliderMin: 0,   sliderMax: 10000, pillGp: 750  },
-            4: { min: 2000, max: 15000, sliderMin: 0,   sliderMax: 30000, pillGp: 2000 }
-        };
-        const tbd = tierBudgetDefaults[tier] ?? tierBudgetDefaults[1];
-
-        // If the GM previously dragged the pill, restore it relative to the
-        // current tier's slider range. Stored as a 0-1 fraction so the
-        // position scales naturally when the tier changes.
-        const savedAnchorPct = game.settings?.get(MODULE_ID, "cacheBudgetAnchorPct") ?? -1;
-        let derivedMin = tbd.min;
-        let derivedMax = tbd.max;
-        if (this._budgetMin === null && this._budgetMax === null && savedAnchorPct >= 0) {
-            const range = tbd.sliderMax - tbd.sliderMin;
-            derivedMin = Math.round((savedAnchorPct * range) / 50) * 50 + tbd.sliderMin;
-            derivedMax = Math.min(tbd.sliderMax, derivedMin + tbd.pillGp);
-        }
-        const budgetMin = this._budgetMin ?? derivedMin;
-        const budgetMax = this._budgetMax ?? derivedMax;
+        const brackets = TIER_BUDGET_BRACKETS[tier] ?? TIER_BUDGET_BRACKETS[1];
+        const bracketIndex = this._resolveBudgetBracketIndex(tier, brackets);
+        const activeBracket = brackets[bracketIndex];
+        const budgetMin = this._budgetMin ?? activeBracket.min;
+        const budgetMax = this._budgetMax ?? activeBracket.max;
+        const budgetBrackets = brackets.map((b, i) => ({
+            min: b.min,
+            max: b.max,
+            label: formatBracketLabel(b.min, b.max),
+            selected: i === bracketIndex
+        }));
+        const budgetRangeLabel = formatBracketLabel(budgetMin, budgetMax);
 
         return {
             tier,
@@ -205,9 +250,8 @@ export class CacheGeneratorApp extends Application {
             advisoryCollapsed: this._advisoryCollapsed,
             budgetMin,
             budgetMax,
-            budgetSliderMin: tbd.sliderMin,
-            budgetSliderMax: tbd.sliderMax,
-            budgetPillGp:    tbd.pillGp,
+            budgetBrackets,
+            budgetRangeLabel,
             ...(this._currentResult ? this._groupItems(this._currentResult) : {})
         };
     }
@@ -620,9 +664,10 @@ export class CacheGeneratorApp extends Application {
         // Auto-persist tier and theme selects on change; reroll if a result is already showing
         html.find("select[name='tier']").change(e => {
             game.settings.set(MODULE_ID, "defaultCacheTier", parseInt(e.target.value) || 1);
-            // Reset budget bracket when tier changes so slider defaults to the new tier
+            // Reset budget segment when tier changes so the new tier picks a fresh bracket
             this._budgetMin = null;
             this._budgetMax = null;
+            this._budgetBracketIndex = null;
             if (this._currentResult) this._onGenerate();
         });
         html.find("select[name='theme']").change(e => {
@@ -639,8 +684,7 @@ export class CacheGeneratorApp extends Application {
             if (this._currentResult) this._onGenerate();
         });
 
-        // Budget pill — initialise drag after first paint
-        requestAnimationFrame(() => this._initPillDrag(html));
+        html.find(".budget-segment").click(this._onBudgetSegmentClick.bind(this));
 
         html.find(".cache-item-row").on("click", ".cache-item-icon, .cache-item-name", this._onInspectItem.bind(this));
 
@@ -711,111 +755,50 @@ export class CacheGeneratorApp extends Application {
         }
     }
 
-    // ── Budget pill drag ──────────────────────────────────────────────────────
+    // ── Budget segment selection ─────────────────────────────────────────────
 
-    _initPillDrag(html) {
-        const track = html.find(".value-range-track")[0];
-        const pill  = html.find(".budget-pill-handle")[0];
-        if (!track || !pill) return;
+    _resolveBudgetBracketIndex(tier, brackets) {
+        if (this._budgetBracketIndex !== null && this._budgetBracketIndex !== undefined) {
+            return Math.max(0, Math.min(brackets.length - 1, this._budgetBracketIndex));
+        }
 
-        this._updatePillPosition(html);
+        const savedIdx = game.settings?.get(MODULE_ID, "cacheBudgetBracketIndex") ?? -1;
+        if (savedIdx >= 0) {
+            return Math.max(0, Math.min(brackets.length - 1, savedIdx));
+        }
 
-        let dragging = false, startX = 0, startAnchorPct = 0;
+        const savedAnchorPct = game.settings?.get(MODULE_ID, "cacheBudgetAnchorPct") ?? -1;
+        if (savedAnchorPct >= 0) {
+            const low = brackets[0].min;
+            const high = brackets[brackets.length - 1].max;
+            const approxGp = low + savedAnchorPct * (high - low);
+            return nearestBracketIndex(brackets, approxGp);
+        }
 
-        // Tooltip wired to pill hover
-        pill.addEventListener("mouseenter", () => this._showRangeTooltip(html));
-        pill.addEventListener("mouseleave", () => { if (!dragging) this._hideRangeTooltip(html); });
-
-        pill.addEventListener("mousedown", (e) => {
-            dragging = true;
-            startX = e.clientX;
-            const sliderMin = parseInt(track.dataset.sliderMin ?? 0);
-            const sliderMax = parseInt(track.dataset.sliderMax ?? 3000);
-            const anchor = this._budgetMin ?? sliderMin;
-            startAnchorPct = (anchor - sliderMin) / (sliderMax - sliderMin) * 100;
-            pill.classList.add("dragging");
-            e.preventDefault();
-        });
-
-        const onMove = (e) => {
-            if (!dragging) return;
-            const trackRect = track.getBoundingClientRect();
-            const sliderMin = parseInt(track.dataset.sliderMin ?? 0);
-            const sliderMax = parseInt(track.dataset.sliderMax ?? 3000);
-            const gpRange   = sliderMax - sliderMin;
-            const pillGp    = parseInt(track.dataset.pillGp) || Math.round(gpRange * 0.25);
-            const pillWPct  = pillGp / gpRange * 100;
-            const dxPct = (e.clientX - startX) / trackRect.width * 100;
-            const newLeft = Math.max(0, Math.min(100 - pillWPct, startAnchorPct + dxPct));
-            this._budgetMin = Math.round((newLeft / 100) * gpRange / 50) * 50 + sliderMin;
-            this._budgetMax = Math.min(sliderMax, this._budgetMin + pillGp);
-            this._updatePillPosition(html);
-            this._persistBudgetAnchor(sliderMin, sliderMax);
-            this._debouncedBudgetReroll();
-        };
-
-        const onUp = () => {
-            if (!dragging) return;
-            dragging = false;
-            pill.classList.remove("dragging");
-            this._hideRangeTooltip(html);
-        };
-
-        document.addEventListener("mousemove", onMove);
-        document.addEventListener("mouseup", onUp);
+        return 0;
     }
 
-    _updatePillPosition(html) {
-        const track = html.find(".value-range-track")[0];
-        if (!track) return;
-        const sliderMin = parseInt(track.dataset.sliderMin ?? 0);
-        const sliderMax = parseInt(track.dataset.sliderMax ?? 3000);
-        const gpRange   = sliderMax - sliderMin;
-        const pillGp    = parseInt(track.dataset.pillGp) || Math.round(gpRange * 0.25);
-        const pillWPct  = (pillGp / gpRange * 100).toFixed(1);
-        // Prefer explicit drag state; fall back to the template-provided tier default (not raw sliderMin=0)
-        const hiddenDefault = parseInt(html.find("[name='budgetMin']").val()) || sliderMin;
-        const anchor    = this._budgetMin ?? hiddenDefault;
-        const leftPct   = ((anchor - sliderMin) / gpRange * 100).toFixed(1);
-        track.style.setProperty("--pill-left",      `${leftPct}%`);
-        track.style.setProperty("--pill-width-pct", `${pillWPct}%`);
-        // Sync hidden inputs so FormData always has current values
-        html.find("[name='budgetMin']").val(anchor);
-        html.find("[name='budgetMax']").val(Math.min(sliderMax, anchor + pillGp));
-        // Keep tooltip fresh during drag
-        const maxVal = Math.min(sliderMax, anchor + pillGp);
-        this._updateRangeTooltip(html, anchor, maxVal,
-            parseFloat(leftPct), parseFloat(leftPct) + parseFloat(pillWPct));
-    }
+    _onBudgetSegmentClick(event) {
+        event.preventDefault();
+        const btn = event.currentTarget;
+        const min = parseInt(btn.dataset.min, 10);
+        const max = parseInt(btn.dataset.max, 10);
+        const index = parseInt(btn.dataset.index, 10);
+        if (!Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(index)) return;
 
-    _showRangeTooltip(html) {
-        const track = html.find(".value-range-track")[0];
-        if (!track) return;
-        const sliderMin = parseInt(track.dataset.sliderMin ?? 0);
-        const sliderMax = parseInt(track.dataset.sliderMax ?? 3000);
-        const hiddenDefault2 = parseInt(html.find("[name='budgetMin']").val()) || sliderMin;
-        const anchor  = this._budgetMin ?? hiddenDefault2;
-        const gpRange = sliderMax - sliderMin;
-        const pillGp  = parseInt(track.dataset.pillGp) || Math.round(gpRange * 0.25);
-        const maxVal  = Math.min(sliderMax, anchor + pillGp);
-        const lPct = (anchor - sliderMin) / gpRange * 100;
-        const rPct = lPct + pillGp / gpRange * 100;
-        this._updateRangeTooltip(html, anchor, maxVal, lPct, rPct);
-        html.find(".range-tooltip").css("display", "block");
-    }
+        this._budgetMin = min;
+        this._budgetMax = max;
+        this._budgetBracketIndex = index;
 
-    _hideRangeTooltip(html) {
-        html.find(".range-tooltip").css("display", "none");
-    }
+        const html = $(this.element);
+        html.find(".budget-segment").removeClass("is-selected");
+        btn.classList.add("is-selected");
+        html.find("[name='budgetMin']").val(min);
+        html.find("[name='budgetMax']").val(max);
+        html.find(".budget-range-display").text(formatBracketLabel(min, max));
 
-    _updateRangeTooltip(html, minVal, maxVal, leftPct, rightPct) {
-        const tooltip = html.find(".range-tooltip")[0];
-        if (!tooltip || tooltip.style.display === "none") return;
-        const fmt = (v) => v >= 1000 ? `${(v/1000).toFixed(v % 1000 === 0 ? 0 : 1)}k` : `${v}`;
-        tooltip.textContent = `Gold Range: ${fmt(minVal)}gp – ${fmt(maxVal)}gp`;
-        const midPct = (leftPct + rightPct) / 2;
-        tooltip.style.left      = `${midPct}%`;
-        tooltip.style.transform = "translateX(-50%)";
+        this._persistBudgetBracket(index);
+        this._debouncedBudgetReroll();
     }
 
     // ── Scroll constraint (set maxHeight on results so overflow-y works) ────
@@ -849,26 +832,18 @@ export class CacheGeneratorApp extends Application {
 
     // ── Generate ─────────────────────────────────────────────────────────────
 
-    /** Debounce budget slider reroll: waits 600ms after last drag movement. */
+    /** Debounce budget segment reroll after a segment click. */
     _debouncedBudgetReroll() {
         if (!this._currentResult) return;
         clearTimeout(this._sliderDebounce);
-        this._sliderDebounce = setTimeout(() => this._onGenerate(), 600);
+        this._sliderDebounce = setTimeout(() => this._onGenerate(), 400);
     }
 
-    /**
-     * Persist the budget pill anchor as a 0-1 fraction of the active slider
-     * range so its relative position survives reopens and tier swaps.
-     * Debounced via the same timer chain as the reroll, so we only write on
-     * drag-end (next animation frame) instead of every pixel.
-     */
-    _persistBudgetAnchor(sliderMin, sliderMax) {
-        const range = sliderMax - sliderMin;
-        if (range <= 0 || this._budgetMin === null) return;
-        const pct = Math.max(0, Math.min(1, (this._budgetMin - sliderMin) / range));
+    _persistBudgetBracket(index) {
+        if (!Number.isFinite(index)) return;
         clearTimeout(this._sliderPersistTimer);
         this._sliderPersistTimer = setTimeout(() => {
-            game.settings?.set(MODULE_ID, "cacheBudgetAnchorPct", pct).catch(() => {});
+            game.settings?.set(MODULE_ID, "cacheBudgetBracketIndex", index).catch(() => {});
         }, 200);
     }
 
