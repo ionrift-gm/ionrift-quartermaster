@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.13] - 2026-05-28
+
+### Added
+- **Healing potion tiering.** Higher-tier caches now favour stronger healing potions instead of flooding every cache with basic healing.
+- **Bulk provisions.** Cheap consumables like rations, feed, and ammunition now appear in realistic stacks of 10-50 rather than individual units.
+
+### Fixed
+- Terrain-bound items no longer appear in caches for other terrains. Items without a terrain tag remain available everywhere.
+- Poison potions no longer surface from random cache rolls. They are GM-placed items only.
+- Overlay gems, treasure, and trinkets no longer leak into the mundane trade-goods pool when their overlay packs are enabled.
+- The core content pack nudge no longer fires when the overlay is already visible.
+
 ## [1.3.12] - 2026-05-26
 
 ### Changed
@@ -251,4 +263,4 @@ First early access build of the Ionrift Quartermaster. Available to Acolyte-tier
 
 - Compendium packs (core items, gemstones, containers, treasure) are not included in this EA build. The cache generator uses SRD system packs as default sources.
 - ~~Curse Engine is present in the codebase but all user-facing surfaces are hidden.~~ Shipped in v1.2.0-ea.6.
-- Bulk trade goods (items under 1 gp) produce quantity 1. A price-based heuristic for bulk quantities is planned.
+- ~~Bulk trade goods (items under 1 gp) produce quantity 1. A price-based heuristic for bulk quantities is planned.~~ Fixed in v1.3.13.
