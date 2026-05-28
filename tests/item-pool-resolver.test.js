@@ -44,6 +44,33 @@ describe("ItemPoolResolver._matchesSlotType", () => {
         expect(ItemPoolResolver._matchesSlotType({ type: "loot" }, "mundane")).toBe(true);
     });
 
+    it("rejects QM gemstones from mundane slot", () => {
+        const entry = {
+            type: "loot",
+            system: { type: { value: "gem" } },
+            flags: {
+                "ionrift-quartermaster": {
+                    terrain: ["catacombs"],
+                    gemMeta: { tier: "Chips & Fragments" }
+                }
+            }
+        };
+        expect(ItemPoolResolver._matchesSlotType(entry, "mundane")).toBe(false);
+    });
+
+    it("rejects QM trinkets from mundane slot", () => {
+        const entry = {
+            type: "loot",
+            flags: {
+                "ionrift-quartermaster": {
+                    terrain: ["ruins"],
+                    coreMeta: { category: "Trinkets" }
+                }
+            }
+        };
+        expect(ItemPoolResolver._matchesSlotType(entry, "mundane")).toBe(false);
+    });
+
     it("accepts tools for mundane slot", () => {
         expect(ItemPoolResolver._matchesSlotType({ type: "tool" }, "mundane")).toBe(true);
     });
@@ -378,6 +405,33 @@ describe("ItemPoolResolver._isPlaceholderPoolEntry", () => {
     });
 });
 
+// ── _isGmPlacedPoisonPotion ───────────────────────────────────────────────
+
+describe("ItemPoolResolver._isGmPlacedPoisonPotion", () => {
+
+    it("flags standard and tiered poison potions", () => {
+        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Poison" })).toBe(true);
+        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Greater Poison" })).toBe(true);
+        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Superior Poison" })).toBe(true);
+        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Supreme Poison" })).toBe(true);
+    });
+
+    it("allows healing potions and other consumables", () => {
+        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Healing" })).toBe(false);
+        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Greater Healing" })).toBe(false);
+        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Basic Poison (vial)" })).toBe(false);
+    });
+
+    it("excludes poison potions from the loot pool via _isExcluded", () => {
+        const entry = {
+            type: "consumable",
+            name: "Potion of Poison",
+            system: { type: { value: "poison" }, price: 100, weight: 0.5, rarity: "uncommon" }
+        };
+        expect(ItemPoolResolver._isExcluded(entry)).toBe(true);
+    });
+});
+
 // ── _isZeroDataPlaceholder ───────────────────────────────────────────────
 
 describe("ItemPoolResolver._isZeroDataPlaceholder", () => {
@@ -463,6 +517,37 @@ describe("ItemPoolResolver._isZeroDataPlaceholder", () => {
         expect(ItemPoolResolver._isExcluded(belt)).toBe(true);
         expect(ItemPoolResolver._isExcluded(headband)).toBe(false);
         expect(ItemPoolResolver._isExcluded(deck)).toBe(false);
+    });
+});
+
+// ── _eligibleForTheme ────────────────────────────────────────────────────
+
+describe("ItemPoolResolver._eligibleForTheme", () => {
+
+    it("allows universal items in any terrain", () => {
+        const entry = { name: "Torch", flags: {} };
+        expect(ItemPoolResolver._eligibleForTheme(entry, "dungeon")).toBe(true);
+        expect(ItemPoolResolver._eligibleForTheme(entry, "catacombs")).toBe(true);
+    });
+
+    it("allows terrain-bound items only in matching terrain", () => {
+        const entry = {
+            name: "Bone-White Calcite Shard",
+            flags: { "ionrift-quartermaster": { terrain: ["catacombs"] } }
+        };
+        expect(ItemPoolResolver._eligibleForTheme(entry, "catacombs")).toBe(true);
+        expect(ItemPoolResolver._eligibleForTheme(entry, "dungeon")).toBe(false);
+        expect(ItemPoolResolver._eligibleForTheme(entry, "ruins")).toBe(false);
+    });
+
+    it("excludes ruins items from forest caches", () => {
+        const entry = {
+            name: "Weathered Feldspar Crystal",
+            flags: { "ionrift-quartermaster": { terrain: ["ruins"] } }
+        };
+        expect(ItemPoolResolver._eligibleForTheme(entry, "ruins")).toBe(true);
+        expect(ItemPoolResolver._eligibleForTheme(entry, "forest")).toBe(false);
+        expect(ItemPoolResolver._eligibleForTheme(entry, "desert")).toBe(false);
     });
 });
 

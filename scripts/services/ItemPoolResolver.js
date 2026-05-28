@@ -66,12 +66,15 @@ export class ItemPoolResolver {
 
         // Deduplicate by name (prefer compendium version)
         const seen = new Set();
-        return merged.filter(item => {
+        const deduped = merged.filter(item => {
             const key = item.name.toLowerCase();
             if (seen.has(key)) return false;
             seen.add(key);
             return true;
         });
+
+        if (!theme) return deduped;
+        return deduped.filter(item => this._eligibleForTheme(item, theme));
     }
 
     /**
@@ -150,7 +153,7 @@ export class ItemPoolResolver {
             try {
                 // Use getIndex for lightweight query
                 const index = await pack.getIndex({ fields: [
-                    "name", "type", "img", "system.price", "system.rarity",
+                    "name", "type", "img", "flags", "system.price", "system.rarity",
                     "system.type", "system.weight", "system.description"
                 ]});
 
@@ -164,6 +167,7 @@ export class ItemPoolResolver {
                         name: entry.name,
                         type: entry.type,
                         img: entry.img,
+                        flags: entry.flags ?? {},
                         price: this._extractPrice(entry),
                         rarity: entry.system?.rarity ?? "common",
                         weight: this._extractWeight(entry),
@@ -185,6 +189,46 @@ export class ItemPoolResolver {
         }
 
         return results;
+    }
+
+    /** @param {object} entry */
+    static _terrainTags(entry) {
+        return entry.flags?.["ionrift-quartermaster"]?.terrain ?? [];
+    }
+
+    /** @param {object} entry */
+    static _isTerrainBound(entry) {
+        return this._terrainTags(entry).length > 0;
+    }
+
+    /**
+     * Terrain-bound items are exclusive to their listed terrains. Items with
+     * no terrain flag are universal and eligible everywhere.
+     *
+     * @param {object} entry
+     * @param {string} theme
+     */
+    static _eligibleForTheme(entry, theme) {
+        if (!theme) return true;
+        if (!this._isTerrainBound(entry)) return true;
+        return this._terrainTags(entry).includes(theme);
+    }
+
+    /**
+     * QM overlay gems, treasure, and trinkets belong in dedicated cache slots.
+     * When overlay packs are enabled in lootPoolSources they must not leak into
+     * the generic mundane/trade-goods pool.
+     *
+     * @param {object} entry
+     */
+    static _isQmDedicatedPickerItem(entry) {
+        const qm = entry.flags?.["ionrift-quartermaster"];
+        if (!qm) return false;
+        if (qm.gemMeta?.tier) return true;
+        const cat = qm.coreMeta?.category;
+        if (cat === "Treasure" || cat === "Trinkets") return true;
+        if ((entry.system?.type?.value ?? "") === "gem") return true;
+        return false;
     }
 
     /**
@@ -211,7 +255,10 @@ export class ItemPoolResolver {
                 // Equipment only qualifies if it has NO rarity (common/empty)
                 // to prevent wondrous items like Decanter of Endless Water
                 // from appearing in the mundane loot pool.
-                if (type === "loot" || type === "tool") return true;
+                if (type === "loot" || type === "tool") {
+                    if (this._isQmDedicatedPickerItem(entry)) return false;
+                    return true;
+                }
                 if (type === "equipment") {
                     const rarity = (entry.system?.rarity ?? "").toLowerCase();
                     return !rarity || rarity === "common" || rarity === "none";
@@ -250,7 +297,19 @@ export class ItemPoolResolver {
         if (this._isContainerContentOnly(entry, nameLower)) return true;
         if (this._isTrapOrHazard(entry)) return true;
         if (this._isZeroDataPlaceholder(entry)) return true;
+        if (this._isGmPlacedPoisonPotion(entry, nameLower)) return true;
         return false;
+    }
+
+    /**
+     * Poison potions are Cursewright-only. They must never surface from random
+     * cache pool rolls; the GM places them via the cursed pool or recipes.
+     *
+     * @param {object} entry
+     * @param {string} [nameLower]
+     */
+    static _isGmPlacedPoisonPotion(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
+        return /^potion of (?:greater |superior |supreme )?poison$/i.test(nameLower);
     }
 
     /**

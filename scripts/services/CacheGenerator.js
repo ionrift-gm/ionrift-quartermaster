@@ -9,6 +9,7 @@ import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { SignatureLedger } from "./SignatureLedger.js";
 import { ScrollForge } from "./ScrollForge.js";
 import { TerrainDataRegistry } from "./TerrainDataRegistry.js";
+import { PotionEnrichment } from "./PotionEnrichment.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -1252,12 +1253,15 @@ export class CacheGenerator {
         // 70% potion bias when potions exist
         const SA = game.ionrift?.library?.system;
         const situational = SA?.getSituationalConsumables?.() ?? new Set();
+        const cacheTier = tierData._tier ?? 1;
 
         function _weightedPick(arr) {
             if (!arr.length) return null;
             const tickets = [];
             for (const item of arr) {
-                const count = situational.has((item.name ?? "").toLowerCase()) ? 1 : 3;
+                let count = situational.has((item.name ?? "").toLowerCase()) ? 1 : 3;
+                const healBias = CacheGenerator._healingPotionPickWeight(item.name, cacheTier);
+                count = Math.max(1, Math.round(count * healBias));
                 for (let i = 0; i < count; i++) tickets.push(item);
             }
             return tickets[Math.floor(Math.random() * tickets.length)];
@@ -1282,6 +1286,50 @@ export class CacheGenerator {
             sourceCompendium: pick.sourceCompendium,
             _compendiumId: pick._compendiumId
         };
+    }
+
+    /**
+     * Ticket multiplier for healing potions in consumable picks. Higher cache
+     * tiers favour stronger healing tiers; non-healing items return 1.
+     *
+     * @param {string} name
+     * @param {number} cacheTier
+     * @returns {number}
+     */
+    static _healingPotionPickWeight(name, cacheTier) {
+        const tierData = PotionEnrichment.getTierData(name);
+        if (!tierData) return 1;
+
+        const price = tierData.price ?? 50;
+        const weightsByCacheTier = {
+            1: { 50: 6, 100: 2, 250: 0.5, 500: 0.25 },
+            2: { 50: 2, 100: 4, 250: 2, 500: 1 },
+            3: { 50: 1, 100: 2, 250: 5, 500: 3 },
+            4: { 50: 0.5, 100: 1, 250: 3, 500: 6 }
+        };
+        const table = weightsByCacheTier[cacheTier] ?? weightsByCacheTier[1];
+        return table[price] ?? 1;
+    }
+
+    /**
+     * Cheap provisions (feed, rations, ammo) that should appear as large
+     * stacks rather than single specimens.
+     *
+     * @param {object} item
+     * @returns {boolean}
+     */
+    static _isBulkFillerItem(item) {
+        const type = item.type ?? "";
+        const subtype = (item.subtype ?? "").toLowerCase();
+        const name = (item.name ?? "").toLowerCase().trim();
+        const unitPrice = item.price ?? 0;
+
+        if (type !== "consumable") return false;
+        if (subtype === "potion" || subtype === "poison" || subtype === "scroll") return false;
+
+        if (["food", "drink", "ammo", "ammunition"].includes(subtype)) return unitPrice < 1;
+        if (/^(feed|rations?|arrows?|bolts?|needles?|sling bullets?)\b/.test(name)) return unitPrice < 1;
+        return unitPrice > 0 && unitPrice < 0.1;
     }
 
     /**
@@ -1407,6 +1455,13 @@ export class CacheGenerator {
     static _resolveQuantity(item, opts = {}) {
         // Never stack these item classes
         if (item.isSignature || item.spellName) return 1;
+
+        // Bulk provisions: large stacks, ignore compendium rarity typos and
+        // weight caps (feed and rations are loose goods, not single specimens).
+        if (this._isBulkFillerItem(item)) {
+            return 10 + Math.floor(Math.random() * 41);
+        }
+
         const rarity = (item.rarity ?? "common").toLowerCase();
         if (rarity !== "common" && rarity !== "none" && rarity !== "") return 1;
         if (item._qmKind === "gemstones" || isQmPackRole(item.sourceCompendium, "gemstones")) return 1;

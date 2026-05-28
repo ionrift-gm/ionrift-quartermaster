@@ -99,6 +99,33 @@ describe("CacheGenerator._resolveQuantity", () => {
         expect(CacheGenerator._resolveQuantity({ price: 0 })).toBe(1);
     });
 
+    it("stacks bulk filler consumables like feed in large quantities", () => {
+        const feed = {
+            name: "Feed",
+            type: "consumable",
+            subtype: "food",
+            price: 0.05,
+            rarity: "common"
+        };
+        for (let i = 0; i < 50; i++) {
+            const qty = CacheGenerator._resolveQuantity(feed);
+            expect(qty).toBeGreaterThanOrEqual(10);
+            expect(qty).toBeLessThanOrEqual(50);
+        }
+    });
+
+    it("stacks bulk filler even when compendium rarity is wrong", () => {
+        const feed = {
+            name: "Feed",
+            type: "consumable",
+            subtype: "food",
+            price: 0.05,
+            rarity: "uncommon"
+        };
+        const qty = CacheGenerator._resolveQuantity(feed);
+        expect(qty).toBeGreaterThanOrEqual(10);
+    });
+
     it("returns > 1 for very cheap items (< 0.05 gp)", () => {
         // Run multiple times since there's randomness
         let sawMultiple = false;
@@ -302,6 +329,27 @@ describe("CacheGenerator._terrainWeightedPick", () => {
         for (let i = 0; i < 200; i++) {
             expect(CacheGenerator._terrainWeightedPick(pool, "desert").name).toBe("Core Chalice");
         }
+    });
+});
+
+// ── _healingPotionPickWeight ─────────────────────────────────────────────
+
+describe("CacheGenerator._healingPotionPickWeight", () => {
+
+    it("favours base healing at tier 1", () => {
+        const base = CacheGenerator._healingPotionPickWeight("Potion of Healing", 1);
+        const greater = CacheGenerator._healingPotionPickWeight("Potion of Greater Healing", 1);
+        expect(base).toBeGreaterThan(greater);
+    });
+
+    it("favours stronger healing at tier 3", () => {
+        const base = CacheGenerator._healingPotionPickWeight("Potion of Healing", 3);
+        const superior = CacheGenerator._healingPotionPickWeight("Potion of Superior Healing", 3);
+        expect(superior).toBeGreaterThan(base);
+    });
+
+    it("returns 1 for non-healing items", () => {
+        expect(CacheGenerator._healingPotionPickWeight("Antitoxin", 3)).toBe(1);
     });
 });
 
