@@ -5,10 +5,20 @@
 ![Foundry v12+](https://img.shields.io/badge/Foundry-v12%2B-333333?style=flat&logo=foundryvirtualtabletop)
 ![Systems](https://img.shields.io/badge/system-dnd5e-blue)
 
-> **The GM's loot engine for Foundry VTT.** Terrain-aware cache generation, masked item
-> identification, scroll management, cursed item tracking, and campaign item planning.
+**The GM's loot engine for Foundry VTT.** Terrain-aware cache generation, masked item identification, scroll management, cursed item tracking, and campaign item planning.
+
+### Support Ionrift
+
+[![Patreon](https://img.shields.io/badge/Patreon-ionrift-ff424d?logo=patreon&logoColor=white)](https://patreon.com/ionrift)
+[![Discord](https://img.shields.io/badge/Discord-Ionrift-5865F2?logo=discord&logoColor=white)](https://discord.gg/vFGXf7Fncj)
 
 > Documentation, setup guides, and troubleshooting: **[Ionrift Wiki](https://github.com/ionrift-gm/ionrift-library/wiki)**
+
+### Demo
+
+[![Watch the trailer](https://img.youtube.com/vi/DBLM4srxaGE/maxresdefault.jpg)](https://youtu.be/DBLM4srxaGE)
+
+*Cache generation, drag-to-canvas deployment, masked item identification, and campaign-wide loot planning.*
 
 ## Features
 
