@@ -1,0 +1,43 @@
+name: CI — Commit Identity Gate
+
+on:
+  push:
+    branches: [main, master]
+    tags-ignore: ['**']
+
+jobs:
+  identity-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: verify commit authorship
+        run: |
+          FAILED=0
+          for sha in $(git rev-list origin/${{ github.event.before && github.event.before || 'HEAD~1' }}..HEAD 2>/dev/null || echo HEAD); do
+            AUTHOR=$(git log --format='%ae' -1 "$sha")
+            if [ "$AUTHOR" != "ionrift.gm@gmail.com" ]; then
+              echo "::error::Commit $sha has unauthorised author: $AUTHOR"
+              FAILED=1
+            fi
+
+            MSG=$(git log --format='%B' -1 "$sha")
+            if echo "$MSG" | grep -qi "co-authored-by"; then
+              echo "::error::Commit $sha contains a Co-authored-by trailer (policy: disallowed)"
+              FAILED=1
+            fi
+
+            if echo "$MSG" | grep -qi "noreply.github.com"; then
+              echo "::error::Commit $sha contains a noreply.github.com reference"
+              FAILED=1
+            fi
+          done
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo "::error::Identity gate failed. All commits must be authored by ionrift.gm@gmail.com with no co-author trailers."
+            exit 1
+          fi
+
+          echo "All commits pass identity gate."
