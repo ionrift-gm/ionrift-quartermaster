@@ -1,24 +1,23 @@
 # Changelog
 
-## [Unreleased]
+## [1.4.0] - 2026-06-04
 
 ### Added
-- **Quick setup profiles.** Low, Standard, and High loot presets in module settings, plus Custom when values do not match a preset.
-- **Grouped settings panel.** Loot generation, identification, and progression open in focused submenus; milestone profile stays under Start here.
-- **GM setup guide stub.** Journal compendium placeholder linked from Quick setup (`game.ionrift.quartermaster.openSetupGuide()`).
-- **Scroll balance tests.** Vitest and a Forge harness run Monte Carlo picks per tier so scroll level spread can be tuned without hand-rolling caches.
-- **Budget brackets.** The cache generator budget control uses tier-sized gp windows instead of a single draggable pill.
+- **Quick setup profiles.** Low, Standard, and High loot presets in module settings. The confirm dialog groups loot and identification rows and highlights only the values that will change.
+- **Ammunition type curve.** A new config panel lets you weight how often each ammo category (arrows, bolts, sling bullets, needles) appears in caches. Quick presets, per-type steppers, and a live distribution bar. Custom ammo types can be added with regex patterns.
+- **Compendium Forge.** Unified compilation interface for loot pools, scroll sources, and cursed item pools. Each tab tracks its compiled state, shows freshness, and lets you clear and recompile in place.
+- **Healing potion frequency.** A slider in loot generation settings controls how often consumable picks are healing potions, from basic through supreme.
+- **Obscure magical items.** Identification settings can leave weapons and armor readable while consumables and scrolls stay masked.
+- **GM setup guide.** A journal compendium linked from Quick Setup walks through cache generation, identification, and the Signature Ledger.
 
 ### Changed
-- **Respite loot pool split.** Respite Items no longer appears in Loot Pool Sources. Enable Respite Cache Utility when both modules are active for camp supplies such as kindling.
-- **Compendium Forge settings badge.** The module settings warning now tracks only forge pipelines in use and refreshes after compile or when Forge closes.
-- **Arcana scroll slots.** High-tier Arcana caches cap scroll slots and stack duplicate spells (2-4 copies on lower circles) so the list stays short.
-- **Scroll tier bands.** Cache scrolls respect tier min/max spell level and a fair per-slot share of the item budget.
+- **Grouped settings panel.** Loot generation, identification, and progression each open in their own submenu instead of a single flat list.
 
 ### Fixed
+- **Magical ammo pricing.** Stacked ammunition no longer multiplies its gp value twice (e.g. a stack of +1 arrows priced at thousands instead of dozens).
 - **Coin vs item budget.** Rolled coin no longer spends the item budget before slots are filled, which caused gold-only Arcana caches at high tiers.
-- **Scroll level reads.** Picks use Scroll Forge metadata for spell circle, not the template item level that often stayed at 1.
-- **DMG sample poisons in caches.** Malice and other subtype-poison entries from the SRD no longer roll in random consumable slots. Basic Poison and Antitoxin still can.
+- **Scroll level reads.** Picks now use Scroll Forge metadata for spell circle instead of the template item level that often stayed at 1.
+
 
 ## [1.3.13] - 2026-05-28
 

@@ -5,7 +5,7 @@
 
 import { LootGenerationConfigApp } from "../apps/LootGenerationConfigApp.js";
 import { IdentificationConfigApp } from "../apps/IdentificationConfigApp.js";
-import { ProgressionConfigApp } from "../apps/ProgressionConfigApp.js";
+
 import { WorkshopPackRegistryApp } from "../apps/WorkshopPackRegistryApp.js";
 import { SignatureLedger } from "./SignatureLedger.js";
 import { registerQuartermasterSettingsPanel } from "./SettingsPanelLayout.js";
@@ -148,6 +148,17 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         restricted: true
     });
 
+    game.settings.register(MODULE_ID, "healingPotionFrequency", {
+        name: "Healing Potion Frequency",
+        hint: "Scales consumable slots, healing chance on those slots, and extra healing lines per cache. 0 is scarce. 1.0 is moderate. 4.0 adds several healing potions per cache when the loot pool includes them. Enable dnd5e.items (or recompile Forge) so healing rows exist.",
+        scope: "world",
+        config: false,
+        type: Number,
+        range: { min: 0.0, max: 4.0, step: 0.25 },
+        default: 1.0,
+        restricted: true
+    });
+
     game.settings.register(MODULE_ID, "ammoTypeTilt", {
         name: "Ammunition Type Preference",
         hint: "Legacy preset key synced from the ammunition type curve. Quick setup profiles still write this value.",
@@ -194,6 +205,26 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     game.settings.register(MODULE_ID, "obscureScrolls", {
         name: "Obscure Spell Scrolls",
         hint: "When enabled, all spell scrolls appear as 'Unidentified Scroll' until identified. By the 2024 DMG, anyone can identify a scroll via Identify or a Short Rest; this setting models the moment before the party has examined it. Disable to show spell names directly.",
+        scope: "world",
+        config: false,
+        type: Boolean,
+        default: true,
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "obscureMagicalItems", {
+        name: "Obscure Magical Items",
+        hint: "When enabled, weapons, armor, wondrous gear, and spell foci present as mundane base items until identified. Disable to show true names, rarity, and mechanical properties on the sheet immediately.",
+        scope: "world",
+        config: false,
+        type: Boolean,
+        default: true,
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "gmOnlyIdentification", {
+        name: "GM-Only Identification",
+        hint: "When enabled, players cannot use the identification toggle on item sheets. Only the GM can identify masked loot via the sheet wand, Quartermaster tools, or linked rest activities.",
         scope: "world",
         config: false,
         type: Boolean,
@@ -377,20 +408,22 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "shelfJitter", {
-        name: "Auto-Seed Drift",
-        hint: "Controls where auto-seeded shelf items land on the milestone grid. 0 = items appear at their exact rarity-based milestone. 1 or 2 = items may shift ±1 or ±2 columns (late-biased). Manually planned items always arrive at their designated milestone.",
+        name: "Party Shelf Jitter",
+        hint: "How much a party shelf item's suggested level can drift above or below the milestone. 0 = strict milestone match. Higher values surface items from adjacent tiers.",
         scope: "world",
         config: false,
         type: Number,
-        range: { min: 0, max: 2, step: 1 },
+        range: { min: 0, max: 3, step: 1 },
         default: 1,
         restricted: true
     });
 
+
+
     game.settings.registerMenu(MODULE_ID, "lootGenerationConfig", {
         name: "Loot Generation",
         label: "Configure Loot Generation",
-        hint: "Loot abundance, magic frequency, ammunition, scroll jitter, and coin distribution.",
+        hint: "Loot abundance, magic frequency, ammunition, healing potions, scroll jitter, and coin distribution.",
         icon: "fas fa-coins",
         type: LootGenerationConfigApp,
         restricted: true
@@ -399,20 +432,13 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     game.settings.registerMenu(MODULE_ID, "identificationConfig", {
         name: "Identification",
         label: "Configure Identification",
-        hint: "Obscure consumables and spell scrolls until the party examines them.",
+        hint: "Obscure loot names and sheet details until the party examines them.",
         icon: "fas fa-eye-slash",
         type: IdentificationConfigApp,
         restricted: true
     });
 
-    game.settings.registerMenu(MODULE_ID, "progressionConfig", {
-        name: "Progression",
-        label: "Configure Progression",
-        hint: "Auto-seed drift on the Signature Ledger. Milestone band is set above.",
-        icon: "fas fa-chart-line",
-        type: ProgressionConfigApp,
-        restricted: true
-    });
+
 
     game.settings.registerMenu(MODULE_ID, "compendiumForge", {
         name: "Compendium Forge",

@@ -13,7 +13,7 @@
       "approvedBy": "ionrift",
       "approvedDate": "2026-06-04",
       "assetPolicy": "foundry-core-only",
-      "note": "GM setup guide (stub journal until populated)"
+      "note": "GM setup and reference guide"
     },
     "proving-grounds": {
       "status": "dev",

@@ -1,4 +1,4 @@
-﻿import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
+import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -98,6 +98,17 @@ export class ItemResolutionPipeline {
                     // no consumable in dnd5e 2024 requires attunement.
                     if (data.type === "consumable" && data.system) {
                         data.system.attunement = "";
+                    }
+                    // Strip all active effects from pile item data.
+                    // dnd5e auto-applies an item's effects[] to the owning actor when
+                    // the item is added to inventory — so a Potion of Climbing in an
+                    // unopened chest would give the pile actor "Climber", Poison would
+                    // apply its secondary damage effect, etc.
+                    // Effects must be absent from the pile payload; they'll be present
+                    // on the compendium item and apply normally when a player uses the
+                    // item from their own inventory after looting.
+                    if (Array.isArray(data.effects) && data.effects.length > 0) {
+                        data.effects = [];
                     }
                 }
             }

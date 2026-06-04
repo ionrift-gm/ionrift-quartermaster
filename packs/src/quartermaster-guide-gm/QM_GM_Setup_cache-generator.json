@@ -1,0 +1,29 @@
+{
+    "_id": "qmCacheGuide002",
+    "_key": "!journal.pages!qmGuideJournal01.qmCacheGuide002",
+    "name": "Cache Generator",
+    "type": "text",
+    "title": { "show": true, "level": 1 },
+    "image": {},
+    "video": { "controls": true, "volume": 0.5 },
+    "src": null,
+    "system": {},
+    "text": {
+        "content": "<h2>Opening the generator</h2><p>Click the <strong>Loot Cache</strong> button in the Items Directory sidebar header.</p><h2>Building a cache</h2><ol><li><strong>Tier</strong> sets the party's level bracket (T1 1-4, T2 5-10, T3 11-16, T4 17-20). Budget brackets and magic rarity scale with tier.</li><li><strong>Terrain</strong> picks the environment. Each terrain has its own container art, discovery narration, and item weighting. Base terrains: desert, dungeon, forest, swamp, urban. Content packs add more (arctic, mountain, catacombs, ruins).</li><li><strong>Cache Origin</strong> flavours the slot layout. <em>Apothecary</em> skews toward consumables, <em>Armaments</em> toward weapons, and so on. <em>Unspecified</em> uses an even spread.</li><li><strong>Budget bracket</strong> sets the gold window. Click one of the discrete bracket buttons.</li><li>Click <strong>Generate</strong>.</li></ol><h2>After generating</h2><ul><li><strong>Re-roll individual slots</strong> by clicking the die icon on any item row.</li><li><strong>Drag items from compendiums</strong> into the cache preview to inject specific loot.</li><li><strong>Re-roll or clear coins</strong> with the buttons on the coinage row.</li><li>The <strong>container card</strong> on the right matches terrain automatically and tracks capacity and weight.</li></ul><h2>Deploying the cache</h2><ul><li><strong>Drag the container card to the canvas</strong> if Item Piles is active. The container lands as an interactive token players can open.</li><li>Or click <strong>Add to Items</strong> to create the container in the sidebar.</li></ul>",
+        "format": 1,
+        "markdown": ""
+    },
+    "sort": 200000,
+    "ownership": { "default": 0 },
+    "flags": {},
+    "_stats": {
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "coreVersion": "12.331",
+        "systemId": null,
+        "systemVersion": null,
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null
+    }
+}

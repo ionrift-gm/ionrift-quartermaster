@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ItemPoolResolver
  *
  * Resolves loot pool items from multiple sources at runtime:
@@ -10,6 +10,7 @@
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ItemClassifier } from "./ItemClassifier.js";
+import { PotionEnrichment } from "./PotionEnrichment.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -39,6 +40,26 @@ export class ItemPoolResolver {
      */
     static LOOT_POOL_EXCLUDED_PACKS = new Set([
         "ionrift-respite.respite-items",
+    ]);
+
+    /**
+     * Packs that use the 2024 architecture where consumables were renamed
+     * to include their container type. Used by _isLegacyRenamedItem.
+     */
+    static EQUIPMENT24_PACKS = new Set(["dnd5e.equipment24"]);
+
+    /**
+     * Items renamed in SRD 5.2 / 2024 to include their container type.
+     * Key = legacy lowercase name to suppress when a 2024 pack is enabled.
+     * Value = 2024 replacement name (documentation only).
+     *
+     * Suppression is one-directional: the legacy entry is hidden so only
+     * the 2024 form appears in the pool. The 2024 form is never touched.
+     */
+    static LEGACY_2024_RENAMED = new Map([
+        ["holy water",  "Flask of Holy Water"],
+        ["acid",        "Acid (vial)"],
+        ["antitoxin",   "Antitoxin (vial)"],
     ]);
 
     /**
@@ -345,6 +366,7 @@ export class ItemPoolResolver {
         switch (slotType) {
             case "consumable": {
                 if (type !== "consumable") return false;
+                if (PotionEnrichment.isHealingPotion(entry.name)) return true;
                 if (subtype === "scroll") return false;
                 // Ammunition now has its own dedicated slot type - exclude
                 // ammo subtypes from the consumable pool to prevent
@@ -418,6 +440,7 @@ export class ItemPoolResolver {
         if (this._isZeroWeightWeaponTemplate(entry)) return true;
         if (this._isBulkAmmoCollection(entry, nameLower)) return true;
         if (this._isGmPlacedPoison(entry, nameLower)) return true;
+        if (this._isLegacyRenamedItem(entry, nameLower)) return true;
         return false;
     }
 
@@ -485,6 +508,7 @@ export class ItemPoolResolver {
      * rarity "" until a specific variant is chosen.
      */
     static _isZeroDataPlaceholder(entry) {
+        if (PotionEnrichment.isHealingPotion(entry.name)) return false;
         const price = this._extractPrice(entry);
         const weight = this._extractWeight(entry);
         const rarity = (entry.system?.rarity ?? "").trim();
@@ -549,6 +573,24 @@ export class ItemPoolResolver {
         if (/\(portion(?:s)?\)$/i.test(nameLower)) return true;
 
         return false;
+    }
+
+    /**
+     * Items renamed in SRD 5.2 to include their container type
+     * (e.g. "Holy Water" became "Flask of Holy Water", "Acid" became
+     * "Acid (vial)"). When a 2024-architecture pack is an enabled source,
+     * suppress the legacy name so only the 2024 form appears in the pool.
+     *
+     * Suppression is one-directional: the legacy entry is rejected here;
+     * the 2024 entry is unaffected and passes through normally.
+     *
+     * @param {object} entry
+     * @param {string} [nameLower]
+     */
+    static _isLegacyRenamedItem(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
+        if (!this.LEGACY_2024_RENAMED.has(nameLower)) return false;
+        const sources = this.getEnabledSources();
+        return sources.some(id => this.EQUIPMENT24_PACKS.has(id));
     }
 
     static _entryDescriptionText(entry) {

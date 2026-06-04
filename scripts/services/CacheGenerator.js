@@ -495,7 +495,8 @@ export class CacheGenerator {
         const scaledMin = Math.round(slotRange.min * tierScale);
         const scaledMax = Math.round(slotRange.max * tierScale);
         const totalSlotCount = Math.floor(Math.random() * (scaledMax - scaledMin + 1)) + scaledMin;
-        const pool = ownerDef.slotPool ?? {};
+        const healFreq = game.settings?.get(MODULE_ID, "healingPotionFrequency") ?? 1.0;
+        const pool = CacheGenerator._scaleOwnerSlotPool(ownerDef.slotPool ?? {}, healFreq);
 
         // Expand guaranteed entries into a flat list of slot types.
         // Entries can be plain strings ("scroll") or range objects ({ type, min, max }).
@@ -553,6 +554,21 @@ export class CacheGenerator {
         })();
         let namedMagicalRemaining = namedMagicalBudget;
 
+        // Type-aware weight floors - sentinel values that make leaked zero-weight
+        // items meaningfully heavy in container math without affecting items that
+        // are legitimately featherweight (rings, scrolls, wondrous items).
+        //   weapon  -> 3 lb  (lightest real weapon: dart ~0.25 lb; 3 lb covers swords)
+        //   armor   -> 4 lb  (lightest real armor: padded 8 lb; 4 lb is a safe floor)
+        //   other   -> 0.01 lb (rings, scrolls, wands - canonically near-weightless)
+        const ARMOR_SUBTYPES = new Set(["heavy", "medium", "light", "shield"]);
+        const _effectiveWeight = (w, type, system) => {
+            const raw = Number(w) || 0;
+            if (type === "weapon") return Math.max(raw, 3.0);
+            if (type === "equipment" && ARMOR_SUBTYPES.has((system?.type?.value ?? "").trim()))
+                return Math.max(raw, 4.0);
+            return Math.max(raw, 0.01);
+        };
+
         for (const slotType of drawnSlots) {
             const isGuaranteed = slotsProcessed < guaranteedCount;
 
@@ -590,20 +606,7 @@ export class CacheGenerator {
                 ? Math.max(2, weightBudget - currentWeight)
                 : 45;
 
-            // Type-aware weight floors - sentinel values that make leaked zero-weight
-            // items meaningfully heavy in container math without affecting items that
-            // are legitimately featherweight (rings, scrolls, wondrous items).
-            //   weapon  → 3 lb  (lightest real weapon: dart ~0.25 lb; 3 lb covers swords)
-            //   armor   → 4 lb  (lightest real armor: padded 8 lb; 4 lb is a safe floor)
-            //   other   → 0.01 lb (rings, scrolls, wands - canonically near-weightless)
-            const ARMOR_SUBTYPES = new Set(["heavy", "medium", "light", "shield"]);
-            const _effectiveWeight = (w, type, system) => {
-                const raw = Number(w) || 0;
-                if (type === "weapon") return Math.max(raw, 3.0);
-                if (type === "equipment" && ARMOR_SUBTYPES.has((system?.type?.value ?? "").trim()))
-                    return Math.max(raw, 4.0);
-                return Math.max(raw, 0.01);
-            };
+
 
             // Repick logic: reject items that are too heavy or on the GM ban list
             while (pickAttempts < 5) {
@@ -684,6 +687,32 @@ export class CacheGenerator {
             }
         }
 
+
+        // Extra healing potion rolls driven by the GM slider (independent of slot type).
+        const bonusHealingRolls = CacheGenerator._healingBonusRollCount(healFreq);
+        for (let bonusIdx = 0; bonusIdx < bonusHealingRolls; bonusIdx++) {
+            if (itemSpentBudget >= effectiveBudget && hardCap) break;
+
+            const remainingBudget = effectiveBudget - itemSpentBudget;
+            const priceCeiling = hardCap
+                ? Math.max(remainingBudget, goldFillerFloor)
+                : Infinity;
+
+            const pick = await CacheGenerator._pickHealingPotionOnly(
+                theme, tierData, tables, priceCeiling, healFreq
+            );
+            if (!pick) break;
+
+            const qty = 1;
+            const totalItemPrice = Math.round((pick.price ?? 0) * qty * 100) / 100;
+            const totalItemWeight = _effectiveWeight(pick.weight, pick.type, pick.system) * qty;
+
+            if (container && (currentWeight + totalItemWeight) > weightBudget) break;
+
+            currentWeight += totalItemWeight;
+            if (hardCap) itemSpentBudget += totalItemPrice;
+            result.items.push({ ...pick, quantity: qty, price: totalItemPrice });
+        }
 
         const scrollCountBefore = result.items.filter(i => i.spellName).length;
         result.items = this._consolidateScrollStacks(result.items, tierData);
@@ -1112,15 +1141,13 @@ export class CacheGenerator {
                     fallbackTables: tables,
                     rarityMax: tierData.rarityMax ?? "uncommon"
                 });
-                // Filter to weapon-type items that are ammo by name (+N pattern
-                // plus ammo-type name detection)
+                // Filter to weapon-type items that dnd5e compendiums sometimes
+                // type as weapon instead of consumable/ammo (e.g. Arrows +1).
+                // ItemClassifier name rules exclude the sling weapon ("Sling +1").
                 magicalPool = weaponPool.filter(i => {
                     const rarity = (i.rarity || "").toLowerCase();
                     const isMagical = rarity && rarity !== "common" && rarity !== "none";
-                    if (!isMagical) return false;
-                    const name = (i.name ?? "").toLowerCase();
-                    // Name-based: arrows, bolts, ammunition, quarrel, etc.
-                    return /\b(arrow|bolt|ammunition|quarrel|needle|bullet|sling)\b/i.test(name);
+                    return isMagical && ItemClassifier.isAmmo(i);
                 });
             } catch (e) {
                 Logger.warn(MODULE_LABEL, "Magical ammo weapon pool fallback failed:", e.message);
@@ -1158,13 +1185,14 @@ export class CacheGenerator {
         }
 
         const unitPrice = pick.price ?? 0;
+        const unitWeight = pick.weight ?? 0.02;
         return {
             name: pick.name,
             type: "consumable",
             subtype: pick.subtype ?? "ammo",
             img: pick.img ?? "icons/weapons/ammunition/arrows-bundle-brown.webp",
-            price: Math.round(unitPrice * qty * 100) / 100,
-            weight: (pick.weight || 0.02) * qty,
+            price: unitPrice,
+            weight: unitWeight,
             rarity: pick.rarity ?? "common",
             quantity: qty,
             sourceCompendium: pick.sourceCompendium,
@@ -1971,34 +1999,168 @@ export class CacheGenerator {
         const potions = finalPool.filter(isPotionLike);
         const other   = finalPool.filter(i => !isPotionLike(i));
 
-        // 70% potion bias when potions exist
+        // Potion-like vs food/rations; branch weight scales with healing slider.
         const SA = game.ionrift?.library?.system;
         const situational = SA?.getSituationalConsumables?.() ?? new Set();
         const cacheTier = tierData._tier ?? 1;
+        const healFreq = game.settings?.get(MODULE_ID, "healingPotionFrequency") ?? 1.0;
 
-        function _weightedPick(arr) {
+        const _toConsumablePick = (pick) => ({
+            name: pick.name,
+            type: "consumable",
+            subtype: pick.subtype ?? "",
+            img: pick.img ?? "icons/consumables/potions/potion-bottle-corked-red.webp",
+            price: pick.price ?? 0,
+            weight: pick.weight || 0.1,
+            rarity: pick.rarity ?? "common",
+            quantity: 1,
+            sourceCompendium: pick.sourceCompendium,
+            _compendiumId: pick._compendiumId
+        });
+
+        const _baseTickets = (item) =>
+            situational.has((item.name ?? "").toLowerCase()) ? 1 : 3;
+
+        const _weightedPickFrom = (arr) => {
             if (!arr.length) return null;
             const tickets = [];
             for (const item of arr) {
-                let count = situational.has((item.name ?? "").toLowerCase()) ? 1 : 3;
-                const healBias = CacheGenerator._healingPotionPickWeight(item.name, cacheTier);
-                count = Math.max(1, Math.round(count * healBias));
+                let count = _baseTickets(item);
+                if (PotionEnrichment.isHealingPotion(item.name)) {
+                    const tierWeight = CacheGenerator._healingPotionTierWeight(
+                        item.name, cacheTier, healFreq
+                    );
+                    count = Math.max(1, Math.round(count * tierWeight));
+                }
                 for (let i = 0; i < count; i++) tickets.push(item);
             }
             return tickets[Math.floor(Math.random() * tickets.length)];
+        };
+
+        /** Healing vs oils/elixirs within the potion-like sub-pool. */
+        const _pickFromPotionLikePool = (potionArr) => {
+            const healing = potionArr.filter(p => PotionEnrichment.isHealingPotion(p.name));
+            const other = potionArr.filter(p => !PotionEnrichment.isHealingPotion(p.name));
+
+            if (!healing.length) return _weightedPickFrom(other);
+            if (!other.length) return _weightedPickFrom(healing);
+
+            const share = CacheGenerator._healingPotionShare(healFreq);
+            const branch = Math.random() < share ? healing : other;
+            return _weightedPickFrom(branch);
+        };
+
+        const healingInPool = finalPool.filter(p => PotionEnrichment.isHealingPotion(p.name));
+
+        if (healingInPool.length > 0) {
+            const directShare = CacheGenerator._healingPotionDirectShare(healFreq);
+            if (Math.random() < directShare) {
+                const direct = await CacheGenerator._pickHealingPotionOnly(
+                    theme, tierData, tables, priceCeiling, healFreq, healingInPool
+                );
+                if (direct) return direct;
+            }
         }
 
+        const potionBranchChance = Math.min(0.92, 0.55 + 0.10 * Math.max(0, healFreq));
+
         let pick;
-        if (potions.length > 0 && (other.length === 0 || Math.random() < 0.7)) {
-            pick = _weightedPick(potions);
+        if (potions.length > 0 && (other.length === 0 || Math.random() < potionBranchChance)) {
+            pick = _pickFromPotionLikePool(potions);
         } else {
-            pick = _weightedPick(finalPool);
+            pick = _weightedPickFrom(finalPool);
         }
+
+        if (!pick) return null;
+        return _toConsumablePick(pick);
+    }
+
+    /**
+     * Boost consumable slot weight in the owner theme pool as healing frequency rises.
+     *
+     * @param {Record<string, number>} basePool
+     * @param {number} healFreq
+     * @returns {Record<string, number>}
+     */
+    static _scaleOwnerSlotPool(basePool, healFreq) {
+        const pool = { ...basePool };
+        const f = Math.max(0, Number(healFreq) || 0);
+        if (f > 0 && pool.consumable) {
+            pool.consumable = pool.consumable * (1 + 0.15 * f);
+        }
+        return pool;
+    }
+
+    /**
+     * Extra healing potion lines added after the main slot loop.
+     *
+     * @param {number} freq
+     * @returns {number}
+     */
+    static _healingBonusRollCount(freq) {
+        const f = Math.max(0, Number(freq) || 0);
+        if (f <= 0) return 0;
+        if (f <= 1) return Math.random() < f * 0.5 ? 1 : 0;
+        const target = f * 0.75;
+        return Math.min(4, Math.floor(target) + (Math.random() < (target % 1) ? 1 : 0));
+    }
+
+    /**
+     * @param {string} theme
+     * @param {Object} tierData
+     * @param {Object} tables
+     * @param {number} [priceCeiling]
+     * @returns {Promise<Object[]>}
+     */
+    static async _resolveHealingPotionPool(theme, tierData, tables, priceCeiling = Infinity) {
+        let pool = [];
+        try {
+            pool = await ItemPoolResolver.resolve({
+                slotType: "consumable",
+                tier: tierData._tier ?? 1,
+                theme,
+                fallbackTables: tables
+            });
+        } catch (e) {
+            Logger.warn(MODULE_LABEL, "ItemPoolResolver failed for healing pool:", e.message);
+        }
+        if (!pool.length) return [];
+
+        const affordable = pool.filter(p => (p.price ?? 0) <= priceCeiling);
+        const finalPool = affordable.length > 0 ? affordable : pool;
+        return finalPool.filter(p => PotionEnrichment.isHealingPotion(p.name));
+    }
+
+    /**
+     * Pick one healing potion row, tier-weighted.
+     *
+     * @param {string} theme
+     * @param {Object} tierData
+     * @param {Object} tables
+     * @param {number} [priceCeiling]
+     * @param {number} [healFreq]
+     * @param {Object[]|null} [prefetchedPool]
+     * @returns {Promise<Object|null>}
+     */
+    static async _pickHealingPotionOnly(
+        theme, tierData, tables, priceCeiling = Infinity, healFreq, prefetchedPool = null
+    ) {
+        const healing = prefetchedPool
+            ?? await CacheGenerator._resolveHealingPotionPool(theme, tierData, tables, priceCeiling);
+        if (!healing.length) return null;
+
+        const cacheTier = tierData._tier ?? 1;
+        const freq = healFreq ?? game.settings?.get(MODULE_ID, "healingPotionFrequency") ?? 1.0;
+        const SA = game.ionrift?.library?.system;
+        const situational = SA?.getSituationalConsumables?.() ?? new Set();
+
+        const pick = CacheGenerator._weightedHealingPick(healing, cacheTier, freq, situational);
+        if (!pick) return null;
 
         return {
             name: pick.name,
             type: "consumable",
-            subtype: pick.subtype ?? "",
+            subtype: pick.subtype ?? "potion",
             img: pick.img ?? "icons/consumables/potions/potion-bottle-corked-red.webp",
             price: pick.price ?? 0,
             weight: pick.weight || 0.1,
@@ -2010,26 +2172,85 @@ export class CacheGenerator {
     }
 
     /**
-     * Ticket multiplier for healing potions in consumable picks. Higher cache
-     * tiers favour stronger healing tiers; non-healing items return 1.
+     * @param {Object[]} healingRows
+     * @param {number} cacheTier
+     * @param {number} healFreq
+     * @param {Set<string>} situational
+     * @returns {Object|null}
+     */
+    static _weightedHealingPick(healingRows, cacheTier, healFreq, situational = new Set()) {
+        if (!healingRows.length) return null;
+        const tickets = [];
+        for (const item of healingRows) {
+            let count = situational.has((item.name ?? "").toLowerCase()) ? 1 : 3;
+            const tierWeight = CacheGenerator._healingPotionTierWeight(
+                item.name, cacheTier, healFreq
+            );
+            count = Math.max(1, Math.round(count * tierWeight));
+            for (let i = 0; i < count; i++) tickets.push(item);
+        }
+        return tickets[Math.floor(Math.random() * tickets.length)];
+    }
+
+    /**
+     * Chance a consumable slot resolves to a healing potion when any are in the pool.
+     *
+     * @param {number} freq
+     * @returns {number} 0–1
+     */
+    static _healingPotionDirectShare(freq) {
+        const f = Math.max(0, Number(freq) || 0);
+        if (f <= 0) return 0;
+        if (f >= 3) return 1;
+        return Math.min(1, 0.25 + 0.25 * f);
+    }
+
+    /**
+     * Share of potion-like picks that go to the healing branch (vs oils,
+     * antitoxin, and other elixirs). Scaled by `healingPotionFrequency`.
+     *
+     * @param {number} freq
+     * @returns {number} 0–0.95
+     */
+    static _healingPotionShare(freq) {
+        const f = Math.max(0, Number(freq) || 0);
+        if (f <= 0) return 0.25;
+        return Math.min(0.98, 0.50 + 0.12 * f);
+    }
+
+    /**
+     * Ticket multiplier for which healing tier wins inside the healing branch.
+     * Higher cache tiers favour stronger healing tiers.
      *
      * @param {string} name
      * @param {number} cacheTier
+     * @param {number} [freq]
      * @returns {number}
      */
-    static _healingPotionPickWeight(name, cacheTier) {
+    static _healingPotionTierWeight(name, cacheTier, freq) {
         const tierData = PotionEnrichment.getTierData(name);
         if (!tierData) return 1;
 
+        const f = Math.max(0, freq ?? game.settings?.get(MODULE_ID, "healingPotionFrequency") ?? 1.0);
+        if (f <= 0) return 1;
+
         const price = tierData.price ?? 50;
         const weightsByCacheTier = {
-            1: { 50: 6, 100: 2, 250: 0.5, 500: 0.25 },
-            2: { 50: 2, 100: 4, 250: 2, 500: 1 },
-            3: { 50: 1, 100: 2, 250: 5, 500: 3 },
-            4: { 50: 0.5, 100: 1, 250: 3, 500: 6 }
+            1: { 50: 8, 100: 3, 250: 1, 500: 0.5 },
+            2: { 50: 3, 100: 6, 250: 3, 500: 1.5 },
+            3: { 50: 1.5, 100: 3, 250: 6, 500: 4 },
+            4: { 50: 1, 100: 2, 250: 5, 500: 8 }
         };
         const table = weightsByCacheTier[cacheTier] ?? weightsByCacheTier[1];
-        return table[price] ?? 1;
+        const tierWeight = table[price] ?? 1;
+
+        if (f <= 1) return 1 + (tierWeight - 1) * f;
+        return tierWeight * f;
+    }
+
+    /** @deprecated Use {@link _healingPotionTierWeight} */
+    static _healingPotionPickWeight(name, cacheTier) {
+        return CacheGenerator._healingPotionTierWeight(name, cacheTier);
     }
 
     /**

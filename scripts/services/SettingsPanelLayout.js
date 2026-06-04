@@ -14,11 +14,13 @@ const PROFILE_KEYS = [
     "lootEconomy",
     "magicFrequency",
     "magicAmmoFrequency",
+    "healingPotionFrequency",
     "ammoTypeTilt",
     "obscureConsumables",
     "obscureScrolls",
+    "obscureMagicalItems",
+    "gmOnlyIdentification",
     "scrollJitter",
-    "shelfJitter",
     "distributeCoins"
 ];
 
@@ -26,11 +28,13 @@ const KEY_LABELS = {
     lootEconomy: "Loot abundance",
     magicFrequency: "Magic frequency",
     magicAmmoFrequency: "Magical ammunition",
+    healingPotionFrequency: "Healing potions",
     ammoTypeTilt: "Ammunition preference",
     obscureConsumables: "Obscure consumables",
     obscureScrolls: "Obscure scrolls",
+    obscureMagicalItems: "Obscure magical items",
+    gmOnlyIdentification: "GM-only identification",
     scrollJitter: "Scroll jitter",
-    shelfJitter: "Auto-seed drift",
     distributeCoins: "Distribute coinage"
 };
 
@@ -48,16 +52,18 @@ const PROFILES = [
         id: "low",
         label: "Low",
         icon: "fas fa-mountain",
-        desc: "Scarce loot, little magic, opaque items, tight scroll bands.",
+        desc: "Scarce loot, little magic, sparse healing, opaque items, tight scroll bands.",
         values: {
             lootEconomy: 0.5,
             magicFrequency: 0.25,
             magicAmmoFrequency: 0,
+            healingPotionFrequency: 0.5,
             ammoTypeTilt: "balanced",
             obscureConsumables: true,
             obscureScrolls: true,
+            obscureMagicalItems: true,
+            gmOnlyIdentification: true,
             scrollJitter: 0,
-            shelfJitter: 0,
             distributeCoins: true
         }
     },
@@ -70,11 +76,13 @@ const PROFILES = [
             lootEconomy: 1,
             magicFrequency: 1,
             magicAmmoFrequency: 1,
+            healingPotionFrequency: 1,
             ammoTypeTilt: "balanced",
             obscureConsumables: true,
             obscureScrolls: true,
+            obscureMagicalItems: true,
+            gmOnlyIdentification: true,
             scrollJitter: 1,
-            shelfJitter: 1,
             distributeCoins: true
         }
     },
@@ -82,16 +90,18 @@ const PROFILES = [
         id: "high",
         label: "High",
         icon: "fas fa-gem",
-        desc: "Generous hauls, more magic, lighter masking, wider scroll overshoot.",
+        desc: "Generous hauls, more magic and healing, readable loot, wider scroll overshoot.",
         values: {
             lootEconomy: 1.5,
             magicFrequency: 1.5,
             magicAmmoFrequency: 1.5,
+            healingPotionFrequency: 2.5,
             ammoTypeTilt: "balanced",
             obscureConsumables: false,
             obscureScrolls: false,
+            obscureMagicalItems: false,
+            gmOnlyIdentification: false,
             scrollJitter: 2,
-            shelfJitter: 1,
             distributeCoins: true
         }
     }
@@ -114,11 +124,6 @@ const GROUPS = [
         keys: ["identificationConfig"]
     },
     {
-        title: "Progression",
-        icon: "fas fa-chart-line",
-        keys: ["progressionConfig"]
-    },
-    {
         title: "Tools",
         icon: "fas fa-wrench",
         keys: ["debug"]
@@ -131,17 +136,18 @@ const GROUPS = [
  * @returns {{ text: string, cssClass: string }}
  */
 function formatProfileCell(key, value) {
-    if (key === "lootEconomy" || key === "magicFrequency" || key === "magicAmmoFrequency") {
+    if (key === "lootEconomy" || key === "magicFrequency" || key === "magicAmmoFrequency"
+            || key === "healingPotionFrequency") {
         const n = Number(value);
         const text = `×${Number.isInteger(n) ? n : n.toFixed(2).replace(/\.?0+$/, "")}`;
-        return { text, cssClass: n >= 1 ? "on" : "off" };
+        return { text, cssClass: "value" };
     }
     if (key === "ammoTypeTilt") {
-        return { text: AMMO_LABELS[value] ?? value, cssClass: "on" };
+        return { text: AMMO_LABELS[value] ?? value, cssClass: "value" };
     }
-    if (key === "scrollJitter" || key === "shelfJitter") {
+    if (key === "scrollJitter") {
         const n = Number(value) || 0;
-        return { text: String(n), cssClass: n > 0 ? "on" : "off" };
+        return { text: String(n), cssClass: "value" };
     }
     return { text: value ? "On" : "Off", cssClass: value ? "on" : "off" };
 }
@@ -161,7 +167,11 @@ export function registerQuartermasterSettingsPanel() {
             profileKeys: PROFILE_KEYS,
             keyLabels: KEY_LABELS,
             formatCell: formatProfileCell,
-            confirmNote: "Loot pool sources, campaign milestone profile, and content packs are left unchanged. Fine-tune in the panels below.",
+            confirmRowGroups: [
+                { beforeKey: "lootEconomy", label: "Loot & caches" },
+                { beforeKey: "obscureConsumables", label: "Identification" }
+            ],
+            confirmNote: "Green values will change. Neutral values already match this profile. Loot pool sources, campaign milestone profile, and content packs are left unchanged.",
             guideTooltip: "Opens the GM setup guide (loot profiles, sources, milestone grid).",
             onGuide: () => openSetupGuide()
         },

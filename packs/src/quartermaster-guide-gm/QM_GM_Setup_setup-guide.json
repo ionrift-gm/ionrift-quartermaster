@@ -1,7 +1,7 @@
 {
     "_id": "qmSetupGuide001",
     "_key": "!journal.pages!qmGuideJournal01.qmSetupGuide001",
-    "name": "Setup Guide",
+    "name": "Getting Started",
     "type": "text",
     "title": { "show": true, "level": 1 },
     "image": {},
@@ -9,7 +9,7 @@
     "src": null,
     "system": {},
     "text": {
-        "content": "<p><em>Setup guide placeholder. Quick setup profiles, loot sources, and milestone bands are configured under <strong>Game Settings &gt; Module Settings &gt; Ionrift Quartermaster</strong>.</em></p><p>Content for loot profiles, identification, and the Signature Ledger will be added here.</p>",
+        "content": "<p><em>Every setting has a hover hint. This guide covers the things hints cannot.</em></p><h2>First-time setup</h2><ol><li>Open <strong>Game Settings &gt; Module Settings &gt; Ionrift Quartermaster</strong>.</li><li>Pick a <strong>Quick Setup</strong> profile (Low, Standard, or High). This sets loot abundance, magic frequency, identification rules, and scroll jitter in one click. Sources, milestone band, and content packs are left alone.</li><li>Open the <strong>Compendium Forge</strong> and compile your pools. The module ships source-ready but does not compile until you tell it to. An amber badge appears on the Forge button when pools need compiling.</li><li>Set the <strong>Campaign Milestone Profile</strong> to match your campaign's level range. The Signature Ledger spaces six milestones across whatever band you choose.</li></ol><h2>Quick Setup profiles</h2><table><thead><tr><th></th><th>Low</th><th>Standard</th><th>High</th></tr></thead><tbody><tr><td><strong>Loot abundance</strong></td><td>&times;0.5</td><td>&times;1</td><td>&times;1.5</td></tr><tr><td><strong>Magic frequency</strong></td><td>&times;0.25</td><td>&times;1</td><td>&times;1.5</td></tr><tr><td><strong>Magic ammo</strong></td><td>Off</td><td>&times;1</td><td>&times;1.5</td></tr><tr><td><strong>Healing potions</strong></td><td>&times;0.5</td><td>&times;1</td><td>&times;2.5</td></tr><tr><td><strong>Identification</strong></td><td>Full masking</td><td>Full masking</td><td>All off</td></tr><tr><td><strong>Scroll jitter</strong></td><td>0</td><td>1</td><td>2</td></tr></tbody></table><p>You can fine-tune individual sliders after picking a profile. The profile is a starting point, not a lock.</p><h2>Compendium Forge</h2><p>The Compendium Forge compiles your chosen item and spell compendiums into unified draw pools for cache generation. It accepts both legacy and 2024-format compendiums together, normalises gold values and item weight, resolves collisions between similar-named items, and generates +N permutations for magical weapon and armor templates. Compile after changing sources; the amber badge clears once everything is fresh.</p>",
         "format": 1,
         "markdown": ""
     },

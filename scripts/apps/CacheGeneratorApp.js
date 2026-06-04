@@ -611,7 +611,9 @@ export class CacheGeneratorApp extends Application {
             const seen = new Map();
             for (const item of arr) {
                 if (seen.has(item.name)) {
-                    seen.get(item.name).quantity += 1;
+                    const existing = seen.get(item.name);
+                    existing.quantity += item.quantity ?? 1;
+                    existing.price = (existing.price ?? 0) + (item.price ?? 0);
                 } else {
                     seen.set(item.name, { ...item, quantity: item.quantity ?? 1 });
                 }
@@ -1861,10 +1863,13 @@ export class CacheGeneratorApp extends Application {
 
         const result = data.result;
 
-        // Convert browser client coords to canvas world coordinates
+        // Convert browser client coords to canvas world coordinates, then snap to grid
         const t = canvas.stage.worldTransform;
-        const x = (event.clientX - t.tx) / canvas.stage.scale.x;
-        const y = (event.clientY - t.ty) / canvas.stage.scale.y;
+        const rawX = (event.clientX - t.tx) / canvas.stage.scale.x;
+        const rawY = (event.clientY - t.ty) / canvas.stage.scale.y;
+        const snapped = canvas.grid.getSnappedPoint({ x: rawX, y: rawY }, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX });
+        const x = snapped?.x ?? rawX;
+        const y = snapped?.y ?? rawY;
 
         try {
             const pileItems = [];

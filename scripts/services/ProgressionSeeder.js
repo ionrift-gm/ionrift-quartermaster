@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ProgressionSeeder.js
  *
  * Suggestive auto-population heuristics for the Progression Registry.
@@ -633,47 +633,18 @@ export class ProgressionSeeder {
     }
 
     /**
-     * Resolve the milestone for an auto-seeded shelf entry based on rarity,
-     * with optional drift controlled by the `shelfJitter` setting.
-     * Only used for auto-seeded (unplanned) items. Manually planned items
-     * always land at their designated milestone.
-     *
-     * Weighted distribution: -1 column (15%), 0 (50%), +1 (35%). Late-biased.
-     * Hard floor: Legendary items cannot drift below Lv 12.
+     * Resolve the milestone for an auto-seeded shelf entry based on rarity.
+     * Items always land at their exact rarity-based milestone.
+     * Manually planned items bypass this entirely.
      *
      * @param {{ rarity: string, requiresAttunement?: boolean }} entry
      * @returns {number} resolved milestone level
      */
     static resolveJitter(entry) {
-        const maxDrift = game.settings?.get("ionrift-quartermaster", "shelfJitter") ?? 1;
-
-        const naturalFloor = this._rarityToMilestone(
+        return this._rarityToMilestone(
             entry.rarity,
             entry.requiresAttunement ?? false
         );
-
-        if (maxDrift === 0) return naturalFloor;
-
-        const ms = SignatureLedger.MILESTONES;
-        const floorIdx = ms.indexOf(naturalFloor);
-
-        const roll = Math.random();
-        let shift = 0;
-        if (roll < 0.15)      shift = -1;
-        else if (roll < 0.65) shift = 0;
-        else                  shift = 1;
-
-        if (maxDrift >= 2 && Math.abs(shift) === 1 && Math.random() < 0.2) {
-            shift *= 2;
-        }
-
-        const targetIdx = Math.max(0, Math.min(ms.length - 1, floorIdx + shift));
-        const resolved = ms[targetIdx];
-
-        const capstone = ms[ms.length - 1];
-        if (entry.rarity === "legendary" && resolved < capstone) return capstone;
-
-        return resolved;
     }
 
     // ── Party Shelf Seeding ───────────────────────────────────────────────────

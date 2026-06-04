@@ -141,35 +141,16 @@ export class PartyShelfPool {
 
     /**
      * Assign a milestone level to an auto-seeded shelf item using the
-     * rarity-to-milestone mapping, with optional drift from the shelfJitter
-     * setting. Manually planned items bypass this entirely.
+     * rarity-to-milestone mapping. Items always land at their exact
+     * rarity-based milestone. Manually planned items bypass this entirely.
      */
     static _assignLevel(item) {
         const ms = SignatureLedger.MILESTONES;
         const pos = RARITY_BASE_POS[item.rarity] ?? 0;
         const floorIdx = Math.min(pos, ms.length - 1);
-        const floor = item.requiresAttunement
+        return item.requiresAttunement
             ? ms[Math.min(floorIdx + 1, ms.length - 1)]
             : ms[floorIdx];
-
-        const maxDrift = game.settings?.get(MODULE_ID, "shelfJitter") ?? 1;
-        if (maxDrift === 0) return floor;
-
-        const jitterIdx = ms.indexOf(floor);
-        const roll = Math.random();
-        let shift = 0;
-        if (roll < 0.15)      shift = -1;
-        else if (roll < 0.65) shift = 0;
-        else                  shift = 1;
-
-        if (maxDrift >= 2 && Math.abs(shift) === 1 && Math.random() < 0.2) {
-            shift *= 2;
-        }
-
-        const resolved = ms[Math.max(0, Math.min(ms.length - 1, jitterIdx + shift))];
-        const capstone = ms[ms.length - 1];
-        if (item.rarity === "legendary" && resolved < capstone) return capstone;
-        return resolved;
     }
 
     static _fallback(tier, count) {

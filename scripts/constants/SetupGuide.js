@@ -3,7 +3,7 @@ export const SETUP_GUIDE_JOURNAL_ID = "qmGuideJournal01";
 export const SETUP_GUIDE_PAGE_ID = "qmSetupGuide001";
 
 /**
- * Opens the stub GM setup journal (placeholder until the guide is written).
+ * Opens the GM setup guide journal from the compendium.
  * @returns {Promise<void>}
  */
 export async function openSetupGuide() {

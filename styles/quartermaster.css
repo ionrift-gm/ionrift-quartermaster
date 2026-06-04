@@ -8415,7 +8415,7 @@ button.scroll-open-compendium {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 2px 0 0;
+    padding: 0.75rem 1.25rem 1rem;
 }
 
 .qm-ammo-lead {
@@ -8546,7 +8546,7 @@ button.scroll-open-compendium {
 }
 
 .qm-preset-btn {
-    padding: 3px 12px;
+    padding: 0.45rem 1rem;
     border-radius: 20px;
     border: 1px solid rgba(139, 92, 246, 0.32);
     background: rgba(139, 92, 246, 0.08);
@@ -8792,8 +8792,8 @@ button.scroll-open-compendium {
 .qm-add-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 5px 12px;
+    gap: 0.6rem;
+    padding: 0.45rem 1rem;
     border-radius: 6px;
     border: 1px dashed rgba(139, 92, 246, 0.32);
     background: transparent;
@@ -8811,7 +8811,7 @@ button.scroll-open-compendium {
 }
 
 .qm-cancel-btn {
-    padding: 5px 14px;
+    padding: 0.45rem 1.1rem;
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.04);
@@ -8830,8 +8830,8 @@ button.scroll-open-compendium {
 .qm-save-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 5px 16px;
+    gap: 0.6rem;
+    padding: 0.45rem 1.25rem;
     border-radius: 6px;
     border: 1px solid rgba(139, 92, 246, 0.5);
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.32), rgba(99, 62, 206, 0.22));
