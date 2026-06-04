@@ -284,7 +284,7 @@
                             <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                             <div class="cache-item-info">
                                 <span class="cache-item-name inspectable">{{this.name}}</span>
-                                <span class="cache-item-meta">{{#if this.price}}{{this.price}} gp{{/if}}{{#if this.rarity}} &bull; {{this.rarity}}{{/if}}</span>
+                                <span class="cache-item-meta">{{#if this.priceLabel}}{{this.priceLabel}}{{/if}}{{#if this.rarity}} &bull; {{this.rarity}}{{/if}}</span>
                             </div>
                             <div class="cache-item-badges">
                                 {{#if this.cursed}}<span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>{{/if}}
@@ -311,7 +311,7 @@
                             <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                             <div class="cache-item-info">
                                 <span class="cache-item-name inspectable">{{this.name}}</span>
-                                <span class="cache-item-meta">{{#if this.price}}{{this.price}} gp{{/if}}{{#if this.rarity}} &bull; {{this.rarity}}{{/if}}</span>
+                                <span class="cache-item-meta">{{#if this.priceLabel}}{{this.priceLabel}}{{/if}}{{#if this.rarity}} &bull; {{this.rarity}}{{/if}}</span>
                             </div>
                             <div class="cache-item-badges">
                                 {{#if this._isMagical}}<span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>{{/if}}
@@ -403,11 +403,11 @@
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.price}} gp | {{this.rarity}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}} | {{this.rarity}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
-                            <span class="cache-item-meta">{{this.price}} gp</span>
+                            <span class="cache-item-meta">{{this.priceLabel}}</span>
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
@@ -437,11 +437,11 @@
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.price}} gp{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
-                            <span class="cache-item-meta">{{this.price}} gp</span>
+                            <span class="cache-item-meta">{{this.priceLabel}}</span>
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
@@ -468,11 +468,11 @@
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.price}} gp{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
-                            <span class="cache-item-meta">{{this.price}} gp</span>
+                            <span class="cache-item-meta">{{this.priceLabel}}</span>
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
@@ -499,11 +499,11 @@
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.price}} gp{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
-                            <span class="cache-item-meta">{{this.price}} gp</span>
+                            <span class="cache-item-meta">{{this.priceLabel}}</span>
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
@@ -533,11 +533,11 @@
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.price}} gp{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
-                            <span class="cache-item-meta">{{this.price}} gp</span>
+                            <span class="cache-item-meta">{{this.priceLabel}}</span>
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
@@ -564,11 +564,11 @@
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.price}} gp{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
-                            <span class="cache-item-meta">{{this.price}} gp</span>
+                            <span class="cache-item-meta">{{this.priceLabel}}</span>
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
@@ -650,7 +650,7 @@
                         <span class="budget-range-display">{{budgetRangeLabel}}</span>
                         <div class="cache-total">
                             <i class="fas fa-scale-balanced"></i>
-                            Est. ~ <strong>{{totalValue}} gp</strong>
+                            Est. ~ <strong>{{totalValueLabel}}</strong>
                         </div>
                     </div>
                 </div>

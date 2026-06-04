@@ -26,6 +26,7 @@ const LOOT_PHASE_LABELS = {
     setup:     "Preparing...",
     templates: "Expanding weapon templates...",
     stubs:     "Expanding ammunition stubs...",
+    armor:     "Expanding armor templates...",
     collision: "Resolving collisions...",
     writing:   "Writing compiled pool...",
     done:      "Complete.",
@@ -323,6 +324,15 @@ export class CompendiumForgeApp extends FormApplication {
             }
             if (status === "never" && LootPoolCompiler.is2024ArchitecturePresent()) {
                 return { type: "never", icon: "fas fa-circle-xmark", text: "Pool not compiled -- 2024 sources contain templates that need expanding.", meta: null, clearable: false };
+            }
+            if (meta && (meta.compilerVersion ?? 0) < LootPoolCompiler.COMPILER_VERSION) {
+                return {
+                    type:      "stale",
+                    icon:      "fas fa-triangle-exclamation",
+                    text:      "Compiler updated -- recompile to expand armor and weapon items.",
+                    meta:      meta.itemCount != null ? `${meta.itemCount} items - compiled ${this._relativeTime(meta.compiledAt)}` : null,
+                    clearable: !!game.packs.get(LootPoolCompiler.worldCollectionId),
+                };
             }
             if ((status === "stale" || status === "fresh") && meta) {
                 const age       = this._relativeTime(meta.compiledAt);

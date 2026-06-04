@@ -24,7 +24,9 @@ export function registerLootPoolCompilerNudge() {
     packNudge.register({
         moduleId:   MODULE_ID,
         nudgeId:    "loot-pool-compiler",
-        // Alert surface moved to the Cache Generator footer pip -- suppress here.
+        // Alert surface is the amber badge on the Compendium Forge button (see
+        // SettingsPanelLayout.getWorstForgeStatus). The purple pack-nudge banner
+        // is reserved for pack-install flows; suppress it here.
         isEnabled:  () => false,
         isContentInstalled: async () => {
             const status = LootPoolCompiler.getStatus();

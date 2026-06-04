@@ -302,9 +302,23 @@ Hooks.on('ready', () => {
             try {
                 await migrateLootPoolSources();
                 const { LootPoolCompiler } = await import("./services/LootPoolCompiler.js");
-                LootPoolCompiler.compile().catch(err => {
+                const statusBefore = LootPoolCompiler.getStatus();
+                const metaBefore   = LootPoolCompiler.getCompiledMeta();
+                const wasVersionStale = statusBefore === "stale"
+                    && (metaBefore?.compilerVersion ?? 0) < LootPoolCompiler.COMPILER_VERSION;
+
+                try {
+                    await LootPoolCompiler.compile();
+                } catch (err) {
                     Logger.error(MODULE_LABEL, "LootPoolCompiler boot compile failed:", err);
-                });
+                }
+
+                if (wasVersionStale && LootPoolCompiler.getStatus() === "fresh") {
+                    ui.notifications.info(
+                        "Quartermaster: Loot pool updated with new content. Recompile complete.",
+                        { permanent: true }
+                    );
+                }
             } catch (err) {
                 Logger.error(MODULE_LABEL, "LootPoolCompiler import failed:", err);
             }

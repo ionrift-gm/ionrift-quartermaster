@@ -17,6 +17,8 @@
 - **Magical ammo pricing.** Stacked ammunition no longer multiplies its gp value twice (e.g. a stack of +1 arrows priced at thousands instead of dozens).
 - **Coin vs item budget.** Rolled coin no longer spends the item budget before slots are filled, which caused gold-only Arcana caches at high tiers.
 - **Scroll level reads.** Picks now use Scroll Forge metadata for spell circle instead of the template item level that often stayed at 1.
+- **Armor in mastercraft caches.** SRD armor uses document type `equipment`, not `armor`, so it was excluded from mastercraft rolls. Mail, leather, plate, and shields now enter the pool when Loot Pool Sources include them.
+- **Cache price labels.** Trinkets and other sp/cp items no longer display as gp. Stack totals round cleanly (no floating-point tails like 2.5999999999999996 gp).
 
 
 ## [1.3.13] - 2026-05-28

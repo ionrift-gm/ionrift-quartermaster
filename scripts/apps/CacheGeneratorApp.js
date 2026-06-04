@@ -12,6 +12,7 @@ import { ItemResolutionPipeline } from "../services/ItemResolutionPipeline.js";
 import { SquashMerger } from "../services/SquashMerger.js";
 import { TerrainDataRegistry } from "../services/TerrainDataRegistry.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
+import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../services/CoinFormat.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -613,12 +614,12 @@ export class CacheGeneratorApp extends Application {
                 if (seen.has(item.name)) {
                     const existing = seen.get(item.name);
                     existing.quantity += item.quantity ?? 1;
-                    existing.price = (existing.price ?? 0) + (item.price ?? 0);
+                    existing.price = roundCoinGp((existing.price ?? 0) + (item.price ?? 0));
                 } else {
                     seen.set(item.name, { ...item, quantity: item.quantity ?? 1 });
                 }
             }
-            return [...seen.values()].map(i => ({
+            return [...seen.values()].map(i => withCoinPriceLabel({
                 ...i,
                 stacked: i.quantity > 1,
                 _isMagical: i._isMagical ?? false,
@@ -631,6 +632,9 @@ export class CacheGeneratorApp extends Application {
         const specialShelf  = squash(items.filter(i => isSpecialSection(i) && i._specialType === "partyShelf"));
         const specialCursed = squash(items.filter(i => isSpecialSection(i) && i._specialType === "cursed"));
         const hasSpecial    = specialSigs.length > 0 || specialShelf.length > 0 || specialCursed.length > 0;
+
+        const itemsTotal = items.reduce((sum, i) => sum + (i.price ?? 0), 0);
+        const totalValueRaw = result.gold + itemsTotal;
 
         return {
             gold:        result.gold,
@@ -648,7 +652,8 @@ export class CacheGeneratorApp extends Application {
             consumables: squash(items.filter(isConsumable)),
             trinkets:    squash(items.filter(isTrinket)),
             mundane:     squash(items.filter(isMundane)),
-            totalValue:  Math.round((result.gold + items.reduce((sum, i) => sum + (i.price ?? 0), 0)) * 100) / 100,
+            totalValue:  roundCoinGp(totalValueRaw),
+            totalValueLabel: formatCoinPrice(totalValueRaw),
             signatureOpportunity: result.signatureOpportunity ? {
                 ...result.signatureOpportunity,
                 isNegative: result.signatureOpportunity.powerDeviation < 0
@@ -1357,10 +1362,7 @@ export class CacheGeneratorApp extends Application {
                     const raw = doc.toObject();
 
                     // Extract price the same way CacheGenerator does
-                    const priceVal = raw.system?.price?.value
-                        ?? raw.system?.cost
-                        ?? raw.price
-                        ?? 0;
+                    const priceVal = ItemPoolResolver._extractPrice(raw);
 
                     // Determine compendium metadata from the UUID
                     // UUID format: "Compendium.<scope>.<packName>.Item.<id>"

@@ -36,7 +36,7 @@
 <div style="display:flex;align-items:center;gap:6px;margin:3px 0;">
 <img src="{{{img}}}" width="24" height="24" style="border:0;border-radius:3px;" />
 <span>{{{name}}}</span>
-<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{price}} gp</span>
+<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{priceLabel}}</span>
 </div>
 {{/each}}
 </div>
@@ -47,7 +47,7 @@
 <div style="display:flex;align-items:center;gap:6px;margin:3px 0;">
 <img src="{{{img}}}" width="24" height="24" style="border:0;border-radius:3px;" />
 <span>{{{name}}}</span>
-<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{price}} gp</span>
+<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{priceLabel}}</span>
 </div>
 {{/each}}
 </div>
@@ -58,7 +58,7 @@
 <div style="display:flex;align-items:center;gap:6px;margin:3px 0;">
 <img src="{{{img}}}" width="24" height="24" style="border:0;border-radius:3px;" />
 <span>{{{name}}}</span>
-<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{price}} gp</span>
+<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{priceLabel}}</span>
 </div>
 {{/each}}
 </div>
@@ -69,11 +69,11 @@
 <div style="display:flex;align-items:center;gap:6px;margin:3px 0;">
 <img src="{{{img}}}" width="24" height="24" style="border:0;border-radius:3px;" />
 <span>{{{name}}}</span>
-<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{price}} gp</span>
+<span style="opacity:0.6;font-size:0.8em;margin-left:auto;">{{priceLabel}}</span>
 </div>
 {{/each}}
 </div>
 {{/if}}
-<div style="margin-top:8px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.1);font-size:0.85em;opacity:0.7;">Est. Total Value: {{totalValue}} gp | {{itemCount}} items</div>
+<div style="margin-top:8px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.1);font-size:0.85em;opacity:0.7;">Est. Total Value: {{totalValueLabel}} | {{itemCount}} items</div>
 <button type="button" class="ionrift-cache-create" data-cache-id="{{cacheId}}" style="margin-top:6px;width:100%;cursor:pointer;"><i class="fas fa-box-open"></i> Create Items in World</button>
 </div>
