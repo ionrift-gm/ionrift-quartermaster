@@ -12,6 +12,7 @@ import { SignatureLedger } from "./SignatureLedger.js";
 import { ScrollForge } from "./ScrollForge.js";
 import { TerrainDataRegistry } from "./TerrainDataRegistry.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
+import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "./CoinFormat.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -1019,7 +1020,7 @@ export class CacheGenerator {
             };
             const pool = await loadFilteredPoolIndex(packs, kindFilter, "Mastercraft");
             const eligible = pool.filter(e => {
-                const price = e.system?.price?.value ?? 0;
+                const price = ItemPoolResolver._extractPrice(e);
                 return price >= priceMin && price <= priceMax;
             });
 
@@ -1035,7 +1036,7 @@ export class CacheGenerator {
                 name: pick.name,
                 type: pick.type ?? 'weapon',
                 img: pick.img,
-                price: pick.system?.price?.value ?? 30,
+                price: ItemPoolResolver._extractPrice(pick),
                 weight: pick.system?.weight?.value ?? 3,
                 rarity: pick.system?.rarity ?? 'common',
                 _baseItem: pick.system?.type?.baseItem ?? '',
@@ -1353,7 +1354,7 @@ export class CacheGenerator {
                 const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier
                     ?? e.flags?.['ionrift-workshop']?.gemMeta?.tier;
                 if (!eligibleTiers.includes(gemTier)) return false;
-                const price = e.system?.price?.value ?? 0;
+                const price = ItemPoolResolver._extractPrice(e);
                 return price <= priceCeiling;
             });
             if (eligible.length === 0) return null;
@@ -1373,7 +1374,7 @@ export class CacheGenerator {
             const pickedTier = pick.flags?.['ionrift-quartermaster']?.gemMeta?.tier
                 ?? pick.flags?.['ionrift-workshop']?.gemMeta?.tier
                 ?? 'Polished Common';
-            const pickPrice = pick.system?.price?.value ?? 10;
+            const pickPrice = ItemPoolResolver._extractPrice(pick);
 
             return {
                 name: pick.name,
@@ -1431,7 +1432,7 @@ export class CacheGenerator {
             if (packs.length === 0) return null;
             const pool = await loadFilteredPoolIndex(packs, isTreasureEntry, "Treasure");
             const eligible = pool.filter(e => {
-                const price = e.system?.price?.value ?? 0;
+                const price = ItemPoolResolver._extractPrice(e);
                 return price >= priceMin && price <= priceMax;
             });
             if (eligible.length === 0) return null;
@@ -1441,7 +1442,7 @@ export class CacheGenerator {
                 name: pick.name,
                 type: 'loot',
                 img: pick.img,
-                price: pick.system?.price?.value ?? 20,
+                price: ItemPoolResolver._extractPrice(pick),
                 weight: pick.system?.weight?.value ?? 0.5,
                 rarity: 'common',
                 quantity: 1,
@@ -1466,7 +1467,7 @@ export class CacheGenerator {
             if (packs.length === 0) return null;
             const pool = await loadFilteredPoolIndex(packs, isTrinketEntry, "Trinket");
             const eligible = pool.filter(e => {
-                const price = e.system?.price?.value ?? 0;
+                const price = ItemPoolResolver._extractPrice(e);
                 return price <= trinketCeiling;
             });
             if (eligible.length === 0) return null;
@@ -1476,7 +1477,7 @@ export class CacheGenerator {
                 name: pick.name,
                 type: pick.type ?? 'loot',
                 img: pick.img,
-                price: pick.system?.price?.value ?? 5,
+                price: ItemPoolResolver._extractPrice(pick),
                 weight: pick.system?.weight?.value ?? 0.1,
                 rarity: pick.system?.rarity ?? 'common',
                 quantity: 1,
@@ -2663,14 +2664,21 @@ export class CacheGenerator {
             && !isKind(i, "trinkets")
             && (i.type === "loot" || i.type === "tool" || !i.type)
         );
-        const totalValue = Math.round((gold + items.reduce((s, i) => s + (i.price ?? 0), 0)) * 100) / 100;
+        const totalValueRaw = gold + items.reduce((s, i) => s + (i.price ?? 0), 0);
+        const totalValue = roundCoinGp(totalValueRaw);
+        const labelItems = (arr) => arr.map(i => withCoinPriceLabel(i));
 
         const html = await renderTemplate(
             `modules/ionrift-quartermaster/templates/partials/cache-chat-card.hbs`,
             { meta, gold, coinage, coinageRows, hasCoinage: coinageRows.length > 0,
                 showGoldBlock: gold > 0,
-                cacheId, totalValue, itemCount: items.length,
-                signatures, scrolls, weapons, treasures, trinkets, consumables, mundane }
+                cacheId, totalValue, totalValueLabel: formatCoinPrice(totalValueRaw),
+                itemCount: items.length,
+                signatures, scrolls, weapons,
+                treasures: labelItems(treasures),
+                trinkets: labelItems(trinkets),
+                consumables: labelItems(consumables),
+                mundane: labelItems(mundane) }
         );
 
         await ChatMessage.create({

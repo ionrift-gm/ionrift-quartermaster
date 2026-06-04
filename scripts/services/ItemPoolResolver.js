@@ -340,7 +340,22 @@ export class ItemPoolResolver {
     }
 
     /**
-     * QM overlay gems, treasure, and trinkets belong in dedicated cache slots.
+     * dnd5e armor is usually type "equipment" with system.armor.type or an
+     * armor-like system.type.value, not document type "armor".
+     *
+     * @param {object} entry
+     * @returns {boolean}
+     */
+    static _isArmorEntry(entry) {
+        if (entry.type === "armor") return true;
+        if (entry.type !== "equipment") return false;
+        const armorType = (entry.system?.armor?.type ?? "").trim();
+        if (armorType) return true;
+        const subtype = (entry.system?.type?.value ?? "").trim();
+        return ["light", "medium", "heavy", "shield"].includes(subtype);
+    }
+
+    /**
      * When overlay packs are enabled in lootPoolSources they must not leak into
      * the generic mundane/trade-goods pool.
      *
@@ -406,8 +421,8 @@ export class ItemPoolResolver {
                 return false;
             }
             case "mastercraft":
-                // Weapons and armor of any rarity -- includes SRD items & workshop cultural weapons
-                return type === "weapon" || type === "armor";
+                // Weapons and armor of any rarity. SRD armor is usually equipment, not armor.
+                return type === "weapon" || this._isArmorEntry(entry);
             default:
                 return false;
         }
@@ -438,6 +453,7 @@ export class ItemPoolResolver {
         if (this._isTrapOrHazard(entry)) return true;
         if (this._isZeroDataPlaceholder(entry)) return true;
         if (this._isZeroWeightWeaponTemplate(entry)) return true;
+        if (this._isZeroWeightArmorTemplate(entry)) return true;
         if (this._isBulkAmmoCollection(entry, nameLower)) return true;
         if (this._isGmPlacedPoison(entry, nameLower)) return true;
         if (this._isLegacyRenamedItem(entry, nameLower)) return true;
@@ -532,6 +548,39 @@ export class ItemPoolResolver {
         const weight = this._extractWeight(entry);
         if (weight !== 0) return false;
         const subtype = (entry.system?.type?.value ?? "").trim();
+        return !subtype || subtype === "-";
+    }
+
+    /**
+     * 2024 SRD named armor template shells (Adamantine Armor, Mithral Armor,
+     * Armor of Resistance, Armor of Vulnerability, Demon Armor, Efreeti Chain,
+     * Elven Chain, Plate Armor of Etherealness).
+     *
+     * Identical pattern to weapon templates: the 2024 pack ships these as
+     * GM-application overlays. A GM attaches "Adamantine Armor" to a Chain Mail
+     * or Plate Armor — it is not a standalone loot item. The shell has no base
+     * armor subtype (heavy/medium/light/shield is left blank) and weight=0.
+     *
+     * Fingerprint: type=equipment + weight=0 + subtype is blank/dash, and NOT
+     * one of the known non-armor equipment subtypes (wondrous, ring, trinket,
+     * clothing, wand, rod, gear). Full stubs (price=0, rarity="") are already
+     * removed by _isZeroDataPlaceholder; traps are removed by _isTrapOrHazard.
+     * This catches only the template shells that have rarity and price set.
+     */
+    static _isZeroWeightArmorTemplate(entry) {
+        if (entry.type !== "equipment") return false;
+        const weight = this._extractWeight(entry);
+        if (weight !== 0) return false;
+        const subtype = (entry.system?.type?.value ?? "").trim();
+        // Known non-armor equipment subtypes — these are NOT armor templates
+        const WONDROUS_SUBTYPES = new Set([
+            "wondrous", "ring", "trinket", "clothing", "wand", "rod", "gear"
+        ]);
+        if (WONDROUS_SUBTYPES.has(subtype)) return false;
+        // Armor subtypes that are real items (already have proper data)
+        const ARMOR_SUBTYPES = new Set(["heavy", "medium", "light", "shield"]);
+        if (ARMOR_SUBTYPES.has(subtype)) return false;
+        // Blank or literal dash = no base armor type assigned = template shell
         return !subtype || subtype === "-";
     }
 

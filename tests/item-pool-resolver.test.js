@@ -98,6 +98,19 @@ describe("ItemPoolResolver._matchesSlotType", () => {
         expect(ItemPoolResolver._matchesSlotType({ type: "armor" }, "mastercraft")).toBe(true);
     });
 
+    it("accepts dnd5e equipment armor for mastercraft slot", () => {
+        const entry = {
+            type: "equipment",
+            system: { armor: { type: "medium" }, type: { value: "medium" } }
+        };
+        expect(ItemPoolResolver._matchesSlotType(entry, "mastercraft")).toBe(true);
+    });
+
+    it("rejects wondrous equipment from mastercraft slot", () => {
+        const entry = { type: "equipment", system: { type: { value: "wondrous" }, rarity: "uncommon" } };
+        expect(ItemPoolResolver._matchesSlotType(entry, "mastercraft")).toBe(false);
+    });
+
     it("returns false for unknown slot type", () => {
         expect(ItemPoolResolver._matchesSlotType({ type: "weapon" }, "unknown")).toBe(false);
     });
@@ -469,21 +482,21 @@ describe("ItemPoolResolver._isBulkAmmoCollection", () => {
     });
 });
 
-// ── _isGmPlacedPoisonPotion ───────────────────────────────────────────────
+// ── _isGmPlacedPoison ────────────────────────────────────────────────────
 
-describe("ItemPoolResolver._isGmPlacedPoisonPotion", () => {
+describe("ItemPoolResolver._isGmPlacedPoison", () => {
 
     it("flags standard and tiered poison potions", () => {
-        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Poison" })).toBe(true);
-        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Greater Poison" })).toBe(true);
-        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Superior Poison" })).toBe(true);
-        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Supreme Poison" })).toBe(true);
+        expect(ItemPoolResolver._isGmPlacedPoison({ name: "Potion of Poison" })).toBe(true);
+        expect(ItemPoolResolver._isGmPlacedPoison({ name: "Potion of Greater Poison" })).toBe(true);
+        expect(ItemPoolResolver._isGmPlacedPoison({ name: "Potion of Superior Poison" })).toBe(true);
+        expect(ItemPoolResolver._isGmPlacedPoison({ name: "Potion of Supreme Poison" })).toBe(true);
     });
 
     it("allows healing potions and other consumables", () => {
-        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Healing" })).toBe(false);
-        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Potion of Greater Healing" })).toBe(false);
-        expect(ItemPoolResolver._isGmPlacedPoisonPotion({ name: "Basic Poison (vial)" })).toBe(false);
+        expect(ItemPoolResolver._isGmPlacedPoison({ name: "Potion of Healing" })).toBe(false);
+        expect(ItemPoolResolver._isGmPlacedPoison({ name: "Potion of Greater Healing" })).toBe(false);
+        expect(ItemPoolResolver._isGmPlacedPoison({ name: "Basic Poison (vial)" })).toBe(false);
     });
 
     it("excludes poison potions from the loot pool via _isExcluded", () => {
@@ -509,11 +522,13 @@ describe("ItemPoolResolver._isZeroDataPlaceholder", () => {
         expect(ItemPoolResolver._isZeroDataPlaceholder(entry)).toBe(true);
     });
 
-    it("does not flag Headband of Intellect when rarity is set", () => {
+    it("does not flag Headband of Intellect when rarity is set (2024: subtype=wondrous)", () => {
         const entry = {
             name: "Headband of Intellect",
             type: "equipment",
-            system: { price: 0, weight: 0, rarity: "uncommon" }
+            // 2024 correctly classifies wondrous items with subtype="wondrous";
+            // _isZeroWeightArmorTemplate must NOT catch wondrous items.
+            system: { price: 0, weight: 0, rarity: "uncommon", type: { value: "wondrous" } }
         };
         expect(ItemPoolResolver._isZeroDataPlaceholder(entry)).toBe(false);
     });
@@ -567,7 +582,7 @@ describe("ItemPoolResolver._isZeroDataPlaceholder", () => {
         const headband = {
             type: "equipment",
             name: "Headband of Intellect",
-            system: { price: 0, weight: 0, rarity: "uncommon" }
+            system: { price: 0, weight: 0, rarity: "uncommon", type: { value: "wondrous" } }
         };
         const deck = {
             type: "consumable",
@@ -579,6 +594,7 @@ describe("ItemPoolResolver._isZeroDataPlaceholder", () => {
             }
         };
         expect(ItemPoolResolver._isExcluded(belt)).toBe(true);
+        // Headband in 2024 has subtype="wondrous" — must NOT be caught by armor template filter
         expect(ItemPoolResolver._isExcluded(headband)).toBe(false);
         expect(ItemPoolResolver._isExcluded(deck)).toBe(false);
     });
@@ -656,6 +672,119 @@ describe("ItemPoolResolver._isZeroWeightWeaponTemplate", () => {
             type: "weapon",
             name: "Sling +1",
             system: { weight: 0, price: { value: 400, denomination: "gp" }, rarity: "uncommon", type: { value: "simpleR" } }
+        };
+        expect(ItemPoolResolver._isExcluded(entry)).toBe(false);
+    });
+});
+
+// ── _isZeroWeightArmorTemplate ────────────────────────────────────────────
+
+describe("ItemPoolResolver._isZeroWeightArmorTemplate", () => {
+
+    it("flags Adamantine Armor — blank subtype, weight=0, has rarity+price", () => {
+        const entry = {
+            type: "equipment",
+            name: "Adamantine Armor",
+            system: { weight: 0, price: { value: 400, denomination: "gp" }, rarity: "uncommon", type: { value: "" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightArmorTemplate(entry)).toBe(true);
+    });
+
+    it("flags Mithral Armor", () => {
+        const entry = {
+            type: "equipment",
+            name: "Mithral Armor",
+            system: { weight: 0, price: { value: 400, denomination: "gp" }, rarity: "uncommon", type: { value: "" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightArmorTemplate(entry)).toBe(true);
+    });
+
+    it("flags Armor of Resistance — literal dash subtype", () => {
+        const entry = {
+            type: "equipment",
+            name: "Armor of Resistance",
+            system: { weight: 0, price: { value: 4000, denomination: "gp" }, rarity: "rare", type: { value: "-" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightArmorTemplate(entry)).toBe(true);
+    });
+
+    it("flags Demon Armor", () => {
+        const entry = {
+            type: "equipment",
+            name: "Demon Armor",
+            system: { weight: 0, price: { value: 40000, denomination: "gp" }, rarity: "veryRare", type: { value: "" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightArmorTemplate(entry)).toBe(true);
+    });
+
+    it("flags Efreeti Chain", () => {
+        const entry = {
+            type: "equipment",
+            name: "Efreeti Chain",
+            system: { weight: 0, price: { value: 200000, denomination: "gp" }, rarity: "legendary", type: { value: "" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightArmorTemplate(entry)).toBe(true);
+    });
+
+    it("does NOT flag Chain Mail +1 — has real subtype (heavy)", () => {
+        const entry = {
+            type: "equipment",
+            name: "Chain Mail +1",
+            system: { weight: 55, price: { value: 4000, denomination: "gp" }, rarity: "rare", type: { value: "heavy" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightArmorTemplate(entry)).toBe(false);
+    });
+
+    it("does NOT flag Ring of Protection — wondrous/ring subtype, weight=0", () => {
+        const entry = {
+            type: "equipment",
+            name: "Ring of Protection",
+            system: { weight: 0, price: { value: 4000, denomination: "gp" }, rarity: "rare", type: { value: "ring" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightArmorTemplate(entry)).toBe(false);
+    });
+
+    it("does NOT flag Boots of Speed — clothing subtype, weight=0", () => {
+        const entry = {
+            type: "equipment",
+            name: "Boots of Speed",
+            system: { weight: 0, price: { value: 4000, denomination: "gp" }, rarity: "rare", type: { value: "clothing" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightArmorTemplate(entry)).toBe(false);
+    });
+
+    it("does NOT flag Amulet of Health — wondrous subtype", () => {
+        const entry = {
+            type: "equipment",
+            name: "Amulet of Health",
+            system: { weight: 0, price: { value: 4000, denomination: "gp" }, rarity: "rare", type: { value: "wondrous" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightArmorTemplate(entry)).toBe(false);
+    });
+
+    it("does NOT flag weapons — wrong item type", () => {
+        const entry = {
+            type: "weapon",
+            name: "Dragon Slayer",
+            system: { weight: 0, price: { value: 4000, denomination: "gp" }, rarity: "rare", type: { value: "" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightArmorTemplate(entry)).toBe(false);
+    });
+
+    it("excludes Adamantine Armor via _isExcluded integration", () => {
+        const entry = {
+            type: "equipment",
+            name: "Adamantine Armor",
+            system: { weight: 0, price: { value: 400, denomination: "gp" }, rarity: "uncommon", type: { value: "" } }
+        };
+        expect(ItemPoolResolver._isExcluded(entry)).toBe(true);
+    });
+
+    it("allows Chain Mail +1 through _isExcluded", () => {
+        const entry = {
+            type: "equipment",
+            name: "Chain Mail +1",
+            system: { weight: 55, price: { value: 4000, denomination: "gp" }, rarity: "rare", type: { value: "heavy" } }
         };
         expect(ItemPoolResolver._isExcluded(entry)).toBe(false);
     });
