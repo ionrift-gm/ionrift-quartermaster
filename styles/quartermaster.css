@@ -809,7 +809,8 @@
 }
 
 .cache-forge-warning-banner {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 10px;
     padding: 8px 14px;
@@ -844,23 +845,33 @@
 }
 
 .cache-forge-warning-text {
-    flex: 1 1 auto;
+    min-width: 0;
     line-height: 1.35;
 }
 
 .cache-forge-warning-btn {
-    flex-shrink: 0;
+    width: auto;
+    max-width: max-content;
+    flex: 0 0 auto;
+    justify-self: end;
     font-weight: 600;
     font-size: 0.88em;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     white-space: nowrap;
-    padding: 4px 14px;
+    padding: 4px 12px;
     border-radius: 5px;
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s, color 0.2s;
     line-height: 1.4;
+}
+
+/* Foundry form styles default buttons to full width; keep this action compact. */
+.ionrift-cache-generator .cache-forge-warning-btn,
+#ionrift-cache-generator .cache-forge-warning-btn {
+    width: auto;
+    max-width: max-content;
 }
 
 .cache-forge-warning--stale .cache-forge-warning-btn {

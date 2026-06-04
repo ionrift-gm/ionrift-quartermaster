@@ -417,7 +417,7 @@ export class ItemPoolResolver {
         if (this._isZeroDataPlaceholder(entry)) return true;
         if (this._isZeroWeightWeaponTemplate(entry)) return true;
         if (this._isBulkAmmoCollection(entry, nameLower)) return true;
-        if (this._isGmPlacedPoisonPotion(entry, nameLower)) return true;
+        if (this._isGmPlacedPoison(entry, nameLower)) return true;
         return false;
     }
 
@@ -440,14 +440,25 @@ export class ItemPoolResolver {
     }
 
     /**
-     * Poison potions are Cursewright-only. They must never surface from random
-     * cache pool rolls; the GM places them via the cursed pool or recipes.
+     * Combat poisons and poison potions are GM-placed only (Cursewright, deliberate
+     * placement). Random caches must not roll DMG sample poisons (Malice, Wyvern
+     * Poison, etc.) or Potion of Poison variants.
+     *
+     * Basic Poison and Antitoxin remain eligible as mundane adventuring gear.
      *
      * @param {object} entry
      * @param {string} [nameLower]
      */
-    static _isGmPlacedPoisonPotion(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
-        return /^potion of (?:greater |superior |supreme )?poison$/i.test(nameLower);
+    static _isGmPlacedPoison(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
+        if (/^potion of (?:greater |superior |supreme )?poison$/i.test(nameLower)) return true;
+
+        const subtype = (entry.system?.type?.value ?? "").toString().toLowerCase();
+        if (subtype !== "poison") return false;
+
+        if (/^basic poison$/i.test(nameLower)) return false;
+        if (/antitoxin/i.test(nameLower)) return false;
+
+        return true;
     }
 
     /**

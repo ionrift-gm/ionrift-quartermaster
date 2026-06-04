@@ -172,30 +172,68 @@ export function registerQuartermasterSettingsPanel() {
 // ── Forge alert badge on Module Config ──────────────────────────────────
 //
 // Mirrors ionrift-library's injectPackUpdateBadge pattern: appends a small
-// amber warning badge to the "Open Compendium Forge" button when any of the
-// three forge tabs has a stale or never-compiled status. Purely cosmetic DOM
-// injection; no network calls, reads cached settings only.
+// amber warning badge to the "Open Compendium Forge" button when a forge
+// pipeline the table actually uses needs compilation or recompilation.
 
 /**
- * Compute the worst forge status across all three compilers.
+ * @returns {boolean}
+ */
+function _isSrdCurseSourceEnabled() {
+    try {
+        const sources = JSON.parse(game.settings.get(MODULE_ID, "cursedItemSources") ?? "[]");
+        return sources.includes(SrdCurseAdapter.worldCollectionId);
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * @returns {boolean}
+ */
+function _hasScrollForgeSources() {
+    try {
+        const sources = JSON.parse(game.settings.get(MODULE_ID, ScrollForge.SETTING_SOURCES) ?? "[]");
+        return Array.isArray(sources) && sources.length > 0;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Normalize a forge status for badge aggregation.
+ * @param {string|null|undefined} status
  * @returns {"fresh"|"stale"|"never"|null}
  */
-function _worstForgeStatus() {
+function _normalizeForgeStatus(status) {
+    if (!status || status === "fresh" || status === "na") return "fresh";
+    if (status === "error") return "stale";
+    return status;
+}
+
+/**
+ * Compute the worst forge status across pipelines that are active for this world.
+ * @returns {"fresh"|"stale"|"never"|null}
+ */
+export function getWorstForgeStatus() {
     try {
-        // Loot pool
-        const lootStatus = LootPoolCompiler.is2024ArchitecturePresent()
-            ? LootPoolCompiler.getStatus()
-            : "fresh";
+        const statuses = [];
 
-        // Scroll forge
-        const scrollStatus = ScrollForge.getStatus();
+        if (LootPoolCompiler.is2024ArchitecturePresent()) {
+            statuses.push(_normalizeForgeStatus(LootPoolCompiler.getStatus()));
+        }
 
-        // Cursed items
-        const curseStatus = SrdCurseAdapter.getStatus();
+        if (game.settings.get(MODULE_ID, "scrollForgeEnabled") && _hasScrollForgeSources()) {
+            statuses.push(_normalizeForgeStatus(ScrollForge.getStatus()));
+        }
 
-        // Priority: stale > never > fresh
-        if ([lootStatus, scrollStatus, curseStatus].includes("stale")) return "stale";
-        if ([lootStatus, scrollStatus, curseStatus].includes("never")) return "never";
+        if (_isSrdCurseSourceEnabled()) {
+            statuses.push(_normalizeForgeStatus(SrdCurseAdapter.getStatus()));
+        }
+
+        if (!statuses.length) return "fresh";
+
+        if (statuses.includes("stale")) return "stale";
+        if (statuses.includes("never")) return "never";
         return "fresh";
     } catch {
         return null;
@@ -204,23 +242,24 @@ function _worstForgeStatus() {
 
 /**
  * Inject an alert badge on the Compendium Forge button in Module Config.
- * @param {jQuery|Element} html
+ * @param {jQuery|Element|DocumentFragment} html
  */
 function injectForgeAlertBadge(html) {
-    const status = _worstForgeStatus();
-    if (!status || status === "fresh") return;
-
     const root = html instanceof Element ? html : (html ? html[0] : document);
     const btn = root?.querySelector?.(`button[data-key="${MODULE_ID}.compendiumForge"]`);
     if (!btn) return;
-    if (btn.querySelector(".ionrift-forge-alert-badge")) return;
+
+    // Always remove any existing badge first so we can re-evaluate cleanly.
+    btn.querySelector(".ionrift-forge-alert-badge")?.remove();
+
+    const status = getWorstForgeStatus();
+    if (!status || status === "fresh") return; // clean — no badge needed
 
     const isStale = status === "stale";
     const tooltip = isStale
         ? "A compiled pool is stale or missing. Open Compendium Forge to recompile."
         : "Content pools have not been compiled yet. Open Compendium Forge to set up.";
     const icon = isStale ? "fa-exclamation-triangle" : "fa-hammer";
-    const label = "";
 
     const badge = document.createElement("span");
     badge.className = "ionrift-forge-alert-badge";
@@ -240,10 +279,39 @@ function injectForgeAlertBadge(html) {
         "vertical-align: middle",
         "cursor: default"
     ].join(";");
-    badge.innerHTML = `<i class="fas ${icon}" style="font-size:0.85em"></i> ${label}`;
+    badge.innerHTML = `<i class="fas ${icon}" style="font-size:0.85em"></i> `;
     btn.appendChild(badge);
 }
 
+/**
+ * Schedule badge refresh after ionrift-library ModuleConfigProfiles has
+ * finished reordering the settings DOM (that hook runs on queueMicrotask).
+ * @param {jQuery|HTMLElement|null} html
+ */
+function scheduleForgeAlertBadgeRefresh(html) {
+    queueMicrotask(() => {
+        queueMicrotask(() => {
+            const sheet = game.settings.sheet;
+            const root = html instanceof Element
+                ? html
+                : (html?.[0] ?? sheet?.element ?? null);
+            if (root) injectForgeAlertBadge(root);
+        });
+    });
+}
+
+/**
+ * Refresh the Compendium Forge alert badge on the currently-open settings panel.
+ * Safe to call at any time; no-op if the settings panel is not rendered.
+ * Called by CompendiumForgeApp after compile/close so the badge
+ * clears without the GM needing to close and reopen the settings panel.
+ */
+export function refreshForgeAlertBadge() {
+    const sheet = game.settings.sheet;
+    if (!sheet?.rendered) return;
+    scheduleForgeAlertBadgeRefresh(sheet.element);
+}
+
 Hooks.on("renderSettingsConfig", (app, html) => {
-    injectForgeAlertBadge(html);
+    scheduleForgeAlertBadgeRefresh(html);
 });

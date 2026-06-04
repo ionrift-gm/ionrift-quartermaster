@@ -11,12 +11,14 @@
 
 ### Changed
 - **Respite loot pool split.** Respite Items no longer appears in Loot Pool Sources. Enable Respite Cache Utility when both modules are active for camp supplies such as kindling.
+- **Compendium Forge settings badge.** The module settings warning now tracks only forge pipelines in use and refreshes after compile or when Forge closes.
 - **Arcana scroll slots.** High-tier Arcana caches cap scroll slots and stack duplicate spells (2-4 copies on lower circles) so the list stays short.
 - **Scroll tier bands.** Cache scrolls respect tier min/max spell level and a fair per-slot share of the item budget.
 
 ### Fixed
 - **Coin vs item budget.** Rolled coin no longer spends the item budget before slots are filled, which caused gold-only Arcana caches at high tiers.
 - **Scroll level reads.** Picks use Scroll Forge metadata for spell circle, not the template item level that often stayed at 1.
+- **DMG sample poisons in caches.** Malice and other subtype-poison entries from the SRD no longer roll in random consumable slots. Basic Poison and Antitoxin still can.
 
 ## [1.3.13] - 2026-05-28
 

@@ -677,6 +677,12 @@ export class ScrollForge {
      */
     static getStatus() {
         try {
+            let enabledIds = [];
+            try {
+                enabledIds = JSON.parse(game.settings.get(MODULE_ID, this.SETTING_SOURCES) || "[]");
+            } catch { /* ok */ }
+            if (!enabledIds.length) return "na";
+
             const hash = game.settings.get(MODULE_ID, this.SETTING_HASH);
             if (!hash) return "never";
             if (!game.packs.get(this.worldCollectionId)) return "stale";

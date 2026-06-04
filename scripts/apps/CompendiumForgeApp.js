@@ -17,6 +17,7 @@ import { ItemPoolResolver } from "../services/ItemPoolResolver.js";
 import { LootPoolCompiler  } from "../services/LootPoolCompiler.js";
 import { ScrollForge       } from "../services/ScrollForge.js";
 import { SrdCurseAdapter   } from "../services/SrdCurseAdapter.js";
+import { refreshForgeAlertBadge } from "../services/SettingsPanelLayout.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -79,6 +80,12 @@ export class CompendiumForgeApp extends FormApplication {
             submitOnChange: false,
             resizable:      true,
         });
+    }
+
+    async close(options = {}) {
+        const closed = await super.close(options);
+        refreshForgeAlertBadge();
+        return closed;
     }
 
     // ── Data ──────────────────────────────────────────────────────────────
@@ -630,6 +637,7 @@ export class CompendiumForgeApp extends FormApplication {
             this._phases.lootPool = "pick";
         }).finally(() => {
             this._compiling.lootPool = false;
+            refreshForgeAlertBadge();
             this.render(false);
         });
     }
@@ -659,6 +667,7 @@ export class CompendiumForgeApp extends FormApplication {
             this._phases.scrollForge = "pick";
         } finally {
             this._compiling.scrollForge = false;
+            refreshForgeAlertBadge();
             this.render(false);
         }
     }
@@ -686,6 +695,7 @@ export class CompendiumForgeApp extends FormApplication {
             this._phases.cursedItems = "pick";
         } finally {
             this._compiling.cursedItems = false;
+            refreshForgeAlertBadge();
             this.render(false);
         }
     }
