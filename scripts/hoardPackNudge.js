@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Quartermaster Core pack nudge wiring.
  *
  * Surfaces the shared library pack-nudge banner in Module Settings when the
@@ -68,7 +68,7 @@ export function hasMaterialisedCoreCompendiums() {
 
 /**
  * True when the core overlay is installed on disk AND active in this world.
- * Presence alone is not enough — if the GM disabled the overlay in Patreon
+ * Presence alone is not enough - if the GM disabled the overlay in Patreon
  * Library, the nudge should still surface.
  * @returns {Promise<boolean>}
  */
@@ -118,7 +118,7 @@ async function hasCoreOverlayOnDisk() {
 export async function hasCoreOverlayContent() {
     const overlay = game.ionrift?.library?.overlay;
 
-    // Primary path: overlay system available — active state is authoritative.
+    // Primary path: overlay system available - active state is authoritative.
     if (overlay?.getLocalManifest && typeof overlay.isOverlayActive === "function") {
         return await hasCoreOverlayOnDisk();
     }
@@ -168,8 +168,9 @@ export function registerHoardPackNudge() {
         secondaryIcon: "fas fa-download",
         findSettingsAnchor: ($html) => {
             const candidates = [
-                { selector: `button[data-key="${MODULE_ID}.lootPoolConfig"]`, position: "before" },
-                { selector: `button[data-key="${MODULE_ID}.contentPacks"]`, position: "before" }
+                { selector: `button[data-key="${MODULE_ID}.compendiumForge"]`, position: "before" },
+                { selector: `button[data-key="${MODULE_ID}.lootPoolConfig"]`,  position: "before" },
+                { selector: `button[data-key="${MODULE_ID}.contentPacks"]`,    position: "before" }
             ];
             for (const { selector, position } of candidates) {
                 const $btn = $html.find(selector);

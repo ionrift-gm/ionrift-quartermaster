@@ -1,5 +1,5 @@
-/**
- * PoolResolverTests — Guards the cache generator's role-pack resolver.
+﻿/**
+ * PoolResolverTests - Guards the cache generator's role-pack resolver.
  *
  * Contract:
  *   - The module-shipped role pack (e.g. ionrift-quartermaster.quartermaster-containers)

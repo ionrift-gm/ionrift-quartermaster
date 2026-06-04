@@ -1,4 +1,4 @@
-import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
+﻿import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -40,7 +40,7 @@ export class ItemResolutionPipeline {
 
         const docs = await pack.getDocuments();
         for (const candidate of docs) {
-            // Skip identified-twin reference docs — caches only ever place
+            // Skip identified-twin reference docs - caches only ever place
             // lures, and twin names can collide (lureIsSurface potions).
             if (candidate.flags?.["ionrift-cursewright"]?.role === "identified") continue;
             const qm = candidate.flags?.[MODULE_ID] ?? {};
@@ -75,7 +75,7 @@ export class ItemResolutionPipeline {
                     // CurseForge items have system.identified=false by design.
                     // dnd5e preserves that raw false in toObject(), which causes
                     // IP's _transferItems to crash reading .type from unexpected
-                    // object shapes. Force identified:true — the lure identity is
+                    // object shapes. Force identified:true - the lure identity is
                     // carried by latentMagic flags, not by the identified field.
                     const qmF = data.flags?.[MODULE_ID] ?? {};
                     if (data.system && data.system.identified === false
@@ -94,7 +94,7 @@ export class ItemResolutionPipeline {
                     // converts legacy integer attunement values (e.g. 1 → "required")
                     // even on Potions of Healing that have no attunement requirement.
                     // The SRD source shows "Attunement Not Required" but the migration
-                    // corrupts it in memory. Clear it unconditionally for consumables —
+                    // corrupts it in memory. Clear it unconditionally for consumables -
                     // no consumable in dnd5e 2024 requires attunement.
                     if (data.type === "consumable" && data.system) {
                         data.system.attunement = "";
@@ -127,7 +127,7 @@ export class ItemResolutionPipeline {
 
         // For infected entries: strip Cursewright meta BEFORE the masking check.
         // This is critical for standalone cursed items (Cursewright item as resolution
-        // source) which have latentMagic set — if we check hasLatentMagic before
+        // source) which have latentMagic set - if we check hasLatentMagic before
         // stripping, masking is skipped and the lure name is revealed immediately.
         // Stamp infectedCount (literal poison count) at the same time.
         const isInfected = !!(metaObj._infectedCount && metaObj._totalQty);
@@ -138,7 +138,7 @@ export class ItemResolutionPipeline {
             foundry.utils.setProperty(data, `flags.${MODULE_ID}.infectedCount`, metaObj._infectedCount);
             // Strip Cursewright meta BEFORE masking so applyMask doesn't see
             // cursedMeta.lure and early-return. latentMagic is stripped AFTER
-            // masking below — applyMask will temporarily re-inject it.
+            // masking below - applyMask will temporarily re-inject it.
             if (data.flags?.[MODULE_ID]) {
                 delete data.flags[MODULE_ID].cursedMeta;
                 delete data.flags[MODULE_ID].forgedFrom;
@@ -200,7 +200,7 @@ export class ItemResolutionPipeline {
             data.flags["item-piles"].item.canStack = "yes";
         }
         // Scrolls: explicitly prevent stacking. IP's transferItems merges
-        // items by name match during transfers — two "Unidentified Scroll"
+        // items by name match during transfers - two "Unidentified Scroll"
         // entries become one with incremented quantity, overwriting the
         // latentMagic.originalName of the first. canStack:"no" tells IP
         // to treat each scroll as a distinct, non-mergeable item.
@@ -226,7 +226,7 @@ export class ItemResolutionPipeline {
     /**
      * Stamp system.quantity and assign a unique _id for Item Piles.
      * Item Piles _createItemPile flattens { item, quantity } to item data only
-     * and drops the wrapper quantity — stack size must live on the item payload.
+     * and drops the wrapper quantity - stack size must live on the item payload.
      *
      * @param {object} itemData  Resolved item data
      * @param {number} qty       Stack quantity

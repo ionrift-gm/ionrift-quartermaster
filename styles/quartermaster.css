@@ -760,6 +760,137 @@
     cursor: wait;
 }
 
+/* Nudge button — shown when no loot pool compendium is configured */
+.cache-btn-nudge {
+    flex: 1 1 auto;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(180, 120, 20, 0.35), rgba(200, 140, 30, 0.25));
+    border: 1px solid rgba(200, 151, 42, 0.55);
+    color: #f0c060;
+    border-radius: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(200, 151, 42, 0.15);
+    white-space: nowrap;
+}
+
+.cache-btn-nudge:hover {
+    background: linear-gradient(135deg, rgba(200, 140, 30, 0.55), rgba(220, 160, 40, 0.45));
+    border-color: rgba(200, 151, 42, 0.85);
+    box-shadow: 0 4px 16px rgba(200, 151, 42, 0.3);
+    color: #fde68a;
+    transform: translateY(-1px);
+}
+
+/* Amber-tinted empty state for missing pool */
+.cache-no-pool-state {
+    border: 1px dashed rgba(200, 151, 42, 0.35) !important;
+}
+
+.cache-no-pool-state i {
+    color: rgba(200, 151, 42, 0.6) !important;
+}
+
+.cache-no-pool-state p {
+    color: rgba(240, 192, 96, 0.75) !important;
+}
+
+/* ── Compendium Forge warning banner (Cache Generator pre-footer) ─────────── */
+
+.cache-center .cache-forge-warning-banner {
+    /* sits just above the sticky footer inside the column flex */
+    flex: 0 0 auto;
+    margin: 0 0 0;
+}
+
+.cache-forge-warning-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    margin: 0 0 2px;
+    border-radius: 6px;
+    font-size: 0.82em;
+    transition: opacity 0.2s ease;
+    border: 1px solid;
+    flex-shrink: 0;
+}
+
+
+.cache-forge-warning--stale {
+    background: rgba(200, 140, 20, 0.14);
+    border-color: rgba(200, 151, 42, 0.38);
+    color: #e8b84b;
+}
+
+.cache-forge-warning--stale > i:first-child {
+    color: #f0c060;
+    flex-shrink: 0;
+}
+
+.cache-forge-warning--never {
+    background: rgba(139, 92, 246, 0.12);
+    border-color: rgba(139, 92, 246, 0.35);
+    color: rgba(196, 167, 247, 0.85);
+}
+
+.cache-forge-warning--never > i:first-child {
+    flex-shrink: 0;
+}
+
+.cache-forge-warning-text {
+    flex: 1 1 auto;
+    line-height: 1.35;
+}
+
+.cache-forge-warning-btn {
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: 0.88em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    padding: 4px 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    line-height: 1.4;
+}
+
+.cache-forge-warning--stale .cache-forge-warning-btn {
+    background: rgba(200, 140, 20, 0.22);
+    border: 1px solid rgba(200, 151, 42, 0.5);
+    color: #f0c060;
+}
+
+.cache-forge-warning--stale .cache-forge-warning-btn:hover {
+    background: rgba(200, 140, 20, 0.42);
+    border-color: rgba(200, 151, 42, 0.8);
+    color: #fde68a;
+}
+
+.cache-forge-warning--never .cache-forge-warning-btn {
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.5);
+    color: rgba(196, 167, 247, 0.95);
+}
+
+.cache-forge-warning--never .cache-forge-warning-btn:hover {
+    background: rgba(139, 92, 246, 0.38);
+    border-color: rgba(167, 130, 255, 0.75);
+    color: #ddd6fe;
+}
+
+.cache-forge-warning-btn i {
+    font-size: 0.85em;
+}
+
 /* ── Cache Sticky Footer — two-zone layout ───────────────── */
 
 .cache-sticky-footer {
@@ -6172,7 +6303,8 @@ button.scroll-open-compendium {
 #ionrift-quartermaster-app,
 #ionrift-sound-picker,
 #ionrift-item-sound-config,
-#ionrift-actor-sound-config {
+#ionrift-actor-sound-config,
+#ionrift-compendium-forge {
     scrollbar-color: #6d28d9 rgba(0, 0, 0, 0.4) !important;
     scrollbar-width: thin !important;
 }
@@ -6188,7 +6320,8 @@ button.scroll-open-compendium {
 #ionrift-quartermaster-app *,
 #ionrift-sound-picker *,
 #ionrift-item-sound-config *,
-#ionrift-actor-sound-config * {
+#ionrift-actor-sound-config *,
+#ionrift-compendium-forge * {
     scrollbar-color: #6d28d9 rgba(0, 0, 0, 0.4) !important;
     scrollbar-width: thin !important;
 }
@@ -6494,6 +6627,177 @@ button.scroll-open-compendium {
     color: rgba(255, 255, 255, 0.3);
     max-width: 220px;
     text-align: right;
+}
+
+/* ── Recommended pack row highlight ──────────────────── */
+
+.pool-pack-row.pack-recommended {
+    border-left: 2px solid rgba(139, 92, 246, 0.25);
+    background: rgba(139, 92, 246, 0.03);
+}
+
+.pool-pack-row.pack-recommended:hover {
+    background: rgba(139, 92, 246, 0.07);
+}
+
+/* ── Checked row: indent to express selection at row level ── */
+
+.pool-pack-row:has(input[type="checkbox"]:checked) {
+    padding-left: 22px;
+    border-left: 2px solid rgba(139, 92, 246, 0.6);
+    background: rgba(139, 92, 246, 0.06);
+}
+
+.pool-pack-row:has(input[type="checkbox"]:checked):hover {
+    background: rgba(139, 92, 246, 0.1);
+}
+
+/* ── Pack inline badges ──────────────────────────────── */
+
+.pool-pack-badge {
+    flex: 0 0 auto;
+    font-size: 0.65em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.pool-pack-badge.badge-recommended {
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    color: rgba(196, 167, 255, 0.85);
+}
+
+.pool-pack-badge.badge-needs-compile {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    color: rgba(253, 211, 77, 0.8);
+    font-size: 0.6em;
+    padding: 2px 5px;
+}
+
+/* ── Spell count pill (Scroll Forge rows) ────────────────── */
+
+.pool-pack-count {
+    flex: 0 0 auto;
+    font-size: 0.68em;
+    color: rgba(139, 92, 246, 0.75);
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.18);
+    border-radius: 10px;
+    padding: 1px 6px;
+    white-space: nowrap;
+}
+
+/* ── Bulk action buttons (Select All / Toggle All) ───────── */
+
+.forge-bulk-actions {
+    display: flex;
+    gap: 6px;
+    padding: 0 0 8px 0;
+}
+
+.forge-bulk-actions .cache-btn-ghost {
+    font-size: 0.75em;
+    padding: 3px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.forge-bulk-actions .cache-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── Loading skeleton (Scroll Forge async discovery) ─────── */
+
+.forge-loading-state {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 32px 0;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.88em;
+}
+
+.forge-loading-spinner i {
+    color: rgba(139, 92, 246, 0.7);
+    font-size: 1.1em;
+}
+
+/* ── Indeterminate progress sweep (Scroll / Curse compile) ─ */
+
+.forge-progress-indeterminate {
+    overflow: hidden;
+    position: relative;
+}
+
+.forge-progress-bar-sweep {
+    position: absolute;
+    top: 0;
+    left: -40%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.8), transparent);
+    animation: forge-sweep 1.6s ease-in-out infinite;
+}
+
+@keyframes forge-sweep {
+    0%   { left: -40%; }
+    100% { left: 120%; }
+}
+
+.forge-indeterminate-note {
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.35);
+    text-align: center;
+    margin-top: 6px;
+}
+
+/* ── Cursed Items read-only source list ──────────────────── */
+
+.forge-curse-sources {
+    margin: 12px 0 0;
+}
+
+.forge-curse-sources-label {
+    font-size: 0.78em;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.forge-curse-source-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 0.84em;
+    color: rgba(255, 255, 255, 0.6);
+    border-left: 2px solid rgba(139, 92, 246, 0.25);
+    background: rgba(139, 92, 246, 0.04);
+    margin-bottom: 3px;
+}
+
+.forge-curse-source-row i {
+    color: rgba(139, 92, 246, 0.5);
+    font-size: 0.85em;
+}
+
+.forge-curse-source-name {
+    flex: 1 1 auto;
+    font-weight: 500;
 }
 
 /* Hide rows inside collapsed groups */
@@ -7962,21 +8266,577 @@ button.scroll-open-compendium {
     line-height: 1.4;
 }
 
-.pool-offer-link {
-    color: rgba(180, 155, 240, 0.6);
-    text-decoration: underline;
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: inherit;
-    font-family: inherit;
-    transition: color 0.15s;
+.qm-ammo-type-config {
+    padding: 0.55rem 0.65rem 0.7rem;
 }
 
-.pool-offer-link:hover {
-    color: rgba(200, 175, 255, 0.9);
+.qm-ammo-type-lead {
+    margin: 0 0 0.75rem;
+    font-size: 0.82rem;
+    color: rgba(220, 220, 220, 0.75);
+    line-height: 1.45;
 }
+
+.qm-ammo-type-presets {
+    margin-bottom: 0.75rem;
+}
+
+.qm-ammo-type-presets-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(200, 160, 60, 0.75);
+}
+
+.qm-ammo-type-preset-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.qm-ammo-type-preset-btn,
+.qm-ammo-type-add-btn,
+.qm-ammo-type-cancel-btn,
+.qm-ammo-type-save-btn {
+    padding: 0.28rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid rgba(200, 160, 60, 0.35);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(220, 190, 110, 0.95);
+    cursor: pointer;
+    font-size: 0.78rem;
+}
+
+.qm-ammo-type-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 0.15rem;
+}
+
+.qm-ammo-type-row {
+    padding: 0.55rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.qm-ammo-type-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+}
+
+.qm-ammo-type-label {
+    font-weight: 600;
+    color: rgba(235, 235, 235, 0.95);
+}
+
+.qm-ammo-type-label-input,
+.qm-ammo-type-pattern-input {
+    width: 100%;
+    padding: 0.28rem 0.45rem;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.25);
+    color: rgba(235, 235, 235, 0.95);
+}
+
+.qm-ammo-type-pattern-wrap,
+.qm-ammo-type-weight-wrap {
+    margin-top: 0.4rem;
+}
+
+.qm-ammo-type-pattern-label,
+.qm-ammo-type-weight-label {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.72rem;
+    color: rgba(200, 200, 200, 0.65);
+}
+
+.qm-ammo-type-pattern-readonly {
+    font-size: 0.76rem;
+    color: rgba(200, 200, 200, 0.75);
+    font-family: var(--font-monospace, monospace);
+}
+
+.qm-ammo-type-remove-btn {
+    border: none;
+    background: transparent;
+    color: rgba(220, 120, 120, 0.85);
+    cursor: pointer;
+    padding: 0.15rem 0.35rem;
+}
+
+.qm-ammo-type-footer {
+    margin-top: 0.75rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.qm-ammo-type-actions {
+    display: flex;
+    gap: 0.45rem;
+}
+
+.qm-ammo-type-save-btn {
+    border-color: rgba(200, 160, 60, 0.45);
+    background: rgba(200, 160, 60, 0.15);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Ammunition Type Curve v2 — Distribution Bar layout
+   .qm-ammo-v2
+   ═══════════════════════════════════════════════════════ */
+
+.qm-ammo-v2 {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 2px 0 0;
+}
+
+.qm-ammo-lead {
+    margin: 0;
+    font-size: 0.82em;
+    color: rgba(255, 255, 255, 0.48);
+    line-height: 1.5;
+}
+
+/* ── Distribution bar ─────────────────────────────────── */
+
+.qm-dist-wrap {
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 12px 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.qm-dist-bar {
+    height: 26px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.qm-dist-segment {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.qm-dist-segment::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.13), rgba(0,0,0,0.1));
+    pointer-events: none;
+}
+
+.qm-dist-label {
+    font-size: 0.66em;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.72);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 5px;
+    position: relative;
+    z-index: 1;
+}
+
+.qm-dist-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.28);
+    font-style: italic;
+}
+
+/* Legend dots + pct row */
+
+.qm-dist-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+}
+
+.qm-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.qm-legend-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.qm-legend-name {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.qm-legend-pct {
+    color: rgba(255, 255, 255, 0.3);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Presets ──────────────────────────────────────────── */
+
+.qm-ammo-presets {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.qm-presets-label {
+    font-size: 0.68em;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: rgba(255, 255, 255, 0.28);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.qm-preset-row {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.qm-preset-btn {
+    padding: 3px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(139, 92, 246, 0.32);
+    background: rgba(139, 92, 246, 0.08);
+    color: rgba(196, 167, 247, 0.75);
+    font-size: 0.78em;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    line-height: 1.5;
+}
+
+.qm-preset-btn:hover {
+    background: rgba(139, 92, 246, 0.28);
+    border-color: rgba(139, 92, 246, 0.65);
+    color: #ddd6fe;
+}
+
+/* ── Stepper list ─────────────────────────────────────── */
+
+.qm-stepper-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+/* Single stepper row */
+
+.qm-stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px 7px 8px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-left: 3px solid var(--type-color, #8b5cf6);
+    transition: background 0.15s, opacity 0.2s;
+}
+
+.qm-stepper-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.qm-stepper-row.is-disabled {
+    opacity: 0.42;
+}
+
+/* Color accent dot */
+
+.qm-type-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Name + pattern column */
+
+.qm-type-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.qm-type-name {
+    font-size: 0.86em;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.88);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.qm-type-name-input {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: #ddd;
+    font-size: 0.84em;
+    padding: 2px 6px;
+    width: 100%;
+}
+
+.qm-type-pattern {
+    font-size: 0.65em;
+    font-family: var(--font-monospace, monospace);
+    color: rgba(255, 255, 255, 0.22);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.qm-type-pattern-input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.65em;
+    font-family: var(--font-monospace, monospace);
+    padding: 1px 5px;
+    width: 100%;
+}
+
+/* ── Stepper +/- controls ─────────────────────────────── */
+
+.qm-stepper-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.qm-step-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.6em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    padding: 0;
+    line-height: 1;
+}
+
+.qm-step-btn:hover:not(:disabled) {
+    background: rgba(139, 92, 246, 0.28);
+    border-color: rgba(139, 92, 246, 0.65);
+    color: #fff;
+}
+
+.qm-step-btn:disabled {
+    opacity: 0.28;
+    cursor: not-allowed;
+}
+
+.qm-step-val {
+    font-size: 0.82em;
+    font-weight: 700;
+    color: var(--type-color, #8b5cf6);
+    min-width: 2.4em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Toggle switch ────────────────────────────────────── */
+
+.qm-toggle {
+    position: relative;
+    display: inline-flex;
+    width: 32px;
+    height: 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+    margin: 0;
+}
+
+.qm-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.qm-toggle-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.qm-toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: transform 0.2s, background 0.2s;
+}
+
+.qm-toggle input:checked ~ .qm-toggle-track {
+    background: rgba(139, 92, 246, 0.42);
+    border-color: rgba(167, 130, 255, 0.6);
+}
+
+.qm-toggle input:checked ~ .qm-toggle-track::after {
+    transform: translateX(14px);
+    background: #c4b5fd;
+}
+
+/* ── Remove button (custom types) ─────────────────────── */
+
+.qm-remove-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.18);
+    font-size: 0.62em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.qm-remove-btn:hover {
+    background: rgba(220, 38, 38, 0.18);
+    border-color: rgba(220, 38, 38, 0.45);
+    color: #f87171;
+}
+
+/* ── Footer ───────────────────────────────────────────── */
+
+.qm-ammo-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.qm-footer-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.qm-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px dashed rgba(139, 92, 246, 0.32);
+    background: transparent;
+    color: rgba(196, 167, 247, 0.55);
+    font-size: 0.78em;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    line-height: 1.4;
+}
+
+.qm-add-btn:hover {
+    border-color: rgba(139, 92, 246, 0.65);
+    background: rgba(139, 92, 246, 0.1);
+    color: #ddd6fe;
+}
+
+.qm-cancel-btn {
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    line-height: 1.4;
+}
+
+.qm-cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: #fff;
+}
+
+.qm-save-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 16px;
+    border-radius: 6px;
+    border: 1px solid rgba(139, 92, 246, 0.5);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.32), rgba(99, 62, 206, 0.22));
+    color: #ddd6fe;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.4;
+}
+
+.qm-save-btn:hover {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.52), rgba(99, 62, 206, 0.42));
+    border-color: rgba(167, 130, 255, 0.75);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.28);
+}
+
 
 /* ── Curse Pool: populated-state compact bar ──────────────────────────────── */
 
@@ -8132,3 +8992,1011 @@ button.scroll-open-compendium {
     line-height: 1.4;
     padding: 0 2px;
 }
+
+/* GM settings submenus (Loot / Identification / Progression) */
+.qm-settings-config {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 0.65rem 0.7rem;
+    flex: 1;
+    min-height: 0;
+}
+
+.qm-settings-config .settings-config-lead {
+    margin: 0.1rem 0.2rem 0.4rem;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.qm-settings-config .settings-config-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.qm-settings-config .settings-config-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0.65rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+}
+
+.qm-settings-config .settings-config-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.qm-settings-config .settings-config-label {
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.qm-settings-config .settings-config-icon {
+    color: rgba(200, 160, 60, 0.85);
+    margin-right: 0.3rem;
+}
+
+.qm-settings-config .settings-config-hint {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.35);
+    line-height: 1.35;
+}
+
+.qm-settings-config .settings-config-toggle {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.qm-settings-config .settings-config-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.qm-settings-config .settings-config-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.qm-settings-config .settings-config-slider::before {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    top: 2px;
+    left: 2px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.45);
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.qm-settings-config .settings-config-toggle input:checked + .settings-config-slider {
+    background: rgba(200, 160, 60, 0.35);
+    border-color: rgba(200, 160, 60, 0.55);
+}
+
+.qm-settings-config .settings-config-toggle input:checked + .settings-config-slider::before {
+    transform: translateX(16px);
+    background: rgba(255, 228, 160, 0.95);
+    box-shadow: 0 0 5px rgba(200, 160, 60, 0.45);
+}
+
+.qm-settings-config .settings-config-select {
+    min-width: 10rem;
+    font-size: 0.8rem;
+}
+
+.qm-settings-config .settings-config-range-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.qm-settings-config .settings-config-range-val {
+    font-size: 0.75rem;
+    min-width: 2.5rem;
+    text-align: right;
+    color: rgba(200, 160, 60, 0.9);
+}
+
+.qm-settings-config .settings-config-actions {
+    margin-top: 0.6rem;
+    padding-top: 0.45rem;
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.qm-settings-config .settings-config-save-btn {
+    padding: 0.35rem 0.85rem;
+    border-radius: 6px;
+    border: 1px solid rgba(200, 160, 60, 0.4);
+    background: rgba(200, 160, 60, 0.15);
+    color: rgba(220, 190, 110, 0.95);
+    cursor: pointer;
+}
+
+.qm-settings-config .settings-config-popout-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+    min-width: 9rem;
+}
+
+.qm-settings-config .settings-config-popout-summary {
+    font-size: 0.78rem;
+    color: rgba(200, 160, 60, 0.85);
+    text-align: right;
+}
+
+.qm-settings-config .settings-config-popout-btn {
+    padding: 0.3rem 0.7rem;
+    border-radius: 6px;
+    border: 1px solid rgba(200, 160, 60, 0.35);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(220, 190, 110, 0.95);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.qm-ammo-type-config {
+    padding: 0.55rem 0.65rem 0.7rem;
+}
+
+.qm-ammo-type-lead {
+    margin: 0 0 0.75rem;
+    font-size: 0.82rem;
+    color: rgba(220, 220, 220, 0.75);
+    line-height: 1.45;
+}
+
+.qm-ammo-type-presets {
+    margin-bottom: 0.75rem;
+}
+
+.qm-ammo-type-presets-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(200, 160, 60, 0.75);
+}
+
+.qm-ammo-type-preset-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.qm-ammo-type-preset-btn,
+.qm-ammo-type-add-btn,
+.qm-ammo-type-cancel-btn,
+.qm-ammo-type-save-btn {
+    padding: 0.28rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid rgba(200, 160, 60, 0.35);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(220, 190, 110, 0.95);
+    cursor: pointer;
+    font-size: 0.78rem;
+}
+
+.qm-ammo-type-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 0.15rem;
+}
+
+.qm-ammo-type-row {
+    padding: 0.55rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.qm-ammo-type-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+}
+
+.qm-ammo-type-label {
+    font-weight: 600;
+    color: rgba(235, 235, 235, 0.95);
+}
+
+.qm-ammo-type-label-input,
+.qm-ammo-type-pattern-input {
+    width: 100%;
+    padding: 0.28rem 0.45rem;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.25);
+    color: rgba(235, 235, 235, 0.95);
+}
+
+.qm-ammo-type-pattern-wrap,
+.qm-ammo-type-weight-wrap {
+    margin-top: 0.4rem;
+}
+
+.qm-ammo-type-pattern-label,
+.qm-ammo-type-weight-label {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.72rem;
+    color: rgba(200, 200, 200, 0.65);
+}
+
+.qm-ammo-type-pattern-readonly {
+    font-size: 0.76rem;
+    color: rgba(200, 200, 200, 0.75);
+    font-family: var(--font-monospace, monospace);
+}
+
+.qm-ammo-type-remove-btn {
+    border: none;
+    background: transparent;
+    color: rgba(220, 120, 120, 0.85);
+    cursor: pointer;
+    padding: 0.15rem 0.35rem;
+}
+
+.qm-ammo-type-footer {
+    margin-top: 0.75rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.qm-ammo-type-actions {
+    display: flex;
+    gap: 0.45rem;
+}
+
+.qm-ammo-type-save-btn {
+    border-color: rgba(200, 160, 60, 0.45);
+    background: rgba(200, 160, 60, 0.15);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Compendium Forge — unified compiler dialog
+   #ionrift-compendium-forge
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Window layout ───────────────────────────────────── */
+
+#ionrift-compendium-forge .window-content {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.compendium-forge-shell {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ── Left sidebar ────────────────────────────────────── */
+
+.forge-sidebar {
+    flex: 0 0 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-right: 1px solid rgba(139, 92, 246, 0.18);
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.3);
+}
+
+.forge-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.55);
+    border: 1px solid transparent;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    user-select: none;
+    position: relative;
+}
+
+.forge-tab:hover {
+    background: rgba(139, 92, 246, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.forge-tab.active {
+    background: rgba(139, 92, 246, 0.18);
+    border-color: rgba(139, 92, 246, 0.35);
+    color: rgba(200, 180, 255, 0.95);
+    font-weight: 600;
+}
+
+.forge-tab i {
+    flex: 0 0 14px;
+    font-size: 0.9em;
+    text-align: center;
+    opacity: 0.75;
+}
+
+.forge-tab.active i {
+    opacity: 1;
+    color: rgba(139, 92, 246, 0.9);
+}
+
+.forge-tab-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Status dots ─────────────────────────────────────── */
+
+.forge-status-dot {
+    flex: 0 0 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: auto;
+    transition: box-shadow 0.2s;
+}
+
+.forge-status-dot.status-fresh {
+    background: rgba(34, 197, 94, 0.85);
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.4);
+}
+
+.forge-status-dot.status-stale {
+    background: rgba(251, 146, 60, 0.85);
+    box-shadow: 0 0 5px rgba(251, 146, 60, 0.4);
+}
+
+.forge-status-dot.status-never {
+    background: rgba(239, 68, 68, 0.75);
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+}
+
+.forge-status-dot.status-na {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.forge-status-dot.status-error {
+    background: rgba(239, 68, 68, 0.9);
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.55);
+    animation: forge-error-pulse 2s ease-in-out infinite;
+}
+
+@keyframes forge-error-pulse {
+    0%, 100% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.4); }
+    50%       { box-shadow: 0 0 10px rgba(239, 68, 68, 0.75); }
+}
+
+/* ── Right pane (shared shell) ───────────────────────── */
+
+.forge-pane {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ════════════════════════════════════════════════════════
+   Phase 1 — Pick (source selector)
+   ════════════════════════════════════════════════════════ */
+
+.forge-pane-pick {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px 10px;
+    gap: 0;
+    overflow: hidden;
+}
+
+/* Header row: title + badge */
+.forge-pane-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+}
+
+.forge-pane-title {
+    margin: 0;
+    font-size: 1em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.01em;
+}
+
+/* Rarity-style badge: fresh / stale / never */
+.forge-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.72em;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.forge-badge.badge-fresh {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: rgba(134, 239, 172, 0.95);
+}
+
+.forge-badge.badge-stale {
+    background: rgba(251, 146, 60, 0.15);
+    border: 1px solid rgba(251, 146, 60, 0.35);
+    color: rgba(253, 186, 116, 0.95);
+}
+
+.forge-badge.badge-never {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: rgba(252, 165, 165, 0.95);
+}
+
+.forge-badge.badge-error {
+    background: rgba(239, 68, 68, 0.18);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: rgba(252, 165, 165, 1);
+    animation: forge-error-pulse 2s ease-in-out infinite;
+}
+
+/* Description text */
+.forge-pane-desc {
+    font-size: 0.82em;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+    margin: 0 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+/* Scrollable source list area */
+.forge-source-scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+    margin-bottom: 8px;
+}
+
+/* Empty note for passthrough tabs */
+.forge-empty-note {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Status card at bottom of pick pane */
+.forge-status-card {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 0.83em;
+}
+
+.forge-status-card.status-fresh {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.forge-status-card.status-stale {
+    background: rgba(251, 146, 60, 0.1);
+    border: 1px solid rgba(251, 146, 60, 0.3);
+}
+
+.forge-status-card.status-never {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.forge-status-card.status-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.forge-status-card > i {
+    flex: 0 0 auto;
+    font-size: 1em;
+}
+
+.forge-status-card.status-fresh > i   { color: rgba(134, 239, 172, 0.85); }
+.forge-status-card.status-stale > i   { color: rgba(253, 186, 116, 0.85); }
+.forge-status-card.status-never > i   { color: rgba(252, 165, 165, 0.8); }
+.forge-status-card.status-error > i   { color: rgba(239, 68, 68, 0.9); }
+
+.forge-status-card-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.forge-status-card-text {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.4;
+}
+
+.forge-status-card-meta {
+    font-size: 0.88em;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Clear button inside status card */
+.forge-clear-pool {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    font-size: 0.78em;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    padding: 0;
+    margin: 0;
+}
+
+.forge-clear-pool:hover {
+    color: rgba(239, 68, 68, 0.85);
+    border-color: rgba(239, 68, 68, 0.35);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+/* Footer buttons row */
+.forge-footer {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Override default full-width on cache-btn-accent inside footer */
+.forge-footer .cache-btn-accent,
+.forge-footer .cache-btn-secondary {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 0 16px;
+}
+
+.forge-footer .cache-btn-accent {
+    gap: 7px;
+}
+
+/* The → arrow on the compile button */
+.forge-arrow {
+    font-size: 0.85em;
+    opacity: 0.7;
+}
+
+/* Secondary "Save Sources" button */
+.cache-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.65);
+    border-radius: 6px;
+    font-size: 0.88em;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0 14px;
+}
+
+.cache-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* ════════════════════════════════════════════════════════
+   Phase 2 — Compile (progress)
+   ════════════════════════════════════════════════════════ */
+
+.forge-pane-compile {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 24px 12px;
+    gap: 14px;
+    overflow: hidden;
+}
+
+/* Anvil icon with pulse/spark animation */
+.forge-anvil-wrap {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.forge-anvil-icon {
+    font-size: 2.6em;
+    color: rgba(139, 92, 246, 0.75);
+    animation: forge-anvil-pulse 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.4));
+}
+
+@keyframes forge-anvil-pulse {
+    0%   { transform: scale(1);    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.35)); }
+    45%  { transform: scale(1.08); filter: drop-shadow(0 0 16px rgba(139, 92, 246, 0.6)); }
+    55%  { transform: scale(0.97); filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.25)); }
+    100% { transform: scale(1);    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.35)); }
+}
+
+/* Spark particles (pure CSS, no JS) */
+.forge-anvil-wrap::before,
+.forge-anvil-wrap::after {
+    content: "";
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(196, 181, 253, 0.85);
+    animation: forge-spark 1.6s ease-out infinite;
+}
+
+.forge-anvil-wrap::before {
+    top: 8px;
+    left: 10px;
+    animation-delay: 0.4s;
+}
+
+.forge-anvil-wrap::after {
+    top: 6px;
+    right: 8px;
+    animation-delay: 0.8s;
+    background: rgba(251, 191, 36, 0.75);
+}
+
+@keyframes forge-spark {
+    0%   { opacity: 0;    transform: translate(0, 0) scale(1); }
+    20%  { opacity: 1; }
+    80%  { opacity: 0.5;  transform: translate(var(--dx, 8px), -18px) scale(0.5); }
+    100% { opacity: 0;    transform: translate(var(--dx, 12px), -28px) scale(0); }
+}
+
+.forge-compile-title {
+    margin: 0;
+    font-size: 1em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+}
+
+.forge-compile-phase {
+    margin: -6px 0 0;
+    font-size: 0.8em;
+    color: rgba(139, 92, 246, 0.75);
+    text-align: center;
+}
+
+/* Progress bar */
+.forge-progress-track {
+    width: 100%;
+    max-width: 320px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.forge-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(109, 40, 217, 0.9), rgba(139, 92, 246, 0.95));
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 6px rgba(139, 92, 246, 0.4);
+}
+
+.forge-progress-stats {
+    margin: -6px 0 0;
+    font-size: 0.78em;
+    color: rgba(255, 255, 255, 0.4);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Live log feed */
+.forge-log {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 360px;
+    max-height: 120px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.forge-log li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: forge-log-enter 0.2s ease;
+}
+
+.forge-log li:first-child {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.forge-log li:nth-child(n+4) {
+    opacity: 0.45;
+}
+
+.forge-log li:nth-child(n+7) {
+    opacity: 0.2;
+}
+
+@keyframes forge-log-enter {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.forge-log-check {
+    flex: 0 0 auto;
+    font-size: 0.85em;
+    color: rgba(34, 197, 94, 0.65);
+}
+
+/* Cancel link footer in compile phase */
+.forge-footer-compile {
+    justify-content: center;
+    border-top: none;
+    padding-top: 4px;
+}
+
+.forge-cancel-link {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.8em;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.15s;
+}
+
+.forge-cancel-link:hover {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* ════════════════════════════════════════════════════════
+   Phase 3 — Done (result)
+   ════════════════════════════════════════════════════════ */
+
+.forge-pane-done {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 24px 12px;
+    gap: 12px;
+    overflow: hidden;
+}
+
+/* Big check icon */
+.forge-done-check {
+    font-size: 3em;
+    color: rgba(34, 197, 94, 0.85);
+    filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.35));
+    animation: forge-done-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes forge-done-pop {
+    from { transform: scale(0.4); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
+.forge-done-title {
+    margin: 0;
+    font-size: 1.05em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.forge-done-subtitle {
+    margin: -8px 0 0;
+    font-size: 0.82em;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+/* Stat cards row */
+.forge-stat-cards {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 340px;
+}
+
+.forge-stat-card {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 8px;
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.22);
+    border-radius: 8px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.forge-stat-card:hover {
+    background: rgba(139, 92, 246, 0.14);
+    border-color: rgba(139, 92, 246, 0.38);
+}
+
+.forge-stat-card > i {
+    font-size: 1em;
+    color: rgba(139, 92, 246, 0.7);
+}
+
+.forge-stat-value {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: rgba(200, 180, 255, 0.95);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.forge-stat-label {
+    font-size: 0.68em;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* "View Compiled Compendium" link-button */
+.forge-view-compendium {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 6px;
+    padding: 5px 14px;
+    color: rgba(196, 181, 253, 0.85);
+    font-size: 0.83em;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+/* On the done screen the button sits inside a centred column — keep it compact */
+.forge-pane-done .forge-view-compendium {
+    align-self: center;
+    flex: 0 0 auto;
+    width: auto;
+    height: auto;
+    padding: 6px 16px;
+}
+
+.forge-view-compendium:hover {
+    background: rgba(139, 92, 246, 0.12);
+    border-color: rgba(139, 92, 246, 0.5);
+    color: rgba(216, 203, 255, 0.95);
+}
+
+/* Next steps note */
+.forge-done-note {
+    font-size: 0.78em;
+    color: rgba(255, 255, 255, 0.35);
+    text-align: center;
+    line-height: 1.5;
+    max-width: 320px;
+    margin: -4px 0 0;
+}
+
+/* Done footer: Back link left, Done button right */
+.forge-pane-done .forge-footer {
+    width: 100%;
+    max-width: 340px;
+    justify-content: space-between;
+}
+
+/* ── Scrollbar nuclear override for #ionrift-compendium-forge ── */
+
+#ionrift-compendium-forge,
+#ionrift-compendium-forge * {
+    scrollbar-color: #6d28d9 rgba(0, 0, 0, 0.4) !important;
+    scrollbar-width: thin !important;
+}
+
+#ionrift-compendium-forge ::-webkit-scrollbar,
+#ionrift-compendium-forge *::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+}
+
+#ionrift-compendium-forge ::-webkit-scrollbar-track,
+#ionrift-compendium-forge *::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-radius: 4px;
+}
+
+#ionrift-compendium-forge ::-webkit-scrollbar-thumb,
+#ionrift-compendium-forge *::-webkit-scrollbar-thumb {
+    background: #6d28d9 !important;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#ionrift-compendium-forge ::-webkit-scrollbar-thumb:hover,
+#ionrift-compendium-forge *::-webkit-scrollbar-thumb:hover {
+    background: #8b5cf6 !important;
+}
+

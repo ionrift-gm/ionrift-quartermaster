@@ -1,0 +1,72 @@
+import { createQuartermasterConfigApp } from "./QuartermasterSubmenuConfigApp.js";
+import { AmmoTypeConfigApp } from "./AmmoTypeConfigApp.js";
+import { AmmoTypeRegistry } from "../services/AmmoTypeRegistry.js";
+
+export const LootGenerationConfigApp = createQuartermasterConfigApp({
+    appId: "qm-loot-generation-config",
+    title: "Loot Generation",
+    icon: "fas fa-coins",
+    lead: "Scales cache value, magic rates, ammunition, scroll overshoot, and coin breakdown.",
+    savedMessage: "Loot generation settings saved.",
+    popouts: {
+        ammoTypes: AmmoTypeConfigApp
+    },
+    rows: [
+        {
+            key: "lootEconomy",
+            label: "Loot Abundance",
+            icon: "fas fa-scale-balanced",
+            hint: "Scales the value of generated caches. Below 1.0 for scarce games. Above 1.0 for high-fantasy treasure runs.",
+            type: "range",
+            min: 0.25,
+            max: 3,
+            step: 0.25
+        },
+        {
+            key: "magicFrequency",
+            label: "Magic Frequency",
+            icon: "fas fa-wand-sparkles",
+            hint: "Likelihood of magical items (Uncommon+) in caches. 0 disables magic. 2.0 is high fantasy.",
+            type: "range",
+            min: 0,
+            max: 2,
+            step: 0.25
+        },
+        {
+            key: "magicAmmoFrequency",
+            label: "Magical Ammunition Frequency",
+            icon: "fas fa-bullseye",
+            hint: "How often +1/+2/+3 ammunition appears. Independent of Magic Frequency.",
+            type: "range",
+            min: 0,
+            max: 2,
+            step: 0.25
+        },
+        {
+            key: "ammoTypeConfig",
+            label: "Ammunition Type Curve",
+            icon: "fas fa-bullseye-arrow",
+            hint: "Weight arrows, bolts, needles, sling bullets, and custom house-rule types.",
+            type: "popout",
+            popout: "ammoTypes",
+            summary: () => AmmoTypeRegistry.getSummaryLabel()
+        },
+        {
+            key: "scrollJitter",
+            label: "Scroll Jitter",
+            icon: "fas fa-scroll",
+            hint: "How far scroll spell level can overshoot the tier cap. 0 keeps scrolls within tier limits.",
+            type: "range",
+            min: 0,
+            max: 3,
+            step: 1
+        },
+        {
+            key: "distributeCoins",
+            label: "Distribute Coinage",
+            icon: "fas fa-coins",
+            hint: "Convert cache gold into a randomized mix of cp, sp, ep, gp, and pp.",
+            type: "boolean"
+        }
+    ]
+});

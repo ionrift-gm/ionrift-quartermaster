@@ -1,5 +1,5 @@
 /**
- * ScrollForge — runtime spell scroll compendium built from GM-selected spell sources.
+ * ScrollForge - runtime spell scroll compendium built from GM-selected spell sources.
  * Writes to a world compendium so no spell text is shipped with the module.
  */
 
@@ -35,13 +35,14 @@ export class ScrollForge {
         return `world.${this.WORLD_PACK_NAME}`;
     }
 
-    static SETTING_HASH = "scrollForgeHash";
-    static SETTING_SOURCES = "scrollForgeSpellPacks";
+    static SETTING_HASH     = "scrollForgeHash";
+    static SETTING_META     = "scrollForgeMeta";
+    static SETTING_SOURCES  = "scrollForgeSpellPacks";
     static SETTING_SNAPSHOT = "scrollForgeCandidateSnapshot";
 
     /**
      * GM ready hook: silently compile with saved sources.
-     * Never opens the source-picker dialog on load — that violates the nudge
+     * Never opens the source-picker dialog on load - that violates the nudge
      * policy. If the available compendium set changed, update the snapshot and
      * log a console note so the GM can revisit sources from the Ledger UI.
      */
@@ -58,7 +59,7 @@ export class ScrollForge {
             return;
         }
 
-        // Detect snapshot drift but do NOT open the dialog — just log.
+        // Detect snapshot drift but do NOT open the dialog - just log.
         const currentSnap = this._candidateSnapshot(candidates);
         const lastSnap = game.settings.get(MODULE_ID, this.SETTING_SNAPSHOT) || "";
         if (lastSnap && currentSnap !== lastSnap) {
@@ -172,7 +173,7 @@ export class ScrollForge {
         return (h >>> 0).toString(16);
     }
 
-    static async compile() {
+    static async compile({ forceRecompile = false } = {}) {
         if (!game.user.isGM) return;
         if (game.system?.id !== "dnd5e") return;
 
@@ -196,9 +197,18 @@ export class ScrollForge {
             return;
         }
 
+        // 2024 packs win name collisions -- process them before legacy packs
+        // so seenSpellNames deduplication favours the newer content.
+        const PRIORITY_ORDER = ["dnd5e.spells24", "dnd5e.spells"];
+        spellPacks.sort((a, b) => {
+            const ai = PRIORITY_ORDER.indexOf(a.collection);
+            const bi = PRIORITY_ORDER.indexOf(b.collection);
+            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+        });
+
         const sourceHash = await this._computeSourceHash(spellPacks);
         const lastHash = game.settings.get(MODULE_ID, this.SETTING_HASH);
-        if (sourceHash === lastHash) {
+        if (!forceRecompile && sourceHash === lastHash) {
             await this.ensureSidebarPlacement();
             return;
         }
@@ -226,7 +236,7 @@ export class ScrollForge {
                     spells = all.filter(d => d.type === "spell");
                 } catch (packErr) {
                     Logger.warn(MODULE_LABEL,
-                        `Scroll Forge: could not read pack "${spellPack.collection}" — skipping. (${packErr.message})`
+                        `Scroll Forge: could not read pack "${spellPack.collection}" - skipping. (${packErr.message})`
                     );
                     continue;
                 }
@@ -253,7 +263,7 @@ export class ScrollForge {
                 } catch (spellErr) {
                     skipCount++;
                     Logger.warn(MODULE_LABEL,
-                        `Scroll Forge: skipped "${spell.name}" from ${spellPack.collection} — ${spellErr.message}`
+                        `Scroll Forge: skipped "${spell.name}" from ${spellPack.collection} - ${spellErr.message}`
                     );
                 }
             }
@@ -304,6 +314,9 @@ export class ScrollForge {
 
         if (scrollItems.length > 0 && writeOk) {
             await game.settings.set(MODULE_ID, this.SETTING_HASH, sourceHash);
+            // Persist rich metadata so the Forge UI can show "N scrolls - compiled X ago".
+            const enabledIds = spellPacks.map(p => p.collection);
+            await this._writeMeta({ compiledAt: new Date().toISOString(), scrollCount: scrollItems.length, sourceIds: enabledIds });
         }
         await this.ensureSidebarPlacement();
         const skipNote = skipCount > 0 ? ` (${skipCount} spell${skipCount !== 1 ? 's' : ''} skipped, see console)` : "";
@@ -348,71 +361,25 @@ export class ScrollForge {
     }
 
     /**
-     * Place the forged world pack next to other Quartermaster compendiums (Ionrift / Quartermaster).
-     * Uses core.compendiumConfiguration like the sidebar drag target.
+     * Place the forged world pack next to other compiled Quartermaster outputs
+     * (Ionrift > Quartermaster > Compiled). Delegates to LootPoolCompiler so
+     * all three compilers share a single, duplicate-safe folder-creation path.
      */
     static async assignForgedPackSidebarFolder(pack) {
         if (!game.user.isGM) return;
-        const folderId = await this._ensureQuartermasterCompendiumFolderId();
+        const { LootPoolCompiler } = await import("./LootPoolCompiler.js");
+        const folderId = await LootPoolCompiler._ensureCompiledFolderId();
         if (!folderId) {
             Logger.log(MODULE_LABEL,
-                "Scroll Forge: no Ionrift / Quartermaster compendium folder found. Leave ionrift-quartermaster enabled so pack folders exist, or drag the forged pack in the sidebar."
+                "Scroll Forge: could not locate or create Ionrift > Quartermaster > Compiled folder."
             );
             return;
         }
         const packId = pack.collection;
         const cfg = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
-        const currentFolder = cfg[packId]?.folder;
-        if (currentFolder === folderId) return;
+        if (cfg[packId]?.folder === folderId) return; // already correct
         cfg[packId] = foundry.utils.mergeObject(cfg[packId] ?? {}, { folder: folderId });
         await game.settings.set("core", "compendiumConfiguration", cfg);
-    }
-
-    /**
-     * Finds the "Quartermaster" compendium browser folder (child of "Ionrift").
-     * Falls back to creating the folder hierarchy if it does not exist yet.
-     * @returns {Promise<string|null>}
-     */
-    static async _ensureQuartermasterCompendiumFolderId() {
-        const cfg = game.settings.get("core", "compendiumConfiguration") ?? {};
-        const refPackId = "ionrift-quartermaster.quartermaster-containers";
-        const fromRef = cfg[refPackId]?.folder;
-        if (fromRef) {
-            const f = game.folders.get(fromRef);
-            if (f?.name === "Quartermaster") return fromRef;
-        }
-
-        const allFolders = [
-            ...game.folders.filter(f => f.type === "Compendium"),
-            ...(game.packs?.folders?.filter(f => f.type === "Compendium") ?? [])
-        ];
-        const ionriftRoots = allFolders.filter(f => f.name === "Ionrift" && !f.folder);
-        for (const ion of ionriftRoots) {
-            const qm = allFolders.find(f => f.name === "Quartermaster" && f.folder === ion.id);
-            if (qm) return qm.id;
-        }
-
-        try {
-            let ionrift = ionriftRoots[0];
-            if (!ionrift) {
-                ionrift = await Folder.create({
-                    name: "Ionrift",
-                    type: "Compendium",
-                    color: "#8b5cf6",
-                    sorting: "a"
-                });
-            }
-            const qm = await Folder.create({
-                name: "Quartermaster",
-                type: "Compendium",
-                folder: ionrift.id,
-                sorting: "a"
-            });
-            return qm.id;
-        } catch (err) {
-            Logger.warn(MODULE_LABEL, "Scroll Forge: could not create compendium folder hierarchy:", err);
-            return null;
-        }
     }
 
     /**
@@ -568,7 +535,7 @@ export class ScrollForge {
                 return plain;
             } catch (err) {
                 Logger.warn(MODULE_LABEL,
-                    `Scroll Forge: createScrollFromSpell failed for "${spell.name}" — using manual fallback. (${err.message})`
+                    `Scroll Forge: createScrollFromSpell failed for "${spell.name}" - using manual fallback. (${err.message})`
                 );
             }
         }
@@ -694,8 +661,75 @@ export class ScrollForge {
         const intersection = saved.filter(id => candidateIds.has(id));
         if (intersection.length) return intersection;
 
-        if (candidateIds.has("dnd5e.spells24")) return ["dnd5e.spells24"];
-        if (candidateIds.has("dnd5e.spells")) return ["dnd5e.spells"];
-        return [];
+        // No saved prefs: default-select both SRD spell packs when available.
+        // Collisions are resolved at compile time in favour of 2024 content.
+        const defaults = [];
+        if (candidateIds.has("dnd5e.spells24")) defaults.push("dnd5e.spells24");
+        if (candidateIds.has("dnd5e.spells"))   defaults.push("dnd5e.spells");
+        return defaults.length ? defaults : [];
+    }
+
+    // ── Status / metadata helpers (mirrors LootPoolCompiler API) ───────────
+
+    /**
+     * Synchronous status check — same contract as LootPoolCompiler.getStatus().
+     * @returns {"fresh"|"stale"|"never"|"na"}
+     */
+    static getStatus() {
+        try {
+            const hash = game.settings.get(MODULE_ID, this.SETTING_HASH);
+            if (!hash) return "never";
+            if (!game.packs.get(this.worldCollectionId)) return "stale";
+            // Source-change staleness: compare stored sourceIds vs currently enabled.
+            const meta = this.getCompiledMeta();
+            if (meta?.sourceIds?.length) {
+                let current = [];
+                try { current = JSON.parse(game.settings.get(MODULE_ID, this.SETTING_SOURCES) || "[]"); } catch { /* ok */ }
+                const stored  = new Set(meta.sourceIds);
+                const now     = new Set(current);
+                const changed = stored.size !== now.size || [...stored].some(id => !now.has(id));
+                if (changed) return "stale";
+            }
+            return "fresh";
+        } catch { return "na"; }
+    }
+
+    /**
+     * Returns the stored compile metadata, or null if none exists.
+     * @returns {{ compiledAt?: string, scrollCount?: number, sourceIds?: string[], errorAt?: string, errorMessage?: string }|null}
+     */
+    static getCompiledMeta() {
+        try {
+            const raw = game.settings.get(MODULE_ID, this.SETTING_META);
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+    }
+
+    /** Write compile metadata. Internal helper. */
+    static async _writeMeta(data) {
+        try {
+            await game.settings.set(MODULE_ID, this.SETTING_META, JSON.stringify(data));
+        } catch { /* non-fatal */ }
+    }
+
+    /**
+     * Clear the compiled scroll pack and reset hash + metadata.
+     * Mirrors LootPoolCompiler's clear pattern.
+     */
+    static async clearCompiledPack() {
+        const pack = game.packs.get(this.worldCollectionId);
+        if (pack) {
+            try {
+                const ItemClass = CONFIG.Item.documentClass;
+                const docs = await pack.getDocuments();
+                if (docs.length) {
+                    await ItemClass.deleteDocuments(docs.map(d => d.id), { pack: pack.collection });
+                }
+            } catch (err) {
+                Logger.warn(MODULE_LABEL, "ScrollForge.clearCompiledPack: partial failure:", err);
+            }
+        }
+        await game.settings.set(MODULE_ID, this.SETTING_HASH, "");
+        await game.settings.set(MODULE_ID, this.SETTING_META, "");
     }
 }

@@ -15,6 +15,7 @@
  */
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
+import { normalizeTerrainCategory } from "../../../ionrift-library/scripts/services/TerrainRegistry.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -181,7 +182,7 @@ export class TerrainDataRegistry {
             out.push({
                 id: t.id,
                 label: local?.label ?? t.label,
-                category: local?.category ?? t.category ?? "wilderness"
+                category: normalizeTerrainCategory(local?.category ?? t.category) ?? "wilderness"
             });
             seen.add(t.id);
         }
@@ -191,7 +192,7 @@ export class TerrainDataRegistry {
             out.push({
                 id: local.id,
                 label: local.label ?? this._deriveLabel(local.id),
-                category: local.category ?? "wilderness"
+                category: normalizeTerrainCategory(local.category) ?? "wilderness"
             });
         }
 
@@ -210,23 +211,23 @@ export class TerrainDataRegistry {
     }
 
     /**
-     * Terrain dropdown groups aligned with Respite (Dungeon, Safe Haven, Wilderness).
+     * Terrain dropdown groups aligned with Respite (Built, Safe Haven, Wilderness).
      * @param {string} [selectedId]
      * @returns {{ group: string, options: { id: string, label: string, selected?: boolean }[] }[]}
      */
     static getTerrainOptionGroups(selectedId) {
         const list = this.getTerrainList();
-        const dungeon = [];
+        const built = [];
         const safeHaven = [];
         const wilderness = [];
         for (const t of list) {
             const opt = { ...t, selected: t.id === selectedId };
-            if (t.category === "dungeon") dungeon.push(opt);
+            if (t.category === "built") built.push(opt);
             else if (t.category === "safe-haven") safeHaven.push(opt);
             else wilderness.push(opt);
         }
         const groups = [];
-        if (dungeon.length) groups.push({ group: "Dungeon", options: dungeon });
+        if (built.length) groups.push({ group: "Built", options: built });
         if (safeHaven.length) groups.push({ group: "Safe Haven", options: safeHaven });
         if (wilderness.length) groups.push({ group: "Wilderness", options: wilderness });
         return groups;

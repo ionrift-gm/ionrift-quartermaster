@@ -1,4 +1,4 @@
-import { Logger, MODULE_LABEL } from "../_logger.js";
+﻿import { Logger, MODULE_LABEL } from "../_logger.js";
 import { SrdCurseAdapter } from "./SrdCurseAdapter.js";
 import { CursedItemResolver } from "./CursedItemResolver.js";
 
@@ -70,7 +70,7 @@ export class StandalonePoolRegistry {
             const pack = game.packs.get(packId);
             if (!pack) return [];
 
-            // getIndex() cannot be used — Foundry V14 applies dnd5e's name
+            // getIndex() cannot be used - Foundry V14 applies dnd5e's name
             // getter, so items with identified:false return "Unidentified Consumable".
             // Full documents give us _source.name and reliable flag access.
             const docs = await pack.getDocuments();

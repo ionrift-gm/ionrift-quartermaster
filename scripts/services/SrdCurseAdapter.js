@@ -75,7 +75,8 @@ const SRD_ITEM_FALLBACKS = {
 export class SrdCurseAdapter {
     static WORLD_PACK_NAME = "ionrift-srd-cursed";
     static PACK_LABEL      = "Quartermaster: SRD Cursed Items";
-    static SETTING_HASH    = "srdCurseHash";
+    static SETTING_HASH = "srdCurseHash";
+    static SETTING_META = "srdCurseMeta";
 
     static get worldCollectionId() {
         return `world.${this.WORLD_PACK_NAME}`;
@@ -163,6 +164,12 @@ export class SrdCurseAdapter {
         }
 
         await game.settings.set(MODULE_ID, this.SETTING_HASH, sourceHash);
+        // Persist rich metadata so the Forge UI can show "N items - compiled X ago".
+        await this._writeMeta({
+            compiledAt:  new Date().toISOString(),
+            itemCount:   matchCount,
+            sourceCount: itemPacks.length,
+        });
         this._enforceOwnership();
         await this._assignSidebarFolder(pack);
 
@@ -518,7 +525,10 @@ export class SrdCurseAdapter {
 
     static async _assignSidebarFolder(pack) {
         if (!game.user.isGM) return;
-        const folderId = await this._ensureQuartermasterFolderId();
+        // Pipeline outputs share the Ionrift > Quartermaster > Compiled folder.
+        // Delegate to LootPoolCompiler so the hierarchy logic lives in one place.
+        const { LootPoolCompiler } = await import("./LootPoolCompiler.js");
+        const folderId = await LootPoolCompiler._ensureCompiledFolderId();
         if (!folderId) return;
 
         const packId = pack.collection;
@@ -585,5 +595,61 @@ export class SrdCurseAdapter {
             if (qm) return qm.id;
         }
         return null;
+    }
+
+    // ── Status / metadata helpers (mirrors LootPoolCompiler API) ───────────
+
+    /**
+     * Synchronous status check — same contract as LootPoolCompiler.getStatus().
+     * Sources are fixed (dnd5e.items + dnd5e.equipment24) so staleness is
+     * pack-deletion only; no user source-change detection needed.
+     * @returns {"fresh"|"stale"|"never"|"na"}
+     */
+    static getStatus() {
+        try {
+            const hash = game.settings.get(MODULE_ID, this.SETTING_HASH);
+            if (!hash) return "never";
+            if (!game.packs.get(this.worldCollectionId)) return "stale";
+            return "fresh";
+        } catch { return "na"; }
+    }
+
+    /**
+     * Returns the stored compile metadata, or null if none exists.
+     * @returns {{ compiledAt?: string, itemCount?: number, sourceCount?: number, errorAt?: string, errorMessage?: string }|null}
+     */
+    static getCompiledMeta() {
+        try {
+            const raw = game.settings.get(MODULE_ID, this.SETTING_META);
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+    }
+
+    /** Write compile metadata. Internal helper. */
+    static async _writeMeta(data) {
+        try {
+            await game.settings.set(MODULE_ID, this.SETTING_META, JSON.stringify(data));
+        } catch { /* non-fatal */ }
+    }
+
+    /**
+     * Clear the compiled cursed items pack and reset hash + metadata.
+     * Mirrors LootPoolCompiler's clear pattern.
+     */
+    static async clearCompiledPack() {
+        const pack = game.packs.get(this.worldCollectionId);
+        if (pack) {
+            try {
+                const ItemClass = CONFIG.Item.documentClass;
+                const docs = await pack.getDocuments();
+                if (docs.length) {
+                    await ItemClass.deleteDocuments(docs.map(d => d.id), { pack: pack.collection });
+                }
+            } catch (err) {
+                Logger.warn(MODULE_LABEL, "SrdCurseAdapter.clearCompiledPack: partial failure:", err);
+            }
+        }
+        await game.settings.set(MODULE_ID, this.SETTING_HASH, "");
+        await game.settings.set(MODULE_ID, this.SETTING_META, "");
     }
 }

@@ -6,6 +6,8 @@
 
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
+import { ItemClassifier } from "./ItemClassifier.js";
+import { AmmoTypeRegistry } from "./AmmoTypeRegistry.js";
 import { SignatureLedger } from "./SignatureLedger.js";
 import { ScrollForge } from "./ScrollForge.js";
 import { TerrainDataRegistry } from "./TerrainDataRegistry.js";
@@ -229,7 +231,7 @@ function isBundledContainerEntry(entry) {
  * theme. An entry that does NOT declare ownerThemes is treated as universal
  * and matches every owner theme. This is critical for the bundled compendium,
  * which ships with legacy `cacheTypes` ("stash", "camp_supplies", "hoard")
- * but no `ownerThemes` — those two fields name orthogonal axes and the legacy
+ * but no `ownerThemes` - those two fields name orthogonal axes and the legacy
  * cacheTypes vocabulary does not overlap with the owner theme vocabulary
  * ("unspecified", "arcana", "armaments", etc.). Treating missing ownerThemes
  * as a hard mismatch silently dropped every bundled container the moment any
@@ -535,6 +537,22 @@ export class CacheGenerator {
         // spentBudget just like filler slots. Without an override, guaranteed
         // items are uncapped (original behaviour).
         const hardCap = options.budgetMax !== null && options.budgetMax !== undefined;
+
+        // Named-magical throttle (Stance B): decide ONCE per cache whether a
+        // named magical item is eligible at all. Only one named magical item
+        // can appear per cache. The probability is low and tier-gated.
+        //   T1: 0%   - mastercraft sweet spot, no named magic
+        //   T2: 10%  - rare find, a genuine discovery
+        //   T3: 20%  - meaningful but not common
+        //   T4: 35%  - more frequent but still cache-by-cache
+        const NAMED_MAGIC_PER_CACHE = { 1: 0, 2: 0.10, 3: 0.20, 4: 0.35 };
+        const namedMagicalBudget = (() => {
+            const chance = NAMED_MAGIC_PER_CACHE[tier] ?? 0;
+            if (chance === 0) return 0;  // never
+            return Math.random() < chance ? 1 : 0;  // 0 = blocked, 1 = one allowed
+        })();
+        let namedMagicalRemaining = namedMagicalBudget;
+
         for (const slotType of drawnSlots) {
             const isGuaranteed = slotsProcessed < guaranteedCount;
 
@@ -572,14 +590,30 @@ export class CacheGenerator {
                 ? Math.max(2, weightBudget - currentWeight)
                 : 45;
 
+            // Type-aware weight floors - sentinel values that make leaked zero-weight
+            // items meaningfully heavy in container math without affecting items that
+            // are legitimately featherweight (rings, scrolls, wondrous items).
+            //   weapon  → 3 lb  (lightest real weapon: dart ~0.25 lb; 3 lb covers swords)
+            //   armor   → 4 lb  (lightest real armor: padded 8 lb; 4 lb is a safe floor)
+            //   other   → 0.01 lb (rings, scrolls, wands - canonically near-weightless)
+            const ARMOR_SUBTYPES = new Set(["heavy", "medium", "light", "shield"]);
+            const _effectiveWeight = (w, type, system) => {
+                const raw = Number(w) || 0;
+                if (type === "weapon") return Math.max(raw, 3.0);
+                if (type === "equipment" && ARMOR_SUBTYPES.has((system?.type?.value ?? "").trim()))
+                    return Math.max(raw, 4.0);
+                return Math.max(raw, 0.01);
+            };
+
             // Repick logic: reject items that are too heavy or on the GM ban list
             while (pickAttempts < 5) {
                 item = await this._pickItem(slotType, theme, tierData, tables, priceCeiling, {
                     scrollSlotsRemaining,
-                    remainingBudget
+                    remainingBudget,
+                    rejectNamedMagical: namedMagicalRemaining <= 0
                 });
                 if (!item) break;
-                if ((Number(item.weight) || 0) > weightCeiling) {
+                if (_effectiveWeight(item.weight, item.type, item.system) > weightCeiling) {
                     item = null;
                     pickAttempts++;
                 } else if (await this._isBanned(item.name)) {
@@ -611,7 +645,8 @@ export class CacheGenerator {
                     qty = this._resolveQuantity(item, { remainingWeight });
                 }
                 const totalItemPrice = Math.round((item.price ?? 0) * qty * 100) / 100;
-                const totalItemWeight = (Number(item.weight) || 0) * qty;
+                // Type-aware weight floor (see _effectiveWeight above).
+                const totalItemWeight = _effectiveWeight(item.weight, item.type, item.system) * qty;
 
                 // Weight budget check: reject if item won't fit in container
                 if (container && (currentWeight + totalItemWeight) > weightBudget && result.items.length > 0) {
@@ -623,6 +658,10 @@ export class CacheGenerator {
                     currentWeight += totalItemWeight;
                     if (!isGuaranteed || hardCap) itemSpentBudget += totalItemPrice;
                     result.items.push({ ...item, quantity: qty, price: totalItemPrice });
+                    // Consume the named-magical budget when a named magical item lands
+                    if (namedMagicalRemaining > 0 && ItemClassifier.isNamedMagical(item)) {
+                        namedMagicalRemaining--;
+                    }
                 }
                 if (debug) {
                     debugSlots.push({
@@ -666,9 +705,9 @@ export class CacheGenerator {
             CacheGenerator.applyContainerFlavor(result, theme, tables);
         }
 
-        // Curse injection point — reserved for ionrift-cursewright.
+        // Curse injection point - reserved for ionrift-cursewright.
         // Cursewright listens on this hook and runs its own applyCacheCurses().
-        // Call signature: (result, options) — result.meta.mintBatch is the batch identity key.
+        // Call signature: (result, options) - result.meta.mintBatch is the batch identity key.
         Hooks.callAll("ionrift-quartermaster.cacheGenerated", result, options);
 
         // Budget floor: if a minimum was dialled in and total value fell short, bridge with gold
@@ -860,19 +899,20 @@ export class CacheGenerator {
      * Picks a random item from the appropriate pool for this slot type.
      * Queries enabled compendiums via ItemPoolResolver.
      */
-    static async _pickItem(slotType, theme, tierData, tables, priceCeiling = Infinity, scrollOpts = {}) {
+    static async _pickItem(slotType, theme, tierData, tables, priceCeiling = Infinity, pickOpts = {}) {
         let item;
         switch (slotType) {
             case "scroll": {
-                item = await this._pickScroll(tierData, priceCeiling, scrollOpts);
+                item = await this._pickScroll(tierData, priceCeiling, pickOpts);
                 break;
             }
             case "consumable":  item = await this._pickConsumable(theme, tierData, tables, priceCeiling); break;
             case "mundane":     item = await this._pickMundane(theme, tierData, tables, priceCeiling); break;
-            case "mastercraft": item = await this._pickMastercraft(theme, tierData, priceCeiling); break;
+            case "mastercraft": item = await this._pickMastercraft(theme, tierData, priceCeiling, tables, pickOpts); break;
             case "gemstone":    item = await this._pickGemstone(theme, tierData, priceCeiling); break;
             case "trinket":     item = await this._pickTrinket(theme, tierData, priceCeiling); break;
             case "treasure":    item = await this._pickTreasure(theme, tierData, priceCeiling); break;
+            case "ammo":        item = await this._pickAmmo(theme, tierData, tables, priceCeiling, pickOpts); break;
             default:            return null;
         }
 
@@ -896,23 +936,46 @@ export class CacheGenerator {
     /**
      * Pick a cultural/mastercraft weapon or armor from the quartermaster-core compendium.
      * Filters to items priced within the tier's typical range.
+     *
+     * Stance B policy is enforced via pickOpts.rejectNamedMagical, which is
+     * set at the generate() level based on a per-cache probability roll.
      */
-    static async _pickMastercraft(theme, tierData, priceCeiling = Infinity) {
+    static async _pickMastercraft(theme, tierData, priceCeiling = Infinity, tables = null, pickOpts = {}) {
         const tier = tierData._tier ?? 1;
         const priceMax = Math.min([0, 100, 400, 1500, 5000][tier], priceCeiling);
         const priceMin = [0, 5,   30,  200,  800 ][tier];
 
         const preferredMaterials = TerrainDataRegistry.getMaterials(theme);
 
+        // T1: mastercraft sweet spot - always reject magical items.
+        // T2+: named magical gated by per-cache roll in generate() via pickOpts.rejectNamedMagical.
+        const rejectNamedMagical = pickOpts.rejectNamedMagical ?? true;
+        const rejectAllMagical = tier <= 1;
+
         // Primary: query enabled compendiums via ItemPoolResolver (includes SRD dnd5e.items)
         try {
             const item = await ItemPoolResolver.pickRandom({
                 slotType: "mastercraft",
-                tier: tierData._tier ?? 1,
+                tier,
                 theme,
-                priceCeiling
+                priceCeiling,
+                rarityMax: tierData.rarityMax ?? "uncommon",
+                rejectNamedMagical
             });
-            if (item) return { ...item, quantity: 1 };
+            if (item) {
+                // T1: reject any magical item (rarity uncommon+ or mgc property)
+                if (rejectAllMagical) {
+                    const rarity = (item.rarity ?? "").toLowerCase();
+                    const isMagical = rarity && rarity !== "common" && rarity !== "none";
+                    if (isMagical) {
+                        // Fall through to fallback (QM core packs are non-magical)
+                    } else {
+                        return { ...item, quantity: 1 };
+                    }
+                } else {
+                    return { ...item, quantity: 1 };
+                }
+            }
         } catch (e) {
             Logger.warn(MODULE_LABEL, "ItemPoolResolver failed for mastercraft:", e.message);
         }
@@ -956,6 +1019,274 @@ export class CacheGenerator {
             Logger.warn(MODULE_LABEL, "Mastercraft pool query failed:", e.message);
         }
         return null;
+    }
+
+    // ── Ammunition Picker ─────────────────────────────────────────
+
+    /**
+     * Probability of a magical ammo pick per cache tier.
+     * Scaled by the GM's `magicAmmoFrequency` setting.
+     */
+    static MAGIC_AMMO_CHANCE = { 1: 0.05, 2: 0.25, 3: 0.50, 4: 0.70 };
+
+    /**
+     * Within magical ammo, weight distribution across +1/+2/+3 per tier.
+     * Higher weight = more likely to be drawn.
+     */
+    static MAGIC_AMMO_BONUS_WEIGHTS = {
+        1: { 1: 1, 2: 0, 3: 0 },       // T1: +1 only
+        2: { 1: 6, 2: 1, 3: 0 },       // T2: mostly +1, rare +2
+        3: { 1: 3, 2: 3, 3: 1 },       // T3: +1/+2 common, occasional +3
+        4: { 1: 2, 2: 3, 3: 2 }        // T4: balanced, solid +3
+    };
+
+    /**
+     * Quantity dice [count, sides] for magical ammo, by [tier][bonus].
+     */
+    static MAGIC_AMMO_QTY_DICE = {
+        1: { 1: [1, 4] },                                     // +1: 1d4
+        2: { 1: [2, 6], 2: [1, 4], 3: [1, 4] },              // +1: 2d6, +2: 1d4, +3: 1d4
+        3: { 1: [3, 6], 2: [2, 6], 3: [1, 4] },              // +1: 3d6, +2: 2d6, +3: 1d4
+        4: { 1: [4, 6], 2: [4, 6], 3: [2, 6] }               // +1: 4d6, +2: 4d6, +3: 2d6
+    };
+
+
+    /**
+     * Pick ammunition for a cache slot. Separates mundane from magical ammo
+     * and applies a tier-respecting curve for +N magical ammunition.
+     *
+     * Named magical ammo (e.g. Walloping Ammunition) follows the same
+     * Stance B throttle as named magical weapons.
+     *
+     * @param {string} theme
+     * @param {Object} tierData
+     * @param {Object} tables
+     * @param {number} priceCeiling
+     * @param {Object} pickOpts
+     */
+    static async _pickAmmo(theme, tierData, tables, priceCeiling = Infinity, pickOpts = {}) {
+        const tier = tierData._tier ?? 1;
+        const magicAmmoFreq = game.settings?.get(MODULE_ID, "magicAmmoFrequency") ?? 1.0;
+        const ammoConfig = AmmoTypeRegistry.load();
+
+        // Resolve the full ammo pool from enabled compendiums
+        let pool = [];
+        try {
+            pool = await ItemPoolResolver.resolve({
+                slotType: "ammo",
+                tier,
+                theme,
+                fallbackTables: tables,
+                rarityMax: tierData.rarityMax ?? "uncommon"
+            });
+        } catch (e) {
+            Logger.warn(MODULE_LABEL, "ItemPoolResolver failed for ammo:", e.message);
+        }
+
+        if (!pool.length) return null;
+
+        // Price ceiling
+        const affordable = pool.filter(p => (p.price ?? 0) <= priceCeiling);
+        const finalPool = affordable.length > 0 ? affordable : pool;
+
+        // Split mundane vs magical
+        const mundane = finalPool.filter(i => {
+            const r = (i.rarity || "").toLowerCase();
+            return !r || r === "common" || r === "none";
+        });
+        const magical = finalPool.filter(i => {
+            const r = (i.rarity || "").toLowerCase();
+            return r && r !== "common" && r !== "none";
+        });
+
+        // If the consumable ammo pool has no magical entries, try picking
+        // magical ammo from the mastercraft (weapon) pool - dnd5e 5e24
+        // compendiums type "Arrows +1" as weapon, not consumable/ammo.
+        let magicalPool = magical;
+        if (magical.length === 0) {
+            try {
+                const weaponPool = await ItemPoolResolver.resolve({
+                    slotType: "mastercraft",
+                    tier,
+                    theme,
+                    fallbackTables: tables,
+                    rarityMax: tierData.rarityMax ?? "uncommon"
+                });
+                // Filter to weapon-type items that are ammo by name (+N pattern
+                // plus ammo-type name detection)
+                magicalPool = weaponPool.filter(i => {
+                    const rarity = (i.rarity || "").toLowerCase();
+                    const isMagical = rarity && rarity !== "common" && rarity !== "none";
+                    if (!isMagical) return false;
+                    const name = (i.name ?? "").toLowerCase();
+                    // Name-based: arrows, bolts, ammunition, quarrel, etc.
+                    return /\b(arrow|bolt|ammunition|quarrel|needle|bullet|sling)\b/i.test(name);
+                });
+            } catch (e) {
+                Logger.warn(MODULE_LABEL, "Magical ammo weapon pool fallback failed:", e.message);
+            }
+        }
+
+        // Decide: mundane or magical?
+        const baseChance = this.MAGIC_AMMO_CHANCE[tier] ?? 0.05;
+        const scaledChance = Math.min(1.0, baseChance * magicAmmoFreq);
+
+        let pick;
+        let isMagicalPick = false;
+
+        if (magicalPool.length > 0 && magicAmmoFreq > 0 && Math.random() < scaledChance) {
+            // Magical ammo pick - tier-respecting +N distribution
+            pick = this._pickMagicalAmmo(magicalPool, tier, pickOpts);
+            isMagicalPick = !!pick;
+        }
+
+        // Fallback to mundane if magical pick failed or wasn't attempted
+        if (!pick) {
+            const mundanePool = mundane.length > 0 ? mundane : finalPool;
+            pick = this._tiltedAmmoPick(mundanePool, ammoConfig);
+        }
+
+        if (!pick) return null;
+
+        // Quantity: magical uses tier-respecting dice, mundane uses bulk stacking
+        let qty;
+        if (isMagicalPick) {
+            qty = this._magicalAmmoQuantity(pick, tier);
+        } else {
+            // Mundane bulk: 10-50 units
+            qty = 10 + Math.floor(Math.random() * 41);
+        }
+
+        const unitPrice = pick.price ?? 0;
+        return {
+            name: pick.name,
+            type: "consumable",
+            subtype: pick.subtype ?? "ammo",
+            img: pick.img ?? "icons/weapons/ammunition/arrows-bundle-brown.webp",
+            price: Math.round(unitPrice * qty * 100) / 100,
+            weight: (pick.weight || 0.02) * qty,
+            rarity: pick.rarity ?? "common",
+            quantity: qty,
+            sourceCompendium: pick.sourceCompendium,
+            _compendiumId: pick._compendiumId,
+            _qmKind: "ammo"
+        };
+    }
+
+    /**
+     * Select a magical ammo item from the pool, respecting tier-appropriate
+     * bonus weights. Named magical ammo follows Stance B throttle.
+     *
+     * @param {Object[]} magicalPool
+     * @param {number} tier
+     * @param {Object} pickOpts
+     * @returns {Object|null}
+     */
+    static _pickMagicalAmmo(magicalPool, tier, pickOpts = {}) {
+        const weights = this.MAGIC_AMMO_BONUS_WEIGHTS[tier] ?? this.MAGIC_AMMO_BONUS_WEIGHTS[1];
+
+        // Classify magical ammo by bonus tier
+        const byBonus = { 1: [], 2: [], 3: [], named: [] };
+        for (const item of magicalPool) {
+            const bonus = ItemClassifier.detectBonusTier(item.name);
+            if (bonus >= 1 && bonus <= 3) {
+                byBonus[bonus].push(item);
+            } else {
+                byBonus.named.push(item); // Named magical ammo (Walloping, etc.)
+            }
+        }
+
+        // Build weighted draw bag for generic +N ammo
+        const drawBag = [];
+        for (const bonusStr of ["1", "2", "3"]) {
+            const bonus = parseInt(bonusStr, 10);
+            const w = weights[bonus] ?? 0;
+            if (w === 0) continue;
+            for (const item of byBonus[bonus]) {
+                // Use weight as ticket count (minimum 1)
+                const tickets = Math.max(1, Math.round(w));
+                for (let i = 0; i < tickets; i++) drawBag.push(item);
+            }
+        }
+
+        // Named magical ammo follows Stance B: only if not already throttled
+        if (!pickOpts.rejectNamedMagical && byBonus.named.length > 0) {
+            // Named magical ammo is rare - give it 1 ticket each regardless of tier
+            for (const item of byBonus.named) {
+                drawBag.push(item);
+            }
+        }
+
+        if (!drawBag.length) return null;
+        return drawBag[Math.floor(Math.random() * drawBag.length)];
+    }
+
+    /**
+     * Resolve quantity for a magical ammo pick using tier-respecting dice.
+     *
+     * @param {Object} pick
+     * @param {number} tier
+     * @returns {number}
+     */
+    static _magicalAmmoQuantity(pick, tier) {
+        const bonus = ItemClassifier.detectBonusTier(pick.name);
+        const table = this.MAGIC_AMMO_QTY_DICE[tier] ?? this.MAGIC_AMMO_QTY_DICE[1];
+        const dice = table[bonus] ?? table[1] ?? [1, 4];
+
+        // Roll NdS
+        let total = 0;
+        for (let i = 0; i < dice[0]; i++) {
+            total += 1 + Math.floor(Math.random() * dice[1]);
+        }
+        return Math.max(1, total);
+    }
+
+    /**
+     * Pick an ammo item from the pool, applying the GM's ammo type curve.
+     *
+     * Uses TYPE-FIRST selection: picks which ammo category to draw from
+     * using configured weights, then selects one random item within that
+     * category. This prevents pool-composition bias where one type dominates
+     * simply by having more compendium entries.
+     *
+     * @param {Object[]} pool
+     * @param {{ types: object[] }} ammoConfig
+     * @returns {Object|null}
+     */
+    static _tiltedAmmoPick(pool, ammoConfig) {
+        if (!pool.length) return null;
+
+        const config = ammoConfig ?? AmmoTypeRegistry.load();
+        const weightMap = AmmoTypeRegistry.getWeightMap(config);
+
+        /** @type {Record<string, object[]>} */
+        const byType = {};
+        for (const typeEntry of config.types) byType[typeEntry.id] = [];
+
+        for (const item of pool) {
+            const typeId = AmmoTypeRegistry.detectType(item, config);
+            (byType[typeId] ??= []).push(item);
+        }
+
+        const availableTypes = Object.entries(byType).filter(([, items]) => items.length > 0);
+        if (!availableTypes.length) return null;
+
+        const typeBag = [];
+        for (const [typeName, items] of availableTypes) {
+            const rawWeight = weightMap[typeName] ?? 1;
+            if (rawWeight <= 0) continue;
+            const w = Math.max(1, Math.round(rawWeight * 3));
+            for (let i = 0; i < w; i++) typeBag.push(typeName);
+        }
+
+        if (!typeBag.length) {
+            const [typeName, items] = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+            return items[Math.floor(Math.random() * items.length)];
+        }
+
+        const chosenType = typeBag[Math.floor(Math.random() * typeBag.length)];
+        const chosenPool = byType[chosenType];
+        return chosenPool[Math.floor(Math.random() * chosenPool.length)];
     }
 
     /**
@@ -1457,7 +1788,7 @@ export class CacheGenerator {
         }
 
         Logger.warn(MODULE_LABEL,
-            `No scroll available (tier ${tier}, min ${minLevel}) — ` +
+            `No scroll available (tier ${tier}, min ${minLevel}) - ` +
             `ensure Scroll Forge is compiled with spell sources enabled.`
         );
         return null;
@@ -1746,6 +2077,83 @@ export class CacheGenerator {
     }
 
     /**
+     * Recognises thrown weapons that should arrive as a stack rather than
+     * a single item.  Detection is name-pattern first so it works against
+     * plain SRD index entries that may not expose system.properties.
+     *
+     * Covered items and their typical 5e unit prices:
+     *   dart      0.05 gp  (already stacks via price logic, but qty is too low)
+     *   javelin   0.5  gp  (would stack, but slow; we want explicit control)
+     *   handaxe   5    gp  (price gate blocks stacking entirely — needs override)
+     *
+     * @param {object} item
+     * @returns {boolean}
+     */
+    static _isThrownWeapon(item) {
+        if (item.type !== "weapon") return false;
+
+        const name = (item.name ?? "").toLowerCase().trim();
+
+        // Name-pattern match covers all SRD items regardless of system data depth
+        if (/\bdarts?\b/.test(name))     return true;
+        if (/\bjavelins?\b/.test(name))  return true;
+        if (/\bhand.?axe/.test(name))    return true;
+
+        // System-properties fallback for custom items that carry the thrown flag
+        const props = item.system?.properties;
+        if (!props) return false;
+        // dnd5e stores properties as a Set, object, or array depending on version
+        if (props instanceof Set)   return props.has("thr") || props.has("thrown");
+        if (Array.isArray(props))   return props.includes("thr") || props.includes("thrown");
+        if (typeof props === "object") return !!(props.thr || props.thrown);
+        return false;
+    }
+
+    /**
+     * Dice-based quantity for thrown weapons.
+     *
+     * Quantities are shaped around realistic battlefield loadouts:
+     *   darts    4d4  → avg 10, range 4-16  (light, cheap, pocketable by the handful)
+     *   javelins 2d4  → avg  5, range 2-8   (5e standard soldier kit)
+     *   handaxes 1d3  → avg  2, range 1-3   (valuable enough to carry 1-3)
+     *   generic  1d4  → avg  2, range 1-4   (safe default for unknown thrown)
+     *
+     * Result is always capped by the container's remaining weight budget.
+     *
+     * @param {object} item
+     * @param {Object} [opts]
+     * @param {number|null} [opts.remainingWeight]
+     * @returns {number}
+     */
+    static _resolveThrownWeaponQuantity(item, opts = {}) {
+        const name = (item.name ?? "").toLowerCase();
+
+        let qty;
+        if (/\bdarts?\b/.test(name)) {
+            // 4d4: 4 dice of d4
+            qty = [1,2,3,4].reduce((s) => s + 1 + Math.floor(Math.random() * 4), 0);
+        } else if (/\bjavelins?\b/.test(name)) {
+            // 2d4
+            qty = [1,2].reduce((s) => s + 1 + Math.floor(Math.random() * 4), 0);
+        } else if (/\bhand.?axe/.test(name)) {
+            // 1d3
+            qty = 1 + Math.floor(Math.random() * 3);
+        } else {
+            // generic thrown: 1d4
+            qty = 1 + Math.floor(Math.random() * 4);
+        }
+
+        // Weight-budget cap: never let the stack claim more than half remaining capacity
+        const unitWeight = Number(item.weight) || 0;
+        if (unitWeight > 0 && typeof opts.remainingWeight === "number" && opts.remainingWeight > 0) {
+            const weightCap = Math.max(1, Math.floor((opts.remainingWeight * 0.5) / unitWeight));
+            qty = Math.min(qty, weightCap);
+        }
+
+        return Math.max(1, qty);
+    }
+
+    /**
      * @param {object} item
      * @param {Object} [opts]
      * @param {number|null} [opts.remainingWeight]
@@ -1783,7 +2191,7 @@ export class CacheGenerator {
     }
 
     /**
-     * @deprecated Stub scroll generator — retained only for reroll compatibility.
+     * @deprecated Stub scroll generator - retained only for reroll compatibility.
      * ScrollForge is now the sole source of scroll items. _pickScroll returns null
      * when no eligible scroll exists; the slot loop handles the empty pick.
      * TODO: Remove once reroll paths are confirmed to never call this directly.
@@ -1890,6 +2298,13 @@ export class CacheGenerator {
 
         if (this._isRationOrWaterItem(item)) {
             return this._resolveRationWaterQuantity(item, opts);
+        }
+
+        // Thrown weapons: dice-based quantity reflecting battlefield loadouts
+        // (darts 4d4, javelins 2d4, handaxes 1d3).  Checked before the price
+        // gate so e.g. handaxes at 5 gp aren't silently capped to qty 1.
+        if (this._isThrownWeapon(item)) {
+            return this._resolveThrownWeaponQuantity(item, opts);
         }
 
         // Bulk ammo/feed: large stacks; ignore compendium rarity typos and weight caps.

@@ -1,0 +1,46 @@
+{{!-- Phase 2: Compile progress --}}
+<div class="forge-pane-compile">
+    <div class="forge-anvil-wrap">
+        <i class="fas fa-hammer forge-anvil-icon"></i>
+    </div>
+
+    {{#if isScrollForge}}
+    <h3 class="forge-compile-title">Forging Spell Scrolls...</h3>
+    {{else if isCursedItems}}
+    <h3 class="forge-compile-title">Compiling Cursed Pool...</h3>
+    {{else}}
+    <h3 class="forge-compile-title">Compiling Loot Pool...</h3>
+    {{/if}}
+
+    <p class="forge-compile-phase">{{phaseLabel}}</p>
+
+    {{!-- Loot Pool: determinate progress bar + item log --}}
+    {{#unless indeterminate}}
+    <div class="forge-progress-track">
+        <div class="forge-progress-bar" style="width: {{progressPct}}%"></div>
+    </div>
+    <p class="forge-progress-stats">{{progress.current}} / {{progress.total}} items</p>
+
+    {{#if progress.log.length}}
+    <ul class="forge-log">
+        {{#each progress.log}}
+        <li><i class="fas fa-check-circle forge-log-check"></i> {{this}}</li>
+        {{/each}}
+    </ul>
+    {{/if}}
+    {{/unless}}
+
+    {{!-- Scroll Forge / Cursed Items: indeterminate spinner --}}
+    {{#if indeterminate}}
+    <div class="forge-progress-track forge-progress-indeterminate">
+        <div class="forge-progress-bar-sweep"></div>
+    </div>
+    <p class="forge-indeterminate-note">This may take a moment for large compendiums.</p>
+    {{/if}}
+
+    <footer class="forge-footer forge-footer-compile">
+        <button type="button" class="forge-cancel-link forge-back">
+            Cancel
+        </button>
+    </footer>
+</div>

@@ -1,0 +1,70 @@
+{{!-- Phase 3: Done / compiled result --}}
+<div class="forge-pane-done">
+    <div class="forge-done-check">
+        <i class="fas fa-circle-check"></i>
+    </div>
+
+    {{#if isScrollForge}}
+    <h3 class="forge-done-title">Scrolls Forged</h3>
+    <p class="forge-done-subtitle">Spell scroll pool is ready for loot generation.</p>
+    {{else if isCursedItems}}
+    <h3 class="forge-done-title">Cursed Pool Compiled</h3>
+    <p class="forge-done-subtitle">Cursed item pool is ready.</p>
+    {{else}}
+    <h3 class="forge-done-title">Loot Pool Compiled</h3>
+    <p class="forge-done-subtitle">Ready for cache generation.</p>
+    {{/if}}
+
+    <div class="forge-stat-cards">
+        <div class="forge-stat-card">
+            {{#if isScrollForge}}
+            <i class="fas fa-scroll"></i>
+            {{else if isCursedItems}}
+            <i class="fas fa-skull"></i>
+            {{else}}
+            <i class="fas fa-treasure-chest"></i>
+            {{/if}}
+            <span class="forge-stat-value">{{doneResult.primary.value}}</span>
+            <span class="forge-stat-label">{{doneResult.primary.label}}</span>
+        </div>
+        <div class="forge-stat-card">
+            {{#if isScrollForge}}
+            <i class="fas fa-book-sparkles"></i>
+            {{else if isCursedItems}}
+            <i class="fas fa-database"></i>
+            {{else}}
+            <i class="fas fa-wand-magic-sparkles"></i>
+            {{/if}}
+            <span class="forge-stat-value">{{doneResult.secondary.value}}</span>
+            <span class="forge-stat-label">{{doneResult.secondary.label}}</span>
+        </div>
+        {{#if doneResult.tertiary}}
+        <div class="forge-stat-card">
+            <i class="fas fa-database"></i>
+            <span class="forge-stat-value">{{doneResult.tertiary.value}}</span>
+            <span class="forge-stat-label">{{doneResult.tertiary.label}}</span>
+        </div>
+        {{/if}}
+    </div>
+
+    {{#if doneResult.showViewPack}}
+    <button type="button" class="forge-view-compendium cache-btn-ghost" data-pack-id="{{doneResult.packId}}">
+        <i class="fas fa-book-open"></i> View Compendium
+    </button>
+    {{/if}}
+
+    <p class="forge-done-note">
+        {{#if isScrollForge}}Scroll caches will now include forged spell scrolls. No further action needed until your spell sources change.
+        {{else if isCursedItems}}Cursed item pool is updated. No further action needed until your sources change.
+        {{else}}Your loot caches will now include expanded 2024 weapon variants. No further action needed until you change your source configuration.{{/if}}
+    </p>
+
+    <footer class="forge-footer">
+        <button type="button" class="forge-cancel-link forge-back">
+            <i class="fas fa-arrow-left"></i> Back to Sources
+        </button>
+        <button type="button" class="cache-btn-accent forge-done">
+            Done
+        </button>
+    </footer>
+</div>

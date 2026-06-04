@@ -1,5 +1,7 @@
 import { CacheGenerator } from "../services/CacheGenerator.js";
 import { ItemMaskingHelper } from "../services/ItemMaskingHelper.js";
+import { ItemPoolResolver } from "../services/ItemPoolResolver.js";
+import { LootPoolCompiler } from "../services/LootPoolCompiler.js";
 import { PartyShelfPool } from "../services/PartyShelfPool.js";
 import { ProgressionAdvisor } from "../services/ProgressionAdvisor.js";
 import { SignatureLedger } from "../services/SignatureLedger.js";
@@ -65,7 +67,7 @@ function formatGpShort(gp) {
 }
 
 function formatBracketLabel(min, max) {
-    return `${formatGpShort(min)}–${formatGpShort(max)} gp`;
+    return `${formatGpShort(min)}-${formatGpShort(max)} gp`;
 }
 
 function bracketMidpoint(bracket) {
@@ -224,6 +226,19 @@ export class CacheGeneratorApp extends Application {
         }));
         const budgetRangeLabel = formatBracketLabel(budgetMin, budgetMax);
 
+        // Detect whether any loot pool compendium is configured. When empty the
+        // Generate button is replaced with a nudge so the GM sets up sources first.
+        const hasLootPool = ItemPoolResolver.getEnabledSources().length > 0;
+
+        // Forge status pip -- shown inline next to Generate when a compiled pool
+        // is stale or missing so the GM can act without leaving the generator.
+        // Only surfaced when 2024 architecture is present (i.e. compilation matters).
+        const forgeStatus     = LootPoolCompiler.is2024ArchitecturePresent()
+            ? LootPoolCompiler.getStatus()
+            : null;
+        const forgeStalePip   = forgeStatus === "stale" || forgeStatus === "error";
+        const forgeNeverPip   = forgeStatus === "never";
+
         return {
             tier,
             theme,
@@ -240,6 +255,10 @@ export class CacheGeneratorApp extends Application {
             result:    this._currentResult,
             generating: this._generating,
             hasResult: !!this._currentResult,
+            hasLootPool,
+            forgeStalePip,
+            forgeNeverPip,
+
             container,
             fillPct,
             overweightClass,
@@ -290,7 +309,7 @@ export class CacheGeneratorApp extends Application {
                         name: CursedItemResolver.resolveFromMap(_nm, entry.uuid) ?? entry.name
                     }));
                 }
-            } catch { /* unreadable pack — stored names are used as-is */ }
+            } catch { /* unreadable pack - stored names are used as-is */ }
 
         } catch (err) {
             Logger.warn(MODULE_LABEL, "Cursed pool refresh failed:", err.message);
@@ -555,7 +574,7 @@ export class CacheGeneratorApp extends Application {
         if (curseEntry) {
             for (const item of items) {
                 // Only badge items that were explicitly injected as cursed (advisory panel).
-                // Regular consumables with the same display name are clean — do not badge them.
+                // Regular consumables with the same display name are clean - do not badge them.
                 if (item._specialSection && item._specialType === "cursed" && item.name === curseEntry.decoyName) {
                     item.cursed = true;
                     item.cursedAs = curseEntry.trueItem;
@@ -642,6 +661,13 @@ export class CacheGeneratorApp extends Application {
         super.activateListeners(html);
 
         html.find(".action-generate").click(this._onGenerate.bind(this));
+
+        // Loot pool nudge: opens CompendiumForgeApp on the Loot Pool tab so the
+        // GM can configure sources before attempting generation.
+        html.find(".action-open-pool-compiler, .action-open-forge-from-pip").click(async () => {
+            const { CompendiumForgeApp } = await import("./CompendiumForgeApp.js");
+            new CompendiumForgeApp({}, { activeTab: "lootPool" }).render(true);
+        });
         html.find(".action-reroll-slot").click(this._onRerollSlot.bind(this));
         html.find(".action-remove-slot").click(this._onRemoveSlot.bind(this));
         html.find(".action-qty-up").click(this._onQtyStep.bind(this, 1));
@@ -1166,7 +1192,7 @@ export class CacheGeneratorApp extends Application {
         btn.querySelector("i")?.classList.toggle("fa-chevron-up", !isCollapsed);
     }
 
-    /** Generic reroll handler — advance the index for the row key in reroll state. */
+    /** Generic reroll handler - advance the index for the row key in reroll state. */
     _onRerollAdvisoryRow(event) {
         event.preventDefault();
         const key = event.currentTarget.dataset.rerollKey;
@@ -1178,7 +1204,7 @@ export class CacheGeneratorApp extends Application {
 
     /**
      * Reroll a specific advisory pool section (scroll plan, party shelf, or cursed pool).
-     * Ignores "ripe" gating — pulls a fresh random slice from the full pool.
+     * Ignores "ripe" gating - pulls a fresh random slice from the full pool.
      * For cursed pool: bypasses recipe-only items and draws anything from the full pool.
      */
     async _onRerollPanelPool(event) {
@@ -1192,7 +1218,7 @@ export class CacheGeneratorApp extends Application {
         this._poolRerollMode.add(pool);
 
         if (pool === "partyShelf") {
-            // Force a fresh ephemeral draw — re-shuffle by clearing current pool first
+            // Force a fresh ephemeral draw - re-shuffle by clearing current pool first
             this._partyShelfPool = [];
             await this._refreshPartyShelfPool(tier);
             // Rotate through the pool so repeated clicks surface different rows
@@ -1213,7 +1239,7 @@ export class CacheGeneratorApp extends Application {
             }
         } else if (pool === "scroll") {
             // Shuffle the advisory scrolls array in-place to surface a different subset.
-            // Do NOT call _refreshAdvisoryForCurrentCache() — that would re-fetch all pools
+            // Do NOT call _refreshAdvisoryForCurrentCache() - that would re-fetch all pools
             // and cause partyShelf and cursedPool to randomise as a side-effect.
             if (this._advisory?.scrolls?.length > 1) {
                 this._advisory.scrolls = [...this._advisory.scrolls].sort(() => Math.random() - 0.5);
@@ -1311,7 +1337,7 @@ export class CacheGeneratorApp extends Application {
         this._recalcContainerCapacity();
     }
 
-    /** Shared inject helper — resolves UUID to item data and pushes to result. */
+    /** Shared inject helper - resolves UUID to item data and pushes to result. */
     async _injectItem(entry, { badge = "Advisory", markDelivered = false, treatAsSignature = false, markCursed = false } = {}) {
         if (!this._currentResult) return;
 
@@ -1390,7 +1416,7 @@ export class CacheGeneratorApp extends Application {
         }
 
         // ── Cursed item name resolution ──────────────────────────────────────────
-        // CurseForge items have system.identified=false by design — dnd5e overrides
+        // CurseForge items have system.identified=false by design - dnd5e overrides
         // .name to "Unidentified [type]" in that state. This is normal, not an error.
         // Resolve the GM-facing display name from flags and flip identified:true on
         // the preview data so the cache UI shows the real lure/item name.
@@ -1412,7 +1438,7 @@ export class CacheGeneratorApp extends Application {
                     }
                     CursedItemResolver.ensureIdentified(itemData);
                     Logger.info(MODULE_LABEL,
-                        `[CacheGen] Cursed item "${displayName}" — resolved display name from flags (identified:false is expected). Lure surface: "${priorName}".`
+                        `[CacheGen] Cursed item "${displayName}" - resolved display name from flags (identified:false is expected). Lure surface: "${priorName}".`
                     );
                 }
                 // If no display name found in flags, the stored entry.name from
@@ -1855,7 +1881,7 @@ export class CacheGeneratorApp extends Application {
             // Diagnostic: full pile placement audit so the masking pipeline is
             // observable end-to-end. Each row shows the masked surface name IP
             // will see, the underlying lure (if any), infected count, and the
-            // canStack flag — the three things that decide whether IP merges
+            // canStack flag - the three things that decide whether IP merges
             // identical-looking masked rows on pile creation or actor takes.
             const QM_FLAG = "ionrift-quartermaster";
             const pileAudit = pileItems.map((it) => ({
@@ -1898,7 +1924,7 @@ export class CacheGeneratorApp extends Application {
                     canStackItems:   true,
                     canInspectItems: true,
                     deleteWhenEmpty: "yes",
-                    // Currency sharing disabled — players can take as much as they want
+                    // Currency sharing disabled - players can take as much as they want
                     shareCurrenciesEnabled: false
                 },
                 itemPileFlags: {

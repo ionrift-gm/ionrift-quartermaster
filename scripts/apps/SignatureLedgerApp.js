@@ -1,4 +1,4 @@
-import { SignatureLedger } from "../services/SignatureLedger.js";
+﻿import { SignatureLedger } from "../services/SignatureLedger.js";
 import { ProgressionSeeder }  from "../services/ProgressionSeeder.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { SrdCurseAdapter } from "../services/SrdCurseAdapter.js";
@@ -53,7 +53,7 @@ function cursePoolTierViewFields(tier) {
 
 
 /**
- * Width (0–100) of the “level reached” band across the milestone strip: full columns
+ * Width (0-100) of the “level reached” band across the milestone strip: full columns
  * for completed milestones, plus a fractional segment into the next column (by level).
  */
 function computeLevelRangeBarPct(level, milestones) {
@@ -78,7 +78,7 @@ function computeLevelRangeBarPct(level, milestones) {
 }
 
 /**
- * 0–1 vibrancy vs level band tip on the strip (same space as levelRangeBarPct).
+ * 0-1 vibrancy vs level band tip on the strip (same space as levelRangeBarPct).
  * Full color once the tip is at least 25% into this column, or past it.
  * About one column before the tip reaches the slot: ~0.5. Farther: falls to 0 (grayscale in CSS).
  */
@@ -106,7 +106,7 @@ function computeReachBlendFromBar(barPct, columnIndex, milestoneCount) {
     return Math.max(0, 0.5 * (1 - (slotsBefore - 1) / falloffSlots));
 }
 
-/** 0–1: band penetration into this column (0 until tip enters, ~1 across the slot). */
+/** 0-1: band penetration into this column (0 until tip enters, ~1 across the slot). */
 function computeReachGlowPenetration(barPct, columnIndex, milestoneCount) {
     const n = Math.max(1, Number(milestoneCount) || 1);
     const edge = Math.max(0, Math.min(100, Number(barPct) || 0));
@@ -285,7 +285,7 @@ export class SignatureLedgerApp extends Application {
             SignatureLedger.getBanList()
         ]);
 
-        // Cursed Pool tab is always shown — works standalone (SRD stubs via
+        // Cursed Pool tab is always shown - works standalone (SRD stubs via
         // SrdCurseAdapter) or with Cursewright for the full premium experience.
         const curseSystemEnabled = true;
         const cwPresent = !!game.ionrift?.cursewright;
@@ -305,7 +305,7 @@ export class SignatureLedgerApp extends Application {
             let _forgedNameMap = new Map();
             try {
                 _forgedNameMap = await CursedItemResolver.buildForgedNameMap();
-            } catch { /* unreadable pack — fall through to stored names */ }
+            } catch { /* unreadable pack - fall through to stored names */ }
 
             const cursedPoolResolved = cursedPoolRaw.map(entry => ({
                 ...entry,
@@ -317,7 +317,7 @@ export class SignatureLedgerApp extends Application {
 
             const typeSet   = new Set(annotated.map(e => (e.curseType || "").toLowerCase()).filter(Boolean));
 
-            // Per-source item counts — drive the source button active states
+            // Per-source item counts - drive the source button active states
             const cwPoolCount  = annotated.filter(p => (p.uuid || "").includes("ionrift-cursewright-forged")).length;
             const srdPoolCount = annotated.filter(p => (p.uuid || "").includes("ionrift-srd-cursed")).length;
 
@@ -930,12 +930,12 @@ export class SignatureLedgerApp extends Application {
 
     /**
      * Pool cards grouped into tier lanes that line up under planned milestone columns
-     * (T1: Lv 3–5, T2: 8–12, T3: 16, T4: 20). Each entry includes `poolIndex` for drag/remove.
+     * (T1: Lv 3-5, T2: 8-12, T3: 16, T4: 20). Each entry includes `poolIndex` for drag/remove.
      */
     static _buildCursedPoolLanes(cursedPool) {
         const lanes = [
-            { tier: 1, laneHead: "T1 · Lv 3–5", items: [] },
-            { tier: 2, laneHead: "T2 · Lv 8–12", items: [] },
+            { tier: 1, laneHead: "T1 · Lv 3-5", items: [] },
+            { tier: 2, laneHead: "T2 · Lv 8-12", items: [] },
             { tier: 3, laneHead: "T3 · Lv 16", items: [] },
             { tier: 4, laneHead: "T4 · Lv 20", items: [] }
         ];
@@ -1415,7 +1415,7 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-toggle-used").click(this._onToggleCursedUsed.bind(this));
         html.find(".action-reroll-cursed-slot").click(this._onRerollCursedSlot.bind(this));
 
-        // Cursed tab: CurseRegistryPanel launch — delegates to Cursewright
+        // Cursed tab: CurseRegistryPanel launch - delegates to Cursewright
         html.find(".action-open-curse-registry").click(ev => {
             ev.preventDefault();
             const cw = game.ionrift?.cursewright;
@@ -1572,7 +1572,7 @@ export class SignatureLedgerApp extends Application {
         if (PartyRosterApp) {
             new PartyRosterApp().render(true);
         } else {
-            // Defensive fallback — should not reach here with library >= 2.0.0
+            // Defensive fallback - should not reach here with library >= 2.0.0
             ui.notifications.warn("Party Roster requires Ionrift Library v2.0.0 or later.");
         }
     }
@@ -1825,7 +1825,7 @@ export class SignatureLedgerApp extends Application {
 
     /**
      * Canonical occupant lookup: find the entry at (level, slotIdx) using raw slotOrder.
-     * Do NOT bucket-rebuild — that is for view-model only.
+     * Do NOT bucket-rebuild - that is for view-model only.
      */
     static _slotOccupant(pins, level, slotIdx, cap) {
         const idx = Math.min(cap - 1, Math.max(0, Number(slotIdx) || 0));
@@ -2128,7 +2128,7 @@ export class SignatureLedgerApp extends Application {
     // ── Cursed: Pool Management ─────────────────────────────────────────
 
     /**
-     * "Load SRD Cursed Items" button — always available regardless of CW.
+     * "Load SRD Cursed Items" button - always available regardless of CW.
      * Force-recompiles the 12 SRD stubs from dnd5e packs and seeds the pool.
      * Idempotent: items already in pool are skipped by UUID.
      */
@@ -2224,17 +2224,17 @@ export class SignatureLedgerApp extends Application {
             return this._onLoadSrdCursedItems(event);
         }
 
-        // Silent compile — no dialog, auto-detected packs
+        // Silent compile - no dialog, auto-detected packs
         const { CurseForge } = await import(`/modules/ionrift-cursewright/scripts/services/CurseForge.js`);
 
-        // If the world pack was deleted manually the CW hash setting is stale —
+        // If the world pack was deleted manually the CW hash setting is stale -
         // compile() will see "hash unchanged" and no-op, leaving the pack missing.
         // Detect this and clear the hash so compile() runs in full.
         const cwPackId = CurseForge.worldCollectionId;
         if (!game.packs.get(cwPackId)) {
-            Logger.warn(MODULE_LABEL, "_onRebuildCursedPool: world pack missing — clearing hash to force recompile.");
+            Logger.warn(MODULE_LABEL, "_onRebuildCursedPool: world pack missing - clearing hash to force recompile.");
             try { await game.settings.set("ionrift-cursewright", CurseForge.SETTING_HASH, ""); }
-            catch (e) { /* setting may not exist yet — that's fine */ }
+            catch (e) { /* setting may not exist yet - that's fine */ }
         }
 
         ui.notifications.info("Cursewright: compiling cursed items from D&D 5e sources...");
@@ -2269,7 +2269,7 @@ export class SignatureLedgerApp extends Application {
         }
         catch (e) { Logger.error(MODULE_LABEL, "_seedPoolFromForgedPack: could not read forged pack", e); return; }
 
-        // Strip existing CW items — their UUIDs are invalidated when the pack is rebuilt.
+        // Strip existing CW items - their UUIDs are invalidated when the pack is rebuilt.
         let pool = await getActiveCursedRegistry().getCursedPool();
         pool = pool.filter(p => !(p.uuid || "").includes("ionrift-cursewright-forged"));
 
@@ -2320,7 +2320,7 @@ export class SignatureLedgerApp extends Application {
      * "Add New Items" button handler (CW path) / "Import All" (standalone path).
      *
      * CW path: pulls directly from the compiled Cursewright world pack.
-     *          No configuration needed — the forged pack IS the source.
+     *          No configuration needed - the forged pack IS the source.
      * Standalone path: pulls from compendiums registered in CursedSourcesApp.
      * Skips items already in the pool (idempotent by UUID).
      */
@@ -2396,7 +2396,7 @@ export class SignatureLedgerApp extends Application {
     }
 
     /**
-     * "Browse & Pick" button handler (standalone) — opens CursedImportApp for
+     * "Browse & Pick" button handler (standalone) - opens CursedImportApp for
      * hand-picking individual items from a compendium. This was previously the
      * action incorrectly assigned to "Add from Compendium" / "Import All".
      */
@@ -2676,7 +2676,7 @@ export class SignatureLedgerApp extends Application {
         const input = html[0]?.querySelector(inputSelector);
         if (!input) return;
 
-        /** Shared filter runner — called by both text input and type dropdown. */
+        /** Shared filter runner - called by both text input and type dropdown. */
         const runFilter = () => {
             const query = input.value.toLowerCase().trim();
             const typeSelect = html[0]?.querySelector(".cursed-pool-type-filter");
@@ -3287,7 +3287,7 @@ SignatureLedgerApp.prototype._hideItemTooltip = function() {
 };
 
 SignatureLedgerApp.prototype._stripHtml = function(html) {
-    // Remove Foundry enricher syntax before parsing — they appear as @UUID[...]{label} or @Compendium[...]
+    // Remove Foundry enricher syntax before parsing - they appear as @UUID[...]{label} or @Compendium[...]
     const noEnrichers = html
         .replace(/@(?:UUID|Compendium|Actor|Item|Scene|RollTable|JournalEntry|Macro)\[[^\]]*\]\{([^}]*)\}/g, "$1")
         .replace(/@(?:UUID|Compendium|Actor|Item|Scene|RollTable|JournalEntry|Macro)\[[^\]]*\]/g, "");

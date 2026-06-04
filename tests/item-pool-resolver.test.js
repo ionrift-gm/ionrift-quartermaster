@@ -405,6 +405,70 @@ describe("ItemPoolResolver._isPlaceholderPoolEntry", () => {
     });
 });
 
+// ── _isBulkAmmoCollection ─────────────────────────────────────────────────
+
+describe("ItemPoolResolver._isBulkAmmoCollection", () => {
+
+    it("flags Arrows (2024 20-pack bundle)", () => {
+        const entry = { type: "consumable", name: "Arrows", system: { type: { value: "ammo" } } };
+        expect(ItemPoolResolver._isBulkAmmoCollection(entry)).toBe(true);
+    });
+
+    it("flags Bolts", () => {
+        const entry = { type: "consumable", name: "Bolts", system: { type: { value: "ammo" } } };
+        expect(ItemPoolResolver._isBulkAmmoCollection(entry)).toBe(true);
+    });
+
+    it("flags Bullets, Sling", () => {
+        const entry = { type: "consumable", name: "Bullets, Sling", system: { type: { value: "ammo" } } };
+        expect(ItemPoolResolver._isBulkAmmoCollection(entry)).toBe(true);
+    });
+
+    it("flags Bullets, Firearm", () => {
+        const entry = { type: "consumable", name: "Bullets, Firearm", system: { type: { value: "ammo" } } };
+        expect(ItemPoolResolver._isBulkAmmoCollection(entry)).toBe(true);
+    });
+
+    it("flags Needles", () => {
+        const entry = { type: "consumable", name: "Needles", system: { type: { value: "ammo" } } };
+        expect(ItemPoolResolver._isBulkAmmoCollection(entry)).toBe(true);
+    });
+
+    it("does NOT flag singular Arrow", () => {
+        const entry = { type: "consumable", name: "Arrow", system: { type: { value: "ammo" } } };
+        expect(ItemPoolResolver._isBulkAmmoCollection(entry)).toBe(false);
+    });
+
+    it("does NOT flag Arrow +1 (magic ammo)", () => {
+        const entry = { type: "consumable", name: "Arrow +1", system: { type: { value: "ammo" } } };
+        expect(ItemPoolResolver._isBulkAmmoCollection(entry)).toBe(false);
+    });
+
+    it("does NOT flag Arrow of Slaying", () => {
+        const entry = { type: "consumable", name: "Arrow of Slaying", system: { type: { value: "ammo" } } };
+        expect(ItemPoolResolver._isBulkAmmoCollection(entry)).toBe(false);
+    });
+
+    it("does NOT flag non-ammo items named Arrows", () => {
+        const entry = { type: "loot", name: "Arrows", system: { type: { value: "gear" } } };
+        expect(ItemPoolResolver._isBulkAmmoCollection(entry)).toBe(false);
+    });
+
+    it("excludes Arrows via _isExcluded integration", () => {
+        const entry = { type: "consumable", name: "Arrows", system: { type: { value: "ammo" } } };
+        expect(ItemPoolResolver._isExcluded(entry)).toBe(true);
+    });
+
+    it("allows singular Arrow through _isExcluded", () => {
+        const entry = {
+            type: "consumable",
+            name: "Arrow",
+            system: { type: { value: "ammo" }, price: 0.05, weight: 0.05, rarity: "" }
+        };
+        expect(ItemPoolResolver._isExcluded(entry)).toBe(false);
+    });
+});
+
 // ── _isGmPlacedPoisonPotion ───────────────────────────────────────────────
 
 describe("ItemPoolResolver._isGmPlacedPoisonPotion", () => {
@@ -519,6 +583,85 @@ describe("ItemPoolResolver._isZeroDataPlaceholder", () => {
         expect(ItemPoolResolver._isExcluded(deck)).toBe(false);
     });
 });
+
+// ── _isZeroWeightWeaponTemplate ──────────────────────────────────────────
+
+describe("ItemPoolResolver._isZeroWeightWeaponTemplate", () => {
+
+    it("flags Dragon Slayer — named weapon template with no subtype", () => {
+        const entry = {
+            type: "weapon",
+            name: "Dragon Slayer",
+            system: { weight: 0, price: { value: 4000, denomination: "gp" }, rarity: "rare", type: { value: "" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightWeaponTemplate(entry)).toBe(true);
+    });
+
+    it("flags Holy Avenger — subtype is literal dash", () => {
+        const entry = {
+            type: "weapon",
+            name: "Holy Avenger",
+            system: { weight: 0, price: { value: 200000, denomination: "gp" }, rarity: "legendary", type: { value: "-" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightWeaponTemplate(entry)).toBe(true);
+    });
+
+    it("flags Vorpal Sword — blank subtype, has rarity", () => {
+        const entry = {
+            type: "weapon",
+            name: "Vorpal Sword",
+            system: { weight: 0, rarity: "legendary", type: {} }
+        };
+        expect(ItemPoolResolver._isZeroWeightWeaponTemplate(entry)).toBe(true);
+    });
+
+    it("does NOT flag Sling +1 — has a real subtype (simpleR)", () => {
+        const entry = {
+            type: "weapon",
+            name: "Sling +1",
+            system: { weight: 0, price: { value: 400, denomination: "gp" }, rarity: "uncommon", type: { value: "simpleR" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightWeaponTemplate(entry)).toBe(false);
+    });
+
+    it("does NOT flag a Longsword with real weight", () => {
+        const entry = {
+            type: "weapon",
+            name: "Longsword",
+            system: { weight: 3, rarity: "common", type: { value: "martialM" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightWeaponTemplate(entry)).toBe(false);
+    });
+
+    it("does NOT flag non-weapon items", () => {
+        const ring = {
+            type: "equipment",
+            name: "Ring of Protection",
+            system: { weight: 0, rarity: "rare", type: { value: "ring" } }
+        };
+        expect(ItemPoolResolver._isZeroWeightWeaponTemplate(ring)).toBe(false);
+    });
+
+    it("excludes Dragon Slayer via _isExcluded integration", () => {
+        const entry = {
+            type: "weapon",
+            name: "Dragon Slayer",
+            system: { weight: 0, price: { value: 4000, denomination: "gp" }, rarity: "rare", type: { value: "" } }
+        };
+        expect(ItemPoolResolver._isExcluded(entry)).toBe(true);
+    });
+
+    it("allows Sling +1 through _isExcluded integration", () => {
+        const entry = {
+            type: "weapon",
+            name: "Sling +1",
+            system: { weight: 0, price: { value: 400, denomination: "gp" }, rarity: "uncommon", type: { value: "simpleR" } }
+        };
+        expect(ItemPoolResolver._isExcluded(entry)).toBe(false);
+    });
+});
+
+
 
 // ── _eligibleForTheme ────────────────────────────────────────────────────
 

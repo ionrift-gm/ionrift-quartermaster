@@ -1,11 +1,11 @@
-/**
+﻿/**
  * ContentPackLoader
  *
  * Scans ionrift-data/quartermaster/packs/ for extracted content pack ZIPs.
  * Each pack directory contains:
- *   manifest.json  — pack metadata (id, name, version, description)
- *   items.json     — compendium definitions with item data
- *   icons/         — icon image files referenced by items.json
+ *   manifest.json  - pack metadata (id, name, version, description)
+ *   items.json     - compendium definitions with item data
+ *   icons/         - icon image files referenced by items.json
  *
  * Mirrors the SoundPackLoader pattern from Ionrift Resonance.
  */
@@ -185,7 +185,7 @@ export class ContentPackLoader {
             imgPath.startsWith("ionrift-data/") ||
             imgPath.startsWith("http") ||
             imgPath.startsWith("icons/")) {
-            // "icons/" is the Foundry system icons directory — leave absolute
+            // "icons/" is the Foundry system icons directory - leave absolute
             if (imgPath.startsWith("icons/") && !imgPath.includes("/gems/") && !imgPath.includes("/treasure/")) {
                 return imgPath;
             }

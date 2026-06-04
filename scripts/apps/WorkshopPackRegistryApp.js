@@ -1,10 +1,10 @@
-/**
+﻿/**
  * WorkshopPackRegistryApp
  *
  * GM-only pack management panel for Ionrift Quartermaster.
  * Tabs:
  *   - Items: downloaded content packs (loot tables, item sets) with enable/disable
- *   - Art: icon pack status (placeholder — deferred to kernel ArtPackResolver)
+ *   - Art: icon pack status (placeholder - deferred to kernel ArtPackResolver)
  *
  * Extends AbstractPackRegistryApp from ionrift-library.
  */

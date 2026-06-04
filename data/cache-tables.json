@@ -14,7 +14,8 @@
             "totalSlots": { "min": 5, "max": 8 },
             "slotPool": {
                 "mundane": 2, "consumable": 2, "scroll": 1.5,
-                "mastercraft": 1.5, "gemstone": 1.5, "treasure": 1.5, "trinket": 1
+                "mastercraft": 1.5, "gemstone": 1.5, "treasure": 1.5, "trinket": 1,
+                "ammo": 0.5
             },
             "guaranteed": []
         },
@@ -47,7 +48,7 @@
             "totalSlots": { "min": 6, "max": 8 },
             "slotPool": {
                 "mastercraft": 4, "mundane": 3, "consumable": 2,
-                "treasure": 1, "gemstone": 1, "scroll": 0.5, "trinket": 0.5
+                "ammo": 2, "treasure": 1, "gemstone": 1, "scroll": 0.5, "trinket": 0.5
             },
             "guaranteed": [{ "type": "mastercraft", "min": 1, "max": 2 }]
         },
@@ -58,7 +59,8 @@
             "totalSlots": { "min": 5, "max": 7 },
             "slotPool": {
                 "mundane": 4, "consumable": 3, "treasure": 2,
-                "trinket": 2, "scroll": 1, "mastercraft": 1, "gemstone": 0.5
+                "trinket": 2, "scroll": 1, "mastercraft": 1, "gemstone": 0.5,
+                "ammo": 0.5
             },
             "guaranteed": [{ "type": "mundane", "min": 2, "max": 3 }, "consumable"]
         },
@@ -69,7 +71,8 @@
             "totalSlots": { "min": 5, "max": 7 },
             "slotPool": {
                 "gemstone": 3, "treasure": 3, "trinket": 2,
-                "consumable": 1.5, "scroll": 1, "mundane": 1, "mastercraft": 0.5
+                "consumable": 1.5, "scroll": 1, "mundane": 1, "mastercraft": 0.5,
+                "ammo": 0.3
             },
             "guaranteed": [{ "type": "treasure", "min": 1, "max": 2 }],
             "curseMultiplier": 2.0
@@ -81,7 +84,7 @@
             "totalSlots": { "min": 4, "max": 6 },
             "slotPool": {
                 "mundane": 5, "trinket": 4, "consumable": 1.5,
-                "treasure": 1, "gemstone": 0.5, "scroll": 0.3, "mastercraft": 0
+                "ammo": 1, "treasure": 1, "gemstone": 0.5, "scroll": 0.3, "mastercraft": 0
             },
             "guaranteed": ["mundane"]
         }

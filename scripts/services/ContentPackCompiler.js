@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ContentPackCompiler
  *
  * Compiles content pack item data into world compendiums at runtime.
@@ -67,7 +67,7 @@ export class ContentPackCompiler {
             return;
         }
 
-        // Hash check — skip if already compiled at this version
+        // Hash check - skip if already compiled at this version
         const currentHash = this._computeHash(packId, manifest.version, itemData);
         const compiled = this._getCompiledState();
         if (!force && compiled[packId]?.hash === currentHash) {
@@ -114,7 +114,7 @@ export class ContentPackCompiler {
                 } else {
                     delete prepared.folder;
                 }
-                // Strip _id — let Foundry assign new IDs
+                // Strip _id - let Foundry assign new IDs
                 delete prepared._id;
                 return prepared;
             });
@@ -153,7 +153,7 @@ export class ContentPackCompiler {
             `ContentPackCompiler | Pack "${packId}" compiled: ${totalItems} items across ${compendiums.length} compendiums.`
         );
         ui.notifications.info(
-            `Quartermaster: "${manifest.name}" content pack compiled — ${totalItems} items ready.`
+            `Quartermaster: "${manifest.name}" content pack compiled - ${totalItems} items ready.`
         );
     }
 
@@ -181,7 +181,7 @@ export class ContentPackCompiler {
         await this._setCompiledState(compiled);
 
         Logger.info(MODULE_LABEL,
-            `ContentPackCompiler | Removed pack "${packId}" — compendiums deleted.`
+            `ContentPackCompiler | Removed pack "${packId}" - compendiums deleted.`
         );
         ui.notifications.info(`Quartermaster: Content pack "${packId}" removed.`);
     }

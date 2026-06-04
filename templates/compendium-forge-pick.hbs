@@ -1,0 +1,122 @@
+{{!-- Phase: source picker (all three tabs) --}}
+<div class="forge-pane-pick">
+    <div class="forge-pane-header">
+        <h3 class="forge-pane-title">{{paneTitle}}</h3>
+        {{#if statusBadge}}
+        <span class="forge-badge badge-{{statusBadge.type}}">
+            <i class="{{statusBadge.icon}}"></i> {{statusBadge.label}}
+        </span>
+        {{/if}}
+    </div>
+
+    <p class="forge-pane-desc">{{paneDesc}}</p>
+
+    {{!-- Loading skeleton (Scroll Forge async discovery) --}}
+    {{#if loading}}
+    <div class="forge-loading-state">
+        <span class="forge-loading-spinner"><i class="fas fa-circle-notch fa-spin"></i></span>
+        <span class="forge-loading-label">Discovering spell compendiums...</span>
+    </div>
+    {{else}}
+
+    {{#if groups.length}}
+
+    {{!-- Bulk actions: shown for any tab with selectable checkboxes (not Cursed Items) --}}
+    {{#unless isCursedItems}}
+    <div class="forge-bulk-actions">
+        <button type="button" class="forge-select-all cache-btn-ghost"><i class="fas fa-check-double"></i> All</button>
+        <button type="button" class="forge-select-none cache-btn-ghost"><i class="fas fa-xmark"></i> None</button>
+    </div>
+    {{/unless}}
+
+    <div class="forge-source-scroll">
+        {{#each groups}}
+        <div class="pool-group">
+            <div class="pool-group-header">
+                <i class="fas fa-box-archive"></i> {{this.label}}
+            </div>
+            {{#each this.packs}}
+            <label class="pool-pack-row {{#if this.recommended}}pack-recommended{{/if}}">
+                <input type="checkbox" name="pack-{{this.id}}" {{#if this.enabled}}checked{{/if}} />
+                <span class="pool-pack-label">{{this.label}}</span>
+                {{!-- Spell count pill (Scroll Forge) --}}
+                {{#if this.count}}
+                <span class="pool-pack-count">{{this.count}} spells</span>
+                {{/if}}
+                {{!-- Recommended badge (Loot Pool) --}}
+                {{#if this.recommended}}
+                <span class="pool-pack-badge badge-recommended">Recommended</span>
+                {{/if}}
+                <span class="pool-pack-id">{{this.id}}</span>
+            </label>
+            {{/each}}
+        </div>
+        {{/each}}
+    </div>
+
+    {{else}}
+    {{!-- Only show the empty note for tabs that expect groups (not Cursed Items, which is hardwired) --}}
+    {{#unless isCursedItems}}
+    <p class="forge-empty-note"><i class="fas fa-circle-info"></i>
+        {{#if isScrollForge}}No spell compendiums found. Make sure a spellbook compendium (e.g. dnd5e.spells24) is enabled.
+        {{else}}No item compendiums found.{{/if}}
+    </p>
+    {{/unless}}
+    {{/if}}
+
+    {{/if}}{{!-- end loading --}}
+
+    {{!-- Cursed Items: read-only source list (no checkboxes, no save) --}}
+    {{#if curseSourceInfo}}
+    <div class="forge-curse-sources">
+        <p class="forge-curse-sources-label"><i class="fas fa-magnifying-glass"></i> Compendiums that will be scanned:</p>
+        {{#each curseSourceInfo}}
+        <div class="forge-curse-source-row">
+            <i class="fas fa-box-archive"></i>
+            <span class="forge-curse-source-name">{{this.label}}</span>
+            <span class="pool-pack-id">{{this.id}}</span>
+        </div>
+        {{/each}}
+    </div>
+    {{/if}}
+
+    {{#if compiledStatus}}
+    <div class="forge-status-card status-{{compiledStatus.type}}">
+        <i class="{{compiledStatus.icon}}"></i>
+        <div class="forge-status-card-body">
+            <span class="forge-status-card-text">{{compiledStatus.text}}</span>
+            {{#if compiledStatus.meta}}
+            <span class="forge-status-card-meta">{{compiledStatus.meta}}</span>
+            {{/if}}
+        </div>
+        {{#if compiledStatus.clearable}}
+        <button type="button" class="forge-clear-pool" title="Remove the compiled pool and revert to raw SRD reads.">
+            <i class="fas fa-trash-can"></i>
+        </button>
+        {{/if}}
+    </div>
+    {{/if}}
+
+    <footer class="forge-footer">
+        {{#unless loading}}
+        {{#if showViewCompendium}}
+        <button type="button" class="forge-view-compendium cache-btn-ghost" data-pack-id="{{viewPackId}}">
+            <i class="fas fa-book-open"></i> View Compendium
+        </button>
+        {{/if}}
+        {{!-- No Save Sources for Cursed Items -- nothing user-configurable --}}
+        {{#unless isCursedItems}}
+        <button type="button" class="cache-btn-secondary forge-save-sources">
+            <i class="fas fa-save"></i> Save Sources
+        </button>
+        {{/unless}}
+        {{#if showCompileButton}}
+        <button type="button" class="cache-btn-accent forge-compile-pool">
+            <i class="fas fa-hammer"></i>
+            {{#if isScrollForge}}Forge Scrolls{{else if isCursedItems}}Compile Pool{{else}}Compile Pool{{/if}}
+            <i class="fas fa-arrow-right forge-arrow"></i>
+        </button>
+        {{/if}}
+        {{/unless}}
+    </footer>
+</div>

@@ -25,6 +25,13 @@
             "path": "packs/quartermaster-containers",
             "system": "dnd5e",
             "ownership": { "GAMEMASTER": "OWNER" }
+        },
+        {
+            "name": "quartermaster-guide-gm",
+            "label": "Quartermaster: GM Setup",
+            "type": "JournalEntry",
+            "path": "packs/quartermaster-guide-gm",
+            "ownership": { "GAMEMASTER": "OWNER" }
         }
     ],
     "packFolders": [
@@ -34,7 +41,7 @@
             "folders": [
                 {
                     "name": "Quartermaster",
-                    "packs": ["quartermaster-containers"]
+                    "packs": ["quartermaster-containers", "quartermaster-guide-gm"]
                 }
             ]
         }
@@ -44,7 +51,7 @@
             {
                 "id": "ionrift-library",
                 "type": "module",
-                "compatibility": { "minimum": "2.1.1" }
+                "compatibility": { "minimum": "2.3.2" }
             }
         ],
         "recommends": [

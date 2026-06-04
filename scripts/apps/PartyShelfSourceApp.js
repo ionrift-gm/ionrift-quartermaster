@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GM dialog: choose which item compendiums the Party Shelf randomiser draws from.
  * Launched from the Signature Ledger's Party Shelf tab.
  */
@@ -51,7 +51,7 @@ export class PartyShelfSourceApp extends FormApplication {
      * List only compendiums that contain equipment-type items.
      * Filters out spell packs, class packs, feature packs, etc.
      *
-     * NOTE: Must be async — Forge lazy-loads compendium indexes, so
+     * NOTE: Must be async - Forge lazy-loads compendium indexes, so
      * pack.index.size is 0 on a cold boot until getIndex() is called.
      */
     static async _listEquipmentCompendiums() {

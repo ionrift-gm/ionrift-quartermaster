@@ -1,0 +1,29 @@
+{
+    "_id": "qmSetupGuide001",
+    "_key": "!journal.pages!qmGuideJournal01.qmSetupGuide001",
+    "name": "Setup Guide",
+    "type": "text",
+    "title": { "show": true, "level": 1 },
+    "image": {},
+    "video": { "controls": true, "volume": 0.5 },
+    "src": null,
+    "system": {},
+    "text": {
+        "content": "<p><em>Setup guide placeholder. Quick setup profiles, loot sources, and milestone bands are configured under <strong>Game Settings &gt; Module Settings &gt; Ionrift Quartermaster</strong>.</em></p><p>Content for loot profiles, identification, and the Signature Ledger will be added here.</p>",
+        "format": 1,
+        "markdown": ""
+    },
+    "sort": 100000,
+    "ownership": { "default": 0 },
+    "flags": {},
+    "_stats": {
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "coreVersion": "12.331",
+        "systemId": null,
+        "systemVersion": null,
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null
+    }
+}

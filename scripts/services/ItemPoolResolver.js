@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ItemPoolResolver
  *
  * Resolves loot pool items from multiple sources at runtime:
@@ -9,6 +9,7 @@
  */
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
+import { ItemClassifier } from "./ItemClassifier.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -17,6 +18,11 @@ export class ItemPoolResolver {
     static _cache = new Map();
     static _cacheExpiry = null;
     static CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+    // Cursed-item blocklist: Set<string> of lowercase item names that must
+    // never appear in random pool draws. Built lazily from cursedItemSources
+    // and the compiled SRD cursed world pack. Invalidated on settings change.
+    static _cursedBlocklist = null;
 
     // Per-item price ceiling by tier. Rejects individual items that cost more
     // than a tier's loot table should reasonably contain as a random drop.
@@ -28,16 +34,85 @@ export class ItemPoolResolver {
     };
 
     /**
+     * Compendium IDs that must never feed Quartermaster loot pools or compilation.
+     * Activity items (forage, hunt, cooking) stay in Respite; use respite-cache-utility instead.
+     */
+    static LOOT_POOL_EXCLUDED_PACKS = new Set([
+        "ionrift-respite.respite-items",
+    ]);
+
+    /**
      * Get enabled compendium source IDs from module settings.
      * @returns {string[]}
      */
     static getEnabledSources() {
         try {
-            const raw = game.settings.get(MODULE_ID, "lootPoolSources");
-            return JSON.parse(raw);
+            const raw = JSON.parse(game.settings.get(MODULE_ID, "lootPoolSources"));
+            if (!Array.isArray(raw)) return [];
+            return raw.filter(id => !this.LOOT_POOL_EXCLUDED_PACKS.has(id));
         } catch {
-            return ["dnd5e.items", "dnd5e.tradegoods"];
+            return ["dnd5e.items", "dnd5e.tradegoods"]
+                .filter(id => !this.LOOT_POOL_EXCLUDED_PACKS.has(id));
         }
+    }
+
+    /** Invalidate both the item cache and the cursed blocklist. */
+    static clearCache() {
+        this._cache.clear();
+        this._cacheExpiry = null;
+        this._cursedBlocklist = null;
+    }
+
+    /**
+     * Build (or return cached) a Set of lowercase item names that should never
+     * appear as random pool drops because they are designated cursed items.
+     *
+     * Sources:
+     *   1. world.ionrift-srd-cursed - the compiled SRD curse pack
+     *   2. Any additional packs listed in the cursedItemSources setting
+     *
+     * @returns {Promise<Set<string>>}
+     */
+    static async _getCursedBlocklist() {
+        if (this._cursedBlocklist !== null) return this._cursedBlocklist;
+
+        const names = new Set();
+
+        // 1. Read the compiled SRD curse world pack
+        const srdPack = game.packs?.get("world.ionrift-srd-cursed");
+        if (srdPack) {
+            try {
+                const index = await srdPack.getIndex();
+                for (const entry of index) {
+                    if (entry.name) names.add(entry.name.trim().toLowerCase());
+                }
+            } catch (e) {
+                Logger.warn(MODULE_LABEL, "ItemPoolResolver: could not index cursed pack:", e.message);
+            }
+        }
+
+        // 2. Read any additional cursedItemSources packs the GM has configured
+        let cursedSources = [];
+        try {
+            cursedSources = JSON.parse(game.settings.get(MODULE_ID, "cursedItemSources") ?? "[]");
+        } catch { /* ignore */ }
+
+        for (const packId of cursedSources) {
+            if (packId === "world.ionrift-srd-cursed") continue; // already handled
+            const pack = game.packs?.get(packId);
+            if (!pack) continue;
+            try {
+                const index = await pack.getIndex();
+                for (const entry of index) {
+                    if (entry.name) names.add(entry.name.trim().toLowerCase());
+                }
+            } catch (e) {
+                Logger.warn(MODULE_LABEL, `ItemPoolResolver: could not index cursed source "${packId}":`, e.message);
+            }
+        }
+
+        this._cursedBlocklist = names;
+        return names;
     }
 
     /**
@@ -51,9 +126,9 @@ export class ItemPoolResolver {
      * @returns {Object[]} Merged array of { name, type, img, price, rarity, ... }
      */
     static async resolve(opts) {
-        const { slotType, tier, theme, fallbackTables } = opts;
+        const { slotType, tier, theme, fallbackTables, rarityMax: rarityMaxOverride } = opts;
         const tierData = fallbackTables?.tiers?.[String(tier)];
-        const rarityMax = tierData?.rarityMax ?? "uncommon";
+        const rarityMax = rarityMaxOverride ?? tierData?.rarityMax ?? "uncommon";
 
         const sources = this.getEnabledSources();
         const compendiumItems = await this._queryCompendiums(sources, slotType, rarityMax);
@@ -73,8 +148,16 @@ export class ItemPoolResolver {
             return true;
         });
 
-        if (!theme) return deduped;
-        return deduped.filter(item => this._eligibleForTheme(item, theme));
+        // Cursed-item blocklist: remove items that exist in any cursedItemSources
+        // compendium so they can never appear as random cache drops. These items
+        // are only ever placed through the deliberate curse mechanic.
+        const cursedNames = await this._getCursedBlocklist();
+        const uncursed = cursedNames.size > 0
+            ? deduped.filter(item => !cursedNames.has(item.name.trim().toLowerCase()))
+            : deduped;
+
+        if (!theme) return uncursed;
+        return uncursed.filter(item => this._eligibleForTheme(item, theme));
     }
 
     /**
@@ -90,6 +173,14 @@ export class ItemPoolResolver {
         if (priceCeiling < Infinity) {
             const pricedPool = pool.filter(i => (i.price ?? 0) <= priceCeiling);
             if (pricedPool.length > 0) pool = pricedPool;
+        }
+
+        // Named-magical filtering (Stance B policy): when requested, strip
+        // named magical items from the draw bag so only generic +N and
+        // mundane items remain eligible.
+        if (opts.rejectNamedMagical) {
+            const filtered = pool.filter(i => !ItemClassifier.isNamedMagical(i));
+            if (filtered.length > 0) pool = filtered;
         }
 
         const magicSetting = game.settings?.get(MODULE_ID, "magicFrequency") ?? 1.0;
@@ -135,6 +226,19 @@ export class ItemPoolResolver {
      */
     static async _queryCompendiums(sourceIds, slotType, rarityMax) {
         const results = [];
+
+        // Inject the compiled loot pool as the first source when it has been compiled.
+        // The compiled pool already has collision resolution baked in (2024 wins price/type,
+        // legacy weight preserved). First-seen deduplication below ensures compiled items
+        // shadow any raw SRD entries of the same name.
+        const compiledPack = game.packs.get("world.quartermaster-compiled-pool");
+        const compiledHash = (() => {
+            try { return game.settings.get("ionrift-quartermaster", "compiledLootPoolHash"); }
+            catch { return ""; }
+        })();
+        if (compiledPack && compiledHash) {
+            sourceIds = ["world.quartermaster-compiled-pool", ...sourceIds];
+        }
         const allowedRarities = this._raritiesUpTo(rarityMax);
 
         for (const packId of sourceIds) {
@@ -236,17 +340,31 @@ export class ItemPoolResolver {
      */
     static _matchesSlotType(entry, slotType) {
         const type = entry.type;
-        const subtype = entry.system?.type?.value ?? "";
+        const subtype = (entry.system?.type?.value ?? "").toLowerCase();
 
         switch (slotType) {
             case "consumable": {
                 if (type !== "consumable") return false;
                 if (subtype === "scroll") return false;
-                // Only actual potions, poisons, food, and ammunition -- not mundane gear (rod, wand,
-                // trinket) that dnd5e happens to classify as consumable. Ammunition subtypes vary
-                // by compendium: 'ammo', 'ammunition', or empty string on some packs.
-                const potionSubtypes = ["potion", "poison", "food", "ammo", "ammunition", ""];
+                // Ammunition now has its own dedicated slot type - exclude
+                // ammo subtypes from the consumable pool to prevent
+                // double-counting between consumable and ammo slots.
+                if (subtype === "ammo" || subtype === "ammunition") return false;
+                const n = (entry.name ?? "").toLowerCase();
+                if (/^(arrows?|bolts?|needles?|sling bullets?)\b/i.test(n)) return false;
+                // Only actual potions, poisons, and food - not mundane gear
+                // (rod, wand, trinket) that dnd5e classifies as consumable.
+                const potionSubtypes = ["potion", "poison", "food", ""];
                 return potionSubtypes.includes(subtype);
+            }
+            case "ammo": {
+                // Dedicated ammunition slot: subtypes 'ammo'/'ammunition'
+                // plus name-based detection for compendiums that leave
+                // the subtype blank.
+                if (type !== "consumable") return false;
+                if (subtype === "ammo" || subtype === "ammunition") return true;
+                const n = (entry.name ?? "").toLowerCase();
+                return /^(arrows?|bolts?|needles?|sling bullets?)\b/i.test(n);
             }
             case "scroll":
                 return type === "consumable" && subtype === "scroll";
@@ -297,8 +415,28 @@ export class ItemPoolResolver {
         if (this._isContainerContentOnly(entry, nameLower)) return true;
         if (this._isTrapOrHazard(entry)) return true;
         if (this._isZeroDataPlaceholder(entry)) return true;
+        if (this._isZeroWeightWeaponTemplate(entry)) return true;
+        if (this._isBulkAmmoCollection(entry, nameLower)) return true;
         if (this._isGmPlacedPoisonPotion(entry, nameLower)) return true;
         return false;
+    }
+
+    /**
+     * Bulk ammo bundles (2024 SRD pack-of-N entries). The 2024 compendium ships
+     * both a singular form ("Arrow") and a plural bundle form ("Arrows", qty 20).
+     * The loot generator uses the singular and stacks via the quantity resolver;
+     * including the plural bundle alongside it would create duplicate pool entries
+     * that double the probability of ammo landing and produce misleading qty math.
+     *
+     * Filter list is a closed set - only the known SRD bundle names are excluded.
+     * Any new plural ammo added by future content should be evaluated and added here.
+     */
+    static _isBulkAmmoCollection(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
+        if (entry.type !== "consumable") return false;
+        const subtype = (entry.system?.type?.value ?? "").trim();
+        if (subtype !== "ammo") return false;
+        const BULK_BUNDLES = new Set(["arrows", "bolts", "bullets, sling", "bullets, firearm", "needles"]);
+        return BULK_BUNDLES.has(nameLower);
     }
 
     /**
@@ -343,9 +481,29 @@ export class ItemPoolResolver {
     }
 
     /**
+     * 2024 SRD named weapon templates (Dragon Slayer, Holy Avenger, Vorpal Sword,
+     * etc.). The dnd5e.equipment24 pack ships these as GM-application shells - the
+     * GM attaches one to a real base weapon rather than dropping it as loot.
+     *
+     * Fingerprint: weapon type + weight=0 + no base item subtype. All real loot
+     * weapons carry a subtype (martialM, simpleR, martialR, etc.). A blank or
+     * literal "-" subtype combined with zero weight is the reliable signal.
+     *
+     * This does NOT affect mundane zero-weight weapons like Sling (which have a
+     * subtype), only shell entries that lack one.
+     */
+    static _isZeroWeightWeaponTemplate(entry) {
+        if (entry.type !== "weapon") return false;
+        const weight = this._extractWeight(entry);
+        if (weight !== 0) return false;
+        const subtype = (entry.system?.type?.value ?? "").trim();
+        return !subtype || subtype === "-";
+    }
+
+    /**
      * Items that only exist as contents of a container and should never appear
      * as standalone loot drops. Bulk liquids measured in pints (water, common
-     * wine, etc.) arrive in waterskins or flasks — they have no meaning as a
+     * wine, etc.) arrive in waterskins or flasks - they have no meaning as a
      * loose item in a cache.
      *
      * Rule: consumable food/drink items whose name ends with a parenthesised
@@ -355,8 +513,8 @@ export class ItemPoolResolver {
     /**
      * Trap and hazard items from SRD 5.2 (Hidden Pit, Falling Net, etc.) are
      * classified as equipment with no rarity, so they pass the mundane filter.
-     * Every trap stat block has a "Trigger:" line in its description — no real
-     * loot item uses that keyword — making it a safe, targeted rejection signal.
+     * Every trap stat block has a "Trigger:" line in its description - no real
+     * loot item uses that keyword - making it a safe, targeted rejection signal.
      */
     static _isTrapOrHazard(entry) {
         const desc = this._entryDescriptionText(entry);
@@ -472,20 +630,48 @@ export class ItemPoolResolver {
             "monsterfeatures", "monsterfeatures24",
             "backgrounds", "backgrounds24",
             "races", "races24",
-            "feats", "feats24",
             "rules"
         ]);
 
         // Cursewright manages injection of cursed items into caches via its
-        // own pipeline — these packs must never appear as manual loot sources.
+        // own pipeline -- these packs must never appear as manual loot sources.
         const CURSEWRIGHT_MANAGED_PACKS = new Set([
             "ionrift-cursewright-forged",
             "ionrift-srd-cursed"
         ]);
 
+        // Respite activity items (forage, hunt, meals) are not cache loot.
+        const LOOT_POOL_EXCLUDED_PACKS = ItemPoolResolver.LOOT_POOL_EXCLUDED_PACKS;
+
+        // Quartermaster pipeline outputs -- these are compiled products, not
+        // source inputs. Showing them as selectable sources would create a
+        // circular dependency (output fed back into its own compiler).
+        const QM_PIPELINE_OUTPUTS = new Set([
+            "world.quartermaster-compiled-pool",  // LootPoolCompiler output
+            "world.ionrift-forged-scrolls",        // ScrollForge output
+            "world.ionrift-srd-cursed",            // SrdCurseAdapter output
+            "world.ionrift-cursewright-forged",    // Cursewright output
+        ]);
+
+        // Packs we know are good loot sources and recommend to the GM.
+        // Checked by full collection ID.
+        const RECOMMENDED_PACKS = new Set([
+            "dnd5e.equipment",
+            "dnd5e.equipment24",
+            "dnd5e.items",
+            "ionrift-respite.respite-cache-utility",
+        ]);
+
+        // Packs that contain 2024 weapon templates requiring compilation.
+        const NEEDS_COMPILE_PACKS = new Set([
+            "dnd5e.equipment24",
+        ]);
+
         return game.packs
             .filter(p => {
                 if (p.documentName !== "Item") return false;
+                if (QM_PIPELINE_OUTPUTS.has(p.collection)) return false;
+                if (LOOT_POOL_EXCLUDED_PACKS.has(p.collection)) return false;
 
                 const packName = p.collection.split(".").pop() ?? "";
                 if (EXCLUDED_PACK_SUFFIXES.has(packName)) return false;
@@ -496,11 +682,21 @@ export class ItemPoolResolver {
                 }
                 return true;
             })
-            .map(p => ({
-                id: p.collection,
-                label: p.title ?? p.metadata?.label ?? p.collection,
-                system: p.metadata?.system ?? null,
-                enabled: enabled.has(p.collection)
-            }));
+            .map(p => {
+                // QM content packs (world.quartermaster-*) are always recommended
+                // as valid loot sources since they're curated for this workflow.
+                const isQmContent = p.collection.startsWith("world.quartermaster-");
+                const recommended = isQmContent || RECOMMENDED_PACKS.has(p.collection);
+                const needsCompile = NEEDS_COMPILE_PACKS.has(p.collection);
+
+                return {
+                    id:          p.collection,
+                    label:       p.title ?? p.metadata?.label ?? p.collection,
+                    system:      p.metadata?.system ?? null,
+                    enabled:     enabled.has(p.collection),
+                    recommended,
+                    needsCompile,
+                };
+            });
     }
 }

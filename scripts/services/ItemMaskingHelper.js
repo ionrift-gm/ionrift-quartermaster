@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ItemMaskingHelper
  *
  * Applies dnd5e identification masking to magical items from the Cache
@@ -341,7 +341,7 @@ export class ItemMaskingHelper {
         // function, not an identification tell. Stripping it leaves
         // players with an unusable item. Deceptive consumables
         // (Apothecary's Folly) carry their real activity in
-        // cursedMeta.realActivity — not here — so they are unaffected.
+        // cursedMeta.realActivity - not here - so they are unaffected.
         if (itemData.type !== "consumable"
                 && system.activities
                 && Object.keys(system.activities).length > 0) {
@@ -487,8 +487,8 @@ export class ItemMaskingHelper {
      * Build a promotion patch by copying the relevant `system.*` fields from
      * a TWIN doc (the identified-form compendium item produced by CurseForge
      * alongside the lure). The twin is the source of truth for the identified
-     * state — name, rarity, magical bonus, attunement, properties, damage
-     * bonus, description, image, AND activities — so promotion becomes a
+     * state - name, rarity, magical bonus, attunement, properties, damage
+     * bonus, description, image, AND activities - so promotion becomes a
      * straight whitelist copy instead of a flag-serialise/deserialise round
      * trip.
      *
@@ -562,7 +562,7 @@ export class ItemMaskingHelper {
             );
         }
 
-        // Price comes from the latent flag — the twin keeps SRD pricing which
+        // Price comes from the latent flag - the twin keeps SRD pricing which
         // is fine, but the lure's originalPrice is the authored intent.
         if (latent?.originalPrice) {
             patch["system.price"] = {
@@ -597,7 +597,7 @@ export class ItemMaskingHelper {
             const liveIds = typeof acts.keys === "function" ? [...acts.keys()] : Object.keys(acts);
             for (const id of liveIds) {
                 // Only delete IDs that aren't being replaced. Deleting and
-                // recreating the same key in one flat update conflicts —
+                // recreating the same key in one flat update conflicts -
                 // dnd5e's MappingField processes the delete and the new
                 // activity never lands.
                 if (!newIds.has(id)) {
@@ -659,7 +659,7 @@ export class ItemMaskingHelper {
     }
 
     // Base-item prices drawn from dnd5e SRD reference values. Not meant
-    // to be exhaustive — anything missing falls through to the category
+    // to be exhaustive - anything missing falls through to the category
     // heuristic above, which only needs to land in the "looks mundane"
     // range to do its job.
     static _BASE_ITEM_PRICES = {

@@ -1,5 +1,5 @@
-/**
- * CursedItemResolver — Single authoritative service for cursed item
+﻿/**
+ * CursedItemResolver - Single authoritative service for cursed item
  * name resolution and pack document loading.
  *
  * Context: Foundry V14 + dnd5e applies a name getter to Item documents
@@ -23,11 +23,11 @@ export class CursedItemResolver {
      * or raw data object.
      *
      * Priority:
-     *   1. flags[QM_ID].latentMagic.originalName  — set by CurseForge (gmName ?? match)
-     *   2. flags[QM_ID].cursedMeta.lureName        — explicit recipe lure name
-     *   3. flags[QM_ID].cursedMeta.lure.name       — nested lure object name
-     *   4. doc._source?.name                       — raw stored name, bypasses dnd5e getter
-     *   5. doc.name                                — last resort (may be 'Unidentified X')
+     *   1. flags[QM_ID].latentMagic.originalName  - set by CurseForge (gmName ?? match)
+     *   2. flags[QM_ID].cursedMeta.lureName        - explicit recipe lure name
+     *   3. flags[QM_ID].cursedMeta.lure.name       - nested lure object name
+     *   4. doc._source?.name                       - raw stored name, bypasses dnd5e getter
+     *   5. doc.name                                - last resort (may be 'Unidentified X')
      *
      * @param {object} docOrData - A full Foundry Item document, an index entry,
      *   or a plain data object with `.flags` and `.name` properties.
@@ -47,7 +47,7 @@ export class CursedItemResolver {
     /**
      * Load full documents from a compendium pack.
      *
-     * Never use getIndex() for name-resolution purposes — Foundry V14
+     * Never use getIndex() for name-resolution purposes - Foundry V14
      * applies dnd5e's name getter to index entries, so items with
      * system.identified=false return "Unidentified Consumable" as
      * entry.name, and custom nested flags are unreliably populated.

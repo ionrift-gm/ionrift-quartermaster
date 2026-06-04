@@ -1,4 +1,4 @@
-import { IdentificationService } from "./IdentificationService.js";
+﻿import { IdentificationService } from "./IdentificationService.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -21,7 +21,7 @@ const MODULE_ID = "ionrift-quartermaster";
  * override the output by subscribing to the hook
  * `ionrift-quartermaster.renderItemPrice`. The first subscriber to
  * return a truthy object wins. Its return shape is the same as
- * `renderFuzzy` below — `{ label, tooltip, raw }`.
+ * `renderFuzzy` below - `{ label, tooltip, raw }`.
  *
  * Precision bands (default):
  *   - latentMagic present (unidentified magical)  → ±30%
@@ -78,7 +78,7 @@ export class PriceMasker {
         const bandPct = Math.round(band * 100);
         const label = `≈ ${estimate} ${denom}`;
         const tooltip = band > 0
-            ? `Estimated ${lo}–${hi} ${denom} (±${bandPct}%) · Appraise to refine.`
+            ? `Estimated ${lo}-${hi} ${denom} (±${bandPct}%) · Appraise to refine.`
             : `${value} ${denom}`;
 
         return {

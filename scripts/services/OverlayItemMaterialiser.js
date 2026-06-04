@@ -1,4 +1,4 @@
-/**
+﻿/**
  * OverlayItemMaterialiser
  *
  * Reads raw item JSONs delivered by the Patreon Library overlay system
@@ -114,7 +114,7 @@ export class OverlayItemMaterialiser {
         // so the GM does not see "materialised" on every world reload.
         if (result.changed) {
             ui.notifications.info(
-                `Quartermaster: ${manifest.overlayId} materialised — ${result.itemCount} items in ${result.collection}.`
+                `Quartermaster: ${manifest.overlayId} materialised - ${result.itemCount} items in ${result.collection}.`
             );
         }
     }
@@ -325,7 +325,7 @@ export class OverlayItemMaterialiser {
         await this._setState(newState);
 
         Logger.info(MODULE_LABEL,
-            `OverlayItemMaterialiser | Built "${collection}" — ${preparedItems.length} items across ${sectionPlans.length} section(s).`
+            `OverlayItemMaterialiser | Built "${collection}" - ${preparedItems.length} items across ${sectionPlans.length} section(s).`
         );
 
         return { collection, itemCount: preparedItems.length, changed: true };

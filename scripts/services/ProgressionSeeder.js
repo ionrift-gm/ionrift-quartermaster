@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ProgressionSeeder.js
  *
  * Suggestive auto-population heuristics for the Progression Registry.
@@ -17,12 +17,12 @@ import { ScrollForge } from "./ScrollForge.js";
 // At runtime, mapped onto whichever milestone levels the active profile uses.
 
 const RARITY_CURVE = [
-    ["common", "uncommon"],   // position 0 — earliest
+    ["common", "uncommon"],   // position 0 - earliest
     ["rare"],                 // position 1
     ["rare", "veryRare"],     // position 2
     ["veryRare"],             // position 3
     ["veryRare"],             // position 4
-    ["legendary"]             // position 5 — capstone
+    ["legendary"]             // position 5 - capstone
 ];
 
 /** Derive scroll spell-level range from a milestone's actual character level. */
@@ -100,7 +100,7 @@ function _parseAttunementClasses(description) {
     const match = ATTUNEMENT_CLASS_RE.exec(plain);
     if (!match) return null;
 
-    // Split the matched clause on commas, "or", "and" — grab recognised class names
+    // Split the matched clause on commas, "or", "and" - grab recognised class names
     const ALL_CLASSES = new Set([
         "barbarian", "bard", "cleric", "druid", "fighter", "monk",
         "paladin", "ranger", "rogue", "sorcerer", "warlock", "wizard", "artificer"
@@ -112,7 +112,7 @@ function _parseAttunementClasses(description) {
 
 /**
  * Returns true if the item should be REJECTED for this class set.
- * Broad strokes — prevents clearly-wrong suggestions (Splint on Wizard).
+ * Broad strokes - prevents clearly-wrong suggestions (Splint on Wizard).
  */
 function _isRejectedByProficiency(item, classNames) {
     const armorType  = item.armorType;
@@ -134,7 +134,7 @@ function _isRejectedByProficiency(item, classNames) {
  */
 function _isRejectedByAttunementRestriction(item, classNames) {
     const allowed = _parseAttunementClasses(item.description);
-    if (!allowed) return false;  // no restriction — open attunement
+    if (!allowed) return false;  // no restriction - open attunement
     return !classNames.some(cls => allowed.has(cls));
 }
 
@@ -148,11 +148,11 @@ function _categoriseItem(item) {
 }
 // ── Generic Item Filter ──────────────────────────────────────────────────────
 // Signature items should have narrative identity. Reject stat-stick variants
-// like "Longsword +1" or "Chain Mail +2" — those belong on the Party Shelf.
+// like "Longsword +1" or "Chain Mail +2" - those belong on the Party Shelf.
 
 const GENERIC_BONUS_PATTERN = /\+\d\b/;
 
-// ── Trait–item synergy (signature pick weighting) ───────────────────────────
+// ── Trait-item synergy (signature pick weighting) ───────────────────────────
 
 const TRAIT_PENALTIES = [
     { trait: "darkvision", pattern: /goggles of night/i, penalty: 0.9 },
@@ -175,7 +175,7 @@ function _scoreSynergy(item, traits) {
     return Math.max(0.05, mult);
 }
 
-// ── Signature demote list (utility / niche — soft weight in lottery) ───────
+// ── Signature demote list (utility / niche - soft weight in lottery) ───────
 
 const SIGNATURE_DEMOTE = new Set([
     "wand of secrets",
@@ -683,7 +683,7 @@ export class ProgressionSeeder {
      * Returns auto-placed entries (source: "auto") with pre-resolved jitter.
      *
      * Heuristic: prefers wondrous items (equipment type, not weapon) with
-     * broad utility — items with charges/uses, or that benefit multiple roles.
+     * broad utility - items with charges/uses, or that benefit multiple roles.
      *
      * @param {Actor[]}  partyActors  Active party members
      * @param {Set}      banSet       Lowercase banned item names

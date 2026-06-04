@@ -1,4 +1,4 @@
-import { Logger } from "../_logger.js";
+﻿import { Logger } from "../_logger.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
 
@@ -131,7 +131,7 @@ export class IdentificationService {
 
         // Post-identification enrichment for healing potions.
         // Corrects weight, price, description, and MIDI HealActivity
-        // unconditionally — these values are not stashed in latentMagic
+        // unconditionally - these values are not stashed in latentMagic
         // and may be absent or incorrect from the original compendium entry.
         // enrichIdentifiedItem is a no-op for non-healing-potion items.
         await PotionEnrichment.enrichIdentifiedItem(item);
@@ -172,14 +172,14 @@ export class IdentificationService {
         // For CurseForge lures (latentMagic + forgedFrom + cursedMeta), the
         // BlueprintRegistry.registerItemBlueprint called from the createItem hook
         // asynchronously unsets the inline cursedMeta flag and lifts it into
-        // BlueprintStore. That async lift races with identify — by the time
+        // BlueprintStore. That async lift races with identify - by the time
         // identify's own awaits (update, setFlag) yield, the lift may have
         // completed and the inline flag is gone.
         //
         // Re-set the inline flag here from the snapshot taken at identify-start
         // so callers see cursedMeta immediately on the document after identify()
         // resolves. This does NOT interfere with the hasCursedOnlyMeta.gmRevealed
-        // branch below — that path only runs when !isCurseForgeLatent.
+        // branch below - that path only runs when !isCurseForgeLatent.
         // _onLureRevealed (async hook) subsequently writes { ...cursedMeta, lureRevealed: true }
         // which correctly extends the restored inline value.
         if (isCurseForgeLatent && cursedMeta) {

@@ -1,5 +1,5 @@
-/**
- * TerrainSpineTests — Guards QM's terrain registry under strict sovereignty.
+﻿/**
+ * TerrainSpineTests - Guards QM's terrain registry under strict sovereignty.
  *
  * Contract:
  *   - QM never reads other modules' registries at runtime.
@@ -51,7 +51,7 @@ export async function runTerrainSpineTests() {
 
     // If QM has loaded a non-base terrain (e.g. arctic, ruins) from
     // terrain-qm.json, it should appear in getTerrainList() with its declared
-    // label and category. Don't hardcode terrain ids — derive from local data.
+    // label and category. Don't hardcode terrain ids - derive from local data.
     try {
         const lib = game.ionrift?.library?.terrains;
         const baseIds = new Set((lib?.getBase?.() ?? []).map(t => t.id));

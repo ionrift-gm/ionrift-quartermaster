@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Healing-potion surface names that participate in infected-stack squash (clean + poison vials).
  * Keep in sync with ionrift-cursewright `CurseEngine.POTION_CURSE_TIERS` decoy names (pre-masking).
  */
@@ -83,7 +83,7 @@ export class SquashMerger {
         }`);
 
         // Pass B: merge cursed items INTO the matching clean entry.
-        // The pile must show ONE row for all potions of the same type — two
+        // The pile must show ONE row for all potions of the same type - two
         // identical "Small Phial" entries is a dead giveaway for players.
         //
         // Architecture:
@@ -127,10 +127,10 @@ export class SquashMerger {
                 }
                 matchEntry._totalQty = (matchEntry._totalQty ?? 0) + qty;
             } else if (poisonMerge) {
-                // No clean counterpart — standalone fully-infected healing stack.
+                // No clean counterpart - standalone fully-infected healing stack.
                 // Override the name with the lure surface name so resolveItemData
                 // can match an SRD healing potion from the loot pool.
-                // Clear the cursed compendium ref — otherwise resolveItemData
+                // Clear the cursed compendium ref - otherwise resolveItemData
                 // fetches the CurseForge item directly, which has identified:false
                 // and the wrong name, bypassing the masking pipeline.
                 const cleanName = item._lureSurfaceName ?? item.name;

@@ -1,4 +1,4 @@
-import { WorkshopApp } from "./apps/WorkshopApp.js";
+﻿import { WorkshopApp } from "./apps/WorkshopApp.js";
 import { CacheGeneratorApp } from "./apps/CacheGeneratorApp.js";
 import { SheetInjector } from "./SheetInjector.js";
 import { WorkshopItemFactory } from "./services/WorkshopItemFactory.js";
@@ -16,12 +16,12 @@ import { SrdCurseAdapter } from "./services/SrdCurseAdapter.js";
 import { ItemMaskingHelper } from "./services/ItemMaskingHelper.js";
 import { StandalonePoolRegistry } from "./services/StandalonePoolRegistry.js";
 import { TerrainDataRegistry } from "./services/TerrainDataRegistry.js";
+import { registerQuartermasterSettings } from "./services/SettingsRegistrar.js";
+import { openSetupGuide } from "./constants/SetupGuide.js";
 
 import { ContentPackLoader } from "./services/ContentPackLoader.js";
 import { ContentPackCompiler } from "./services/ContentPackCompiler.js";
 import { OverlayItemMaterialiser } from "./services/OverlayItemMaterialiser.js";
-import { WorkshopPackRegistryApp } from "./apps/WorkshopPackRegistryApp.js";
-
 import { Logger, MODULE_LABEL } from "./_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -35,6 +35,25 @@ const SUPPORTED_SYSTEMS = ["dnd5e"];
 
 function isResonanceActive() {
     return game.modules.get("ionrift-resonance")?.active ?? false;
+}
+
+/**
+ * Drop loot-pool sources that must not feed cache generation (e.g. Respite activity items).
+ */
+async function migrateLootPoolSources() {
+    if (!game.user.isGM) return;
+    try {
+        const raw = game.settings.get(MODULE_ID, "lootPoolSources");
+        const sources = JSON.parse(raw);
+        if (!Array.isArray(sources)) return;
+        const filtered = sources.filter(id => !ItemPoolResolver.LOOT_POOL_EXCLUDED_PACKS.has(id));
+        if (filtered.length === sources.length) return;
+        await game.settings.set(MODULE_ID, "lootPoolSources", JSON.stringify(filtered));
+        Logger.log(MODULE_LABEL,
+            "Removed excluded compendiums from loot pool sources. Use ionrift-respite.respite-cache-utility for camp utility loot.");
+    } catch {
+        /* ignore unparseable setting */
+    }
 }
 
 
@@ -61,331 +80,8 @@ Hooks.once('init', async () => {
         scrollForge: ScrollForge,
     };
 
-    game.settings.register(MODULE_ID, "distributeCoins", {
-        name: "Distribute Coinage",
-        hint: "Automatically convert cache gold values into a randomized mix of cp, sp, ep, gp, and pp.",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: true,
-        requiresReload: false,
-        restricted: true
-    });
-
-
-
-    game.settings.register(MODULE_ID, "defaultCacheTier", {
-        scope: "world",
-        config: false,
-        type: Number,
-        default: 1
-    });
-
-    game.settings.register(MODULE_ID, "defaultCacheTheme", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "dungeon"
-    });
-
-    game.settings.register(MODULE_ID, "defaultCacheOwnerTheme", {
-        name: "Default Cache Owner Theme",
-        hint: "Last-used owner theme for cache generation. Restored automatically when the generator opens.",
-        scope: "world",
-        config: false,
-        type: String,
-        default: "unspecified"
-    });
-
-    // DEPRECATED: ledgerHiddenActors — superseded by library PartyRoster.
-    // Kept registered to avoid errors in worlds that stored this setting.
-    game.settings.register(MODULE_ID, "ledgerHiddenActors", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "[]",
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "advisoryCollapsed", {
-        name: "Advisory Panel Collapsed",
-        hint: "Remembers whether the Progression Advisory panel was collapsed.",
-        scope: "client",
-        config: false,
-        type: Boolean,
-        default: true
-    });
-
-    // Legacy pill anchor (0-1). Migrated to bracket index on first open.
-    game.settings.register(MODULE_ID, "cacheBudgetAnchorPct", {
-        scope: "client",
-        config: false,
-        type: Number,
-        default: -1
-    });
-
-    // Selected budget segment index for the cache generator footer. -1 = lowest bracket.
-    game.settings.register(MODULE_ID, "cacheBudgetBracketIndex", {
-        scope: "client",
-        config: false,
-        type: Number,
-        default: -1
-    });
-
-    // Pack management state
-    game.settings.register(MODULE_ID, "workshopEnabledPacks", {
-        scope: "world",
-        config: false,
-        type: Object,
-        default: {},
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "workshopImportedPacks", {
-        scope: "world",
-        config: false,
-        type: Object,
-        default: {},
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "lootPoolSources", {
-        name: "Loot Pool Compendium Sources",
-        hint: "JSON array of compendium IDs to draw loot from. Managed via the config button below.",
-        scope: "world",
-        config: false,
-        type: String,
-        default: JSON.stringify([
-            "dnd5e.items", "dnd5e.tradegoods",
-            "world.ionrift-forged-scrolls"
-        ]),
-        onChange: () => {
-            // Clear the resolver cache when sources change
-            import("./services/ItemPoolResolver.js").then(m => m.ItemPoolResolver.clearCache());
-        }
-    });
-
-    game.settings.register(MODULE_ID, "lootEconomy", {
-        name: "Loot Abundance",
-        hint: "Scales the value of generated caches. Below 1.0 for scarce, gritty games. Above 1.0 for high-fantasy treasure runs.",
-        scope: "world",
-        config: true,
-        type: Number,
-        range: { min: 0.25, max: 3.0, step: 0.25 },
-        default: 1.0,
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "magicFrequency", {
-        name: "Magic Frequency",
-        hint: "Scales the likelihood of drawing magical items (Uncommon+) from loot caches. 0.0 (No Magic) to 1.0 (Standard) to 2.0 (High Fantasy).",
-        scope: "world",
-        config: true,
-        type: Number,
-        range: { min: 0.0, max: 2.0, step: 0.25 },
-        default: 1.0,
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "obscureConsumables", {
-        name: "Obscure Consumables",
-        hint: "When enabled, potions, oils, and other consumables are presented with generic names (e.g. 'Sealed Vial') until identified, regardless of rarity. Disable to show true names for common items like Potions of Healing.",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: true,
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "obscureScrolls", {
-        name: "Obscure Spell Scrolls",
-        hint: "When enabled, all spell scrolls appear as 'Unidentified Scroll' until identified. By the 2024 DMG, anyone can identify a scroll via Identify or a Short Rest; this setting models the moment before the party has examined it. Disable to show spell names directly.",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: true,
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "milestoneProfile", {
-        name: "Campaign Milestone Profile",
-        hint: "Adjusts the Signature Ledger milestone grid to match your campaign's level range. Each profile spreads 6 milestones across the selected band.",
-        scope: "world",
-        config: true,
-        type: String,
-        choices: Object.fromEntries(
-            Object.entries(SignatureLedger.PROFILES).map(([k, v]) => [k, v.label])
-        ),
-        default: "full",
-        restricted: true,
-        requiresReload: false,
-        onChange: () => {
-            for (const w of Object.values(ui.windows)) {
-                if (w.constructor.name === "SignatureLedgerApp") w.render(false);
-            }
-        }
-    });
-
-
-
-    // Legacy setting; superseded by scrollJitter
-    game.settings.register(MODULE_ID, "scrollLevelJitter", {
-        scope: "world",
-        config: false,
-        type: Number,
-        default: 0,
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "scrollForgeEnabled", {
-        scope: "world",
-        config: false,
-        type: Boolean,
-        default: true,
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "scrollForgeHash", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "",
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "scrollForgeSpellPacks", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "[]",
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "scrollForgeCandidateSnapshot", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "",
-        restricted: true
-    });
-
-
-
-    // Content Pack compiled state (hash map for idempotent rebuilds)
-    game.settings.register(MODULE_ID, "compiledContentPacks", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "{}",
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "materialisedOverlayPacks", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "{}",
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "partyShelfSources", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: JSON.stringify(["dnd5e.items"]),
-        restricted: true
-    });
-
-    // Extensible source registry for the cursed item pool.
-    // Default: QM's own SRD stub compendium. Cursewright appends its sources
-    // on the ionrift-quartermaster.ready hook — additive, never replacing.
-    game.settings.register(MODULE_ID, "cursedItemSources", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: JSON.stringify(["world.ionrift-srd-cursed"]),
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "cursedPlanned", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "[]",
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "cursedPool", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "[]",
-        restricted: true
-    });
-
-    // Hash used by SrdCurseAdapter to gate recompilation.
-    game.settings.register(MODULE_ID, "srdCurseHash", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "",
-        restricted: true
-    });
-
-
-
-    // Legacy setting; superseded by scrollJitter + shelfJitter
-    game.settings.register(MODULE_ID, "spikeTolerance", {
-        scope: "world",
-        config: false,
-        type: String,
-        default: "flexible",
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "scrollJitter", {
-        name: "Scroll Jitter",
-        hint: "How much scroll spell level can overshoot the tier cap on a lucky roll. 0 = scrolls stay within tier limits. Higher values allow rare high-level scrolls in lower-tier caches.",
-        scope: "world",
-        config: true,
-        type: Number,
-        range: { min: 0, max: 3, step: 1 },
-        default: 1,
-        restricted: true
-    });
-
-    game.settings.register(MODULE_ID, "shelfJitter", {
-        name: "Auto-Seed Drift",
-        hint: "Controls where auto-seeded shelf items land on the milestone grid. 0 = items appear at their exact rarity-based milestone. 1 or 2 = items may shift ±1 or ±2 columns (late-biased). Manually planned items always arrive at their designated milestone.",
-        scope: "world",
-        config: true,
-        type: Number,
-        range: { min: 0, max: 2, step: 1 },
-        default: 1,
-        restricted: true
-    });
-
-    if (!game.ionrift?.library?.isOverlayDistributionActive?.()) {
-        const SettingsLayoutForPack = game.ionrift?.library?.SettingsLayout;
-        SettingsLayoutForPack?.registerPackButton(MODULE_ID, WorkshopPackRegistryApp, {
-            hint: "Import and manage item packs, loot tables, and artwork."
-        });
-    }
-
-    game.settings.registerMenu(MODULE_ID, "lootPoolConfig", {
-        name: "Loot Pool Sources",
-        label: "Configure Sources",
-        hint: "Choose which compendiums contribute items to the loot cache generator.",
-        icon: "fas fa-treasure-chest",
-        type: (await import("./apps/LootPoolConfigApp.js")).LootPoolConfigApp,
-        restricted: true
-    });
-
-
-
-    // FOOTER: Discord + Wiki (standardised via ionrift-library)
-    const SettingsLayout = game.ionrift?.library?.SettingsLayout;
-    SettingsLayout?.registerFooter(MODULE_ID);
+    const { CompendiumForgeApp } = await import("./apps/CompendiumForgeApp.js");
+    registerQuartermasterSettings({ CompendiumForgeApp });
 
     // Core pack nudge: shared library banner in Module Settings when the core
     // overlay is offered but not installed (see hoardPackNudge.js).
@@ -394,6 +90,15 @@ Hooks.once('init', async () => {
         registerHoardPackNudge();
     } catch (e) {
         Logger.warn(MODULE_LABEL, "Core pack nudge registration failed:", e);
+    }
+
+    // Loot pool compiler nudge: banner when 2024 sources are present but pool
+    // is not compiled or is stale (see lootPoolCompilerNudge.js).
+    try {
+        const { registerLootPoolCompilerNudge } = await import("./lootPoolCompilerNudge.js");
+        registerLootPoolCompilerNudge();
+    } catch (e) {
+        Logger.warn(MODULE_LABEL, "Loot pool compiler nudge registration failed:", e);
     }
 
     Hooks.on("ionrift.overlayContentChanged", async (detail) => {
@@ -420,16 +125,6 @@ Hooks.once('init', async () => {
         }
     });
 
-    game.settings.register(MODULE_ID, "debug", {
-        name: "Cache Generator Debug Logging",
-        hint: "Logs per-slot budget and scroll picks to the browser console (F12).",
-        scope: "client",
-        config: true,
-        type: Boolean,
-        default: false,
-        restricted: true
-    });
-
     // Sound integration (only if Resonance is present)
     if (isResonanceActive()) {
         SheetInjector.init();
@@ -442,7 +137,10 @@ Hooks.once('init', async () => {
             "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs",
             "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs",
             "modules/ionrift-quartermaster/templates/partials/cache-chat-card.hbs",
-            "modules/ionrift-quartermaster/templates/scroll-forge-sources.hbs"
+            "modules/ionrift-quartermaster/templates/scroll-forge-sources.hbs",
+            "modules/ionrift-quartermaster/templates/compendium-forge-pick.hbs",
+            "modules/ionrift-quartermaster/templates/compendium-forge-compile.hbs",
+            "modules/ionrift-quartermaster/templates/compendium-forge-done.hbs"
         ]);
     } catch (e) {
         Logger.error(MODULE_LABEL, "Template load failed:", e);
@@ -466,6 +164,7 @@ Hooks.on('ready', () => {
     CacheGenerator._tables = null;
     ItemPoolResolver._cache.clear();
     ItemPoolResolver._cacheExpiry = null;
+    ItemPoolResolver._cursedBlocklist = null;  // rebuilds after SrdCurseAdapter compiles
 
     // Expose ergonomic API on game.ionrift.workshop
     game.ionrift = game.ionrift ?? {};
@@ -561,6 +260,7 @@ Hooks.on('ready', () => {
 
     // Expose services on namespace for companion modules (Cursewright)
     game.ionrift.quartermaster = game.ionrift.quartermaster ?? {};
+    game.ionrift.quartermaster.openSetupGuide = openSetupGuide;
     game.ionrift.quartermaster.itemMaskingHelper = ItemMaskingHelper;
     game.ionrift.quartermaster.identificationService = IdentificationService;
     game.ionrift.quartermaster.standalonePoolRegistry = StandalonePoolRegistry;
@@ -592,6 +292,19 @@ Hooks.on('ready', () => {
                 Logger.error(MODULE_LABEL, "SrdCurseAdapter failed:", err);
             });
         }
+
+        // Hash-gated: only recompiles when lootPoolSources config changes.
+        (async () => {
+            try {
+                await migrateLootPoolSources();
+                const { LootPoolCompiler } = await import("./services/LootPoolCompiler.js");
+                LootPoolCompiler.compile().catch(err => {
+                    Logger.error(MODULE_LABEL, "LootPoolCompiler boot compile failed:", err);
+                });
+            } catch (err) {
+                Logger.error(MODULE_LABEL, "LootPoolCompiler import failed:", err);
+            }
+        })();
     }
 
     // Content Pack discovery + auto-compile
@@ -625,7 +338,7 @@ Hooks.on('ready', () => {
 Hooks.on("preUpdateItem", (item, changes, options) => {
     if (!game.user.isGM) return;
     if (changes?.system?.identified !== false) return;
-    // Skip items on Item Piles containers — transfer operations can trigger
+    // Skip items on Item Piles containers - transfer operations can trigger
     // identified changes as a side-effect; never re-identify pile items.
     if (item.parent?.flags?.["item-piles"]?.data?.enabled) return;
 

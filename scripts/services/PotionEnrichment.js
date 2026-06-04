@@ -1,12 +1,12 @@
-/**
+﻿/**
  * PotionEnrichment
  *
  * Corrects SRD healing-potion data at two points in the pipeline:
  *
- *   1. Pile-placement (CacheGeneratorApp.resolveItemData) — patches
+ *   1. Pile-placement (CacheGeneratorApp.resolveItemData) - patches
  *      plain item-data objects before they reach Item Piles.
  *
- *   2. Identification (IdentificationService.identify) — patches the
+ *   2. Identification (IdentificationService.identify) - patches the
  *      live Foundry Item document after latentMagic is promoted.
  *      This is the authoritative pass: it guarantees correct weight,
  *      price, description, and MIDI HealActivity regardless of what
@@ -61,7 +61,7 @@ export class PotionEnrichment {
     };
 
     // Keep legacy alias so CacheGeneratorApp call-sites don't break.
-    /** @deprecated Use _TIERS — kept for CacheGeneratorApp callers. */
+    /** @deprecated Use _TIERS - kept for CacheGeneratorApp callers. */
     static _HEAL_TIERS = PotionEnrichment._TIERS;
 
     /** PHB-standard weight for all healing potion tiers (lb). */
@@ -185,13 +185,13 @@ export class PotionEnrichment {
      * `system.type.value = "potion"`, `system.uses.max = 1`, a HealActivity
      * if none is present, and the canonical PHB weight.
      *
-     * Drives both the masked (pre-identification) appearance — where the
+     * Drives both the masked (pre-identification) appearance - where the
      * surface name is e.g. "Corked Bottle" but the player must still be able
-     * to drink it — and the post-identification "Potion of Healing" stack.
+     * to drink it - and the post-identification "Potion of Healing" stack.
      *
      * Name-driven gate: callers don't need to pre-set `system.type.value`,
      * which dnd5e 2024 PHB ships blank on some Potion of Healing variants.
-     * That blank field was the bug — the old guard
+     * That blank field was the bug - the old guard
      * `data.system?.type?.value === "potion"` skipped enrichment for those
      * entries, leaving the masked actor item with no charges or activity.
      *
@@ -215,7 +215,7 @@ export class PotionEnrichment {
         PotionEnrichment.correctWeight(data, tier.weight);
 
         // Limited Uses: ensure `max` is populated so the Charges column
-        // shows N/N rather than "—". `spent` defaults to 0; `recovery`
+        // shows N/N rather than "-". `spent` defaults to 0; `recovery`
         // empty array renders as "Never" in the dnd5e details panel.
         data.system.uses = data.system.uses ?? {};
         const currentMax = Number(data.system.uses.max);
@@ -253,7 +253,7 @@ export class PotionEnrichment {
      * Called by IdentificationService.identify() after buildPromotionPatch
      * is applied. Operates on the item's post-promotion state.
      *
-     * Safe to call on non-potions — returns early with no-op.
+     * Safe to call on non-potions - returns early with no-op.
      *
      * @param {Item} item  Live Foundry Item document (actor-owned).
      * @returns {Promise<void>}
@@ -261,12 +261,12 @@ export class PotionEnrichment {
     static async enrichIdentifiedItem(item) {
         if (!item) return;
 
-        // Resolve name from the promoted document — use _source.name to
+        // Resolve name from the promoted document - use _source.name to
         // bypass dnd5e's unidentified getter (item should be identified by
         // now, but belt-and-suspenders).
         const resolvedName = item._source?.name ?? item.name ?? "";
         const tier = PotionEnrichment.getTierData(resolvedName);
-        if (!tier) return;  // Not a healing potion — nothing to do.
+        if (!tier) return;  // Not a healing potion - nothing to do.
 
         const patch = {};
 
@@ -308,7 +308,7 @@ export class PotionEnrichment {
         }
 
         // ── Rarity ──────────────────────────────────────────────────────
-        // SRD entries for superior/supreme tiers ship with rarity: "" —
+        // SRD entries for superior/supreme tiers ship with rarity: "" -
         // override unconditionally with the PHB-authoritative value.
         // Without this, the dnd5e sheet shows no magic icon on the item.
         if (tier.rarity && item.system?.rarity !== tier.rarity) {
@@ -317,8 +317,8 @@ export class PotionEnrichment {
 
         // ── Uses ────────────────────────────────────────────────────────
         // Some SRD compendium entries omit uses.max, causing the charge
-        // column to display "–" instead of "1/1". Potions are always
-        // single-use — enforce unconditionally when max is absent or zero.
+        // column to display "-" instead of "1/1". Potions are always
+        // single-use - enforce unconditionally when max is absent or zero.
         const currentUsesMax = item.system?.uses?.max;
         if (!currentUsesMax || Number(currentUsesMax) < 1) {
             patch["system.uses.max"] = tier.uses.max;
@@ -334,7 +334,7 @@ export class PotionEnrichment {
         const acts = item.system?.activities;
         // `item.system.activities` on a live dnd5e document is a MappingField /
         // Collection, NOT a plain object. Object.values() on a Collection does
-        // not enumerate entries correctly — so any type-check via
+        // not enumerate entries correctly - so any type-check via
         // `some(a => a.type === "heal")` silently returns false even when
         // activities are present (confirmed: duplicate Midi Heal root cause).
         // Use the Collection's own `size` property when available, then fall
@@ -342,7 +342,7 @@ export class PotionEnrichment {
         const activityCount = acts
             ? (typeof acts.size === "number" ? acts.size : Object.keys(acts).length)
             : 0;
-        // If ANY activity exists, skip injection — healing potions have exactly
+        // If ANY activity exists, skip injection - healing potions have exactly
         // one activity type. A second pass must never add a duplicate.
         const hasNoHealActivity = activityCount === 0;
 

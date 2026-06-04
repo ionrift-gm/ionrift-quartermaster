@@ -590,12 +590,39 @@
             </div>
             {{else}}
                 {{#unless generating}}
+                {{#if hasLootPool}}
                 <div class="cache-empty-state">
                     <i class="fas fa-treasure-chest"></i>
                     <p>Configure your cache above and hit Generate.</p>
                     <p class="cache-hint">Generate a cache, then drag items from the left panel, compendiums, or the Items directory into the preview.</p>
                 </div>
+                {{else}}
+                <div class="cache-empty-state cache-no-pool-state">
+                    <i class="fas fa-box-open"></i>
+                    <p>No loot pool configured.</p>
+                    <p class="cache-hint">The cache generator needs at least one compendium source to draw items from. Set one up in the Loot Pool compiler before generating.</p>
+                </div>
+                {{/if}}
                 {{/unless}}
+            {{/if}}
+
+            {{!-- Forge warning banner: shown above the footer when compiled pool is stale/missing.
+                 Sits between the loot preview and the action footer — contextual, non-intrusive. --}}
+            {{#if forgeStalePip}}
+            <div class="cache-forge-warning-banner cache-forge-warning--stale"
+                 title="Compiled loot pool is stale or missing. Expanded weapons may not appear.">
+                <i class="fas fa-triangle-exclamation"></i>
+                <span class="cache-forge-warning-text">Compiled loot pool is stale or missing. Expanded weapons may not appear.</span>
+                <button type="button" class="action-open-forge-from-pip cache-forge-warning-btn">Open Forge <i class="fas fa-arrow-right"></i></button>
+            </div>
+            {{/if}}
+            {{#if forgeNeverPip}}
+            <div class="cache-forge-warning-banner cache-forge-warning--never"
+                 title="2024 weapon templates need compiling before they appear in caches.">
+                <i class="fas fa-hammer"></i>
+                <span class="cache-forge-warning-text">2024 weapon templates need compiling before they appear in caches.</span>
+                <button type="button" class="action-open-forge-from-pip cache-forge-warning-btn">Open Forge <i class="fas fa-arrow-right"></i></button>
+            </div>
             {{/if}}
 
             {{!-- Sticky footer --}}
@@ -628,7 +655,7 @@
                     </div>
                 </div>
 
-                {{!-- Right zone: dominant reroll button --}}
+            {{!-- Right zone: dominant reroll button --}}
                 <button type="button" class="action-generate cache-btn-reroll-footer" {{#if generating}}disabled{{/if}}>
                     {{#if generating}}
                         <i class="fas fa-spinner fa-spin"></i> Generating...
@@ -636,9 +663,11 @@
                         <i class="fas fa-dice"></i> Reroll Cache
                     {{/if}}
                 </button>
+
             </div>
             {{else}}
             <div class="cache-sticky-footer">
+                {{#if hasLootPool}}
                 <button type="button" class="action-generate cache-btn-primary" {{#if generating}}disabled{{/if}}>
                     {{#if generating}}
                         <i class="fas fa-spinner fa-spin"></i> Generating...
@@ -646,7 +675,15 @@
                         <i class="fas fa-treasure-chest"></i> Generate Cache
                     {{/if}}
                 </button>
+
+
+                {{else}}
+                <button type="button" class="action-open-pool-compiler cache-btn-nudge">
+                    <i class="fas fa-hammer"></i> Set Up Loot Pool
+                </button>
+                {{/if}}
             </div>
+
             {{/if}}
 
         </div>{{!-- /.cache-center --}}

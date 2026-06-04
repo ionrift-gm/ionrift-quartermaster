@@ -1,4 +1,4 @@
-import { Logger, MODULE_LABEL } from "../_logger.js";
+﻿import { Logger, MODULE_LABEL } from "../_logger.js";
 
 export class SignatureLedger {
 
@@ -44,7 +44,7 @@ export class SignatureLedger {
     static _resolvePartyMembers() {
         const libParty = game.ionrift?.library?.party;
         if (libParty) return libParty.getMembers();
-        // Defensive fallback — should not reach here since QM requires library ≥ 2.0.0
+        // Defensive fallback - should not reach here since QM requires library ≥ 2.0.0
         return game.actors.filter(a => a.hasPlayerOwner && a.type === "character");
     }
 
@@ -62,7 +62,7 @@ export class SignatureLedger {
      * Use game.ionrift.library.party.setRoster() instead.
      */
     static async setLedgerHiddenActors(_idSet) {
-        // No-op — party membership is managed by the library kernel.
+        // No-op - party membership is managed by the library kernel.
     }
 
     // ── Journal Entry Access ──────────────────────────────────────────────────
@@ -330,7 +330,7 @@ export class SignatureLedger {
 
     /**
      * Returns a Set<string> of lowercase banned item names for fast cache-gen lookup.
-     * Synchronous — expects the ban list to have been pre-cached (see getBanSet()).
+     * Synchronous - expects the ban list to have been pre-cached (see getBanSet()).
      */
     static async getBanSet() {
         const list = await this.getBanList();

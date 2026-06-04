@@ -3,10 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **Quick setup profiles.** Low, Standard, and High loot presets in module settings, plus Custom when values do not match a preset.
+- **Grouped settings panel.** Loot generation, identification, and progression open in focused submenus; milestone profile stays under Start here.
+- **GM setup guide stub.** Journal compendium placeholder linked from Quick setup (`game.ionrift.quartermaster.openSetupGuide()`).
 - **Scroll balance tests.** Vitest and a Forge harness run Monte Carlo picks per tier so scroll level spread can be tuned without hand-rolling caches.
 - **Budget brackets.** The cache generator budget control uses tier-sized gp windows instead of a single draggable pill.
 
 ### Changed
+- **Respite loot pool split.** Respite Items no longer appears in Loot Pool Sources. Enable Respite Cache Utility when both modules are active for camp supplies such as kindling.
 - **Arcana scroll slots.** High-tier Arcana caches cap scroll slots and stack duplicate spells (2-4 copies on lower circles) so the list stays short.
 - **Scroll tier bands.** Cache scrolls respect tier min/max spell level and a fair per-slot share of the item budget.
 
