@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ContentPackCompiler
  *
  * Compiles content pack item data into world compendiums at runtime.

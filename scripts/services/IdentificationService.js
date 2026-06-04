@@ -1,4 +1,4 @@
-﻿import { Logger } from "../_logger.js";
+import { Logger } from "../_logger.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
 
@@ -30,8 +30,8 @@ const FLAG_CURSED_META = "cursedMeta";
  *
  * All identification paths in Quartermaster (GM action, Respite rest
  * activity, future Arcana flow) should route through `identify(item)`.
- * Foundry's native wand toggle is blocked by `_guardIdentify` on items
- * with either of these flags.
+ * Foundry's native wand toggle is blocked by `IdentificationGuard` when
+ * `gmOnlyIdentification` is enabled (default).
  */
 export class IdentificationService {
 

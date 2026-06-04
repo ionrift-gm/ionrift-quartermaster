@@ -1,4 +1,4 @@
-﻿import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../_logger.js";
 import { SrdCurseAdapter } from "./SrdCurseAdapter.js";
 import { CursedItemResolver } from "./CursedItemResolver.js";
 

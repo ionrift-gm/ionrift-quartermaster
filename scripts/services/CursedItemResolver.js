@@ -1,4 +1,4 @@
-﻿/**
+/**
  * CursedItemResolver - Single authoritative service for cursed item
  * name resolution and pack document loading.
  *

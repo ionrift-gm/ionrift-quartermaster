@@ -1,4 +1,4 @@
-﻿/**
+/**
  * PotionEnrichment
  *
  * Corrects SRD healing-potion data at two points in the pipeline:
@@ -79,15 +79,27 @@ export class PotionEnrichment {
     static getTierData(name) {
         if (!name || typeof name !== "string") return null;
         const n = name.trim();
-        const isHealPotion =
-            /^potion of (supreme|superior|greater) healing$/i.test(n)
-            || /^potion of healing(\s*\([^)]+\))?$/i.test(n);
-        if (!isHealPotion) return null;
+
+        if (/\bpoison\b/i.test(n) && /\bpotion\b/i.test(n)) return null;
 
         for (const tier of PotionEnrichment._TIERS) {
             if (tier.test.test(n)) return tier;
         }
-        return PotionEnrichment._BASE_TIER;
+
+        if (/^potion of healing(\s*\([^)]+\))?$/i.test(n)) {
+            return PotionEnrichment._BASE_TIER;
+        }
+
+        if (/\bpotion\b/i.test(n) && /\bhealing\b/i.test(n)) {
+            return PotionEnrichment._BASE_TIER;
+        }
+
+        return null;
+    }
+
+    /** @param {string} name @returns {boolean} */
+    static isHealingPotion(name) {
+        return PotionEnrichment.getTierData(name) !== null;
     }
 
     /**

@@ -1,10 +1,11 @@
-﻿import { WorkshopApp } from "./apps/WorkshopApp.js";
+import { WorkshopApp } from "./apps/WorkshopApp.js";
 import { CacheGeneratorApp } from "./apps/CacheGeneratorApp.js";
 import { SheetInjector } from "./SheetInjector.js";
 import { WorkshopItemFactory } from "./services/WorkshopItemFactory.js";
 import { CacheGenerator } from "./services/CacheGenerator.js";
 
 import { IdentificationService } from "./services/IdentificationService.js";
+import { IdentificationGuard } from "./services/IdentificationGuard.js";
 import { PriceMasker } from "./services/PriceMasker.js";
 import { PriceInjector } from "./PriceInjector.js";
 import { SignatureLedger } from "./services/SignatureLedger.js";
@@ -148,6 +149,8 @@ Hooks.once('init', async () => {
 });
 
 Hooks.on('ready', () => {
+    IdentificationGuard.init();
+
     // ── Dependency advisory ───────────────────────────────────────────────────
     // Item Piles is required for cache placement and player transfers.
     // Surface this clearly on a clean install rather than silently failing.
@@ -263,6 +266,7 @@ Hooks.on('ready', () => {
     game.ionrift.quartermaster.openSetupGuide = openSetupGuide;
     game.ionrift.quartermaster.itemMaskingHelper = ItemMaskingHelper;
     game.ionrift.quartermaster.identificationService = IdentificationService;
+    game.ionrift.quartermaster.identificationGuard = IdentificationGuard;
     game.ionrift.quartermaster.standalonePoolRegistry = StandalonePoolRegistry;
 
     Logger.info(MODULE_LABEL, "Ready.");

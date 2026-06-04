@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ContentPackLoader
  *
  * Scans ionrift-data/quartermaster/packs/ for extracted content pack ZIPs.

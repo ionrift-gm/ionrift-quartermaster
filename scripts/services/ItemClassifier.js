@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ItemClassifier
  *
  * Classifies pool items by narrative weight so that downstream pickers can

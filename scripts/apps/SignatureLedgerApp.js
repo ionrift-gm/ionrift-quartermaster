@@ -1,4 +1,4 @@
-﻿import { SignatureLedger } from "../services/SignatureLedger.js";
+import { SignatureLedger } from "../services/SignatureLedger.js";
 import { ProgressionSeeder }  from "../services/ProgressionSeeder.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { SrdCurseAdapter } from "../services/SrdCurseAdapter.js";

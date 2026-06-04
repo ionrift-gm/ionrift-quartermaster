@@ -1,4 +1,4 @@
-﻿/**
+/**
  * OverlayItemMaterialiser
  *
  * Reads raw item JSONs delivered by the Patreon Library overlay system

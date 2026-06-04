@@ -1,4 +1,4 @@
-﻿/**
+/**
  * OverlayMaterialiserTests - Guards OverlayItemMaterialiser's recursive item
  * walker against the "silent empty pack" regression.
  *

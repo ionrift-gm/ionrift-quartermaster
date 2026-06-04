@@ -1,4 +1,4 @@
-﻿import { IdentificationService } from "./IdentificationService.js";
+import { IdentificationService } from "./IdentificationService.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 

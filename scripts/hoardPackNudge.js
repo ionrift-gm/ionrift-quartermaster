@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Quartermaster Core pack nudge wiring.
  *
  * Surfaces the shared library pack-nudge banner in Module Settings when the

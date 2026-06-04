@@ -1,4 +1,4 @@
-﻿/**
+/**
  * PoolResolverTests - Guards the cache generator's role-pack resolver.
  *
  * Contract:

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * WorkshopPackRegistryApp
  *
  * GM-only pack management panel for Ionrift Quartermaster.

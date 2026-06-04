@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Healing-potion surface names that participate in infected-stack squash (clean + poison vials).
  * Keep in sync with ionrift-cursewright `CurseEngine.POTION_CURSE_TIERS` decoy names (pre-masking).
  */

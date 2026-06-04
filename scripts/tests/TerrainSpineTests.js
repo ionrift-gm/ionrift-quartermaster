@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TerrainSpineTests - Guards QM's terrain registry under strict sovereignty.
  *
  * Contract:

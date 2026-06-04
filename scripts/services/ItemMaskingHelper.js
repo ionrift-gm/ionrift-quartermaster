@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ItemMaskingHelper
  *
  * Applies dnd5e identification masking to magical items from the Cache
@@ -184,17 +184,23 @@ export class ItemMaskingHelper {
 
         const obscureConsumables = game?.settings?.get("ionrift-quartermaster", "obscureConsumables") ?? true;
         const obscureScrolls = game?.settings?.get("ionrift-quartermaster", "obscureScrolls") ?? true;
+        const obscureMagicalItems = game?.settings?.get("ionrift-quartermaster", "obscureMagicalItems") ?? true;
         const isScroll = /scroll/i.test(nameLower);
         const obscurableConsumable = this._isObscurableConsumable(itemMeta);
 
         const rarityMagical = rarity !== "" && rarity !== "common" && rarity !== "none";
+        const isGearMagic = rarityMagical && !isScroll && !obscurableConsumable;
 
         // isMagical reflects intrinsic magic independent of display settings.
         // Scrolls are always magical. Potion-like consumables are always magical.
-        // Obscure settings only control name/image presentation below, not this flag.
+        // Gear uses rarity. Obscure settings control whether masking metadata is produced.
         const isMagical = rarityMagical || isScroll || obscurableConsumable;
 
         if (!isMagical) {
+            return { isMagical: false, baseItemName: null, mundaneDesc: null, obscuredImg: null };
+        }
+
+        if (!obscureMagicalItems && isGearMagic) {
             return { isMagical: false, baseItemName: null, mundaneDesc: null, obscuredImg: null };
         }
 
@@ -742,8 +748,11 @@ export class ItemMaskingHelper {
         if (consumableMask) return consumableMask;
 
         // 3. Wand/rod/staff masking (type or name-based)
-        const focusMask = this._maskFocusName(nameLower, type);
-        if (focusMask) return focusMask;
+        const obscureMagicalItems = game?.settings?.get("ionrift-quartermaster", "obscureMagicalItems") ?? true;
+        if (obscureMagicalItems) {
+            const focusMask = this._maskFocusName(nameLower, type);
+            if (focusMask) return focusMask;
+        }
 
         // 4. dnd5e baseItem field (with terse-ID expansion for armor)
         if (baseItem && typeof baseItem === "string") {

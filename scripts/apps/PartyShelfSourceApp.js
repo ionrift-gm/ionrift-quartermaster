@@ -1,4 +1,4 @@
-﻿/**
+/**
  * GM dialog: choose which item compendiums the Party Shelf randomiser draws from.
  * Launched from the Signature Ledger's Party Shelf tab.
  */
