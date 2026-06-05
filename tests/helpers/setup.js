@@ -169,8 +169,11 @@ globalThis.CONST = {
     }
 };
 
-// ── Math.clamped (Foundry polyfill) ─────────────────────────────────
+// ── Math clamp helpers (Foundry polyfills) ───────────────────────────
 
 if (!Math.clamped) {
     Math.clamped = (val, min, max) => Math.min(Math.max(val, min), max);
+}
+if (!Math.clamp) {
+    Math.clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 }
