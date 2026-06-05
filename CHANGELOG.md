@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.5.0] - 2026-06-05
+
+### Added
+- **Armor bonus cap.** A new config panel lets you set the maximum enchantment bonus for body armor by tier, independent of weapon magic frequency. Prevents magical plate from appearing at tiers where it would be out of place.
+
+### Changed
+- Cache value distribution has been tuned against backend loot validation. High-value and low-value items should sit in the right proportions across all tiers and cache types.
+- The Compendium Forge no longer force-recompiles on version bumps at startup. The Forge badge prompts a deliberate recompile when the compiler version has changed, so reloading your world doesn't trigger a background rebuild.
+- Bundled containers now hold more. Capacity values across all flavour vessels were raised to accommodate the weight of realistic cache contents without overflowing.
+
+### Fixed
+- **Cache coin overflow.** When a budget bracket is active, coin fills only after item slots are satisfied. Previously one expensive item could consume the full budget and backfill all remaining slots with gold.
+- **Armor draw balance.** Armaments caches now reliably surface body armor. Previously the pool treated all armor as one bucket, so mail, plate, and leather effectively never got picked.
+- **SRD cursed items in loot pools.** 2024 SRD permutations of cursed equipment (Berserker Battleaxe variants, Armor of Vulnerability, Sword of Vengeance) are now excluded from compiled loot pools and random draws.
+- **Stack quantities.** Trinkets draw as single items, trade goods bulk-stack, treasure stacks in small runs. Previously all non-coin items could stack arbitrarily.
+
+
 ## [1.4.0] - 2026-06-04
 
 ### Added
