@@ -227,8 +227,9 @@ function _normalizeForgeStatus(status) {
 export function getWorstForgeStatus() {
     try {
         const statuses = [];
+        const compiledLootHash = game.settings.get(MODULE_ID, LootPoolCompiler.SETTING_HASH);
 
-        if (LootPoolCompiler.is2024ArchitecturePresent()) {
+        if (LootPoolCompiler.is2024ArchitecturePresent() || compiledLootHash) {
             statuses.push(_normalizeForgeStatus(LootPoolCompiler.getStatus()));
         }
 

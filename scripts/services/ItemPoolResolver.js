@@ -34,6 +34,49 @@ export class ItemPoolResolver {
         4: Infinity  // T4: no ceiling
     };
 
+    /** Mastercraft draw weight toward body armor when ownerTheme is armaments (C1). */
+    static MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT = 0.5;
+
+    /** Secondary weight toward shields before weapons on armaments mastercraft slots. */
+    static MASTERCRAFT_SHIELD_DRAW_WEIGHT = 0.15;
+
+    /** @deprecated Use MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT */
+    static MASTERCRAFT_ARMOR_DRAW_WEIGHT = 0.5;
+
+    /**
+     * Imputed gp value for generic +N items when filtering mastercraft bands.
+     * Compiled armor keeps mundane base gp on the document; bonus tier carries
+     * the real loot value for tier band checks.
+     */
+    static GENERIC_BONUS_VALUE_FLOOR = { 1: 200, 2: 800, 3: 3000 };
+
+    /**
+     * Minimum generic +N bonus for mastercraft cache picks by tier.
+     * T4 expects +2 masterwork, not leftover +1 filler.
+     */
+    static MIN_GENERIC_BONUS_BY_TIER = { 1: 0, 2: 1, 3: 1, 4: 2 };
+
+    /**
+     * Generic +N mastercraft pick weights by tier. T4 leans toward +2.
+     */
+    static MASTERCRAFT_BONUS_WEIGHTS = {
+        1: { 1: 1, 2: 0, 3: 0 },
+        2: { 1: 6, 2: 1, 3: 0 },
+        3: { 1: 3, 2: 3, 3: 1 },
+        4: { 1: 1, 2: 7, 3: 3 }
+    };
+
+    /**
+     * Maximum generic +N bonus allowed in mastercraft cache picks by tier.
+     * Named magical items use the separate Stance B throttle.
+     */
+    static MAX_GENERIC_BONUS_BY_TIER = {
+        1: 0,
+        2: 1,
+        3: 2,
+        4: 3
+    };
+
     /**
      * Compendium IDs that must never feed Quartermaster loot pools or compilation.
      * Activity items (forage, hunt, cooking) stay in Respite; use respite-cache-utility instead.
@@ -182,18 +225,90 @@ export class ItemPoolResolver {
     }
 
     /**
+     * Combined per-item price cap: tier table plus optional slot budget ceiling
+     * from {@link CacheGenerator._computeSlotPriceCeiling}.
+     *
+     * @param {number} tier
+     * @param {number} [slotCeiling=Infinity]
+     * @returns {number}
+     */
+    static _effectivePriceCeiling(tier, slotCeiling = Infinity) {
+        const tierCeiling = this.TIER_PRICE_CEILING[tier] ?? Infinity;
+        const slotCap = slotCeiling ?? Infinity;
+        return Math.min(tierCeiling, slotCap);
+    }
+
+    /**
      * Pick a random item from the resolved pool.
      */
     static async pickRandom(opts) {
         let pool = await this.resolve(opts);
         if (!pool.length) return null;
 
-        // Apply per-item price ceiling for the tier
         const tier = opts.tier ?? 1;
-        const priceCeiling = this.TIER_PRICE_CEILING[tier] ?? Infinity;
-        if (priceCeiling < Infinity) {
-            const pricedPool = pool.filter(i => (i.price ?? 0) <= priceCeiling);
-            if (pricedPool.length > 0) pool = pricedPool;
+        let priceCeiling = this._effectivePriceCeiling(tier, opts.priceCeiling);
+        if (opts.priceMax !== undefined && opts.priceMax < priceCeiling) {
+            priceCeiling = opts.priceMax;
+        }
+        const priceMin = opts.priceMin ?? 0;
+        if (opts.slotType === "mastercraft") {
+            pool = this._filterMastercraftPricePool(pool, priceCeiling, opts.priceMax, priceMin);
+        } else {
+            if (priceCeiling < Infinity) {
+                const pricedPool = pool.filter(i => (i.price ?? 0) <= priceCeiling);
+                if (pricedPool.length > 0) pool = pricedPool;
+            }
+            if (priceMin > 0) {
+                const floored = pool.filter(i => (i.price ?? 0) >= priceMin);
+                if (floored.length > 0) pool = floored;
+            }
+        }
+
+        // Mastercraft repick logic in CacheGenerator handles weight with type
+        // floors. Pre-filtering the pool by raw weight here collapses armor to
+        // helms-only in small containers (2 lb helms survive, 6 lb shields do not).
+        if (opts.slotType !== "mastercraft"
+            && opts.maxEffectiveWeight !== undefined
+            && opts.maxEffectiveWeight < Infinity) {
+            const maxW = opts.maxEffectiveWeight;
+            const weightOf = (item) => {
+                if (typeof opts.effectiveWeightFn === "function") {
+                    return opts.effectiveWeightFn(item.weight, item.type, item.system);
+                }
+                return item.weight ?? 0;
+            };
+            const lightPool = pool.filter(i => weightOf(i) <= maxW);
+            if (lightPool.length > 0) pool = lightPool;
+        }
+
+        if (opts.slotType === "mundane" && opts.ownerTheme === "armaments") {
+            const gearPool = pool.filter(i => this._isArmamentsMundaneEligible(i));
+            if (gearPool.length > 0) pool = gearPool;
+        }
+
+        if (opts.slotType === "mastercraft") {
+            const { armor, shields, weapons } = this._splitMastercraftPool(pool);
+            if (opts.requireArmor) {
+                if (armor.length > 0) pool = armor;
+                else if (shields.length > 0) pool = shields;
+                else return null;
+            } else if (opts.preferArmor && opts.ownerTheme === "armaments") {
+                const roll = Math.random();
+                if (roll < this.MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT && armor.length > 0) {
+                    pool = armor;
+                } else if (
+                    roll < this.MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT + this.MASTERCRAFT_SHIELD_DRAW_WEIGHT
+                    && shields.length > 0
+                ) {
+                    pool = shields;
+                } else if (weapons.length > 0) {
+                    pool = weapons;
+                } else if (armor.length > 0) {
+                    pool = armor;
+                } else if (shields.length > 0) {
+                    pool = shields;
+                }
+            }
         }
 
         // Named-magical filtering (Stance B policy): when requested, strip
@@ -204,8 +319,29 @@ export class ItemPoolResolver {
             if (filtered.length > 0) pool = filtered;
         }
 
+        if (opts.maxGenericBonusTier !== undefined && opts.slotType === "mastercraft") {
+            const maxBonus = opts.maxGenericBonusTier;
+            const capped = pool.filter(item => {
+                if (!ItemClassifier.isGenericMagic(item)) return true;
+                const bonus = ItemClassifier.detectBonusTier(item.name);
+                return bonus > 0 && bonus <= maxBonus;
+            });
+            if (capped.length > 0) pool = capped;
+        }
+
+        const minGenericBonus = this.MIN_GENERIC_BONUS_BY_TIER[tier] ?? 0;
+        if (minGenericBonus > 0 && opts.slotType === "mastercraft") {
+            const floored = pool.filter(item => {
+                if (!ItemClassifier.isGenericMagic(item)) return true;
+                return ItemClassifier.detectBonusTier(item.name) >= minGenericBonus;
+            });
+            if (floored.length > 0) pool = floored;
+        }
+
+        pool = pool.filter(item => !ItemClassifier.isSlayingAmmo(item));
+
         const magicSetting = game.settings?.get(MODULE_ID, "magicFrequency") ?? 1.0;
-        
+
         if (magicSetting !== 1.0) {
             const isMagical = (item) => {
                 const r = (item.rarity || "common").toLowerCase();
@@ -213,7 +349,7 @@ export class ItemPoolResolver {
             };
 
             const tunedPool = [];
-            
+
             if (magicSetting < 1.0) {
                 // Low magic: probabilistically skip magical items
                 for (const item of pool) {
@@ -224,22 +360,150 @@ export class ItemPoolResolver {
                 // Safety net: if we purged everything, fall back to the raw pool
                 if (tunedPool.length > 0) pool = tunedPool;
             } else {
-                // High magic: artificially inflate the number of magical items in the draw bag
                 const extraCopies = Math.floor(magicSetting) - 1;
                 const chance = magicSetting % 1;
-                
+
+                // High magic: duplicate at class level so large template families
+                // are not overweighted within a single equivalence class.
+                const classBuckets = new Map();
                 for (const item of pool) {
-                    tunedPool.push(item); // The guaranteed copy
-                    if (isMagical(item)) {
-                        for (let i = 0; i < extraCopies; i++) tunedPool.push(item);
-                        if (Math.random() <= chance) tunedPool.push(item);
+                    const key = this._poolClassKey(item);
+                    if (!classBuckets.has(key)) classBuckets.set(key, []);
+                    classBuckets.get(key).push(item);
+                }
+
+                for (const [, items] of classBuckets) {
+                    tunedPool.push(items[0]);
+                    const sample = items[0];
+                    const isMagical = (() => {
+                        const r = (sample.rarity || "common").toLowerCase();
+                        return r !== "common" && r !== "none" && r !== "";
+                    })();
+                    if (isMagical) {
+                        for (let i = 0; i < extraCopies; i++) {
+                            tunedPool.push(items[Math.floor(Math.random() * items.length)]);
+                        }
+                        if (Math.random() <= chance) {
+                            tunedPool.push(items[Math.floor(Math.random() * items.length)]);
+                        }
                     }
                 }
                 pool = tunedPool;
             }
         }
 
+        const useClassPick = opts.pickByClass !== false
+            && ["mastercraft", "ammo"].includes(opts.slotType);
+        if (useClassPick) {
+            if (opts.slotType === "mastercraft") {
+                return this._pickMastercraftByBonusWeights(pool, tier, opts);
+            }
+            return this._pickUniformByClass(pool);
+        }
+
         return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    /**
+     * Mastercraft pick with tier-weighted +N bias (mirrors magical ammo curve).
+     *
+     * @param {object[]} pool
+     * @param {number} tier
+     * @param {object} [opts]
+     * @returns {object|null}
+     */
+    static _pickMastercraftByBonusWeights(pool, tier, opts = {}) {
+        const weights = this.MASTERCRAFT_BONUS_WEIGHTS[tier] ?? this.MASTERCRAFT_BONUS_WEIGHTS[1];
+        const byBonus = { 1: [], 2: [], 3: [], named: [] };
+
+        for (const item of pool) {
+            if (ItemClassifier.isNamedMagical(item)) {
+                byBonus.named.push(item);
+                continue;
+            }
+            const bonus = ItemClassifier.detectBonusTier(item.name);
+            if (bonus >= 1 && bonus <= 3) {
+                byBonus[bonus].push(item);
+            } else {
+                byBonus[1].push(item);
+            }
+        }
+
+        const tierBag = [];
+        for (const bonusStr of ["1", "2", "3"]) {
+            const bonus = parseInt(bonusStr, 10);
+            const w = weights[bonus] ?? 0;
+            if (w === 0 || !byBonus[bonus].length) continue;
+            const tickets = Math.max(1, Math.round(w));
+            for (let i = 0; i < tickets; i++) tierBag.push(bonus);
+        }
+
+        if (tierBag.length) {
+            const chosenBonus = tierBag[Math.floor(Math.random() * tierBag.length)];
+            const picked = this._pickUniformByClass(byBonus[chosenBonus]);
+            if (picked) return picked;
+        }
+
+        if (!opts.rejectNamedMagical && byBonus.named.length > 0) {
+            return this._pickUniformByClass(byBonus.named);
+        }
+
+        return this._pickUniformByClass(pool);
+    }
+
+    /**
+     * Equivalence class for fair pool draws. Template families share one class;
+     * generic +N group by base name; named items are singleton classes.
+     *
+     * @param {object} item
+     * @returns {string}
+     */
+    static _poolClassKey(item) {
+        const compiled = item.flags?.[MODULE_ID]?.compiledFrom;
+        if (compiled?.template) {
+            const tpl = compiled.template.toLowerCase();
+            if (compiled.base) return `tpl:${tpl}:${compiled.base.toLowerCase()}`;
+            if (compiled.variant) return `tpl:${tpl}:${String(compiled.variant).toLowerCase()}`;
+            return `tpl:${tpl}`;
+        }
+        if (compiled?.creatureType) return `slaying:${compiled.creatureType.toLowerCase()}`;
+        if (compiled?.enrichment) return `named:${(item.name ?? "").toLowerCase()}`;
+
+        const name = (item.name ?? "").trim();
+        const nameLc = name.toLowerCase();
+
+        if (ItemClassifier.isGenericMagic(item)) {
+            const bonus = ItemClassifier.detectBonusTier(item.name);
+            const base = name.replace(/\s*\+\d\b.*$/i, "").trim().toLowerCase();
+            return `gen:+${bonus || 0}:${base}`;
+        }
+        if (ItemClassifier.isNamedMagical(item)) return `named:${nameLc}`;
+
+        const baseItem = (item._baseItem ?? "").trim().toLowerCase();
+        return `mund:${baseItem || nameLc}`;
+    }
+
+    /**
+     * Pick uniformly among equivalence classes, then uniformly within the class.
+     *
+     * @param {object[]} pool
+     * @returns {object|null}
+     */
+    static _pickUniformByClass(pool) {
+        if (!pool?.length) return null;
+        if (pool.length === 1) return pool[0];
+
+        const classes = new Map();
+        for (const item of pool) {
+            const key = this._poolClassKey(item);
+            if (!classes.has(key)) classes.set(key, []);
+            classes.get(key).push(item);
+        }
+
+        const keys = [...classes.keys()];
+        const chosenKey = keys[Math.floor(Math.random() * keys.length)];
+        const bucket = classes.get(chosenKey);
+        return bucket[Math.floor(Math.random() * bucket.length)];
     }
 
     /**
@@ -351,8 +615,91 @@ export class ItemPoolResolver {
         if (entry.type !== "equipment") return false;
         const armorType = (entry.system?.armor?.type ?? "").trim();
         if (armorType) return true;
-        const subtype = (entry.system?.type?.value ?? "").trim();
+        const subtype = (entry.subtype ?? entry.system?.type?.value ?? "").trim();
         return ["light", "medium", "heavy", "shield"].includes(subtype);
+    }
+
+    /** @param {object} item - Resolved pool item (flat shape with optional subtype). */
+    static _isArmorPoolItem(item) {
+        return this._isArmorEntry(item);
+    }
+
+    /**
+     * Split a mastercraft pool into armor and weapon buckets.
+     * @param {object[]} pool
+     * @returns {{ armor: object[], weapons: object[] }}
+     */
+    static _splitMastercraftPool(pool) {
+        const armor   = [];
+        const shields = [];
+        const weapons = [];
+        for (const item of pool) {
+            if (this._isArmorPoolItem(item)) {
+                const subtype = (item.subtype ?? item.system?.type?.value ?? "").trim().toLowerCase();
+                if (subtype === "shield") shields.push(item);
+                else armor.push(item);
+            } else {
+                weapons.push(item);
+            }
+        }
+        return { armor, shields, weapons };
+    }
+
+    /**
+     * Imputed gp for mastercraft band filtering on generic +N items.
+     * @param {object} item
+     * @returns {number}
+     */
+    static _mastercraftEffectivePrice(item) {
+        if (ItemClassifier.isGenericMagic(item)) {
+            const bonus = ItemClassifier.detectBonusTier(item.name) || 1;
+            const floor = this.GENERIC_BONUS_VALUE_FLOOR[bonus] ?? 0;
+            return Math.max(item.price ?? 0, floor);
+        }
+        return item.price ?? 0;
+    }
+
+    /**
+     * Apply tier price bands to mastercraft pools using imputed generic +N values.
+     * @param {object[]} pool
+     * @param {number} priceCeiling
+     * @param {number|undefined} priceMax
+     * @param {number} priceMin
+     * @returns {object[]}
+     */
+    static _filterMastercraftPricePool(pool, priceCeiling, priceMax, priceMin) {
+        const effective = (item) => this._mastercraftEffectivePrice(item);
+        let filtered = pool;
+
+        const applyCap = (cap) => {
+            if (cap === undefined || cap >= Infinity) return;
+            const capped = filtered.filter(i => effective(i) <= cap);
+            if (capped.length > 0) filtered = capped;
+        };
+
+        applyCap(priceCeiling);
+        applyCap(priceMax);
+
+        if (priceMin > 0) {
+            const floored = filtered.filter(i => effective(i) >= priceMin);
+            if (floored.length > 0) filtered = floored;
+        }
+
+        return filtered;
+    }
+
+    /**
+     * Armaments mundane slots skip clothing and wondrous wearables.
+     * @param {object} item
+     * @returns {boolean}
+     */
+    static _isArmamentsMundaneEligible(item) {
+        if (item.type === "loot" || item.type === "tool") return true;
+        if (item.type !== "equipment") return false;
+        const subtype = (item.subtype ?? item.system?.type?.value ?? "").toLowerCase();
+        if (subtype === "clothing") return false;
+        if (["wondrous", "ring", "trinket"].includes(subtype)) return false;
+        return true;
     }
 
     /**
@@ -454,10 +801,31 @@ export class ItemPoolResolver {
         if (this._isZeroDataPlaceholder(entry)) return true;
         if (this._isZeroWeightWeaponTemplate(entry)) return true;
         if (this._isZeroWeightArmorTemplate(entry)) return true;
+        if (this._isEconomyPendingLoot(entry)) return true;
+        if (this._isSlayingTemplateShell(entry, nameLower)) return true;
+        if (this._isNarrativeReserveLoot(entry)) return true;
         if (this._isBulkAmmoCollection(entry, nameLower)) return true;
         if (this._isGmPlacedPoison(entry, nameLower)) return true;
         if (this._isLegacyRenamedItem(entry, nameLower)) return true;
         return false;
+    }
+
+    /**
+     * 2024 slaying ammo template shell and enchantment rider documents.
+     * Compiled output replaces these in the loot pool.
+     */
+    static _isSlayingTemplateShell(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
+        if (nameLower === "ammunition of slaying") return true;
+        if (nameLower.startsWith("ammunition of slaying ")) return true;
+        if (entry.type === "enchantment" && /^ammunition of slaying /i.test(entry.name ?? "")) return true;
+        return false;
+    }
+
+    /**
+     * Single-use narrative ammunition reserved for deliberate placement.
+     */
+    static _isNarrativeReserveLoot(entry) {
+        return ItemClassifier.isSlayingAmmo(entry);
     }
 
     /**
@@ -529,6 +897,20 @@ export class ItemPoolResolver {
         const weight = this._extractWeight(entry);
         const rarity = (entry.system?.rarity ?? "").trim();
         return price === 0 && weight === 0 && rarity === "";
+    }
+
+    /**
+     * Named magic rows with zero price and zero weight. These are not loot-ready
+     * until LootPoolCompiler enrichment emits a compiled counterpart.
+     */
+    static _isEconomyPendingLoot(entry) {
+        if (PotionEnrichment.isHealingPotion(entry.name)) return false;
+        const price = this._extractPrice(entry);
+        const weight = this._extractWeight(entry);
+        if (price !== 0 || weight !== 0) return false;
+        const rarity = (entry.system?.rarity ?? "").trim().toLowerCase();
+        if (!rarity || rarity === "common" || rarity === "none") return false;
+        return true;
     }
 
     /**

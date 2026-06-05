@@ -73,7 +73,10 @@ export const __testables__ = {
         CacheGenerator._scrollPriceCeiling(tierData, slotCeiling, opts),
     pickScrollFromIndex: (index, tierData, ceiling) =>
         CacheGenerator._pickScrollFromIndex(index, tierData, ceiling),
-    readEnabledPackSources: () => readEnabledPackSources(),
+    resolveWeightBudgets: (cap) => CacheGenerator._resolveWeightBudgets(cap),
+    itemExceedsWeightPickLimit: (w, attempt, budgets, current) =>
+        CacheGenerator._itemExceedsWeightPickLimit(w, attempt, budgets, current),
+    get GENERATION_WEIGHT_FLOOR() { return CacheGenerator.GENERATION_WEIGHT_FLOOR; },
     resolveQmAnyPacks: (suffix) => resolveQmAnyPacks(suffix),
     resolveQmContainerPacks: () => resolveQmContainerPacks(),
     resolveQmTreasurePacks: () => resolveQmTreasurePacks(),
@@ -90,7 +93,8 @@ export const __testables__ = {
     flavorIsTerrainBound: (entry) => flavorIsTerrainBound(entry),
     flavorEligibleForTheme: (entry, theme) => flavorEligibleForTheme(entry, theme),
     get FLAVOR_TERRAIN_MATCH_MULTIPLIER() { return FLAVOR_TERRAIN_MATCH_MULTIPLIER; },
-    get FLAVOR_TERRAIN_SPECIFIC_BIAS() { return FLAVOR_TERRAIN_SPECIFIC_BIAS; }
+    get FLAVOR_TERRAIN_SPECIFIC_BIAS() { return FLAVOR_TERRAIN_SPECIFIC_BIAS; },
+    applyBudgetFloor: (result, min, max) => CacheGenerator.applyBudgetFloor(result, min, max)
 };
 
 /**
@@ -390,6 +394,306 @@ export class CacheGenerator {
     /** @type {Object|null} Loaded cache table data */
     static _tables = null;
 
+    /** Minimum generation budget for QM cache containers (nominal cap is flavor). */
+    static GENERATION_WEIGHT_FLOOR = 110;
+
+    /** Owner themes that may roll a reserved armor mastercraft slot (B1). */
+    static ARMOR_PRESENCE_THEMES = new Set(["armaments", "unspecified"]);
+
+    /** Chance a gear-bearing cache reserves one armor mastercraft slot. */
+    static ARMOR_PRESENCE_CHANCE = 0.65;
+
+    /** Armaments caches prefer containers at or above this nominal capacity. */
+    static CONTAINER_STURDY_MIN_LBS = 110;
+
+    /** Minimum container nominal capacity by tier when picking a cache vessel. */
+    static TIER_CONTAINER_MIN_LBS = { 1: 70, 2: 70, 3: 110, 4: 140 };
+
+    /** Nominal fill ratio above which filler slots prefer light item types. */
+    static CONTAINER_PRESSURE_RATIO = 0.55;
+
+    /** Remaining nominal lbs below which filler slots prefer light item types. */
+    static CONTAINER_PRESSURE_REMAINING_LBS = 12;
+
+    /** First item may not exceed this share of nominal capacity when more slots remain. */
+    static FIRST_ITEM_MAX_NOMINAL_SHARE = 0.45;
+
+    /** Max share of cache budget a single guaranteed slot may consume (Policy A). */
+    static GUARANTEED_SLOT_MAX_SHARE = 0.35;
+
+    /** Item at or above this share of budget triggers dressing pairing (Policy F). */
+    static ANCHOR_ITEM_SHARE = 0.40;
+
+    /** Number of filler slots forced to cheap supplies after an anchor item. */
+    static PAIRING_DRESSING_SLOTS = 2;
+
+    /** Per-tier price ceiling for pairing / dressing picks (gp). */
+    static PAIRING_DRESSING_CEILING = { 1: 15, 2: 25, 3: 40, 4: 60 };
+
+    /** Minimum item lines before density top-up runs (Policy B). */
+    /** When the GM sets a budget bracket, cap the coin roll so items carry most of the band. */
+    static COIN_ROLL_BUDGET_SHARE = { 1: 0.35, 2: 0.30, 3: 0.25, 4: 0.20 };
+
+    static MIN_CACHE_ITEMS = { 1: 4, 2: 5, 3: 6, 4: 6 };
+
+    /** Max total gp spent on density padding as a share of cache budget. */
+    static DRESSING_BUDGET_SHARE = 0.12;
+
+    /** Per-item gp ceiling during density top-up by tier. */
+    static DRESSING_ITEM_CEILING = { 1: 15, 2: 25, 3: 50, 4: 75 };
+
+    /** Slot types eligible for pairing and density padding. */
+    static DRESSING_SLOT_TYPES = ["consumable", "mundane", "ammo"];
+
+    /**
+     * Nominal capacity drives fill bar; generation budget may exceed it for armor.
+     * @param {number} nominalCapacityLbs
+     * @returns {{ nominal: number, generation: number, singleItemMax: number }}
+     */
+    static _resolveWeightBudgets(nominalCapacityLbs) {
+        const nominal = Number(nominalCapacityLbs) || 999;
+        if (nominal >= 999) {
+            return { nominal, generation: nominal, singleItemMax: nominal };
+        }
+        // Legacy/test containers below QM compact tier stay strict.
+        if (nominal < 45) {
+            return { nominal, generation: nominal, singleItemMax: nominal };
+        }
+        const generation = Math.max(
+            nominal,
+            Math.round(nominal * 1.15),
+            this.GENERATION_WEIGHT_FLOOR
+        );
+        const singleItemMax = nominal <= 70 ? 100
+            : nominal <= 110 ? 130
+            : nominal <= 140 ? 160
+            : nominal <= 175 ? 200
+            : 240;
+        return { nominal, generation, singleItemMax };
+    }
+
+    /**
+     * @param {number} ownerTheme
+     * @returns {boolean}
+     */
+    static _rollArmorPresence(ownerTheme) {
+        if (!this.ARMOR_PRESENCE_THEMES.has(ownerTheme)) return false;
+        return Math.random() < this.ARMOR_PRESENCE_CHANCE;
+    }
+
+    /**
+     * Soft repick: early attempts prefer nominal fit; later attempts allow generation headroom.
+     * @param {number} effectiveWeight
+     * @param {number} pickAttempt
+     * @param {{ nominal: number, generation: number, singleItemMax: number }} budgets
+     * @param {number} currentWeight
+     * @returns {boolean}
+     */
+    static _itemExceedsWeightPickLimit(effectiveWeight, pickAttempt, budgets, currentWeight) {
+        if (effectiveWeight > budgets.singleItemMax) return true;
+        const remainingNominal = Math.max(2, budgets.nominal - currentWeight);
+        const remainingGeneration = Math.max(2, budgets.generation - currentWeight);
+        if (pickAttempt < 3) return effectiveWeight > remainingNominal;
+        return effectiveWeight > remainingGeneration;
+    }
+
+    /**
+     * Per-slot weight allowance: fair share of remaining nominal capacity, capped by generation budget.
+     * @param {{ nominal: number, generation: number }} budgets
+     * @param {number} currentWeight
+     * @param {number} slotsRemaining
+     * @returns {number}
+     */
+    static _slotWeightAllowance(budgets, currentWeight, slotsRemaining) {
+        const remainingNominal = Math.max(0, budgets.nominal - currentWeight);
+        const remainingGeneration = Math.max(0, budgets.generation - currentWeight);
+        if (remainingGeneration <= 0) return 0;
+        const fairShare = slotsRemaining > 0
+            ? remainingNominal / slotsRemaining
+            : remainingNominal;
+        return Math.min(remainingGeneration, Math.max(0.01, fairShare));
+    }
+
+    /**
+     * @param {number} tier
+     * @returns {number}
+     */
+    static _tierContainerMinLbs(tier) {
+        return this.TIER_CONTAINER_MIN_LBS[tier] ?? 45;
+    }
+
+    /**
+     * When the container is nearly full, steer filler away from heavy slot types.
+     * @param {string} effectiveSlotType
+     * @param {boolean} pairingActive
+     * @param {boolean} isGuaranteed
+     * @returns {string}
+     */
+    static _resolveSlotTypeUnderPressure(effectiveSlotType, pairingActive, isGuaranteed) {
+        if (pairingActive || isGuaranteed) return effectiveSlotType;
+        if (this.DRESSING_SLOT_TYPES.includes(effectiveSlotType)) return effectiveSlotType;
+        if (["mastercraft", "treasure", "gemstone"].includes(effectiveSlotType)) {
+            return this.DRESSING_SLOT_TYPES[
+                Math.floor(Math.random() * this.DRESSING_SLOT_TYPES.length)
+            ];
+        }
+        return effectiveSlotType;
+    }
+
+    /**
+     * Last resort before gold filler: try cheap light supply lines that fit remaining capacity.
+     */
+    static async _tryLightSlotFallback(theme, tierData, tables, priceCeiling, pickOpts, weightBudgets, currentWeight, effectiveWeightFn) {
+        const allowance = this._slotWeightAllowance(
+            weightBudgets,
+            currentWeight,
+            pickOpts.slotsRemaining ?? 1
+        );
+        if (allowance <= 0) return null;
+
+        const lightOpts = {
+            ...pickOpts,
+            maxEffectiveWeight: allowance,
+            effectiveWeightFn
+        };
+
+        for (const slotType of this.DRESSING_SLOT_TYPES) {
+            const item = await this._pickItem(slotType, theme, tierData, tables, priceCeiling, lightOpts);
+            if (!item) continue;
+            const unitWeight = effectiveWeightFn(item.weight, item.type, item.system);
+            if (this._itemExceedsWeightPickLimit(unitWeight, 4, weightBudgets, currentWeight)) continue;
+            if (await this._isBanned(item.name)) continue;
+            return item;
+        }
+        return null;
+    }
+
+    /**
+     * @param {object} item
+     * @param {(w: number, type: string, system: object) => number} effectiveWeightFn
+     * @returns {boolean}
+     */
+    static _isArmorCacheItem(item, effectiveWeightFn) {
+        if (!item) return false;
+        const system = item.system ?? { type: { value: item.subtype ?? "" } };
+        return ItemPoolResolver._isArmorPoolItem({
+            type: item.type,
+            subtype: item.subtype ?? system?.type?.value ?? "",
+            system
+        });
+    }
+
+    /**
+     * Price ceiling for a cache slot. Guaranteed slots no longer use Infinity.
+     * @param {object} opts
+     * @returns {number}
+     */
+    static _computeSlotPriceCeiling(opts) {
+        const {
+            hardCap, isGuaranteed, slotType, effectiveBudget, remainingBudget,
+            totalSlotsLeft, fillerSlotsLeft, scrollSlotsRemaining, goldFillerFloor,
+            pairingActive, tier
+        } = opts;
+
+        if (pairingActive) {
+            return this.PAIRING_DRESSING_CEILING[tier] ?? 25;
+        }
+
+        const fairShare = Math.max(remainingBudget / totalSlotsLeft, goldFillerFloor);
+
+        if (hardCap) {
+            if (slotType === "scroll") {
+                return Math.max(
+                    remainingBudget / Math.max(1, scrollSlotsRemaining),
+                    goldFillerFloor
+                );
+            }
+            return fairShare;
+        }
+
+        if (isGuaranteed) {
+            const guaranteedCap = effectiveBudget * this.GUARANTEED_SLOT_MAX_SHARE;
+            return Math.max(
+                Math.min(fairShare, guaranteedCap, remainingBudget),
+                goldFillerFloor
+            );
+        }
+
+        return Math.max(remainingBudget / fillerSlotsLeft, goldFillerFloor);
+    }
+
+    /**
+     * Add cheap supply lines when a cache is visually sparse (Policy B).
+     * @returns {Promise<number>} Updated content weight in lbs.
+     */
+    static async _applyDensityTopUp(result, ctx) {
+        const {
+            tier, theme, tierData, tables, effectiveBudget, ownerTheme,
+            container, weightBudgets, currentWeight, effectiveWeightFn
+        } = ctx;
+
+        const minItems = this.MIN_CACHE_ITEMS[tier] ?? 4;
+        if (result.items.length >= minItems) return currentWeight;
+
+        const dressingBudgetCap = Math.max(
+            effectiveBudget * this.DRESSING_BUDGET_SHARE,
+            this.DRESSING_ITEM_CEILING[tier] ?? 25
+        );
+        let dressingSpent = 0;
+        let weight = currentWeight;
+        let attempts = 0;
+        const maxAttempts = (minItems - result.items.length) * 3;
+
+        while (result.items.length < minItems && dressingSpent < dressingBudgetCap && attempts < maxAttempts) {
+            attempts++;
+            const perItemCap = Math.min(
+                this.DRESSING_ITEM_CEILING[tier] ?? 25,
+                dressingBudgetCap - dressingSpent
+            );
+            if (perItemCap < 1) break;
+
+            const slotType = this.DRESSING_SLOT_TYPES[(result.items.length + attempts) % this.DRESSING_SLOT_TYPES.length];
+            let item = await this._pickItem(slotType, theme, tierData, tables, perItemCap, { ownerTheme });
+            if (!item) continue;
+            if (await this._isBanned(item.name)) continue;
+
+            const unitWeight = effectiveWeightFn(item.weight, item.type, item.system);
+            const remainingGeneration = container
+                ? Math.max(2, weightBudgets.generation - weight)
+                : 45;
+            if (unitWeight > remainingGeneration) continue;
+
+            const qty = (item.quantity !== null && item.quantity !== undefined && item.quantity > 1)
+                ? item.quantity
+                : this._resolveQuantity(item, {
+                    remainingWeight: container
+                        ? Math.max(0, weightBudgets.nominal - weight)
+                        : null
+                });
+            const unitPrice = item.price ?? 0;
+            const cappedQty = unitPrice > 0
+                ? Math.min(qty, Math.max(1, Math.floor(perItemCap / unitPrice)))
+                : qty;
+            const totalItemPrice = Math.round(unitPrice * cappedQty * 100) / 100;
+            if (totalItemPrice > perItemCap) continue;
+
+            const totalItemWeight = unitWeight * cappedQty;
+            if (container && (weight + totalItemWeight) > weightBudgets.generation) continue;
+
+            weight += totalItemWeight;
+            dressingSpent += totalItemPrice;
+            result.items.push({
+                ...item,
+                quantity: cappedQty,
+                price: totalItemPrice,
+                _unitPrice: unitPrice,
+                _qmKind: item._qmKind ?? "dressing"
+            });
+        }
+
+        return weight;
+    }
+
     /**
      * @param {object[]} sources
      * @param {"create"|"update"|"pack"} [mode="create"]
@@ -446,6 +750,7 @@ export class CacheGenerator {
         if (options.budgetMax !== null && options.budgetMax !== undefined) effectiveBudget = Math.min(effectiveBudget, options.budgetMax);
         if (options.budgetMin !== null && options.budgetMin !== undefined) effectiveBudget = Math.max(effectiveBudget, Math.min(options.budgetMin, options.budgetMax ?? Infinity));
         const budgetFloor = options.budgetMin ?? 0;
+        const hardCap = options.budgetMax !== null && options.budgetMax !== undefined;
         /** Item value only; coin is rolled separately and must not consume the item budget. */
         let itemSpentBudget = 0;
         const debug = game.settings?.get(MODULE_ID, "debug") === true;
@@ -477,7 +782,15 @@ export class CacheGenerator {
 
         // ── Gold: always roll, scaled by owner theme (does not reduce item budget) ──
         const rawGold = await this._rollGold(tierData.goldDice);
-        result.gold = Math.max(0, Math.round(rawGold * (ownerDef.budgetMultiplier ?? 1.0)));
+        result.gold = Math.max(0, Math.round(rawGold * (ownerDef.budgetMultiplier ?? 1.0) * economy));
+        if (hardCap && effectiveBudget > 0) {
+            const share = this.COIN_ROLL_BUDGET_SHARE[tier] ?? 0.25;
+            result.gold = Math.min(result.gold, Math.round(effectiveBudget * share));
+        }
+        result.meta.budgetMin = options.budgetMin ?? 0;
+        if (options.budgetMax !== null && options.budgetMax !== undefined) {
+            result.meta.budgetMax = options.budgetMax;
+        }
 
         // ── Signature: always check the Progression Registry ──────────
         const partyActors = game.ionrift?.library?.party?.getMembers()
@@ -526,19 +839,23 @@ export class CacheGenerator {
 
         this._trimExcessScrollSlots(drawnSlots, tier, ownerTheme, pool);
 
+        const armorPresencePending = this._rollArmorPresence(ownerTheme);
+        if (armorPresencePending) {
+            drawnSlots.unshift("mastercraft");
+        }
+
         // Container-first ordering: pick the container before items so we
-        // know the weight budget. Items that don't fit are converted to gold.
-        const container = await this._pickContainer(ownerTheme, theme);
-        const weightBudget = container?.capacityLbs || 999;
+        // know the weight budget. Items that won't fit are converted to gold.
+        const container = await this._pickContainer(ownerTheme, theme, 0, tier);
+        const weightBudgets = this._resolveWeightBudgets(container?.capacityLbs);
         let currentWeight = 0;
+        let armorPresenceSlotPending = armorPresencePending;
+        let pairingSlotsRemaining = 0;
+        const anchorThreshold = effectiveBudget * this.ANCHOR_ITEM_SHARE;
 
         // ── Fill slots ────────────────────────────────────────────────
-        const guaranteedCount = guaranteed.length;
+        const guaranteedCount = guaranteed.length + (armorPresencePending ? 1 : 0);
         let slotsProcessed = 0;
-        // When the GM sets an explicit cap, guaranteed slots are tracked against
-        // spentBudget just like filler slots. Without an override, guaranteed
-        // items are uncapped (original behaviour).
-        const hardCap = options.budgetMax !== null && options.budgetMax !== undefined;
 
         // Named-magical throttle (Stance B): decide ONCE per cache whether a
         // named magical item is eligible at all. Only one named magical item
@@ -576,48 +893,96 @@ export class CacheGenerator {
             // Budget gate: filler always; guaranteed only when GM has set a hard cap
             if (itemSpentBudget >= effectiveBudget && (!isGuaranteed || hardCap)) break;
 
-            // Budget shaping:
-            // • hardCap active: ALL slots (guaranteed + filler) share remaining budget
-            //   proportionally so no single item can consume the whole budget
-            // • no hardCap + guaranteed: Infinity (original uncapped behaviour)
-            // • no hardCap + filler: fair share of remaining budget
+            let pairingActive = false;
+            let effectiveSlotType = slotType;
+            if (pairingSlotsRemaining > 0) {
+                pairingActive = true;
+                effectiveSlotType = this.DRESSING_SLOT_TYPES[
+                    (this.PAIRING_DRESSING_SLOTS - pairingSlotsRemaining) % this.DRESSING_SLOT_TYPES.length
+                ];
+                pairingSlotsRemaining--;
+            }
+
+            const slotsRemaining = Math.max(1, drawnSlots.length - slotsProcessed);
+            const remainingNominal = container
+                ? Math.max(0, weightBudgets.nominal - currentWeight)
+                : 999;
+            const underCapacityPressure = container && (
+                currentWeight / weightBudgets.nominal >= this.CONTAINER_PRESSURE_RATIO
+                || remainingNominal < this.CONTAINER_PRESSURE_REMAINING_LBS
+            );
+            if (underCapacityPressure) {
+                effectiveSlotType = this._resolveSlotTypeUnderPressure(
+                    effectiveSlotType, pairingActive, isGuaranteed
+                );
+            }
+
+            let slotWeightAllowance = this._slotWeightAllowance(
+                weightBudgets, currentWeight, slotsRemaining
+            );
+            if (result.items.length === 0 && slotsRemaining > 1) {
+                slotWeightAllowance = Math.min(
+                    slotWeightAllowance,
+                    weightBudgets.nominal * this.FIRST_ITEM_MAX_NOMINAL_SHARE
+                );
+            }
+
             const totalSlotsLeft    = Math.max(1, drawnSlots.length - slotsProcessed);
             const fillerSlotsLeft   = Math.max(1, drawnSlots.length - Math.max(slotsProcessed, guaranteedCount));
             const remainingBudget   = effectiveBudget - itemSpentBudget;
             const scrollSlotsRemaining = drawnSlots
                 .slice(slotsProcessed)
                 .filter(s => s === "scroll").length;
-            const priceCeiling = hardCap
-                ? (drawnSlots[slotsProcessed] === "scroll"
-                    ? Math.max(
-                        remainingBudget / Math.max(1, scrollSlotsRemaining),
-                        goldFillerFloor)
-                    : Math.max(remainingBudget / totalSlotsLeft, goldFillerFloor))
-                : isGuaranteed
-                    ? Infinity
-                    : Math.max(remainingBudget / fillerSlotsLeft, goldFillerFloor);
+            const priceCeiling = this._computeSlotPriceCeiling({
+                hardCap,
+                isGuaranteed,
+                slotType: effectiveSlotType,
+                effectiveBudget,
+                remainingBudget,
+                totalSlotsLeft,
+                fillerSlotsLeft,
+                scrollSlotsRemaining,
+                goldFillerFloor,
+                pairingActive,
+                tier
+            });
 
             let item = null;
             let pickAttempts = 0;
 
-            // Weight ceiling for this slot: never accept an item whose single
-            // unit already exceeds what is left in the bag. Falls back to a
-            // 45 lb sanity cap when no container constrains the cache.
-            const weightCeiling = container
-                ? Math.max(2, weightBudget - currentWeight)
+            const requireArmor = armorPresenceSlotPending && effectiveSlotType === "mastercraft";
+            const pickOpts = {
+                scrollSlotsRemaining,
+                remainingBudget,
+                rejectNamedMagical: namedMagicalRemaining <= 0,
+                ownerTheme,
+                preferArmor: ownerTheme === "armaments" && slotType === "mastercraft" && !requireArmor,
+                requireArmor,
+                slotsRemaining,
+                effectiveWeightFn: _effectiveWeight,
+            };
+
+            const remainingGeneration = container
+                ? Math.max(2, weightBudgets.generation - currentWeight)
                 : 45;
 
-
-
-            // Repick logic: reject items that are too heavy or on the GM ban list
+            // Repick logic: prefer nominal fit early, allow generation headroom later.
+            // maxEffectiveWeight uses a per-slot fair share from the first attempt.
             while (pickAttempts < 5) {
-                item = await this._pickItem(slotType, theme, tierData, tables, priceCeiling, {
-                    scrollSlotsRemaining,
-                    remainingBudget,
-                    rejectNamedMagical: namedMagicalRemaining <= 0
+                const attemptAllowance = pickAttempts < 3
+                    ? slotWeightAllowance
+                    : Math.min(slotWeightAllowance, remainingGeneration);
+                item = await this._pickItem(effectiveSlotType, theme, tierData, tables, priceCeiling, {
+                    ...pickOpts,
+                    maxEffectiveWeight: attemptAllowance > 0 ? attemptAllowance : remainingGeneration,
                 });
                 if (!item) break;
-                if (_effectiveWeight(item.weight, item.type, item.system) > weightCeiling) {
+                const unitWeight = _effectiveWeight(item.weight, item.type, item.system);
+                const weightPickAttempt = requireArmor ? 3 : pickAttempts;
+                if (this._itemExceedsWeightPickLimit(unitWeight, weightPickAttempt, weightBudgets, currentWeight)) {
+                    item = null;
+                    pickAttempts++;
+                } else if ((item.price ?? 0) > priceCeiling) {
                     item = null;
                     pickAttempts++;
                 } else if (await this._isBanned(item.name)) {
@@ -628,6 +993,32 @@ export class CacheGenerator {
                 }
             }
 
+            // Mastercraft fallback: relax weight allowance, keep weapons in play.
+            // Do not force armor-only; that path collapsed to helms in tight packs.
+            if (!item && effectiveSlotType === "mastercraft") {
+                item = await this._pickMastercraft(theme, tierData, priceCeiling, tables, {
+                    ...pickOpts,
+                    maxEffectiveWeight: remainingGeneration,
+                });
+                if (item) {
+                    const unitWeight = _effectiveWeight(item.weight, item.type, item.system);
+                    if (this._itemExceedsWeightPickLimit(unitWeight, 4, weightBudgets, currentWeight)) {
+                        item = null;
+                    }
+                }
+            }
+
+            if (!item && container && remainingNominal > 0) {
+                item = await this._tryLightSlotFallback(
+                    theme, tierData, tables, priceCeiling, pickOpts,
+                    weightBudgets, currentWeight, _effectiveWeight
+                );
+            }
+
+            if (requireArmor) {
+                armorPresenceSlotPending = false;
+            }
+
             slotsProcessed++;
 
             if (item) {
@@ -636,7 +1027,7 @@ export class CacheGenerator {
                 // so cheap bulky items (greatclubs, sacks of flour) cannot
                 // ramp themselves up to 70 lb in a 35 lb pack.
                 const remainingWeight = container
-                    ? Math.max(0, weightBudget - currentWeight)
+                    ? Math.max(0, weightBudgets.nominal - currentWeight)
                     : null;
                 let qty;
                 if (item.spellName) {
@@ -652,16 +1043,31 @@ export class CacheGenerator {
                 // Type-aware weight floor (see _effectiveWeight above).
                 const totalItemWeight = _effectiveWeight(item.weight, item.type, item.system) * qty;
 
-                // Weight budget check: reject if item won't fit in container
-                if (container && (currentWeight + totalItemWeight) > weightBudget && result.items.length > 0) {
+                const totalAfter = currentWeight + totalItemWeight;
+                const overGeneration = container
+                    && totalAfter > weightBudgets.generation
+                    && result.items.length > 0;
+
+                // Weight budget check: reject only when generation allowance is exceeded.
+                if (overGeneration) {
                     const filler = Math.floor(totalItemPrice * 0.5);
                     result.gold += filler;
-                    // Track against budget when GM set a cap or slot is filler
-                    if (!isGuaranteed || hardCap) itemSpentBudget += filler;
+                    itemSpentBudget += filler;
                 } else {
                     currentWeight += totalItemWeight;
-                    if (!isGuaranteed || hardCap) itemSpentBudget += totalItemPrice;
-                    result.items.push({ ...item, quantity: qty, price: totalItemPrice });
+                    itemSpentBudget += totalItemPrice;
+                    result.items.push({
+                        ...item,
+                        quantity: qty,
+                        price: totalItemPrice,
+                        _unitPrice: item.price ?? 0
+                    });
+                    if (!pairingActive && (
+                        totalItemPrice >= anchorThreshold
+                        || ItemClassifier.isNamedMagical(item)
+                    )) {
+                        pairingSlotsRemaining = this.PAIRING_DRESSING_SLOTS;
+                    }
                     // Consume the named-magical budget when a named magical item lands
                     if (namedMagicalRemaining > 0 && ItemClassifier.isNamedMagical(item)) {
                         namedMagicalRemaining--;
@@ -669,25 +1075,53 @@ export class CacheGenerator {
                 }
                 if (debug) {
                     debugSlots.push({
-                        slotType, isGuaranteed, priceCeiling, ok: true,
+                        slotType: effectiveSlotType, isGuaranteed, priceCeiling, ok: true,
                         name: item.name, price: totalItemPrice,
-                        spellLevel: item.spellLevel ?? null
+                        spellLevel: item.spellLevel ?? null,
+                        pairingActive
                     });
                 }
             } else {
-                // Nothing useful in this slot -- gold filler
+                // Nothing useful in this slot -- coin filler (does not consume item budget)
                 const filler = Math.floor(goldFillerFloor * (0.5 + Math.random()));
                 result.gold += filler;
-                if (!isGuaranteed || hardCap) itemSpentBudget += filler;
                 if (debug) {
                     debugSlots.push({
-                        slotType, isGuaranteed, priceCeiling, ok: false,
-                        fillerGp: filler
+                        slotType: effectiveSlotType, isGuaranteed, priceCeiling, ok: false,
+                        fillerGp: filler, pairingActive
                     });
                 }
             }
         }
 
+        currentWeight = await this._applyDensityTopUp(result, {
+            tier,
+            theme,
+            tierData,
+            tables,
+            effectiveBudget,
+            ownerTheme,
+            container,
+            weightBudgets,
+            currentWeight,
+            effectiveWeightFn: _effectiveWeight
+        });
+
+        const minItems = this.MIN_CACHE_ITEMS[tier] ?? 4;
+        if (result.items.length < minItems) {
+            currentWeight = await this._applyDensityTopUp(result, {
+                tier,
+                theme,
+                tierData,
+                tables,
+                effectiveBudget,
+                ownerTheme,
+                container,
+                weightBudgets,
+                currentWeight,
+                effectiveWeightFn: _effectiveWeight
+            });
+        }
 
         // Extra healing potion rolls driven by the GM slider (independent of slot type).
         const bonusHealingRolls = CacheGenerator._healingBonusRollCount(healFreq);
@@ -708,11 +1142,16 @@ export class CacheGenerator {
             const totalItemPrice = Math.round((pick.price ?? 0) * qty * 100) / 100;
             const totalItemWeight = _effectiveWeight(pick.weight, pick.type, pick.system) * qty;
 
-            if (container && (currentWeight + totalItemWeight) > weightBudget) break;
+            if (container && (currentWeight + totalItemWeight) > weightBudgets.generation) break;
 
             currentWeight += totalItemWeight;
             if (hardCap) itemSpentBudget += totalItemPrice;
-            result.items.push({ ...pick, quantity: qty, price: totalItemPrice });
+            result.items.push({
+                ...pick,
+                quantity: qty,
+                price: totalItemPrice,
+                _unitPrice: pick.price ?? 0
+            });
         }
 
         const scrollCountBefore = result.items.filter(i => i.spellName).length;
@@ -728,8 +1167,9 @@ export class CacheGenerator {
             result.container = {
                 ...container,
                 contentWeightLbs: currentWeight,
+                generationBudgetLbs: weightBudgets.generation,
                 fillPercent,
-                isOverweight: currentWeight > container.capacityLbs
+                isOverweight: currentWeight > (container.capacityLbs ?? 0)
             };
 
             CacheGenerator.applyContainerFlavor(result, theme, tables);
@@ -742,10 +1182,12 @@ export class CacheGenerator {
 
         // Budget floor: if a minimum was dialled in and total value fell short, bridge with gold
         const itemValue = result.items.reduce((sum, i) => sum + (i.price ?? 0), 0);
+        result.meta.preFloorGold = result.gold;
         const totalCacheValue = result.gold + itemValue;
         if (budgetFloor > 0 && totalCacheValue < budgetFloor) {
             result.gold += Math.round(budgetFloor - totalCacheValue);
         }
+        this._syncCacheCoinage(result);
 
         if (debug) {
             const scrollLines = result.items.filter(i => i.spellName);
@@ -763,10 +1205,6 @@ export class CacheGenerator {
                 itemsPlaced: result.items.length,
                 slotTrace: debugSlots
             });
-        }
-
-        if (result.gold > 0 && game.settings.get("ionrift-quartermaster", "distributeCoins") !== false) {
-            result.coinage = this._distributeCoinage(result.gold);
         }
 
         if (!options.silent) {
@@ -829,7 +1267,54 @@ export class CacheGenerator {
     static clearCacheGold(cacheResult) {
         if (!cacheResult) return;
         cacheResult.gold = 0;
+        if (cacheResult.meta) cacheResult.meta.preFloorGold = 0;
         delete cacheResult.coinage;
+    }
+
+    /**
+     * Reconcile rolled coin with the cache budget floor after the GM changes
+     * the budget bracket. Uses {@link meta.preFloorGold} so floor padding can
+     * be added or removed without a full regen.
+     *
+     * @param {Object} cacheResult
+     * @param {number} [budgetMin=0]
+     * @param {number|null} [budgetMax]
+     * @returns {Object}
+     */
+    static applyBudgetFloor(cacheResult, budgetMin = 0, budgetMax = null) {
+        if (!cacheResult) return cacheResult;
+
+        const floor = Math.max(0, Number(budgetMin) || 0);
+        const preFloor = cacheResult.meta?.preFloorGold ?? cacheResult.gold ?? 0;
+        const itemValue = (cacheResult.items ?? []).reduce(
+            (sum, item) => sum + (item.price ?? 0),
+            0
+        );
+
+        let gold = preFloor;
+        if (floor > 0 && preFloor + itemValue < floor) {
+            gold = floor - itemValue;
+        }
+
+        cacheResult.gold = Math.max(0, Math.round(gold));
+        if (cacheResult.meta) {
+            cacheResult.meta.budgetMin = floor;
+            if (budgetMax !== null && budgetMax !== undefined) {
+                cacheResult.meta.budgetMax = budgetMax;
+            }
+        }
+        this._syncCacheCoinage(cacheResult);
+        return cacheResult;
+    }
+
+    /** Refresh or clear distributed coin breakdown for a cache preview. */
+    static _syncCacheCoinage(cacheResult) {
+        if (!cacheResult) return;
+        if (cacheResult.gold > 0 && game.settings.get("ionrift-quartermaster", "distributeCoins") !== false) {
+            cacheResult.coinage = this._distributeCoinage(cacheResult.gold);
+        } else {
+            delete cacheResult.coinage;
+        }
     }
 
     /**
@@ -852,14 +1337,12 @@ export class CacheGenerator {
             0,
             Math.round(rawGold * (ownerDef?.budgetMultiplier ?? 1.0) * economy)
         );
-
-        if (cacheResult.gold > 0 && game.settings.get("ionrift-quartermaster", "distributeCoins") !== false) {
-            cacheResult.coinage = this._distributeCoinage(cacheResult.gold);
-        } else {
-            delete cacheResult.coinage;
-        }
-
-        return cacheResult;
+        if (cacheResult.meta) cacheResult.meta.preFloorGold = cacheResult.gold;
+        return this.applyBudgetFloor(
+            cacheResult,
+            cacheResult.meta?.budgetMin ?? 0,
+            cacheResult.meta?.budgetMax ?? null
+        );
     }
 
     /**
@@ -936,8 +1419,8 @@ export class CacheGenerator {
                 item = await this._pickScroll(tierData, priceCeiling, pickOpts);
                 break;
             }
-            case "consumable":  item = await this._pickConsumable(theme, tierData, tables, priceCeiling); break;
-            case "mundane":     item = await this._pickMundane(theme, tierData, tables, priceCeiling); break;
+            case "consumable":  item = await this._pickConsumable(theme, tierData, tables, priceCeiling, pickOpts); break;
+            case "mundane":     item = await this._pickMundane(theme, tierData, tables, priceCeiling, pickOpts); break;
             case "mastercraft": item = await this._pickMastercraft(theme, tierData, priceCeiling, tables, pickOpts); break;
             case "gemstone":    item = await this._pickGemstone(theme, tierData, priceCeiling); break;
             case "trinket":     item = await this._pickTrinket(theme, tierData, priceCeiling); break;
@@ -989,8 +1472,16 @@ export class CacheGenerator {
                 tier,
                 theme,
                 priceCeiling,
+                priceMin,
+                priceMax,
                 rarityMax: tierData.rarityMax ?? "uncommon",
-                rejectNamedMagical
+                rejectNamedMagical,
+                maxGenericBonusTier: ItemPoolResolver.MAX_GENERIC_BONUS_BY_TIER[tier] ?? 0,
+                ownerTheme: pickOpts.ownerTheme,
+                preferArmor: pickOpts.preferArmor,
+                requireArmor: pickOpts.requireArmor,
+                maxEffectiveWeight: pickOpts.maxEffectiveWeight,
+                effectiveWeightFn: pickOpts.effectiveWeightFn,
             });
             if (item) {
                 // T1: reject any magical item (rarity uncommon+ or mgc property)
@@ -1217,37 +1708,35 @@ export class CacheGenerator {
         // Classify magical ammo by bonus tier
         const byBonus = { 1: [], 2: [], 3: [], named: [] };
         for (const item of magicalPool) {
+            if (ItemClassifier.isSlayingAmmo(item)) continue;
             const bonus = ItemClassifier.detectBonusTier(item.name);
             if (bonus >= 1 && bonus <= 3) {
                 byBonus[bonus].push(item);
             } else {
-                byBonus.named.push(item); // Named magical ammo (Walloping, etc.)
+                byBonus.named.push(item);
             }
         }
 
-        // Build weighted draw bag for generic +N ammo
-        const drawBag = [];
+        const tierBag = [];
         for (const bonusStr of ["1", "2", "3"]) {
             const bonus = parseInt(bonusStr, 10);
             const w = weights[bonus] ?? 0;
-            if (w === 0) continue;
-            for (const item of byBonus[bonus]) {
-                // Use weight as ticket count (minimum 1)
-                const tickets = Math.max(1, Math.round(w));
-                for (let i = 0; i < tickets; i++) drawBag.push(item);
-            }
+            if (w === 0 || !byBonus[bonus].length) continue;
+            const tickets = Math.max(1, Math.round(w));
+            for (let i = 0; i < tickets; i++) tierBag.push(bonus);
         }
 
-        // Named magical ammo follows Stance B: only if not already throttled
+        if (tierBag.length) {
+            const chosenBonus = tierBag[Math.floor(Math.random() * tierBag.length)];
+            const picked = ItemPoolResolver._pickUniformByClass(byBonus[chosenBonus]);
+            if (picked) return picked;
+        }
+
         if (!pickOpts.rejectNamedMagical && byBonus.named.length > 0) {
-            // Named magical ammo is rare - give it 1 ticket each regardless of tier
-            for (const item of byBonus.named) {
-                drawBag.push(item);
-            }
+            return ItemPoolResolver._pickUniformByClass(byBonus.named);
         }
 
-        if (!drawBag.length) return null;
-        return drawBag[Math.floor(Math.random() * drawBag.length)];
+        return null;
     }
 
     /**
@@ -1412,9 +1901,12 @@ export class CacheGenerator {
             return 3 + Math.floor(Math.random() * 4);
         }
         if (tier === 'Polished Common' && unitPrice <= 12) {
-            return 2 + Math.floor(Math.random() * 3);
+            return 2 + Math.floor(Math.random() * 4);
         }
-        return 1;
+        if (tier === 'Semi-Precious') {
+            return 1 + Math.floor(Math.random() * 4);
+        }
+        return 1 + Math.floor(Math.random() * 2);
     }
 
     /**
@@ -1527,8 +2019,8 @@ export class CacheGenerator {
         const lvl = spellLevel ?? minLevel;
         if (lvl >= maxLevel - 1) return 2;
         const mid = minLevel + Math.max(1, Math.floor((maxLevel - minLevel) / 2));
-        if (lvl >= mid) return 3;
-        return 4;
+        if (lvl >= mid) return 4;
+        return 5;
     }
 
     /**
@@ -1578,7 +2070,8 @@ export class CacheGenerator {
         const minLevel = this._tierScrollMinLevel(tierData._tier ?? 1);
 
         if (spellLevel >= maxLevel - 1) {
-            return Math.min(1, maxByBudget, stackCap);
+            const roll = 1 + Math.floor(Math.random() * 2);
+            return Math.max(1, Math.min(roll, maxByBudget, stackCap));
         }
 
         const lowInCohort = spellLevel <= minLevel + 1;
@@ -1966,7 +2459,7 @@ export class CacheGenerator {
      * Resolves the full pool then splits it: 70% chance to draw from
      * the potion sub-pool, 30% from everything else.
      */
-    static async _pickConsumable(theme, tierData, tables, priceCeiling = Infinity) {
+    static async _pickConsumable(theme, tierData, tables, priceCeiling = Infinity, pickOpts = {}) {
         // Gather the full consumable pool
         let pool = [];
         try {
@@ -1987,7 +2480,19 @@ export class CacheGenerator {
 
         // Price ceiling
         const affordable = pool.filter(p => (p.price ?? 0) <= priceCeiling);
-        const finalPool = affordable.length > 0 ? affordable : pool;
+        let finalPool = affordable.length > 0 ? affordable : pool;
+
+        if (pickOpts.maxEffectiveWeight !== undefined && pickOpts.maxEffectiveWeight < Infinity) {
+            const maxW = pickOpts.maxEffectiveWeight;
+            const weightOf = (item) => {
+                if (typeof pickOpts.effectiveWeightFn === "function") {
+                    return pickOpts.effectiveWeightFn(item.weight, item.type, item.system);
+                }
+                return item.weight ?? 0;
+            };
+            const lightPool = finalPool.filter(i => weightOf(i) <= maxW);
+            if (lightPool.length > 0) finalPool = lightPool;
+        }
 
         // Split: potions vs everything else
         const isPotionLike = (item) => {
@@ -2397,15 +2902,18 @@ export class CacheGenerator {
     /**
      * Pick a mundane/trade goods item from enabled compendiums.
      */
-    static async _pickMundane(theme, tierData, tables, priceCeiling = Infinity) {
+    static async _pickMundane(theme, tierData, tables, priceCeiling = Infinity, pickOpts = {}) {
         try {
             const item = await ItemPoolResolver.pickRandom({
                 slotType: "mundane",
                 tier: tierData._tier ?? 1,
                 theme,
-                fallbackTables: tables
+                fallbackTables: tables,
+                ownerTheme: pickOpts.ownerTheme,
+                maxEffectiveWeight: pickOpts.maxEffectiveWeight,
+                effectiveWeightFn: pickOpts.effectiveWeightFn,
             });
-            if (item) return { ...item, quantity: 1 };
+            if (item) return { ...item, _qmKind: "mundane", quantity: 1 };
         } catch (e) {
             Logger.warn(MODULE_LABEL, "ItemPoolResolver failed for mundane:", e.message);
         }
@@ -2481,63 +2989,81 @@ export class CacheGenerator {
     }
 
     /**
-     * Price-based quantity heuristic.
+     * Small random stack for curated finds (treasure, tools, loose gems).
+     * Never huge; usually 1, sometimes up to {@link MODEST_STACK_MAX}.
      *
-     * Cheap consumables and mundane goods naturally come in multiples.
-     * The target value band (how much gp this slot *should* represent)
-     * is chosen randomly within sensible bounds, then divided by the
-     * unit price to get a quantity. This is purely mathematical --
-     * no name lookups or item-type lists.
-     *
-     * Price brackets (per unit):
-     *   < 0.05 gp  -> target 0.5-2 gp   -> e.g. 10-40 torches
-     *   < 0.5  gp  -> target 0.5-3 gp   -> e.g. 1-6 rations
-     *   < 2    gp  -> target 1-4 gp     -> e.g. 1-4 candles/chalk
-     *   < 5    gp  -> target 2-6 gp     -> e.g. 1-2 flasks of oil
-     *   >= 5   gp  -> quantity 1 always
-     *
-     * Signature, scroll, and magic items are never multiplied. Gem stacks
-     * are pre-resolved by {@link _resolveGemQuantity} in {@link _pickGemstone}
-     * so the slot loop's `item.quantity > 1` short-circuit honours that count
-     * before this resolver is consulted.
-     *
-     * Weight awareness:
-     *   When `opts.remainingWeight` is supplied (the bag's remaining capacity
-     *   for this slot), a single stack is capped so it cannot exceed roughly
-     *   half of what is left in the bag, with an absolute floor of 5 lb. This
-     *   prevents one cheap bulky item (e.g. a 10 lb greatclub) from
-     *   monopolising the container and forcing every other slot into coinage.
-     *
-     * @param {Object} item
      * @param {Object} [opts]
-     * @param {number|null} [opts.remainingWeight] Remaining bag capacity in lb.
-     *   Pass `null` (or omit) for cache flows without a container.
+     * @param {Object} [opts.item]
+     * @param {number} [opts.min]
+     * @param {number} [opts.max]
+     * @param {number|null} [opts.remainingWeight]
      * @returns {number}
      */
-    static _resolveQuantity(item, opts = {}) {
-        // Never stack these item classes
-        if (item.isSignature || item.spellName) return 1;
+    static MODEST_STACK_MAX = 5;
 
-        if (this._isRationOrWaterItem(item)) {
-            return this._resolveRationWaterQuantity(item, opts);
+    static _resolveModestStackQuantity(opts = {}) {
+        const min = opts.min ?? 1;
+        const max = opts.max ?? this.MODEST_STACK_MAX;
+        let qty = min + Math.floor(Math.random() * (max - min + 1));
+
+        const unitWeight = Number(opts.item?.weight) || 0;
+        if (unitWeight > 0 && typeof opts.remainingWeight === "number" && opts.remainingWeight > 0) {
+            const weightCap = Math.max(1, Math.floor((opts.remainingWeight * 0.5) / unitWeight));
+            qty = Math.min(qty, weightCap);
         }
 
-        // Thrown weapons: dice-based quantity reflecting battlefield loadouts
-        // (darts 4d4, javelins 2d4, handaxes 1d3).  Checked before the price
-        // gate so e.g. handaxes at 5 gp aren't silently capped to qty 1.
-        if (this._isThrownWeapon(item)) {
-            return this._resolveThrownWeaponQuantity(item, opts);
-        }
+        return Math.max(min, qty);
+    }
 
-        // Bulk ammo/feed: large stacks; ignore compendium rarity typos and weight caps.
-        if (this._isBulkFillerItem(item)) {
-            return 10 + Math.floor(Math.random() * 41);
-        }
+    /** Minimum unit weight (lb) treated as a single live animal, never stacked. */
+    static LIVESTOCK_WEIGHT_FLOOR = 100;
 
-        const rarity = (item.rarity ?? "common").toLowerCase();
-        if (rarity !== "common" && rarity !== "none" && rarity !== "") return 1;
-        if (item._qmKind === "gemstones" || isQmPackRole(item.sourceCompendium, "gemstones")) return 1;
+    /**
+     * True when item came from the SRD trade goods compendium.
+     * @param {string|null|undefined} compendiumId
+     * @returns {boolean}
+     */
+    static _isTradeGoodsSource(compendiumId) {
+        if (!compendiumId) return false;
+        return compendiumId.endsWith(".tradegoods");
+    }
 
+    /**
+     * Livestock and draft animals ship as one head per line.
+     * @param {object} item
+     * @returns {boolean}
+     */
+    static _isLivestockUnit(item) {
+        return (Number(item.weight) || 0) >= this.LIVESTOCK_WEIGHT_FLOOR;
+    }
+
+    /**
+     * Bulk commodity loot: SRD trade goods (flour, spices, ingots) and
+     * other cheap measured loot. Excludes tools, livestock, and QM treasure.
+     *
+     * @param {object} item
+     * @returns {boolean}
+     */
+    static _isBulkCommodityLoot(item) {
+        if ((item.type ?? "").toLowerCase() !== "loot") return false;
+        if (this._isLivestockUnit(item)) return false;
+
+        if (this._isTradeGoodsSource(item.sourceCompendium)) return true;
+
+        const unitPrice = item.price ?? 0;
+        const unitWeight = Number(item.weight) || 0;
+        return unitPrice > 0 && unitPrice < 1 && unitWeight > 0 && unitWeight <= 25;
+    }
+
+    /**
+     * Target-value quantity bands for consumables and bulk commodity loot.
+     *
+     * @param {object} item
+     * @param {Object} [opts]
+     * @param {number|null} [opts.remainingWeight]
+     * @returns {number}
+     */
+    static _resolvePriceBandQuantity(item, opts = {}) {
         const unitPrice = item.price ?? 0;
         if (unitPrice <= 0) return 1;
 
@@ -2568,6 +3094,86 @@ export class CacheGenerator {
         }
 
         return qty;
+    }
+
+    static _resolveKindlingQuantity() {
+        let total = 0;
+        for (let i = 0; i < 3; i++) {
+            total += 1 + Math.floor(Math.random() * 4);
+        }
+        return total;
+    }
+
+    /**
+     * @param {object} item
+     * @returns {boolean}
+     */
+    static _isKindlingItem(item) {
+        if ((item.name ?? "").trim().toLowerCase() !== "kindling") return false;
+        const type = (item.type ?? "").toLowerCase();
+        return type === "loot" || type === "consumable";
+    }
+
+    /**
+     * Quantity resolver for cache line items.
+     *
+     * Kindling always stacks 3d4. Cheap consumables and SRD trade goods stack via
+     * {@link _resolvePriceBandQuantity}. Trinkets stay singular; treasure, tools,
+     * and gems use modest stacks (1-5).
+     *
+     * @param {Object} item
+     * @param {Object} [opts]
+     * @param {number|null} [opts.remainingWeight] Remaining bag capacity in lb.
+     * @returns {number}
+     */
+    static _resolveQuantity(item, opts = {}) {
+        // Never stack signatures or trinkets
+        if (item.isSignature || item.spellName) return 1;
+        if (item._qmKind === "trinkets") return 1;
+        if (isQmPackRole(item.sourceCompendium, "trinkets")) return 1;
+
+        if (this._isRationOrWaterItem(item)) {
+            return this._resolveRationWaterQuantity(item, opts);
+        }
+
+        // Thrown weapons: dice-based quantity reflecting battlefield loadouts
+        // (darts 4d4, javelins 2d4, handaxes 1d3).  Checked before the price
+        // gate so e.g. handaxes at 5 gp aren't silently capped to qty 1.
+        if (this._isThrownWeapon(item)) {
+            return this._resolveThrownWeaponQuantity(item, opts);
+        }
+
+        // Bulk ammo/feed: large stacks; ignore compendium rarity typos and weight caps.
+        if (this._isBulkFillerItem(item)) {
+            return 10 + Math.floor(Math.random() * 41);
+        }
+
+        if (this._isKindlingItem(item)) {
+            return this._resolveKindlingQuantity();
+        }
+
+        const rarity = (item.rarity ?? "common").toLowerCase();
+        if (rarity !== "common" && rarity !== "none" && rarity !== "") return 1;
+
+        const modestOpts = { item, remainingWeight: opts.remainingWeight };
+
+        if (item._qmKind === "treasure" || isQmPackRole(item.sourceCompendium, "treasure")) {
+            return this._resolveModestStackQuantity(modestOpts);
+        }
+        if (item._qmKind === "gemstones" || isQmPackRole(item.sourceCompendium, "gemstones")) {
+            return this._resolveModestStackQuantity(modestOpts);
+        }
+
+        const itemType = (item.type ?? "").toLowerCase();
+        if (itemType === "tool") {
+            return this._resolveModestStackQuantity(modestOpts);
+        }
+        if (this._isBulkCommodityLoot(item)) {
+            return this._resolvePriceBandQuantity(item, opts);
+        }
+        if (itemType !== "consumable") return 1;
+
+        return this._resolvePriceBandQuantity(item, opts);
     }
 
     // ── Chat Output ───────────────────────────────────────────────
@@ -2823,10 +3429,13 @@ export class CacheGenerator {
      * Accepts ownerTheme for auto-matching and contentWeightLbs for capacity preference.
      * Returns a plain metadata object (not a Foundry document).
      */
-    static async _pickContainer(ownerTheme = 'unspecified', theme = 'any', contentWeightLbs = 0) {
+    static async _pickContainer(ownerTheme = 'unspecified', theme = 'any', contentWeightLbs = 0, tier = 1) {
         try {
             const pool = await loadContainerPoolIndex();
             if (pool.length === 0) return null;
+
+            const tierMin = this._tierContainerMinLbs(tier);
+            const requiredCap = Math.max(contentWeightLbs, tierMin);
 
             // Primary filter: matches ownerTheme. Entries without an
             // ownerThemes array are treated as universal so the bundled
@@ -2847,15 +3456,39 @@ export class CacheGenerator {
                 ? selectBlendedContainerPool(byTerrain)
                 : activePool;
 
-            // Prefer containers with sufficient capacity
+            // Prefer containers with sufficient capacity for tier and content weight
             const withCapacity = terrainPool.filter(e => {
+                const cap = e.flags?.['ionrift-quartermaster']?.containerMeta?.capacityLbs ?? 0;
+                return cap >= requiredCap;
+            });
+            let pickPool = withCapacity.length > 0 ? withCapacity : terrainPool.filter(e => {
                 const cap = e.flags?.['ionrift-quartermaster']?.containerMeta?.capacityLbs ?? 0;
                 return cap >= contentWeightLbs;
             });
-            const finalPool = withCapacity.length > 0 ? withCapacity : terrainPool;
+            if (pickPool.length === 0 && terrainPool.length > 0) {
+                const ranked = [...terrainPool].sort((a, b) => {
+                    const capA = a.flags?.["ionrift-quartermaster"]?.containerMeta?.capacityLbs ?? 0;
+                    const capB = b.flags?.["ionrift-quartermaster"]?.containerMeta?.capacityLbs ?? 0;
+                    return capB - capA;
+                });
+                const bestCap = ranked[0].flags?.["ionrift-quartermaster"]?.containerMeta?.capacityLbs ?? 0;
+                pickPool = ranked.filter(e =>
+                    (e.flags?.["ionrift-quartermaster"]?.containerMeta?.capacityLbs ?? 0) >= bestCap
+                );
+            }
 
-            if (finalPool.length === 0) return null;
-            const pick = finalPool[Math.floor(Math.random() * finalPool.length)];
+            if (pickPool.length === 0) return null;
+
+            if (ownerTheme === "armaments") {
+                const sturdy = pickPool.filter(e => {
+                    const cap = e.flags?.["ionrift-quartermaster"]?.containerMeta?.capacityLbs ?? 0;
+                    return cap >= CacheGenerator.CONTAINER_STURDY_MIN_LBS;
+                });
+                if (sturdy.length > 0) pickPool = sturdy;
+            }
+
+            if (pickPool.length === 0) return null;
+            const pick = pickPool[Math.floor(Math.random() * pickPool.length)];
 
             const emptyWeightLbs = ItemPoolResolver._extractWeight(pick);
             const packId = pick._sourceCollection ?? `${MODULE_ID}.${PACK_SUFFIX.containers}`;

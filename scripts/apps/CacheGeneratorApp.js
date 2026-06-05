@@ -830,6 +830,11 @@ export class CacheGeneratorApp extends Application {
         html.find("[name='budgetMax']").val(max);
         html.find(".budget-range-display").text(formatBracketLabel(min, max));
 
+        if (this._currentResult) {
+            CacheGenerator.applyBudgetFloor(this._currentResult, min, max);
+            this._syncBudgetDisplay();
+        }
+
         this._persistBudgetBracket(index);
         this._debouncedBudgetReroll();
     }
@@ -869,7 +874,13 @@ export class CacheGeneratorApp extends Application {
     _debouncedBudgetReroll() {
         if (!this._currentResult) return;
         clearTimeout(this._sliderDebounce);
-        this._sliderDebounce = setTimeout(() => this._onGenerate(), 400);
+        this._sliderDebounce = setTimeout(() => {
+            if (this._generating) {
+                this._debouncedBudgetReroll();
+                return;
+            }
+            this._onGenerate();
+        }, 400);
     }
 
     _persistBudgetBracket(index) {
@@ -909,7 +920,7 @@ export class CacheGeneratorApp extends Application {
         this._generating = true;
         this._advisory   = null;
         this._poolRerollMode?.clear();  // Fresh generate restores milestone priority
-        this.render();
+        this._setGeneratingUi(true);
 
         try {
             this._currentResult = await CacheGenerator.generate({
@@ -926,6 +937,7 @@ export class CacheGeneratorApp extends Application {
             ui.notifications.error("Cache generation failed.");
         } finally {
             this._generating = false;
+            this._setGeneratingUi(false);
             this.render();
         }
     }
@@ -1676,6 +1688,68 @@ export class CacheGeneratorApp extends Application {
 
     // ── Quantity edit (cache preview) ─────────────────────────────────────────
 
+    /** Keep line price aligned with quantity edits in the preview list. */
+    _recalcLinePrice(item) {
+        const qty = Math.max(1, Number(item.quantity) || 1);
+        if (item._unitPrice == null) {
+            const basisQty = Math.max(1, Number(item._priceBasisQty) || qty);
+            item._unitPrice = (item.price ?? 0) / basisQty;
+        }
+        item._priceBasisQty = qty;
+        item.price = roundCoinGp(item._unitPrice * qty);
+    }
+
+    /** Update gold chips and the footer estimate without rebuilding the item list. */
+    _syncBudgetDisplay() {
+        if (!this._currentResult) return;
+        const grouped = this._groupItems(this._currentResult);
+        const root = this.element?.[0];
+        if (!root) return;
+
+        const chips = root.querySelector(".cache-gold-chips");
+        if (chips) chips.innerHTML = this._buildGoldChipsHtml(grouped);
+
+        const totalEl = root.querySelector(".cache-total strong");
+        if (totalEl) totalEl.textContent = grouped.totalValueLabel;
+    }
+
+    _buildGoldChipsHtml({ gold, coinage }) {
+        if (!gold) {
+            return '<span class="cache-gold-empty">No coinage</span>';
+        }
+
+        const chip = (cls, amount, label) =>
+            `<span class="coin-chip ${cls}"><i class="fas fa-circle"></i> ${amount} ${label}</span>`;
+
+        if (coinage) {
+            let html = "";
+            if (coinage.pp) html += chip("coin-pp", coinage.pp, "pp");
+            if (coinage.gp) html += chip("coin-gp", coinage.gp, "gp");
+            if (coinage.ep) html += chip("coin-ep", coinage.ep, "ep");
+            if (coinage.sp) html += chip("coin-sp", coinage.sp, "sp");
+            if (coinage.cp) html += chip("coin-cp", coinage.cp, "cp");
+            if (html) return html;
+        }
+
+        return chip("coin-gp", gold, "gp");
+    }
+
+    _setGeneratingUi(active) {
+        const root = this.element?.[0];
+        if (!root) return;
+
+        for (const btn of root.querySelectorAll(".action-generate")) {
+            btn.disabled = active;
+            if (active) {
+                if (!btn.dataset.prevHtml) btn.dataset.prevHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            } else if (btn.dataset.prevHtml) {
+                btn.innerHTML = btn.dataset.prevHtml;
+                delete btn.dataset.prevHtml;
+            }
+        }
+    }
+
     _onQtyStep(delta, event) {
         event.preventDefault();
         event.stopPropagation();
@@ -1687,6 +1761,7 @@ export class CacheGeneratorApp extends Application {
         const next = Math.max(1, Math.min(99, current + delta));
         if (next === current) return;
         item.quantity = next;
+        this._recalcLinePrice(item);
         this._qtyStepFocusIndex = index;
         this.render();
     }
@@ -1736,10 +1811,16 @@ export class CacheGeneratorApp extends Application {
                 const removeIdx = groupIdx.slice(target).sort((a, b) => b - a);
                 for (const i of removeIdx) items.splice(i, 1);
             }
+            for (const idx of items.map((it, i) => (it.name === stackName ? i : -1)).filter(i => i >= 0)) {
+                items[idx].quantity = 1;
+                this._recalcLinePrice(items[idx]);
+            }
         } else if (Number.isFinite(index) && index >= 0 && index < items.length) {
             items[index].quantity = target;
+            this._recalcLinePrice(items[index]);
         } else if (groupIdx.length === 1) {
             items[groupIdx[0]].quantity = target;
+            this._recalcLinePrice(items[groupIdx[0]]);
         }
 
         el.value = String(target);
@@ -1803,7 +1884,9 @@ export class CacheGeneratorApp extends Application {
         const { ownerTheme, theme } = this._currentResult.meta;
         const contentWeightLbs = (this._currentResult.items ?? []).reduce((s, i) => s + (Number(i.weight) || 0), 0);
 
-        const container = await CacheGenerator._pickContainer(ownerTheme, theme, contentWeightLbs);
+        const container = await CacheGenerator._pickContainer(
+            ownerTheme, theme, contentWeightLbs, this._currentResult.meta?.tier ?? 1
+        );
         if (!container) return;
 
         const fillPercent = container.capacityLbs > 0

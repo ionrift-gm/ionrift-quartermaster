@@ -83,6 +83,20 @@ export class ItemClassifier {
         return this.classify(item) === this.CATEGORY.GENERIC_MAGIC;
     }
 
+    /**
+     * Slaying ammunition (single-use narrative ammo).
+     * Matches legacy rows and compiled "Arrow of Slaying (Dragons)" permutations.
+     *
+     * @param {Object} item
+     * @returns {boolean}
+     */
+    static isSlayingAmmo(item) {
+        const name = (item?.name ?? "").trim();
+        if (!name) return false;
+        if (/^ammunition of slaying(\s|$|\()/i.test(name)) return true;
+        return /\bof slaying(\s|\(|$)/i.test(name);
+    }
+
     /** @returns {boolean} True if item is ammunition (mundane or magical). */
     static isAmmo(item) {
         return this.classify(item) === this.CATEGORY.AMMO;

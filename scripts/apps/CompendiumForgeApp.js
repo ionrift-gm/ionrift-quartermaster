@@ -27,6 +27,9 @@ const LOOT_PHASE_LABELS = {
     templates: "Expanding weapon templates...",
     stubs:     "Expanding ammunition stubs...",
     armor:     "Expanding armor templates...",
+    wondrous:  "Expanding wondrous templates...",
+    enrich:    "Enriching named economy...",
+    slaying:   "Expanding slaying ammunition...",
     collision: "Resolving collisions...",
     writing:   "Writing compiled pool...",
     done:      "Complete.",
@@ -329,7 +332,7 @@ export class CompendiumForgeApp extends FormApplication {
                 return {
                     type:      "stale",
                     icon:      "fas fa-triangle-exclamation",
-                    text:      "Compiler updated -- recompile to expand armor and weapon items.",
+                    text:      "Compiler updated. Recompile to apply new template and enrichment rules.",
                     meta:      meta.itemCount != null ? `${meta.itemCount} items - compiled ${this._relativeTime(meta.compiledAt)}` : null,
                     clearable: !!game.packs.get(LootPoolCompiler.worldCollectionId),
                 };

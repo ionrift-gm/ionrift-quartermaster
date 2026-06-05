@@ -28,7 +28,7 @@
     "equipped": false,
     "capacity": {
       "type": "weight",
-      "value": 80,
+      "value": 175,
       "weightlessContents": false
     },
     "currency": {
@@ -51,7 +51,7 @@
           "hoard",
           "arcane_cache"
         ],
-        "capacityLbs": 80
+        "capacityLbs": 175
       }
     }
   }

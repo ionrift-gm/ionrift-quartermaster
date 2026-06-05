@@ -57,6 +57,45 @@ async function migrateLootPoolSources() {
     }
 }
 
+/**
+ * Hash-gated loot pool compile on world load. Runs after overlay materialisation
+ * so auto-registered world.quartermaster-* sources do not false-flag staleness.
+ *
+ * Compiler version bumps do not auto-recompile. They leave the pool stale so the
+ * Forge badge and Cache Generator pip prompt a deliberate recompile.
+ */
+async function runLootPoolCompilerBoot() {
+    if (!game.user.isGM || game.system?.id !== "dnd5e") return;
+    try {
+        await migrateLootPoolSources();
+        const { LootPoolCompiler } = await import("./services/LootPoolCompiler.js");
+        const { refreshForgeAlertBadge } = await import("./services/SettingsPanelLayout.js");
+
+        const statusBefore = LootPoolCompiler.getStatus();
+        const metaBefore   = LootPoolCompiler.getCompiledMeta();
+        const versionStale = (metaBefore?.compilerVersion ?? 0) < LootPoolCompiler.COMPILER_VERSION;
+
+        const shouldAutoCompile = statusBefore === "never"
+            || statusBefore === "error"
+            || (statusBefore === "stale" && !versionStale);
+
+        if (shouldAutoCompile) {
+            try {
+                await LootPoolCompiler.compile();
+            } catch (err) {
+                Logger.error(MODULE_LABEL, "LootPoolCompiler boot compile failed:", err);
+            }
+        } else if (versionStale) {
+            Logger.log(MODULE_LABEL,
+                "LootPoolCompiler: compiler version stale; open Compendium Forge to recompile.");
+        }
+
+        refreshForgeAlertBadge();
+    } catch (err) {
+        Logger.error(MODULE_LABEL, "LootPoolCompiler import failed:", err);
+    }
+}
+
 
 
 Hooks.once('init', async () => {
@@ -296,33 +335,6 @@ Hooks.on('ready', () => {
                 Logger.error(MODULE_LABEL, "SrdCurseAdapter failed:", err);
             });
         }
-
-        // Hash-gated: only recompiles when lootPoolSources config changes.
-        (async () => {
-            try {
-                await migrateLootPoolSources();
-                const { LootPoolCompiler } = await import("./services/LootPoolCompiler.js");
-                const statusBefore = LootPoolCompiler.getStatus();
-                const metaBefore   = LootPoolCompiler.getCompiledMeta();
-                const wasVersionStale = statusBefore === "stale"
-                    && (metaBefore?.compilerVersion ?? 0) < LootPoolCompiler.COMPILER_VERSION;
-
-                try {
-                    await LootPoolCompiler.compile();
-                } catch (err) {
-                    Logger.error(MODULE_LABEL, "LootPoolCompiler boot compile failed:", err);
-                }
-
-                if (wasVersionStale && LootPoolCompiler.getStatus() === "fresh") {
-                    ui.notifications.info(
-                        "Quartermaster: Loot pool updated with new content. Recompile complete.",
-                        { permanent: true }
-                    );
-                }
-            } catch (err) {
-                Logger.error(MODULE_LABEL, "LootPoolCompiler import failed:", err);
-            }
-        })();
     }
 
     // Content Pack discovery + auto-compile
@@ -347,9 +359,13 @@ Hooks.on('ready', () => {
             Logger.error(MODULE_LABEL, "Content Pack loader failed:", err);
         });
 
-        OverlayItemMaterialiser.materialiseAll().catch(err => {
-            Logger.error(MODULE_LABEL, "OverlayItemMaterialiser boot run failed:", err);
-        });
+        OverlayItemMaterialiser.materialiseAll()
+            .catch(err => {
+                Logger.error(MODULE_LABEL, "OverlayItemMaterialiser boot run failed:", err);
+            })
+            .finally(() => {
+                runLootPoolCompilerBoot();
+            });
     }
 });
 

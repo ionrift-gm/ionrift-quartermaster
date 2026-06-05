@@ -28,7 +28,7 @@
     "equipped": false,
     "capacity": {
       "type": "weight",
-      "value": 15,
+      "value": 70,
       "weightlessContents": false
     },
     "currency": {
@@ -53,7 +53,7 @@
           "stash",
           "reliquary"
         ],
-        "capacityLbs": 15
+        "capacityLbs": 70
       }
     }
   }

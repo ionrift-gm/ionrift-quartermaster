@@ -28,7 +28,7 @@
     "equipped": false,
     "capacity": {
       "type": "weight",
-      "value": 100,
+      "value": 220,
       "weightlessContents": false
     },
     "currency": {
@@ -52,7 +52,7 @@
           "hoard",
           "merchant_wreck"
         ],
-        "capacityLbs": 100
+        "capacityLbs": 220
       }
     }
   }

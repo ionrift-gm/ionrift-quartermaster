@@ -47,7 +47,7 @@
             "budgetMultiplier": 1.0,
             "totalSlots": { "min": 6, "max": 8 },
             "slotPool": {
-                "mastercraft": 4, "mundane": 3, "consumable": 2,
+                "mastercraft": 5, "mundane": 3, "consumable": 2,
                 "ammo": 2, "treasure": 1, "gemstone": 1, "scroll": 0.5, "trinket": 0.5
             },
             "guaranteed": [{ "type": "mastercraft", "min": 1, "max": 2 }]

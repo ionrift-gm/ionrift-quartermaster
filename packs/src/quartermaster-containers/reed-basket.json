@@ -28,7 +28,7 @@
     "equipped": false,
     "capacity": {
       "type": "weight",
-      "value": 30,
+      "value": 110,
       "weightlessContents": false
     },
     "currency": {
@@ -51,7 +51,7 @@
           "stash",
           "camp_supplies"
         ],
-        "capacityLbs": 30
+        "capacityLbs": 110
       }
     }
   }

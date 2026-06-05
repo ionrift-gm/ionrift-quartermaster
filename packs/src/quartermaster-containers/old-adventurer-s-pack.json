@@ -28,7 +28,7 @@
     "equipped": false,
     "capacity": {
       "type": "weight",
-      "value": 50,
+      "value": 140,
       "weightlessContents": false
     },
     "currency": {
@@ -52,7 +52,7 @@
           "camp_supplies",
           "merchant_wreck"
         ],
-        "capacityLbs": 50
+        "capacityLbs": 140
       }
     }
   }

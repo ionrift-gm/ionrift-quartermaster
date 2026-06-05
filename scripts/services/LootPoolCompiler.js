@@ -136,7 +136,6 @@ const RESISTANCE_TYPES = [
 
 
 
-/** @type {{ template: string, base: string, opts?: object }[]} */
 const SPECIFIC_ARMOR_TEMPLATES = [
     {
         // Efreeti Chain: fire immunity + speaks Ignan are passive,
@@ -163,13 +162,55 @@ const SPECIFIC_ARMOR_TEMPLATES = [
     },
 ];
 
+/** Generic wondrous template shells expanded into discrete SRD variants. */
+const WONDROUS_TEMPLATE_SHELLS = {
+    "Belt of Giant Strength": [
+        { name: "Belt of Hill Giant Strength",  rarity: "rare",     price: 8000,  weight: 1 },
+        { name: "Belt of Stone Giant Strength", rarity: "veryRare", price: 20000, weight: 1 },
+        { name: "Belt of Frost Giant Strength", rarity: "veryRare", price: 20000, weight: 1 },
+        { name: "Belt of Fire Giant Strength",  rarity: "veryRare", price: 20000, weight: 1 },
+        { name: "Belt of Cloud Giant Strength", rarity: "legendary", price: 42000, weight: 1 },
+        { name: "Belt of Storm Giant Strength", rarity: "legendary", price: 42000, weight: 1 }
+    ]
+};
+
+/**
+ * Named items that ship with mechanics but zero economy in equipment24.
+ * Compiler emits loot-ready rows; raw shells stay excluded via ItemPoolResolver.
+ */
+const NAMED_ECONOMY_ENRICHMENT = {
+    "Helm of Brilliance":               { price: 75000, weight: 2, subtype: "light" },
+    "Helm of Teleportation":            { price: 81000, weight: 2, subtype: "light" },
+    "Helm of Comprehending Languages":  { price: 12000, weight: 2, subtype: "light" },
+    "Helm of Telepathy":                { price: 27000, weight: 2, subtype: "light" }
+};
+
+/** 2024 slaying ammo shell expanded into base ammo × creature type rows. */
+const SLAYING_AMMO_TEMPLATE = "Ammunition of Slaying";
+
+const SLAYING_AMMO_BASES = [
+    { base: "Arrow",         short: "Arrow" },
+    { base: "Crossbow Bolt", short: "Bolt" },
+    { base: "Needle",        short: "Needle" },
+    { base: "Sling Bullet",  short: "Sling Bullet" }
+];
+
+const SLAYING_CREATURE_TYPES = [
+    "Aberrations", "Beasts", "Celestials", "Constructs", "Dragons",
+    "Elementals", "Fey", "Fiends", "Giants", "Humanoids",
+    "Monstrosities", "Oozes", "Plants", "Undead"
+];
+
+/** Matches legacy dnd5e.items slaying ammo pricing. */
+const SLAYING_AMMO_PRICE = 20000;
+
 // ── 2024-architecture source detection ───────────────────────────────────
 const ARCHITECTURE_2024_PACKS = new Set(["dnd5e.equipment24"]);
 
 // ── LootPoolCompiler ──────────────────────────────────────────────────────
 
 export class LootPoolCompiler {
-    static COMPILER_VERSION = 12;
+    static COMPILER_VERSION = 14;
 
     static WORLD_PACK_NAME = "quartermaster-compiled-pool";
     static PACK_LABEL      = "Quartermaster: Compiled Loot Pool";
@@ -178,6 +219,28 @@ export class LootPoolCompiler {
 
     static get worldCollectionId() {
         return `world.${this.WORLD_PACK_NAME}`;
+    }
+
+    /**
+     * Manifest summary for LootPoolAuditor and Forge diagnostics.
+     * @returns {object}
+     */
+    static getCompilerManifest() {
+        return {
+            weaponTemplates: Object.keys(WEAPON_TEMPLATES),
+            armorTemplateShells: [
+                "Armor, +1, +2, or +3",
+                "Adamantine Armor",
+                "Mithral Armor",
+                "Armor of Resistance",
+                ...SPECIFIC_ARMOR_TEMPLATES.map(t => t.template)
+            ],
+            wondrousTemplates: Object.keys(WONDROUS_TEMPLATE_SHELLS),
+            rangeStubs: Object.keys(RANGE_STUB_EXPANSIONS),
+            slayingAmmoTemplate: SLAYING_AMMO_TEMPLATE,
+            slayingCreatureTypes: SLAYING_CREATURE_TYPES,
+            namedEconomyEnrichment: Object.keys(NAMED_ECONOMY_ENRICHMENT)
+        };
     }
 
     // ── Public API ────────────────────────────────────────────────────────
@@ -221,9 +284,11 @@ export class LootPoolCompiler {
         // treat as stale so the Forge badge and nudge both surface the problem.
         if (!game.packs.get(this.worldCollectionId)) return "stale";
 
-        // Check if enabled sources match what was compiled
-        const currentSources = this._getEnabledSources().sort().join(",");
-        const compiledSources = (meta?.sourceIds ?? []).sort().join(",");
+        // Compare only sources that feed template expansion. Overlay materialised
+        // packs and scroll output register in lootPoolSources at runtime but do
+        // not affect the compiled pool; including them caused false stale states.
+        const currentSources = this._getCompileTrackedSources().sort().join(",");
+        const compiledSources = this._getCompileTrackedSources(meta?.sourceIds ?? []).sort().join(",");
         if (currentSources !== compiledSources) return "stale";
 
         if ((meta?.compilerVersion ?? 0) < this.COMPILER_VERSION) return "stale";
@@ -237,7 +302,7 @@ export class LootPoolCompiler {
      * @returns {Promise<string>}
      */
     static async computeSourceHash() {
-        const sources = this._getEnabledSources();
+        const sources = this._getCompileTrackedSources();
         const parts = [`v${this.COMPILER_VERSION}`, `sources:${sources.join("|")}`];
         for (const id of sources.sort()) {
             const pack = game.packs.get(id);
@@ -280,7 +345,9 @@ export class LootPoolCompiler {
         // ── Hash gate ──────────────────────────────────────────────────
         const sourceHash = await this.computeSourceHash();
         const lastHash   = game.settings.get(MODULE_ID, this.SETTING_HASH);
-        if (!forceRecompile && sourceHash === lastHash) {
+        const priorMeta  = this.getCompiledMeta();
+        const versionStale = (priorMeta?.compilerVersion ?? 0) < this.COMPILER_VERSION;
+        if (!forceRecompile && !versionStale && sourceHash === lastHash) {
             Logger.log(MODULE_LABEL, "LootPoolCompiler: pool is current. Skipping.");
             return;
         }
@@ -393,6 +460,30 @@ export class LootPoolCompiler {
         }
         expandedItems.push(...armorItems);
 
+        // ── Wondrous template expansion (belts, etc.) ────────────────────
+        emit("wondrous", 0, 1, "Expanding wondrous templates…");
+        const wondrousItems = this._expandWondrousTemplates(allByName);
+        for (let i = 0; i < wondrousItems.length; i++) {
+            emit("wondrous", i + 1, wondrousItems.length, wondrousItems[i].name ?? "");
+        }
+        expandedItems.push(...wondrousItems);
+
+        // ── Named economy enrichment (helms, etc.) ─────────────────────
+        emit("enrich", 0, 1, "Enriching named economy…");
+        const enrichedItems = this._expandNamedEconomyEnrichment(allByName);
+        for (let i = 0; i < enrichedItems.length; i++) {
+            emit("enrich", i + 1, enrichedItems.length, enrichedItems[i].name ?? "");
+        }
+        expandedItems.push(...enrichedItems);
+
+        // ── Slaying ammunition expansion ───────────────────────────────
+        emit("slaying", 0, 1, "Expanding slaying ammunition…");
+        const slayingItems = this._expandSlayingAmmunition(allByName);
+        for (let i = 0; i < slayingItems.length; i++) {
+            emit("slaying", i + 1, slayingItems.length, slayingItems[i].name ?? "");
+        }
+        expandedItems.push(...slayingItems);
+
         // ── Collision resolution ───────────────────────────────────────
         emit("collision", 0, 1, "Resolving collisions…");
         const resolved = this._collisionResolve(expandedItems, allByName);
@@ -436,9 +527,10 @@ export class LootPoolCompiler {
         }
 
         // ── Finalise ───────────────────────────────────────────────────
+        const trackedSources = this._getCompileTrackedSources(sources);
         const meta = {
             compiledAt:      new Date().toISOString(),
-            sourceIds:       sources,
+            sourceIds:       trackedSources,
             itemCount:       resolved.length,
             templateCount:   templateEntries.length,
             compilerVersion: this.COMPILER_VERSION,
@@ -905,6 +997,281 @@ export class LootPoolCompiler {
         return expanded;
     }
 
+    /**
+     * Expand wondrous template shells (e.g. Belt of Giant Strength) into
+     * discrete variant rows. Skips variants that already exist in sources
+     * with a non-zero price.
+     *
+     * @param {Map<string, {item: Item, packId: string}>} allByName
+     * @returns {object[]}
+     */
+    static _expandWondrousTemplates(allByName) {
+        const expanded = [];
+
+        for (const [templateName, variants] of Object.entries(WONDROUS_TEMPLATE_SHELLS)) {
+            const templateDoc = allByName.get(templateName.trim().toLowerCase())?.item ?? null;
+
+            for (const variant of variants) {
+                const key = variant.name.trim().toLowerCase();
+                const existing = allByName.get(key);
+                const existingDoc = existing?.item?.toObject?.() ?? existing?.item ?? null;
+                const existingPrice = existingDoc
+                    ? ItemPoolResolver._extractPrice(existingDoc)
+                    : 0;
+                if (existingPrice > 0) continue;
+
+                const sourceDoc = existing?.item ?? templateDoc;
+                if (!sourceDoc) continue;
+
+                const data = this._buildWondrousVariant(
+                    sourceDoc,
+                    variant,
+                    templateName
+                );
+                if (data) expanded.push(data);
+            }
+        }
+
+        return expanded;
+    }
+
+    /**
+     * Emit loot-ready copies of named items whose source rows have zero economy.
+     *
+     * @param {Map<string, {item: Item, packId: string}>} allByName
+     * @returns {object[]}
+     */
+    static _expandNamedEconomyEnrichment(allByName) {
+        const expanded = [];
+
+        for (const [itemName, spec] of Object.entries(NAMED_ECONOMY_ENRICHMENT)) {
+            const entry = allByName.get(itemName.trim().toLowerCase());
+            if (!entry?.item) continue;
+
+            const sourceDoc = entry.item.toObject?.() ?? entry.item;
+            const price = ItemPoolResolver._extractPrice(sourceDoc);
+            const weight = ItemPoolResolver._extractWeight(sourceDoc);
+            if (price > 0 && weight > 0) continue;
+
+            const data = this._buildNamedEconomyItem(entry.item, itemName, spec);
+            if (data) expanded.push(data);
+        }
+
+        return expanded;
+    }
+
+    /**
+     * @param {Item} sourceDoc
+     * @param {{ name: string, rarity: string, price: number, weight?: number }} variant
+     * @param {string} templateName
+     * @returns {object|null}
+     */
+    static _buildWondrousVariant(sourceDoc, variant, templateName) {
+        const data = sourceDoc.toObject();
+        const system = data.system ??= {};
+
+        data.name = variant.name;
+        system.rarity = variant.rarity;
+        system.price = { value: variant.price, denomination: "gp" };
+        system.type ??= {};
+        if (!system.type.value || system.type.value === "-" || system.type.value === "") {
+            system.type.value = "wondrous";
+        }
+
+        const weight = variant.weight ?? 1;
+        if (system.weight !== null && typeof system.weight === "object") {
+            system.weight = { ...system.weight, value: weight, units: "lb" };
+        } else {
+            system.weight = { value: weight, units: "lb" };
+        }
+
+        data.flags ??= {};
+        data.flags[MODULE_ID] ??= {};
+        const slug = variant.name.toLowerCase().replace(/\s+/g, "-");
+        data.flags[MODULE_ID].mintBatch = `compiled-pool-wondrous-${slug}`;
+        data.flags[MODULE_ID].compiledFrom = { template: templateName, variant: variant.name };
+
+        this._stripEnchantmentShells(data);
+        this._cleanCompiledDescription(data);
+        return data;
+    }
+
+    /**
+     * @param {Item} sourceDoc
+     * @param {string} itemName
+     * @param {{ price: number, weight: number, subtype?: string }} spec
+     * @returns {object|null}
+     */
+    static _buildNamedEconomyItem(sourceDoc, itemName, spec) {
+        const data = sourceDoc.toObject();
+        const system = data.system ??= {};
+
+        data.name = itemName;
+        system.price = { value: spec.price, denomination: "gp" };
+        if (spec.subtype) {
+            system.type ??= {};
+            system.type.value = spec.subtype;
+        }
+        if (system.weight !== null && typeof system.weight === "object") {
+            system.weight = { ...system.weight, value: spec.weight, units: "lb" };
+        } else {
+            system.weight = { value: spec.weight, units: "lb" };
+        }
+
+        data.flags ??= {};
+        data.flags[MODULE_ID] ??= {};
+        const slug = itemName.toLowerCase().replace(/\s+/g, "-");
+        data.flags[MODULE_ID].mintBatch = `compiled-pool-enriched-${slug}`;
+        data.flags[MODULE_ID].compiledFrom = { source: itemName, enrichment: true };
+
+        this._stripEnchantmentShells(data);
+        this._cleanCompiledDescription(data);
+        return data;
+    }
+
+    /**
+     * Expand the 2024 Ammunition of Slaying shell into discrete base × creature
+     * type rows (e.g. Arrow of Slaying (Dragons)).
+     *
+     * @param {Map<string, {item: Item, packId: string}>} allByName
+     * @returns {object[]}
+     */
+    static _expandSlayingAmmunition(allByName) {
+        const expanded = [];
+        const shellDoc = allByName.get(SLAYING_AMMO_TEMPLATE.toLowerCase())?.item ?? null;
+        if (!shellDoc) return expanded;
+
+        for (const { base, short } of SLAYING_AMMO_BASES) {
+            const baseEntry = allByName.get(base.toLowerCase());
+            if (!baseEntry?.item) {
+                Logger.warn(MODULE_LABEL, `LootPoolCompiler: slaying ammo base "${base}" not found.`);
+                continue;
+            }
+
+            for (const creatureType of SLAYING_CREATURE_TYPES) {
+                const itemName = `${short} of Slaying (${creatureType})`;
+                const existing = allByName.get(itemName.toLowerCase());
+                const existingDoc = existing?.item?.toObject?.() ?? existing?.item ?? null;
+                if (existingDoc && ItemPoolResolver._extractPrice(existingDoc) > 0) continue;
+
+                const riderName = `${SLAYING_AMMO_TEMPLATE} ${creatureType}`;
+                const riderDoc = allByName.get(riderName.toLowerCase())?.item ?? null;
+
+                const data = this._buildSlayingAmmoItem(
+                    shellDoc,
+                    baseEntry.item,
+                    short,
+                    creatureType,
+                    riderDoc
+                );
+                if (data) expanded.push(data);
+            }
+        }
+
+        return expanded;
+    }
+
+    /**
+     * @param {Item} shellDoc
+     * @param {Item} baseDoc
+     * @param {string} shortName       Display base, e.g. "Arrow" or "Bolt"
+     * @param {string} creatureType    e.g. "Dragons"
+     * @param {Item|null} riderEffectDoc  Enchantment rider from equipment24
+     * @returns {object|null}
+     */
+    static _buildSlayingAmmoItem(shellDoc, baseDoc, shortName, creatureType, riderEffectDoc) {
+        const data = shellDoc.toObject();
+        const base = baseDoc.toObject();
+        const system = data.system ??= {};
+        const itemName = `${shortName} of Slaying (${creatureType})`;
+
+        data.name = itemName;
+        data.type = "consumable";
+        system.rarity = "veryRare";
+        system.price = { value: SLAYING_AMMO_PRICE, denomination: "gp" };
+        system.type ??= {};
+        system.type.value = "ammo";
+
+        const baseWeight = this._extractWeight(base.system ?? {});
+        if (baseWeight > 0) {
+            if (system.weight !== null && typeof system.weight === "object") {
+                system.weight = { ...system.weight, value: baseWeight, units: "lb" };
+            } else {
+                system.weight = { value: baseWeight, units: "lb" };
+            }
+        }
+        if (base.img && (!data.img || data.img === "icons/svg/item-bag.svg")) {
+            data.img = base.img;
+        }
+
+        this._filterSlayingForCreatureType(data, creatureType, riderEffectDoc, itemName);
+
+        data.flags ??= {};
+        data.flags[MODULE_ID] ??= {};
+        const slug = itemName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        data.flags[MODULE_ID].mintBatch = `compiled-pool-slaying-${slug}`;
+        data.flags[MODULE_ID].compiledFrom = {
+            template: SLAYING_AMMO_TEMPLATE,
+            base: shortName,
+            creatureType
+        };
+
+        this._cleanCompiledDescription(data);
+        return data;
+    }
+
+    /**
+     * Reduce the slaying shell to a single creature-type rider and concrete name.
+     *
+     * @param {object} data
+     * @param {string} creatureType
+     * @param {Item|null} riderEffectDoc
+     * @param {string} itemName
+     */
+    static _filterSlayingForCreatureType(data, creatureType, riderEffectDoc, itemName) {
+        const typeLower = creatureType.toLowerCase();
+        const riderId = riderEffectDoc?.id ?? riderEffectDoc?._id ?? null;
+
+        if (riderEffectDoc) {
+            const riderObj = riderEffectDoc.toObject?.() ?? structuredClone(riderEffectDoc);
+            const changes = riderObj.changes ?? riderObj.system?.changes ?? [];
+            for (const change of changes) {
+                if (change.key === "name") change.value = itemName;
+                if (change.key === "system.description.value") {
+                    change.value = `<p>Very rare ammunition effective against ${creatureType.toLowerCase()}.</p>`;
+                }
+            }
+            if (riderObj.system?.changes) riderObj.system.changes = changes;
+            else if (changes.length) riderObj.changes = changes;
+            data.effects = [riderObj];
+        } else if (Array.isArray(data.effects)) {
+            data.effects = data.effects.filter(effect => {
+                const name = (effect.name ?? "").toLowerCase();
+                return name.includes(typeLower);
+            });
+        }
+
+        const activities = data.system?.activities ?? {};
+        for (const act of Object.values(activities)) {
+            if (act.type !== "enchant" || !Array.isArray(act.effects)) continue;
+            const match = riderId
+                ? act.effects.find(entry => entry._id === riderId)
+                : act.effects.find(entry => {
+                    const fx = data.effects?.find(e => e._id === entry._id);
+                    return (fx?.name ?? "").toLowerCase().includes(typeLower);
+                });
+            if (match) {
+                act.effects = [match];
+                act.appliedEffects = [match._id];
+            } else {
+                act.effects = act.effects.slice(0, 1);
+                act.appliedEffects = act.appliedEffects?.slice(0, 1) ?? [];
+            }
+        }
+
+        this._clearRiderFlags(data);
+    }
+
     // ── Collision Resolution ──────────────────────────────────────────────
 
     /**
@@ -957,6 +1324,34 @@ export class LootPoolCompiler {
 
     static _getEnabledSources() {
         return ItemPoolResolver.getEnabledSources();
+    }
+
+    /**
+     * True when a lootPoolSources entry affects compiled template expansion.
+     * Overlay materialised packs, scroll output, pipeline outputs, and excluded
+     * activity packs are runtime loot sources only.
+     * @param {string} packId
+     * @returns {boolean}
+     */
+    static _isCompileTrackedSource(packId) {
+        if (!packId || typeof packId !== "string") return false;
+        if (packId === this.worldCollectionId) return false;
+        if (packId.startsWith("world.quartermaster-")) return false;
+        if (packId === "world.ionrift-forged-scrolls") return false;
+        if (packId === "world.ionrift-srd-cursed") return false;
+        if (packId === "world.ionrift-cursewright-forged") return false;
+        if (packId.startsWith("qm-preview.")) return false;
+        return true;
+    }
+
+    /**
+     * Enabled loot sources that participate in compile input hashing and staleness.
+     * @param {string[]|null} [sourceIds]
+     * @returns {string[]}
+     */
+    static _getCompileTrackedSources(sourceIds = null) {
+        const base = sourceIds ?? this._getEnabledSources();
+        return base.filter(id => this._isCompileTrackedSource(id));
     }
 
     // ── Hashing ───────────────────────────────────────────────────────────
