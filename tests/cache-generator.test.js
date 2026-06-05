@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { CacheGenerator } from "../scripts/services/CacheGenerator.js";
+import { SignatureLedger } from "../scripts/services/SignatureLedger.js";
 
 // ── _weightedPoolDraw ────────────────────────────────────────────────────
 
@@ -160,6 +161,141 @@ describe("CacheGenerator._resolveQuantity", () => {
             expect(qty).toBeGreaterThanOrEqual(1);
             expect(Number.isInteger(qty)).toBe(true);
         }
+    });
+});
+
+// ── generate type-aware weight floors ─────────────────────────────────────
+
+describe("CacheGenerator.generate — type-aware weight floors", () => {
+    const tables = {
+        tiers: {
+            1: {
+                label: "Tier 1",
+                budgetCap: 1000,
+                goldDice: "0",
+                rarityMax: "common"
+            }
+        },
+        ownerThemes: {
+            unspecified: {
+                label: "General Cache",
+                budgetMultiplier: 1,
+                totalSlots: { min: 2, max: 2 },
+                guaranteed: ["mastercraft", "mastercraft"],
+                slotPool: {}
+            }
+        },
+        flavorPhrases: {}
+    };
+
+    const container = (capacityLbs) => ({
+        name: "Small Chest",
+        img: "icons/svg/chest.svg",
+        type: "container",
+        capacityLbs,
+        emptyWeightLbs: 2,
+        system: { description: { value: "" } }
+    });
+
+    const runTwoSlotCache = async (items, capacityLbs = 5) => {
+        const queue = [...items];
+        vi.spyOn(CacheGenerator, "_loadTables").mockResolvedValue(structuredClone(tables));
+        vi.spyOn(CacheGenerator, "_rollGold").mockResolvedValue(0);
+        vi.spyOn(CacheGenerator, "_pickContainer").mockResolvedValue(container(capacityLbs));
+        vi.spyOn(CacheGenerator, "_isBanned").mockResolvedValue(false);
+        vi.spyOn(SignatureLedger, "getSuggestedRecipient").mockResolvedValue(null);
+        vi.spyOn(CacheGenerator, "_pickItem").mockImplementation(async () => {
+            if (queue.length > 1) return queue.shift();
+            return queue[0] ?? null;
+        });
+
+        game.settings.set("ionrift-quartermaster", "lootEconomy", 1);
+        game.settings.set("ionrift-quartermaster", "magicFrequency", 1);
+        game.settings.set("ionrift-quartermaster", "healingPotionFrequency", 0);
+        game.settings.set("ionrift-quartermaster", "distributeCoins", false);
+
+        return CacheGenerator.generate({ tier: 1, theme: "dungeon", ownerTheme: "unspecified", silent: true });
+    };
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        game.settings._reset();
+        Hooks._reset();
+    });
+
+    it("counts zero-weight weapons as at least 3 lb for container capacity", async () => {
+        const swordA = {
+            name: "Dragon Slayer Longsword +1",
+            type: "weapon",
+            weight: 0,
+            price: 10,
+            rarity: "common",
+            system: { type: { value: "martialM" } }
+        };
+        const swordB = {
+            name: "Flame Tongue Longsword +1",
+            type: "weapon",
+            weight: 0,
+            price: 10,
+            rarity: "common",
+            system: { type: { value: "martialM" } }
+        };
+
+        const result = await runTwoSlotCache([swordA, swordB], 5);
+
+        expect(result.items.map(i => i.name)).toEqual(["Dragon Slayer Longsword +1"]);
+        expect(result.container.contentWeightLbs).toBe(3);
+        expect(result.container.fillPercent).toBe(60);
+    });
+
+    it("counts zero-weight armor equipment as at least 4 lb", async () => {
+        const armorA = {
+            name: "Adamantine Chain Mail",
+            type: "equipment",
+            weight: 0,
+            price: 10,
+            rarity: "common",
+            system: { type: { value: "heavy" } }
+        };
+        const armorB = {
+            name: "Mithral Chain Mail",
+            type: "equipment",
+            weight: 0,
+            price: 10,
+            rarity: "common",
+            system: { type: { value: "heavy" } }
+        };
+
+        const result = await runTwoSlotCache([armorA, armorB], 5);
+
+        expect(result.items.map(i => i.name)).toEqual(["Adamantine Chain Mail"]);
+        expect(result.container.contentWeightLbs).toBe(4);
+        expect(result.container.fillPercent).toBe(80);
+    });
+
+    it("keeps zero-weight non-armor equipment near-weightless", async () => {
+        const ringA = {
+            name: "Signet Ring",
+            type: "equipment",
+            weight: 0,
+            price: 10,
+            rarity: "common",
+            system: { type: { value: "ring" } }
+        };
+        const ringB = {
+            name: "Copper Ring",
+            type: "equipment",
+            weight: 0,
+            price: 10,
+            rarity: "common",
+            system: { type: { value: "ring" } }
+        };
+
+        const result = await runTwoSlotCache([ringA, ringB], 1);
+
+        expect(result.items.map(i => i.name)).toEqual(["Signet Ring", "Copper Ring"]);
+        expect(result.container.contentWeightLbs).toBeCloseTo(0.02);
+        expect(result.container.fillPercent).toBe(2);
     });
 });
 
