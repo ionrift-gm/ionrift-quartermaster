@@ -16,6 +16,7 @@
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
+import { isSrdCursedLootName, isSrdCursedTemplateName } from "./SrdCurseCatalog.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -217,7 +218,7 @@ const ARCHITECTURE_2024_PACKS = new Set(["dnd5e.equipment24"]);
 // ── LootPoolCompiler ──────────────────────────────────────────────────────
 
 export class LootPoolCompiler {
-    static COMPILER_VERSION = 16;
+    static COMPILER_VERSION = 17;
 
     static WORLD_PACK_NAME = "quartermaster-compiled-pool";
     static PACK_LABEL      = "Quartermaster: Compiled Loot Pool";
@@ -395,6 +396,7 @@ export class LootPoolCompiler {
         const expandedItems = [];
 
         for (const [templateName, { bases, tiers }] of templateEntries) {
+            if (isSrdCursedTemplateName(templateName)) continue;
             const templateEntry = allByName.get(templateName.trim().toLowerCase());
             if (!templateEntry) {
                 Logger.warn(MODULE_LABEL, `LootPoolCompiler: template "${templateName}" not found in sources.`);
@@ -502,7 +504,9 @@ export class LootPoolCompiler {
 
         // ── Collision resolution ───────────────────────────────────────
         emit("collision", 0, 1, "Resolving collisions…");
-        const resolved = this._collisionResolve(expandedItems, allByName);
+        const resolved = this._filterCursedFromCompiled(
+            this._collisionResolve(expandedItems, allByName)
+        );
 
         // ── Write to world pack ────────────────────────────────────────
         emit("writing", 0, resolved.length, "Writing compiled pool…");
@@ -1120,6 +1124,7 @@ export class LootPoolCompiler {
 
         // Adamantine / Mithral: medium + heavy bases (8 each)
         for (const templateName of ["Adamantine Armor", "Mithral Armor"]) {
+            if (isSrdCursedTemplateName(templateName)) continue;
             const templateDoc = lookupTemplate(templateName);
             if (!templateDoc) continue;
             const { rarity, price } = templateMeta(templateDoc);
@@ -1155,6 +1160,7 @@ export class LootPoolCompiler {
 
         // Specific named templates (Demon Armor, Elven Chain, etc.)
         for (const { template, base, opts: overrides = {} } of SPECIFIC_ARMOR_TEMPLATES) {
+            if (isSrdCursedTemplateName(template)) continue;
             const templateDoc = lookupTemplate(template);
             if (!templateDoc) continue;
             const baseData = lookupBaseData(base);
@@ -1463,6 +1469,18 @@ export class LootPoolCompiler {
      * @param {Map<string, {item: Item, packId: string}>} allByName
      * @returns {object[]}
      */
+    static _filterCursedFromCompiled(items) {
+        const kept = items.filter(item => !isSrdCursedLootName(item?.name));
+        const dropped = items.length - kept.length;
+        if (dropped > 0) {
+            Logger.info(
+                MODULE_LABEL,
+                `LootPoolCompiler: excluded ${dropped} cursed row(s) from compiled loot pool.`
+            );
+        }
+        return kept;
+    }
+
     static _collisionResolve(expanded, allByName) {
         for (const data of expanded) {
             const key = (data.name || "").trim().toLowerCase();

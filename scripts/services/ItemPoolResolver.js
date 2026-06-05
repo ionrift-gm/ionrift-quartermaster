@@ -12,6 +12,7 @@ import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ItemClassifier } from "./ItemClassifier.js";
 import { GenericArmorBonusRegistry } from "./GenericArmorBonusRegistry.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
+import { isSrdCursedLootName } from "./SrdCurseCatalog.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -249,9 +250,12 @@ export class ItemPoolResolver {
         // compendium so they can never appear as random cache drops. These items
         // are only ever placed through the deliberate curse mechanic.
         const cursedNames = await this._getCursedBlocklist();
-        const uncursed = cursedNames.size > 0
-            ? deduped.filter(item => !cursedNames.has(item.name.trim().toLowerCase()))
-            : deduped;
+        const uncursed = deduped.filter(item => {
+            const nameLower = item.name.trim().toLowerCase();
+            if (isSrdCursedLootName(item.name)) return false;
+            if (cursedNames.has(nameLower)) return false;
+            return true;
+        });
 
         if (!theme) return uncursed;
         return uncursed.filter(item => this._eligibleForTheme(item, theme));
@@ -1092,6 +1096,7 @@ export class ItemPoolResolver {
         if (this._isBulkAmmoCollection(entry, nameLower)) return true;
         if (this._isGmPlacedPoison(entry, nameLower)) return true;
         if (this._isLegacyRenamedItem(entry, nameLower)) return true;
+        if (isSrdCursedLootName(name)) return true;
         return false;
     }
 

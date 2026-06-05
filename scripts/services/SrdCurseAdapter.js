@@ -11,64 +11,12 @@
  */
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
+import {
+    SRD_CURSE_MANIFEST,
+    SRD_CURSE_ITEM_FALLBACKS as SRD_ITEM_FALLBACKS
+} from "./SrdCurseCatalog.js";
 
 const MODULE_ID = "ionrift-quartermaster";
-
-// ── SRD Manifest ────────────────────────────────────────────────────────
-//
-// 13 canonical SRD cursed items. Names are matched against the dnd5e system
-// compendiums at runtime. cursedMeta stamps tier and curseType only.
-
-const SRD_CURSE_MANIFEST = [
-    { match: "Berserker Axe",               tier: 1, curseType: "compulsion" },
-    { match: "Dust of Sneezing and Choking", tier: 1, curseType: "deceptive"  },
-    {
-        match: "Potion of Poison",
-        tier: 1,
-        curseType: "deceptive",
-        // masking: instruct QM's ItemMaskingHelper to obscure this item as a
-        // Potion of Healing until the GM identifies it. Activities and effects
-        // from the raw SRD item are preserved; the midi-qol save fires on use.
-        // This is purely presentation masking; no lure trickery is needed.
-        masking: {
-            originalName: "Potion of Healing",
-            originalRarity: "common",
-            img: "icons/consumables/potions/potion-flask-stopped-red.webp",
-            description: "<p><em>Potion, Common</em></p><p>This vial contains a red liquid that glimmers when agitated. As a Bonus Action, you can drink it or administer it to another creature within 5 feet of yourself. The creature that drinks the magical red liquid regains 2d4 + 2 Hit Points.</p>"
-        }
-    },
-    { match: "Sword of Vengeance",           tier: 1, curseType: "compulsion" },
-    { match: "Armor of Vulnerability",       tier: 2, curseType: "deceptive"  },
-    { match: "Bag of Devouring",             tier: 2, curseType: "physical"   },
-    { match: "Boots of Dancing",             tier: 2, curseType: "compulsion" },
-    { match: "Cloak of Poisonousness",       tier: 2, curseType: "deceptive"  },
-    { match: "Crown of Madness",             tier: 2, curseType: "compulsion" },
-    { match: "Shield of Missile Attraction", tier: 2, curseType: "deceptive"  },
-    { match: "Demon Armor",                  tier: 3, curseType: "binding"    },
-    { match: "Necklace of Strangulation",    tier: 3, curseType: "binding"    },
-    { match: "Scarab of Death",              tier: 3, curseType: "physical"   },
-];
-
-/**
- * Fallback price and weight for SRD cursed items whose compendium entries
- * carry zero values. Values sourced from the 2024 PHB/DMG item tables.
- * Keys are lowercase item names matching SRD_CURSE_MANIFEST entries.
- */
-const SRD_ITEM_FALLBACKS = {
-    "berserker axe":                { price: 9000,  weight: 7,   denomination: "gp" },
-    "dust of sneezing and choking": { price: 450,   weight: 0.1, denomination: "gp" },
-    "potion of poison":             { price: 100,   weight: 0.5, denomination: "gp" },
-    "sword of vengeance":           { price: 6000,  weight: 3,   denomination: "gp" },
-    "armor of vulnerability":       { price: 9000,  weight: 65,  denomination: "gp" },
-    "bag of devouring":             { price: 0,     weight: 0.5, denomination: "gp" }, // priceless
-    "boots of dancing":             { price: 4000,  weight: 1,   denomination: "gp" },
-    "cloak of poisonousness":       { price: 3000,  weight: 1,   denomination: "gp" },
-    "crown of madness":             { price: 2500,  weight: 1,   denomination: "gp" },
-    "shield of missile attraction": { price: 6000,  weight: 6,   denomination: "gp" },
-    "demon armor":                  { price: 48000, weight: 65,  denomination: "gp" },
-    "necklace of strangulation":    { price: 45000, weight: 1,   denomination: "gp" },
-    "scarab of death":              { price: 36000, weight: 0,   denomination: "gp" },
-};
 
 // ── SrdCurseAdapter ─────────────────────────────────────────────────────
 
