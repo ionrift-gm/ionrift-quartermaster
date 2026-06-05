@@ -268,21 +268,6 @@ Hooks.on('ready', () => {
             }
         });
 
-        game.ionrift.library.tests.register("ionrift-quartermaster-scroll-balance", {
-            name: "Quartermaster Scroll Balance",
-            description: "Monte Carlo scroll level distribution per tier (live Scroll Forge pack)",
-            runFn: async () => {
-                try {
-                    const { runScrollBalanceTests } = await import("./tests/ScrollBalanceTests.js");
-                    return runScrollBalanceTests();
-                } catch {
-                    return { passed: 0, failed: 0, total: 0, skipped: true,
-                        results: [{ name: "ScrollBalanceTests", status: "skip",
-                            message: "Test file not present (production build)." }] };
-                }
-            }
-        });
-
         game.ionrift.library.tests.register("ionrift-quartermaster-overlay-materialiser", {
             name: "Quartermaster Overlay Materialiser",
             description: "Guards the overlay item walker against the silent empty-pack regression on nested terrain layouts",

@@ -524,13 +524,16 @@ export class CacheGenerator {
 
     /**
      * When the container is nearly full, steer filler away from heavy slot types.
+     * Armaments caches keep mastercraft slots so magical gear is not swapped for rations.
      * @param {string} effectiveSlotType
      * @param {boolean} pairingActive
      * @param {boolean} isGuaranteed
+     * @param {string} [ownerTheme]
      * @returns {string}
      */
-    static _resolveSlotTypeUnderPressure(effectiveSlotType, pairingActive, isGuaranteed) {
+    static _resolveSlotTypeUnderPressure(effectiveSlotType, pairingActive, isGuaranteed, ownerTheme = "unspecified") {
         if (pairingActive || isGuaranteed) return effectiveSlotType;
+        if (ownerTheme === "armaments" && effectiveSlotType === "mastercraft") return effectiveSlotType;
         if (this.DRESSING_SLOT_TYPES.includes(effectiveSlotType)) return effectiveSlotType;
         if (["mastercraft", "treasure", "gemstone"].includes(effectiveSlotType)) {
             return this.DRESSING_SLOT_TYPES[
@@ -620,6 +623,74 @@ export class CacheGenerator {
         }
 
         return Math.max(remainingBudget / fillerSlotsLeft, goldFillerFloor);
+    }
+
+    /** Tier table bands passed to ItemPoolResolver for mastercraft picks. */
+    static TIER_MASTERCRAFT_PRICE_MAX = [0, 100, 400, 1500, 5000];
+    static TIER_MASTERCRAFT_PRICE_MIN = [0, 5, 30, 200, 800];
+
+    /**
+     * Price ceiling for mastercraft slots. Filler-slot fair share is too low for
+     * imputed +N values (e.g. T4 +2 floor 800 gp vs ~500 gp fair share).
+     * @param {object} opts
+     * @returns {number}
+     */
+    static _computeMastercraftPriceCeiling(opts) {
+        const {
+            hardCap, isGuaranteed, effectiveBudget, remainingBudget,
+            fillerSlotsLeft, totalSlotsLeft, goldFillerFloor, tier, ownerTheme,
+            mastercraftSlotCount = 1
+        } = opts;
+
+        const tierTableMax = this.TIER_MASTERCRAFT_PRICE_MAX[tier] ?? 5000;
+        const tierBandMin = this.TIER_MASTERCRAFT_PRICE_MIN[tier] ?? 0;
+        const minBonus = ItemPoolResolver.MIN_GENERIC_BONUS_BY_TIER[tier] ?? 0;
+        const aspireBonus = ItemPoolResolver.ASPIRATIONAL_GENERIC_BONUS_BY_TIER[tier] ?? 0;
+        const ceilingBonus = Math.max(minBonus, aspireBonus);
+        const magicalFloor = ceilingBonus > 0
+            ? (ItemPoolResolver.GENERIC_BONUS_VALUE_FLOOR[ceilingBonus] ?? tierBandMin)
+            : tierBandMin;
+        const aspireFloor = aspireBonus > 0
+            ? (ItemPoolResolver.GENERIC_BONUS_VALUE_FLOOR[aspireBonus] ?? 0)
+            : 0;
+
+        const shareDivisor = Math.max(
+            1,
+            isGuaranteed ? totalSlotsLeft : fillerSlotsLeft
+        );
+        const fairShare = remainingBudget / shareDivisor;
+
+        // Mastercraft uses tier table bands, not filler-slot fair share. The 35%
+        // guaranteed cap blocked T2 +1 gear (210 gp cap vs 400 gp table band).
+        let ceiling;
+        const armamentsMastercraft = ownerTheme === "armaments";
+        if (hardCap) {
+            if (armamentsMastercraft) {
+                ceiling = Math.min(remainingBudget, tierTableMax);
+            } else {
+                ceiling = Math.min(
+                    remainingBudget,
+                    isGuaranteed ? tierTableMax : fairShare,
+                    tierTableMax
+                );
+            }
+        } else {
+            ceiling = Math.min(remainingBudget, tierTableMax);
+        }
+
+        if (armamentsMastercraft && aspireFloor > 0 && mastercraftSlotCount > 0) {
+            const slotShare = effectiveBudget / mastercraftSlotCount;
+            const armamentsFloor = Math.min(
+                remainingBudget,
+                Math.max(slotShare, aspireFloor)
+            );
+            ceiling = Math.max(ceiling, armamentsFloor);
+        }
+
+        return Math.min(
+            remainingBudget,
+            Math.max(ceiling, magicalFloor, tierBandMin, goldFillerFloor)
+        );
     }
 
     /**
@@ -844,6 +915,11 @@ export class CacheGenerator {
             drawnSlots.unshift("mastercraft");
         }
 
+        const mastercraftSlotCount = Math.max(
+            1,
+            drawnSlots.filter(slot => slot === "mastercraft").length
+        );
+
         // Container-first ordering: pick the container before items so we
         // know the weight budget. Items that won't fit are converted to gold.
         const container = await this._pickContainer(ownerTheme, theme, 0, tier);
@@ -913,7 +989,7 @@ export class CacheGenerator {
             );
             if (underCapacityPressure) {
                 effectiveSlotType = this._resolveSlotTypeUnderPressure(
-                    effectiveSlotType, pairingActive, isGuaranteed
+                    effectiveSlotType, pairingActive, isGuaranteed, ownerTheme
                 );
             }
 
@@ -927,25 +1003,40 @@ export class CacheGenerator {
                 );
             }
 
+            const isArmamentsMastercraft = ownerTheme === "armaments" && effectiveSlotType === "mastercraft";
+
             const totalSlotsLeft    = Math.max(1, drawnSlots.length - slotsProcessed);
             const fillerSlotsLeft   = Math.max(1, drawnSlots.length - Math.max(slotsProcessed, guaranteedCount));
             const remainingBudget   = effectiveBudget - itemSpentBudget;
             const scrollSlotsRemaining = drawnSlots
                 .slice(slotsProcessed)
                 .filter(s => s === "scroll").length;
-            const priceCeiling = this._computeSlotPriceCeiling({
-                hardCap,
-                isGuaranteed,
-                slotType: effectiveSlotType,
-                effectiveBudget,
-                remainingBudget,
-                totalSlotsLeft,
-                fillerSlotsLeft,
-                scrollSlotsRemaining,
-                goldFillerFloor,
-                pairingActive,
-                tier
-            });
+            const priceCeiling = effectiveSlotType === "mastercraft"
+                ? this._computeMastercraftPriceCeiling({
+                    hardCap,
+                    isGuaranteed,
+                    effectiveBudget,
+                    remainingBudget,
+                    totalSlotsLeft,
+                    fillerSlotsLeft,
+                    goldFillerFloor,
+                    tier,
+                    ownerTheme,
+                    mastercraftSlotCount
+                })
+                : this._computeSlotPriceCeiling({
+                    hardCap,
+                    isGuaranteed,
+                    slotType: effectiveSlotType,
+                    effectiveBudget,
+                    remainingBudget,
+                    totalSlotsLeft,
+                    fillerSlotsLeft,
+                    scrollSlotsRemaining,
+                    goldFillerFloor,
+                    pairingActive,
+                    tier
+                });
 
             let item = null;
             let pickAttempts = 0;
@@ -956,7 +1047,7 @@ export class CacheGenerator {
                 remainingBudget,
                 rejectNamedMagical: namedMagicalRemaining <= 0,
                 ownerTheme,
-                preferArmor: ownerTheme === "armaments" && slotType === "mastercraft" && !requireArmor,
+                preferArmor: isArmamentsMastercraft && !requireArmor,
                 requireArmor,
                 slotsRemaining,
                 effectiveWeightFn: _effectiveWeight,
@@ -967,29 +1058,36 @@ export class CacheGenerator {
                 : 45;
 
             // Repick logic: prefer nominal fit early, allow generation headroom later.
-            // maxEffectiveWeight uses a per-slot fair share from the first attempt.
+            // Armaments mastercraft uses generation headroom immediately so armor can land.
             while (pickAttempts < 5) {
-                const attemptAllowance = pickAttempts < 3
-                    ? slotWeightAllowance
-                    : Math.min(slotWeightAllowance, remainingGeneration);
+                const weightAttempt = requireArmor || isArmamentsMastercraft || isGuaranteed
+                    ? 3
+                    : pickAttempts;
+                const attemptAllowance = weightAttempt >= 3
+                    ? remainingGeneration
+                    : (pickAttempts < 3 ? slotWeightAllowance : Math.min(slotWeightAllowance, remainingGeneration));
                 item = await this._pickItem(effectiveSlotType, theme, tierData, tables, priceCeiling, {
                     ...pickOpts,
                     maxEffectiveWeight: attemptAllowance > 0 ? attemptAllowance : remainingGeneration,
                 });
                 if (!item) break;
                 const unitWeight = _effectiveWeight(item.weight, item.type, item.system);
-                const weightPickAttempt = requireArmor ? 3 : pickAttempts;
-                if (this._itemExceedsWeightPickLimit(unitWeight, weightPickAttempt, weightBudgets, currentWeight)) {
-                    item = null;
-                    pickAttempts++;
-                } else if ((item.price ?? 0) > priceCeiling) {
-                    item = null;
-                    pickAttempts++;
-                } else if (await this._isBanned(item.name)) {
+                if (this._itemExceedsWeightPickLimit(unitWeight, weightAttempt, weightBudgets, currentWeight)) {
                     item = null;
                     pickAttempts++;
                 } else {
-                    break;
+                    const itemPrice = effectiveSlotType === "mastercraft"
+                        ? ItemPoolResolver._mastercraftEffectivePrice(item)
+                        : (item.price ?? 0);
+                    if (itemPrice > priceCeiling) {
+                        item = null;
+                        pickAttempts++;
+                    } else if (await this._isBanned(item.name)) {
+                        item = null;
+                        pickAttempts++;
+                    } else {
+                        break;
+                    }
                 }
             }
 
@@ -1006,9 +1104,24 @@ export class CacheGenerator {
                         item = null;
                     }
                 }
+                if (!item && isArmamentsMastercraft) {
+                    item = await this._pickMastercraft(theme, tierData, priceCeiling, tables, {
+                        ...pickOpts,
+                        preferArmor: false,
+                        requireArmor: false,
+                        maxEffectiveWeight: Math.min(remainingGeneration, 12),
+                    });
+                    if (item) {
+                        const unitWeight = _effectiveWeight(item.weight, item.type, item.system);
+                        if (this._itemExceedsWeightPickLimit(unitWeight, 4, weightBudgets, currentWeight)) {
+                            item = null;
+                        }
+                    }
+                }
             }
 
-            if (!item && container && remainingNominal > 0) {
+            if (!item && container && remainingNominal > 0
+                && !(ownerTheme === "armaments" && effectiveSlotType === "mastercraft")) {
                 item = await this._tryLightSlotFallback(
                     theme, tierData, tables, priceCeiling, pickOpts,
                     weightBudgets, currentWeight, _effectiveWeight
@@ -1021,7 +1134,22 @@ export class CacheGenerator {
 
             slotsProcessed++;
 
+            if (effectiveSlotType === "mastercraft") {
+                result.meta.mastercraftSlots = result.meta.mastercraftSlots ?? {
+                    attempted: 0, filled: 0, empty: 0, overflow: 0
+                };
+                result.meta.mastercraftSlots.attempted++;
+            }
+
             if (item) {
+                if (effectiveSlotType === "mastercraft" && item._isMagical === undefined) {
+                    const mask = ItemMaskingHelper.detectMagical(item, { terrainTag: theme });
+                    if (mask.isMagical) {
+                        item._isMagical = true;
+                        item._baseItemName = mask.baseItemName;
+                        item._mundaneDesc = mask.mundaneDesc;
+                    }
+                }
                 // Quantity heuristic is capacity-aware: a single stack should
                 // never claim more than a fair share of what is left in the bag,
                 // so cheap bulky items (greatclubs, sacks of flour) cannot
@@ -1039,20 +1167,47 @@ export class CacheGenerator {
                 } else {
                     qty = this._resolveQuantity(item, { remainingWeight });
                 }
-                const totalItemPrice = Math.round((item.price ?? 0) * qty * 100) / 100;
+                let totalItemPrice = Math.round((item.price ?? 0) * qty * 100) / 100;
                 // Type-aware weight floor (see _effectiveWeight above).
-                const totalItemWeight = _effectiveWeight(item.weight, item.type, item.system) * qty;
+                let totalItemWeight = _effectiveWeight(item.weight, item.type, item.system) * qty;
 
-                const totalAfter = currentWeight + totalItemWeight;
-                const overGeneration = container
+                let totalAfter = currentWeight + totalItemWeight;
+                let overGeneration = container
                     && totalAfter > weightBudgets.generation
                     && result.items.length > 0;
 
-                // Weight budget check: reject only when generation allowance is exceeded.
+                // Heavy armor can exceed generation headroom; try a light weapon before coin.
+                if (overGeneration && isArmamentsMastercraft && !requireArmor) {
+                    const lightPick = await this._pickMastercraft(
+                        theme, tierData, priceCeiling, tables, {
+                            ...pickOpts,
+                            preferArmor: false,
+                            requireArmor: false,
+                            maxEffectiveWeight: Math.max(
+                                3,
+                                Math.min(12, weightBudgets.generation - currentWeight)
+                            ),
+                        }
+                    );
+                    if (lightPick) {
+                        item = lightPick;
+                        qty = 1;
+                        totalItemPrice = Math.round((item.price ?? 0) * qty * 100) / 100;
+                        totalItemWeight = _effectiveWeight(item.weight, item.type, item.system) * qty;
+                        totalAfter = currentWeight + totalItemWeight;
+                        overGeneration = container
+                            && totalAfter > weightBudgets.generation
+                            && result.items.length > 0;
+                    }
+                }
+
                 if (overGeneration) {
                     const filler = Math.floor(totalItemPrice * 0.5);
                     result.gold += filler;
                     itemSpentBudget += filler;
+                    if (effectiveSlotType === "mastercraft") {
+                        result.meta.mastercraftSlots.overflow++;
+                    }
                 } else {
                     currentWeight += totalItemWeight;
                     itemSpentBudget += totalItemPrice;
@@ -1060,8 +1215,12 @@ export class CacheGenerator {
                         ...item,
                         quantity: qty,
                         price: totalItemPrice,
-                        _unitPrice: item.price ?? 0
+                        _unitPrice: item.price ?? 0,
+                        _cacheSlotType: effectiveSlotType
                     });
+                    if (effectiveSlotType === "mastercraft") {
+                        result.meta.mastercraftSlots.filled++;
+                    }
                     if (!pairingActive && (
                         totalItemPrice >= anchorThreshold
                         || ItemClassifier.isNamedMagical(item)
@@ -1085,6 +1244,9 @@ export class CacheGenerator {
                 // Nothing useful in this slot -- coin filler (does not consume item budget)
                 const filler = Math.floor(goldFillerFloor * (0.5 + Math.random()));
                 result.gold += filler;
+                if (effectiveSlotType === "mastercraft") {
+                    result.meta.mastercraftSlots.empty++;
+                }
                 if (debug) {
                     debugSlots.push({
                         slotType: effectiveSlotType, isGuaranteed, priceCeiling, ok: false,
@@ -1456,7 +1618,7 @@ export class CacheGenerator {
     static async _pickMastercraft(theme, tierData, priceCeiling = Infinity, tables = null, pickOpts = {}) {
         const tier = tierData._tier ?? 1;
         const priceMax = Math.min([0, 100, 400, 1500, 5000][tier], priceCeiling);
-        const priceMin = [0, 5,   30,  200,  800 ][tier];
+        const priceMin = [0, 5, 30, 200, 800][tier];
 
         const preferredMaterials = TerrainDataRegistry.getMaterials(theme);
 
@@ -1499,6 +1661,11 @@ export class CacheGenerator {
             }
         } catch (e) {
             Logger.warn(MODULE_LABEL, "ItemPoolResolver failed for mastercraft:", e.message);
+        }
+
+        // Armaments T2+ rely on compiled pools; QM core fallback is mundane steel.
+        if (pickOpts.ownerTheme === "armaments" && tier >= 2) {
+            return null;
         }
 
         // Fallback: scan all core-role packs for cultural / mastercraft entries.

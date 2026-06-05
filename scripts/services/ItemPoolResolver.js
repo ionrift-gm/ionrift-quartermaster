@@ -10,6 +10,7 @@
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ItemClassifier } from "./ItemClassifier.js";
+import { GenericArmorBonusRegistry } from "./GenericArmorBonusRegistry.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -25,6 +26,9 @@ export class ItemPoolResolver {
     // and the compiled SRD cursed world pack. Invalidated on settings change.
     static _cursedBlocklist = null;
 
+    /** When set, resolve() returns filtered entries from this pool (balance simulators). */
+    static _simulationPool = null;
+
     // Per-item price ceiling by tier. Rejects individual items that cost more
     // than a tier's loot table should reasonably contain as a random drop.
     static TIER_PRICE_CEILING = {
@@ -35,10 +39,10 @@ export class ItemPoolResolver {
     };
 
     /** Mastercraft draw weight toward body armor when ownerTheme is armaments (C1). */
-    static MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT = 0.5;
+    static MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT = 0.70;
 
     /** Secondary weight toward shields before weapons on armaments mastercraft slots. */
-    static MASTERCRAFT_SHIELD_DRAW_WEIGHT = 0.15;
+    static MASTERCRAFT_SHIELD_DRAW_WEIGHT = 0.22;
 
     /** @deprecated Use MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT */
     static MASTERCRAFT_ARMOR_DRAW_WEIGHT = 0.5;
@@ -57,13 +61,19 @@ export class ItemPoolResolver {
     static MIN_GENERIC_BONUS_BY_TIER = { 1: 0, 2: 1, 3: 1, 4: 2 };
 
     /**
+     * Target generic +N band for mastercraft price ceilings and aspire filtering.
+     * Soft pressure only; MIN_GENERIC_BONUS_BY_TIER remains the hard floor at T4.
+     */
+    static ASPIRATIONAL_GENERIC_BONUS_BY_TIER = { 1: 0, 2: 1, 3: 2, 4: 2 };
+
+    /**
      * Generic +N mastercraft pick weights by tier. T4 leans toward +2.
      */
     static MASTERCRAFT_BONUS_WEIGHTS = {
         1: { 1: 1, 2: 0, 3: 0 },
-        2: { 1: 6, 2: 1, 3: 0 },
-        3: { 1: 3, 2: 3, 3: 1 },
-        4: { 1: 1, 2: 7, 3: 3 }
+        2: { 1: 10, 2: 1, 3: 0 },
+        3: { 1: 0, 2: 8, 3: 1 },
+        4: { 1: 0, 2: 9, 3: 2 }
     };
 
     /**
@@ -125,6 +135,21 @@ export class ItemPoolResolver {
         this._cache.clear();
         this._cacheExpiry = null;
         this._cursedBlocklist = null;
+    }
+
+    /**
+     * Inject a flat pool for Monte Carlo balance runs (Vitest / harness).
+     * @param {object[]|null} pool
+     */
+    static setSimulationPool(pool) {
+        this._simulationPool = pool;
+        this.clearCache();
+    }
+
+    /** Clear simulation pool injection. */
+    static clearSimulationPool() {
+        this._simulationPool = null;
+        this.clearCache();
     }
 
     /**
@@ -193,6 +218,14 @@ export class ItemPoolResolver {
         const { slotType, tier, theme, fallbackTables, rarityMax: rarityMaxOverride } = opts;
         const tierData = fallbackTables?.tiers?.[String(tier)];
         const rarityMax = rarityMaxOverride ?? tierData?.rarityMax ?? "uncommon";
+
+        if (this._simulationPool) {
+            const sim = this._simulationPool.filter(entry =>
+                this._matchesSlotType(entry, slotType)
+            );
+            if (!theme) return sim;
+            return sim.filter(item => this._eligibleForTheme(item, theme));
+        }
 
         const sources = this.getEnabledSources();
         const compendiumItems = await this._queryCompendiums(sources, slotType, rarityMax);
@@ -287,26 +320,80 @@ export class ItemPoolResolver {
         }
 
         if (opts.slotType === "mastercraft") {
+            const magicForStrip = game.settings?.get(MODULE_ID, "magicFrequency") ?? 1.0;
+            if (magicForStrip >= 1.0) {
+                pool = this._stripArmamentsMundaneWhenMagicalExists(pool, tier, opts);
+            }
+            pool = this._applyMastercraftAspireBias(pool, tier, opts, priceCeiling);
+        }
+
+        if (opts.slotType === "mastercraft") {
             const { armor, shields, weapons } = this._splitMastercraftPool(pool);
             if (opts.requireArmor) {
                 if (armor.length > 0) pool = armor;
                 else if (shields.length > 0) pool = shields;
                 else return null;
             } else if (opts.preferArmor && opts.ownerTheme === "armaments") {
-                const roll = Math.random();
-                if (roll < this.MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT && armor.length > 0) {
-                    pool = armor;
-                } else if (
-                    roll < this.MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT + this.MASTERCRAFT_SHIELD_DRAW_WEIGHT
-                    && shields.length > 0
-                ) {
-                    pool = shields;
-                } else if (weapons.length > 0) {
-                    pool = weapons;
-                } else if (armor.length > 0) {
-                    pool = armor;
-                } else if (shields.length > 0) {
-                    pool = shields;
+                const weightOf = (item) => {
+                    if (typeof opts.effectiveWeightFn === "function") {
+                        return opts.effectiveWeightFn(item.weight, item.type, item.system);
+                    }
+                    return item.weight ?? 0;
+                };
+                const maxW = opts.maxEffectiveWeight;
+                const fitsWeight = (item) => maxW === undefined
+                    || maxW >= Infinity
+                    || weightOf(item) <= maxW;
+
+                const fitArmor = armor.filter(fitsWeight);
+                const fitShields = shields.filter(fitsWeight);
+                const fitWeapons = weapons.filter(fitsWeight);
+                const aspireBonus = this.ASPIRATIONAL_GENERIC_BONUS_BY_TIER[tier] ?? 0;
+                const armorAspireCap = GenericArmorBonusRegistry.getMaxBonus(tier);
+                const effectiveArmorAspire = Math.min(aspireBonus, armorAspireCap);
+                const genericAtLeast = (item, minBonus) => {
+                    if (!ItemClassifier.isGenericMagic(item)) return false;
+                    const bonus = ItemClassifier.detectBonusTier(item);
+                    if (bonus < minBonus) return false;
+                    if (this._isArmorPoolItem(item)) {
+                        return GenericArmorBonusRegistry.allowsBonus(bonus, tier);
+                    }
+                    return bonus <= (this.MAX_GENERIC_BONUS_BY_TIER[tier] ?? 3);
+                };
+                const armorHasAspire = effectiveArmorAspire > 0 && (
+                    fitArmor.some(item => genericAtLeast(item, effectiveArmorAspire))
+                    || fitShields.some(item => genericAtLeast(item, effectiveArmorAspire))
+                );
+                const weaponAspire = aspireBonus > 0
+                    ? fitWeapons.filter(item => genericAtLeast(item, aspireBonus))
+                    : [];
+
+                if (!armorHasAspire && weaponAspire.length > 0) {
+                    pool = weaponAspire;
+                } else {
+                    const bodyPool = fitArmor.length > 0 ? fitArmor : [];
+                    const shieldPool = fitShields.length > 0 ? fitShields : [];
+                    const weaponPool = fitWeapons.length > 0 ? fitWeapons : weapons;
+
+                    const roll = Math.random();
+                    if (roll < this.MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT && bodyPool.length > 0) {
+                        pool = bodyPool;
+                    } else if (
+                        roll < this.MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT + this.MASTERCRAFT_SHIELD_DRAW_WEIGHT
+                        && shieldPool.length > 0
+                    ) {
+                        pool = shieldPool;
+                    } else if (weaponPool.length > 0) {
+                        pool = weaponPool;
+                    } else if (shieldPool.length > 0) {
+                        pool = shieldPool;
+                    } else if (bodyPool.length > 0) {
+                        pool = bodyPool;
+                    } else if (armor.length > 0) {
+                        pool = armor;
+                    } else if (shields.length > 0) {
+                        pool = shields;
+                    }
                 }
             }
         }
@@ -319,23 +406,12 @@ export class ItemPoolResolver {
             if (filtered.length > 0) pool = filtered;
         }
 
-        if (opts.maxGenericBonusTier !== undefined && opts.slotType === "mastercraft") {
-            const maxBonus = opts.maxGenericBonusTier;
-            const capped = pool.filter(item => {
-                if (!ItemClassifier.isGenericMagic(item)) return true;
-                const bonus = ItemClassifier.detectBonusTier(item.name);
-                return bonus > 0 && bonus <= maxBonus;
-            });
-            if (capped.length > 0) pool = capped;
-        }
-
-        const minGenericBonus = this.MIN_GENERIC_BONUS_BY_TIER[tier] ?? 0;
-        if (minGenericBonus > 0 && opts.slotType === "mastercraft") {
-            const floored = pool.filter(item => {
-                if (!ItemClassifier.isGenericMagic(item)) return true;
-                return ItemClassifier.detectBonusTier(item.name) >= minGenericBonus;
-            });
-            if (floored.length > 0) pool = floored;
+        if (opts.slotType === "mastercraft") {
+            pool = this._filterMastercraftGenericBonusPolicy(
+                pool,
+                tier,
+                opts.maxGenericBonusTier ?? this.MAX_GENERIC_BONUS_BY_TIER[tier] ?? 0
+            );
         }
 
         pool = pool.filter(item => !ItemClassifier.isSlayingAmmo(item));
@@ -357,8 +433,12 @@ export class ItemPoolResolver {
                         tunedPool.push(item);
                     }
                 }
-                // Safety net: if we purged everything, fall back to the raw pool
-                if (tunedPool.length > 0) pool = tunedPool;
+                if (tunedPool.length > 0) {
+                    pool = tunedPool;
+                } else {
+                    const mundaneOnly = pool.filter(item => !isMagical(item));
+                    if (mundaneOnly.length > 0) pool = mundaneOnly;
+                }
             } else {
                 const extraCopies = Math.floor(magicSetting) - 1;
                 const chance = magicSetting % 1;
@@ -392,11 +472,21 @@ export class ItemPoolResolver {
             }
         }
 
+        if (opts.slotType === "mastercraft") {
+            const magicSetting = game.settings?.get(MODULE_ID, "magicFrequency") ?? 1.0;
+            if (magicSetting >= 1.0) {
+                pool = this._applyMastercraftGenericFloor(pool, tier, opts, priceCeiling);
+            }
+        }
+
         const useClassPick = opts.pickByClass !== false
             && ["mastercraft", "ammo"].includes(opts.slotType);
         if (useClassPick) {
             if (opts.slotType === "mastercraft") {
-                return this._pickMastercraftByBonusWeights(pool, tier, opts);
+                return this._pickMastercraftByBonusWeights(pool, tier, {
+                    ...opts,
+                    priceCeiling
+                });
             }
             return this._pickUniformByClass(pool);
         }
@@ -413,20 +503,25 @@ export class ItemPoolResolver {
      * @returns {object|null}
      */
     static _pickMastercraftByBonusWeights(pool, tier, opts = {}) {
-        const weights = this.MASTERCRAFT_BONUS_WEIGHTS[tier] ?? this.MASTERCRAFT_BONUS_WEIGHTS[1];
-        const byBonus = { 1: [], 2: [], 3: [], named: [] };
+        const armorOnly = pool.length > 0 && pool.every(item => this._isArmorPoolItem(item));
+        const weights = armorOnly
+            ? GenericArmorBonusRegistry.getPickWeights(tier)
+            : (this.MASTERCRAFT_BONUS_WEIGHTS[tier] ?? this.MASTERCRAFT_BONUS_WEIGHTS[1]);
+        const byBonus = { 1: [], 2: [], 3: [], named: [], mundane: [] };
 
         for (const item of pool) {
             if (ItemClassifier.isNamedMagical(item)) {
                 byBonus.named.push(item);
                 continue;
             }
-            const bonus = ItemClassifier.detectBonusTier(item.name);
-            if (bonus >= 1 && bonus <= 3) {
-                byBonus[bonus].push(item);
-            } else {
-                byBonus[1].push(item);
+            if (ItemClassifier.isGenericMagic(item)) {
+                const bonus = ItemClassifier.detectBonusTier(item);
+                if (bonus >= 1 && bonus <= 3) {
+                    byBonus[bonus].push(item);
+                }
+                continue;
             }
+            byBonus.mundane.push(item);
         }
 
         const tierBag = [];
@@ -448,7 +543,165 @@ export class ItemPoolResolver {
             return this._pickUniformByClass(byBonus.named);
         }
 
-        return this._pickUniformByClass(pool);
+        const minBonus = this.MIN_GENERIC_BONUS_BY_TIER[tier] ?? 0;
+        const aspireBonus = this.ASPIRATIONAL_GENERIC_BONUS_BY_TIER[tier] ?? 0;
+        const aspireFloor = aspireBonus > 0 ? (this.GENERIC_BONUS_VALUE_FLOOR[aspireBonus] ?? 0) : 0;
+        const priceCeiling = opts.priceCeiling ?? Infinity;
+        const canAspire = !priceCeiling || priceCeiling >= aspireFloor;
+
+        if (
+            opts.ownerTheme === "armaments"
+            && canAspire
+            && aspireBonus >= 2
+            && byBonus[aspireBonus].length > 0
+        ) {
+            return this._pickUniformByClass(byBonus[aspireBonus]);
+        }
+
+        const anyGeneric = [1, 2, 3]
+            .filter(bonus => bonus >= minBonus)
+            .flatMap(bonus => byBonus[bonus]);
+        if (anyGeneric.length > 0 && tier >= 2) {
+            return this._pickUniformByClass(anyGeneric);
+        }
+
+        if (byBonus.mundane.length > 0 && opts.ownerTheme !== "armaments") {
+            return this._pickUniformByClass(byBonus.mundane);
+        }
+
+        return null;
+    }
+
+    /**
+     * Armaments mastercraft should not draw mundane SRD steel when compiled +N
+     * gear survives upstream filters. Runs before armor/weapon split.
+     *
+     * @param {object[]} pool
+     * @param {number} tier
+     * @param {object} opts
+     * @returns {object[]}
+     */
+    static _stripArmamentsMundaneWhenMagicalExists(pool, tier, opts) {
+        if (opts.ownerTheme !== "armaments" || tier < 2) return pool;
+
+        const generic = pool.filter(item => ItemClassifier.isGenericMagic(item));
+        if (generic.length > 0) return generic;
+
+        const named = pool.filter(item => ItemClassifier.isNamedMagical(item) && !opts.rejectNamedMagical);
+        if (named.length > 0) return named;
+
+        return pool;
+    }
+
+    /**
+     * Armaments aspire +N band before armor/weapon split so +2 gear is not
+     * crowded out by +1 rows in the weapon bucket after preferArmor.
+     *
+     * @param {object[]} pool
+     * @param {number} tier
+     * @param {object} opts
+     * @param {number} priceCeiling
+     * @returns {object[]}
+     */
+    static _genericAspireFloorForItem(item, tier, aspireBonus, weaponMax) {
+        if (this._isArmorPoolItem(item)) {
+            const armorMax = GenericArmorBonusRegistry.getMaxBonus(tier);
+            if (armorMax <= 0) return Infinity;
+            return Math.min(aspireBonus, armorMax);
+        }
+        return aspireBonus;
+    }
+
+    static _applyMastercraftAspireBias(pool, tier, opts, priceCeiling) {
+        const aspireBonus = this.ASPIRATIONAL_GENERIC_BONUS_BY_TIER[tier] ?? 0;
+        if (aspireBonus <= 0 || opts.ownerTheme !== "armaments") return pool;
+
+        const aspireFloor = this.GENERIC_BONUS_VALUE_FLOOR[aspireBonus] ?? 0;
+        if (priceCeiling > 0 && priceCeiling < aspireFloor) return pool;
+
+        const weaponMax = this.MAX_GENERIC_BONUS_BY_TIER[tier] ?? 3;
+        const bonusOf = (item) => ItemClassifier.detectBonusTier(item);
+        const atAspire = pool.filter(item => {
+            if (ItemClassifier.isNamedMagical(item)) return !opts.rejectNamedMagical;
+            if (!ItemClassifier.isGenericMagic(item)) return false;
+            const bonus = bonusOf(item);
+            const floor = this._genericAspireFloorForItem(item, tier, aspireBonus, weaponMax);
+            if (!Number.isFinite(floor) || floor <= 0 || bonus < floor) return false;
+            if (this._isArmorPoolItem(item)) {
+                return GenericArmorBonusRegistry.allowsBonus(bonus, tier);
+            }
+            return bonus <= weaponMax;
+        });
+        return atAspire.length > 0 ? atAspire : pool;
+    }
+
+    /**
+     * Imputed price floor for armaments mastercraft when the slot budget fits.
+     * @param {number} tier
+     * @param {number} priceCeiling
+     * @param {string} [ownerTheme]
+     * @returns {number}
+     */
+    static armamentsMastercraftPriceMin(tier, priceCeiling, ownerTheme) {
+        const tableMin = [0, 5, 30, 200, 800][tier] ?? 0;
+        if (ownerTheme !== "armaments") return tableMin;
+
+        const aspireBonus = this.ASPIRATIONAL_GENERIC_BONUS_BY_TIER[tier] ?? 0;
+        if (aspireBonus <= 0) return tableMin;
+
+        const aspireMin = this.GENERIC_BONUS_VALUE_FLOOR[aspireBonus] ?? 0;
+        if (aspireMin > 0 && priceCeiling >= aspireMin) {
+            return Math.max(tableMin, aspireMin);
+        }
+        return tableMin;
+    }
+
+    /**
+     * Tier floor and aspire filtering for mastercraft generic +N picks.
+     * Runs after magicFrequency tuning so low-magic profiles can stay mundane.
+     *
+     * @param {object[]} pool
+     * @param {number} tier
+     * @param {object} opts
+     * @param {number} priceCeiling
+     * @returns {object[]}
+     */
+    static _applyMastercraftGenericFloor(pool, tier, opts, priceCeiling) {
+        const minGenericBonus = this.MIN_GENERIC_BONUS_BY_TIER[tier] ?? 0;
+        const aspireBonus = this.ASPIRATIONAL_GENERIC_BONUS_BY_TIER[tier] ?? 0;
+        if (minGenericBonus <= 0 && aspireBonus <= 0) return pool;
+
+        const bonusOf = (item) => ItemClassifier.detectBonusTier(item);
+        const genericAtLeast = (item, minBonus) => {
+            if (!ItemClassifier.isGenericMagic(item)) return false;
+            return bonusOf(item) >= minBonus;
+        };
+        const namedOk = (item) => ItemClassifier.isNamedMagical(item) && !opts.rejectNamedMagical;
+
+        const aspireFloor = aspireBonus > 0 ? (this.GENERIC_BONUS_VALUE_FLOOR[aspireBonus] ?? 0) : 0;
+        const canAspire = !priceCeiling || priceCeiling >= aspireFloor;
+
+        if (aspireBonus > minGenericBonus && canAspire) {
+            const atAspire = pool.filter(item => genericAtLeast(item, aspireBonus) || namedOk(item));
+            if (atAspire.length > 0) return atAspire;
+        }
+
+        if (minGenericBonus > 0) {
+            const atFloor = pool.filter(item => genericAtLeast(item, minGenericBonus) || namedOk(item));
+            if (atFloor.length > 0) return atFloor;
+
+            const minFloor = this.GENERIC_BONUS_VALUE_FLOOR[minGenericBonus] ?? 0;
+            const budgetBlocksFloor = priceCeiling > 0 && priceCeiling < minFloor;
+            if (budgetBlocksFloor && tier < 4) {
+                const subTier = pool.filter(item => {
+                    if (namedOk(item)) return true;
+                    return ItemClassifier.isGenericMagic(item);
+                });
+                if (subTier.length > 0) return subTier;
+            }
+        }
+
+        return pool;
     }
 
     /**
@@ -473,7 +726,7 @@ export class ItemPoolResolver {
         const nameLc = name.toLowerCase();
 
         if (ItemClassifier.isGenericMagic(item)) {
-            const bonus = ItemClassifier.detectBonusTier(item.name);
+            const bonus = ItemClassifier.detectBonusTier(item);
             const base = name.replace(/\s*\+\d\b.*$/i, "").trim().toLowerCase();
             return `gen:+${bonus || 0}:${base}`;
         }
@@ -543,7 +796,7 @@ export class ItemPoolResolver {
                 // Use getIndex for lightweight query
                 const index = await pack.getIndex({ fields: [
                     "name", "type", "img", "flags", "system.price", "system.rarity",
-                    "system.type", "system.weight", "system.description"
+                    "system.type", "system.weight", "system.description", "system.magicalBonus"
                 ]});
 
                 const filtered = [];
@@ -562,6 +815,12 @@ export class ItemPoolResolver {
                         weight: this._extractWeight(entry),
                         _baseItem: entry.system?.type?.baseItem ?? "",
                         subtype: (entry.system?.type?.value ?? "").toString().toLowerCase(),
+                        system: {
+                            rarity: entry.system?.rarity,
+                            type: entry.system?.type,
+                            weight: entry.system?.weight,
+                            magicalBonus: entry.system?.magicalBonus
+                        },
                         sourceCompendium: packId,
                         _compendiumId: entry._id
                     });
@@ -601,6 +860,32 @@ export class ItemPoolResolver {
         if (!theme) return true;
         if (!this._isTerrainBound(entry)) return true;
         return this._terrainTags(entry).includes(theme);
+    }
+
+    /**
+     * Split generic +N caps: weapons follow maxGenericBonusTier; armor and shields
+     * follow {@link GenericArmorBonusRegistry}.
+     *
+     * @param {object[]} pool
+     * @param {number} tier
+     * @param {number} weaponMaxBonus
+     * @returns {object[]}
+     */
+    static _filterMastercraftGenericBonusPolicy(pool, tier, weaponMaxBonus) {
+        const capped = pool.filter(item => {
+            if (!ItemClassifier.isGenericMagic(item)) return true;
+            const bonus = ItemClassifier.detectBonusTier(item);
+            if (!bonus || bonus <= 0) return false;
+            if (this._isArmorPoolItem(item)) {
+                return GenericArmorBonusRegistry.allowsBonus(bonus, tier);
+            }
+            if ((item.type ?? "") === "weapon") {
+                return bonus <= weaponMaxBonus;
+            }
+            return bonus <= Math.max(weaponMaxBonus, GenericArmorBonusRegistry.getMaxBonus(tier));
+        });
+        if (capped.length > 0) return capped;
+        return pool.filter(item => !ItemClassifier.isGenericMagic(item));
     }
 
     /**
@@ -652,7 +937,7 @@ export class ItemPoolResolver {
      */
     static _mastercraftEffectivePrice(item) {
         if (ItemClassifier.isGenericMagic(item)) {
-            const bonus = ItemClassifier.detectBonusTier(item.name) || 1;
+            const bonus = ItemClassifier.detectBonusTier(item) || 1;
             const floor = this.GENERIC_BONUS_VALUE_FLOOR[bonus] ?? 0;
             return Math.max(item.price ?? 0, floor);
         }

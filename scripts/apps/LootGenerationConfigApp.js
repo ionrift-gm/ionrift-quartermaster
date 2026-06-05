@@ -1,6 +1,8 @@
 import { createQuartermasterConfigApp } from "./QuartermasterSubmenuConfigApp.js";
 import { AmmoTypeConfigApp } from "./AmmoTypeConfigApp.js";
+import { GenericArmorBonusConfigApp } from "./GenericArmorBonusConfigApp.js";
 import { AmmoTypeRegistry } from "../services/AmmoTypeRegistry.js";
+import { GenericArmorBonusRegistry } from "../services/GenericArmorBonusRegistry.js";
 
 export const LootGenerationConfigApp = createQuartermasterConfigApp({
     appId: "qm-loot-generation-config",
@@ -9,7 +11,8 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
     lead: "Scales cache value, magic rates, ammunition, healing potions, scroll overshoot, and coin breakdown.",
     savedMessage: "Loot generation settings saved.",
     popouts: {
-        ammoTypes: AmmoTypeConfigApp
+        ammoTypes: AmmoTypeConfigApp,
+        genericArmorBonus: GenericArmorBonusConfigApp
     },
     rows: [
         {
@@ -41,6 +44,15 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             min: 0,
             max: 2,
             step: 0.25
+        },
+        {
+            key: "genericArmorBonusConfig",
+            label: "Generic Armor Bonus Curve",
+            icon: "fas fa-shield-halved",
+            hint: "Tier caps for generic +N body armor and shields in mastercraft caches. Independent of magic frequency and weapon bonuses.",
+            type: "popout",
+            popout: "genericArmorBonus",
+            summary: () => GenericArmorBonusRegistry.getSummaryLabel()
         },
         {
             key: "healingPotionFrequency",

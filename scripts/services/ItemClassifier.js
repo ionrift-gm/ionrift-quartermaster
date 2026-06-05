@@ -68,6 +68,15 @@ export class ItemClassifier {
             return this.CATEGORY.GENERIC_MAGIC;
         }
 
+        const compiledTier = item.flags?.["ionrift-quartermaster"]?.compiledFrom?.tier;
+        const magBonus = item.system?.magicalBonus ?? item.magicalBonus;
+        if (compiledTier >= 1 && compiledTier <= 3) {
+            return this.CATEGORY.GENERIC_MAGIC;
+        }
+        if (magBonus !== undefined && magBonus !== null && String(magBonus).match(/\+?\d/)) {
+            return this.CATEGORY.GENERIC_MAGIC;
+        }
+
         return this.CATEGORY.NAMED_MAGIC;
     }
 
@@ -105,13 +114,32 @@ export class ItemClassifier {
     // ── Ammo helpers ─────────────────────────────────────────────────
 
     /**
-     * Detect the +N bonus tier from an item name.
-     * @param {string} name
+     * Detect the +N bonus tier from an item name or pool row.
+     * Compiled pool rows may carry bonus on system.magicalBonus or compiledFrom.tier.
+     *
+     * @param {string|Object} itemOrName
      * @returns {number} 1, 2, 3, or 0 if no bonus found.
      */
-    static detectBonusTier(name) {
-        const match = (name ?? "").match(/\+(\d)\b/);
-        return match ? parseInt(match[1], 10) : 0;
+    static detectBonusTier(itemOrName) {
+        if (typeof itemOrName === "string") {
+            const match = itemOrName.match(/\+(\d)\b/);
+            return match ? parseInt(match[1], 10) : 0;
+        }
+        const item = itemOrName;
+        const name = (item?.name ?? "").trim();
+        const nameMatch = name.match(/\+(\d)\b/);
+        if (nameMatch) return parseInt(nameMatch[1], 10);
+
+        const magBonus = item?.system?.magicalBonus ?? item?.magicalBonus;
+        if (magBonus !== undefined && magBonus !== null && magBonus !== "") {
+            const magMatch = String(magBonus).match(/\+?(\d)/);
+            if (magMatch) return parseInt(magMatch[1], 10);
+        }
+
+        const compiledTier = item?.flags?.["ionrift-quartermaster"]?.compiledFrom?.tier;
+        if (compiledTier >= 1 && compiledTier <= 3) return compiledTier;
+
+        return 0;
     }
 
     /**

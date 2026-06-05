@@ -10,6 +10,7 @@ import { WorkshopPackRegistryApp } from "../apps/WorkshopPackRegistryApp.js";
 import { SignatureLedger } from "./SignatureLedger.js";
 import { registerQuartermasterSettingsPanel } from "./SettingsPanelLayout.js";
 import { AmmoTypeRegistry } from "./AmmoTypeRegistry.js";
+import { GenericArmorBonusRegistry, DEFAULT_GENERIC_ARMOR_BONUS } from "./GenericArmorBonusRegistry.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -190,6 +191,19 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         type: String,
         default: "",
         restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "genericArmorBonusConfig", {
+        name: "Generic Armor Bonus Curve",
+        hint: "Tier caps and pick weights for generic +N body armor and shields in mastercraft caches.",
+        scope: "world",
+        config: false,
+        type: String,
+        default: JSON.stringify(DEFAULT_GENERIC_ARMOR_BONUS),
+        restricted: true,
+        onChange: () => {
+            import("./ItemPoolResolver.js").then(m => m.ItemPoolResolver.clearCache());
+        }
     });
 
     game.settings.register(MODULE_ID, "obscureConsumables", {

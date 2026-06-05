@@ -1,6 +1,5 @@
 /**
- * Foundry test harness: empirical scroll balance on the live forged pack.
- * Register via ionrift-library tests panel.
+ * Live scroll balance suite entry point. Invoked from ionrift-devtools only.
  */
 
 import { runLiveScrollBalanceSuite } from "../services/ScrollBalanceSimulator.js";

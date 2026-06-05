@@ -1,0 +1,107 @@
+{
+    "profiles": {
+        "low": {
+            "label": "Low",
+            "lootEconomy": 0.5,
+            "magicFrequency": 0.25,
+            "magicAmmoFrequency": 0,
+            "healingPotionFrequency": 0.5
+        },
+        "standard": {
+            "label": "Standard",
+            "lootEconomy": 1,
+            "magicFrequency": 1,
+            "magicAmmoFrequency": 1,
+            "healingPotionFrequency": 1
+        },
+        "high": {
+            "label": "High",
+            "lootEconomy": 1.5,
+            "magicFrequency": 1.5,
+            "magicAmmoFrequency": 1.5,
+            "healingPotionFrequency": 2.5
+        }
+    },
+    "edgeCases": {
+        "healHeavy": {
+            "label": "Heal heavy",
+            "lootEconomy": 1,
+            "magicFrequency": 1,
+            "magicAmmoFrequency": 1,
+            "healingPotionFrequency": 4
+        },
+        "magicWeak": {
+            "label": "Magic weak",
+            "lootEconomy": 1,
+            "magicFrequency": 0.25,
+            "magicAmmoFrequency": 0,
+            "healingPotionFrequency": 1
+        },
+        "magicStrong": {
+            "label": "Magic strong",
+            "lootEconomy": 1,
+            "magicFrequency": 1.5,
+            "magicAmmoFrequency": 1.5,
+            "healingPotionFrequency": 1
+        },
+        "economyLow": {
+            "label": "Economy low",
+            "lootEconomy": 0.5,
+            "magicFrequency": 1,
+            "magicAmmoFrequency": 1,
+            "healingPotionFrequency": 1
+        },
+        "healOff": {
+            "label": "Heal off",
+            "lootEconomy": 1,
+            "magicFrequency": 1,
+            "magicAmmoFrequency": 1,
+            "healingPotionFrequency": 0
+        },
+        "healStandardMagicLow": {
+            "label": "Low magic + standard heal",
+            "lootEconomy": 1,
+            "magicFrequency": 0.25,
+            "magicAmmoFrequency": 0,
+            "healingPotionFrequency": 1
+        }
+    },
+    "profileExpectationScale": {
+        "low": { "magic": 0.55, "economy": 0.85, "curveStrict": false },
+        "standard": { "magic": 1.0, "economy": 1.0, "curveStrict": true },
+        "high": { "magic": 1.08, "economy": 1.05, "curveStrict": true }
+    },
+    "orderingRules": [
+        {
+            "id": "magic-low-below-high-T3",
+            "lowScenario": "T3-low",
+            "highScenario": "T3-magic-strong",
+            "metric": "mastercraftPickMagicalRate",
+            "minDelta": 0.08,
+            "synthetic": false
+        },
+        {
+            "id": "magic-weak-below-standard-T4",
+            "lowScenario": "T4-magic-weak",
+            "highScenario": "T4-standard",
+            "metric": "mastercraftPickMagicalRate",
+            "minDelta": 0.08,
+            "synthetic": false
+        },
+        {
+            "id": "heal-off-below-heavy-T3",
+            "lowScenario": "T3-heal-off",
+            "highScenario": "T3-heal-heavy",
+            "metric": "healingItemsPerCache",
+            "minDelta": 0.11
+        },
+        {
+            "id": "economy-low-below-standard-T2",
+            "lowScenario": "T2-economy-low",
+            "highScenario": "T2-standard",
+            "metric": "meanItemValuePerCache",
+            "minDelta": 50,
+            "synthetic": true
+        }
+    ]
+}

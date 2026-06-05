@@ -93,9 +93,7 @@ const RANGE_STUB_EXPANSIONS = {
         { base: "Sling Bullet", tiers: [1, 2, 3] },
     ],
     "Weapon, +1, +2, or +3": [
-        // Generic +N weapons - handled by the template pass above.
-        // This stub itself is excluded; generic +1/+2/+3 weapons that exist
-        // as discrete entries in legacy packs still flow through the raw pool.
+        // Expanded by _expandGenericWeaponBonus (base weapon x tier pass).
     ],
 };
 
@@ -120,6 +118,15 @@ const BASE_ARMORS = [
     "Hide Armor", "Chain Shirt", "Scale Mail", "Breastplate", "Half Plate Armor",
     "Ring Mail", "Chain Mail", "Splint Armor", "Plate Armor",
     "Shield",
+];
+
+/** Martial and simple bases expanded into generic +N weapons (stub pass). */
+const GENERIC_WEAPON_BASES = [
+    "Dagger", "Handaxe", "Javelin", "Light Hammer", "Mace", "Quarterstaff",
+    "Spear", "Shortbow", "Longbow", "Light Crossbow",
+    "Battleaxe", "Flail", "Glaive", "Greataxe", "Greatsword", "Halberd",
+    "Longsword", "Maul", "Morningstar", "Pike", "Rapier", "Scimitar",
+    "Shortsword", "Trident", "War Pick", "Warhammer", "Whip"
 ];
 
 // Adamantine/Mithral apply to medium and heavy armor only (SRD: not hide, not light, not shield).
@@ -210,7 +217,7 @@ const ARCHITECTURE_2024_PACKS = new Set(["dnd5e.equipment24"]);
 // ── LootPoolCompiler ──────────────────────────────────────────────────────
 
 export class LootPoolCompiler {
-    static COMPILER_VERSION = 14;
+    static COMPILER_VERSION = 16;
 
     static WORLD_PACK_NAME = "quartermaster-compiled-pool";
     static PACK_LABEL      = "Quartermaster: Compiled Loot Pool";
@@ -455,10 +462,19 @@ export class LootPoolCompiler {
         emit("armor", 0, 1, "Expanding armor templates…");
 
         const armorItems = this._expandArmorTemplates(allByName);
+        const genericArmorPlusCount = armorItems.filter(
+            i => /\+\d\b/.test(i.name ?? "") && !i.name.includes("Arrow") && !i.name.includes("Bolt")
+        ).length;
         for (let armorDone = 0; armorDone < armorItems.length; armorDone++) {
             emit("armor", armorDone + 1, armorItems.length, armorItems[armorDone].name ?? "");
         }
         expandedItems.push(...armorItems);
+
+        const genericWeaponItems = this._expandGenericWeaponBonus(allByName);
+        for (let weaponDone = 0; weaponDone < genericWeaponItems.length; weaponDone++) {
+            emit("weapons", weaponDone + 1, genericWeaponItems.length, genericWeaponItems[weaponDone].name ?? "");
+        }
+        expandedItems.push(...genericWeaponItems);
 
         // ── Wondrous template expansion (belts, etc.) ────────────────────
         emit("wondrous", 0, 1, "Expanding wondrous templates…");
@@ -533,6 +549,8 @@ export class LootPoolCompiler {
             sourceIds:       trackedSources,
             itemCount:       resolved.length,
             templateCount:   templateEntries.length,
+            genericArmorPlusCount,
+            genericWeaponCount: genericWeaponItems.length,
             compilerVersion: this.COMPILER_VERSION,
         };
 
@@ -543,10 +561,17 @@ export class LootPoolCompiler {
 
         emit("done", resolved.length, resolved.length, "");
 
+        ItemPoolResolver.clearCache();
+
         ui.notifications.info(
-            `Quartermaster: compiled loot pool - ${resolved.length} items from ${templateEntries.length} templates.`
+            `Quartermaster: compiled loot pool - ${resolved.length} items ` +
+            `(${genericArmorPlusCount} generic +N armor, ${genericWeaponItems.length} generic +N weapons).`
         );
-        Logger.info(MODULE_LABEL, `LootPoolCompiler: ${resolved.length} items written.`);
+        Logger.info(
+            MODULE_LABEL,
+            `LootPoolCompiler: ${resolved.length} items written ` +
+            `(${genericArmorPlusCount} generic +N armor, ${genericWeaponItems.length} generic +N weapons).`
+        );
     }
 
     // ── Item Builders ─────────────────────────────────────────────────────
@@ -654,6 +679,141 @@ export class LootPoolCompiler {
     }
 
     /**
+     * Build a discrete generic +N weapon from a mundane base weapon row.
+     *
+     * @param {Item} baseDoc
+     * @param {string} baseName
+     * @param {number} tier
+     * @returns {object}
+     */
+    static _buildGenericBonusWeapon(baseDoc, baseName, tier) {
+        const data   = baseDoc.toObject();
+        const system = data.system ??= {};
+        const basePrice = system.price?.value ?? 0;
+
+        data.name = `${baseName} +${tier}`;
+        system.rarity = TIER_RARITY[tier] ?? "uncommon";
+        system.magicalBonus = `+${tier}`;
+        if (system.price !== null && typeof system.price === "object") {
+            system.price = { ...system.price, value: basePrice, denomination: system.price.denomination ?? "gp" };
+        } else {
+            system.price = { value: basePrice, denomination: "gp" };
+        }
+
+        data.flags ??= {};
+        data.flags[MODULE_ID] ??= {};
+        data.flags[MODULE_ID].mintBatch = `compiled-pool-weapon-${baseName.toLowerCase().replace(/\s+/g, "-")}-${tier}`;
+        data.flags[MODULE_ID].compiledFrom = {
+            template: "Weapon, +1, +2, or +3",
+            base: baseName,
+            tier
+        };
+
+        this._stripEnchantmentShells(data);
+        return data;
+    }
+
+    /**
+     * True when a source row is already a loot-ready generic +N item (not a
+     * zero-weight 2024 template shell that ItemPoolResolver excludes).
+     *
+     * @param {object} entry
+     * @returns {boolean}
+     */
+    static _isLootReadyGenericPlusEntry(entry) {
+        const doc = typeof entry?.toObject === "function" ? entry.toObject() : entry;
+        const name = (doc?.name ?? "").trim();
+        if (!name || !/\+\d\b/.test(name)) return false;
+        if (ItemPoolResolver._isZeroWeightWeaponTemplate(doc)) return false;
+        if (ItemPoolResolver._isZeroWeightArmorTemplate(doc)) return false;
+        return ItemPoolResolver._extractWeight(doc) > 0;
+    }
+
+    /**
+     * True when a compendium row is a mundane weapon base suitable for +N expansion.
+     *
+     * @param {object} entry
+     * @returns {boolean}
+     */
+    static _isLootReadyWeaponBase(entry) {
+        const doc = typeof entry?.toObject === "function" ? entry.toObject() : entry;
+        if ((doc?.type ?? "").toLowerCase() !== "weapon") return false;
+        const name = (doc.name ?? "").trim();
+        if (!name || /\+\d\b/.test(name)) return false;
+        if (ItemPoolResolver._isZeroWeightWeaponTemplate(doc)) return false;
+        const subtype = (doc.system?.type?.value ?? "").trim();
+        if (!subtype || subtype === "-") return false;
+        return ItemPoolResolver._extractWeight(doc) > 0;
+    }
+
+    /**
+     * Discover mundane weapon bases from enabled source compendiums.
+     * @param {Map<string, {item: Item, packId: string}>} allByName
+     * @returns {string[]}
+     */
+    static _discoverGenericWeaponBases(allByName) {
+        const templateNames = new Set(Object.keys(WEAPON_TEMPLATES).map(n => n.toLowerCase()));
+        const discovered = [];
+
+        for (const { item } of allByName.values()) {
+            const doc = typeof item?.toObject === "function" ? item.toObject() : item;
+            const name = (doc?.name ?? "").trim();
+            if (!name || templateNames.has(name.toLowerCase())) continue;
+            if (!this._isLootReadyWeaponBase(doc)) continue;
+            discovered.push(name);
+        }
+
+        if (discovered.length >= 8) {
+            return [...new Set(discovered)].sort((a, b) => a.localeCompare(b));
+        }
+
+        const merged = new Set(discovered);
+        for (const baseName of GENERIC_WEAPON_BASES) {
+            const entry = allByName.get(baseName.trim().toLowerCase());
+            if (entry?.item && this._isLootReadyWeaponBase(entry.item)) {
+                merged.add(baseName);
+            }
+        }
+        return [...merged].sort((a, b) => a.localeCompare(b));
+    }
+
+    /**
+     * Expand the Weapon +N stub into discrete base × tier rows.
+     * @param {Map<string, {item: Item, packId: string}>} allByName
+     * @returns {object[]}
+     */
+    static _expandGenericWeaponBonus(allByName) {
+        const expanded = [];
+        const bases = this._discoverGenericWeaponBases(allByName);
+
+        for (const baseName of bases) {
+            const baseEntry = allByName.get(baseName.trim().toLowerCase());
+            const baseDoc = baseEntry?.item ?? null;
+            if (!baseDoc || !this._isLootReadyWeaponBase(baseDoc)) continue;
+
+            for (const tier of [1, 2, 3]) {
+                const itemName = `${baseName} +${tier}`;
+                const existing = allByName.get(itemName.trim().toLowerCase());
+                if (existing?.item && this._isLootReadyGenericPlusEntry(existing.item)) {
+                    continue;
+                }
+                const data = this._buildGenericBonusWeapon(baseDoc, baseName, tier);
+                if (data) expanded.push(data);
+            }
+        }
+
+        if (expanded.length === 0) {
+            Logger.warn(
+                MODULE_LABEL,
+                `LootPoolCompiler: generic weapon +N expansion produced 0 rows ` +
+                `(discovered ${bases.length} weapon bases). Check lootPoolSources include dnd5e.equipment24.`
+            );
+        }
+
+        return expanded;
+    }
+
+    /**
      * Build a discrete armor item from a template shell + base armor stats.
      *
      * @param {Item} templateDoc
@@ -696,7 +856,9 @@ export class LootPoolCompiler {
         data.flags[MODULE_ID].mintBatch = opts.bonusTier !== undefined
             ? `compiled-pool-armor-${slugBase}-${opts.bonusTier}`
             : `compiled-pool-armor-${slugName}`;
-        data.flags[MODULE_ID].compiledFrom = { template: templateName, base: baseName };
+        data.flags[MODULE_ID].compiledFrom = opts.bonusTier !== undefined
+            ? { template: templateName, base: baseName, tier: opts.bonusTier }
+            : { template: templateName, base: baseName };
 
         if (!opts.keepActivities) this._clearArmorActivities(data);
 
@@ -881,16 +1043,30 @@ export class LootPoolCompiler {
      * @param {Map<string, {item: Item, packId: string}>} allByName
      * @returns {object[]}
      */
+    static _isLootReadyNamedArmorOutput(entry) {
+        const doc = typeof entry?.toObject === "function" ? entry.toObject() : entry;
+        if ((doc?.type ?? "").toLowerCase() !== "equipment") return false;
+        if (ItemPoolResolver._isZeroWeightArmorTemplate(doc)) return false;
+        const subtype = (doc.system?.type?.value ?? "").trim().toLowerCase();
+        if (!["heavy", "medium", "light", "shield"].includes(subtype)) return false;
+        return ItemPoolResolver._extractWeight(doc) > 0;
+    }
+
+    /**
+     * Expand armor template shells into discrete loot-ready rows.
+     * @param {Map<string, {item: Item, packId: string}>} allByName
+     * @returns {object[]}
+     */
     static _expandArmorTemplates(allByName) {
         const expanded = [];
 
         const shouldSkip = (name, templateDoc) => {
             const entry = allByName.get((name || "").trim().toLowerCase());
-            if (!entry) return false;
-            // Template shells share a name with their expanded output; only skip
-            // when a discrete item from another source already occupies the slot.
+            if (!entry?.item) return false;
             if (entry.item === templateDoc) return false;
-            return true;
+            if (this._isLootReadyGenericPlusEntry(entry.item)) return true;
+            if (this._isLootReadyNamedArmorOutput(entry.item)) return true;
+            return false;
         };
 
         const lookupTemplate = (name) => allByName.get(name.trim().toLowerCase())?.item ?? null;

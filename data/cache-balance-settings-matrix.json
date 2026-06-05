@@ -1,0 +1,26 @@
+{
+    "defaultIterations": 80,
+    "tierIterations": { "4": 100 },
+    "scenarios": [
+        { "id": "T1-low", "tier": 1, "profile": "low", "ownerTheme": "armaments" },
+        { "id": "T1-standard", "tier": 1, "profile": "standard", "ownerTheme": "armaments" },
+        { "id": "T1-high", "tier": 1, "profile": "high", "ownerTheme": "armaments" },
+        { "id": "T2-low", "tier": 2, "profile": "low", "ownerTheme": "armaments" },
+        { "id": "T2-standard", "tier": 2, "profile": "standard", "ownerTheme": "armaments" },
+        { "id": "T2-high", "tier": 2, "profile": "high", "ownerTheme": "armaments" },
+        { "id": "T3-low", "tier": 3, "profile": "low", "ownerTheme": "armaments" },
+        { "id": "T3-standard", "tier": 3, "profile": "standard", "ownerTheme": "armaments" },
+        { "id": "T3-high", "tier": 3, "profile": "high", "ownerTheme": "armaments" },
+        { "id": "T4-low", "tier": 4, "profile": "low", "ownerTheme": "armaments" },
+        { "id": "T4-standard", "tier": 4, "profile": "standard", "ownerTheme": "armaments" },
+        { "id": "T4-high", "tier": 4, "profile": "high", "ownerTheme": "armaments" },
+        { "id": "T2-economy-low", "tier": 2, "edgeCase": "economyLow", "ownerTheme": "armaments" },
+        { "id": "T3-heal-heavy", "tier": 3, "edgeCase": "healHeavy", "ownerTheme": "armaments", "iterations": 100 },
+        { "id": "T3-heal-off", "tier": 3, "edgeCase": "healOff", "ownerTheme": "armaments" },
+        { "id": "T3-magic-strong", "tier": 3, "edgeCase": "magicStrong", "ownerTheme": "armaments" },
+        { "id": "T4-magic-weak", "tier": 4, "edgeCase": "magicWeak", "ownerTheme": "armaments", "iterations": 100 },
+        { "id": "T4-heal-heavy", "tier": 4, "edgeCase": "healHeavy", "ownerTheme": "armaments", "iterations": 100 },
+        { "id": "T4-heal-off", "tier": 4, "edgeCase": "healOff", "ownerTheme": "armaments" },
+        { "id": "T4-unspecified-standard", "tier": 4, "profile": "standard", "ownerTheme": "unspecified" }
+    ]
+}

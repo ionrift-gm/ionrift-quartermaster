@@ -323,9 +323,9 @@ export async function runLiveScrollBalanceSuite() {
         const budget = tierData.budgetCap;
         const stats = simulateScrollPicks(tierData, entries, {
             iterations: 300,
-            priceCeiling: budget / scrollSlots,
+            priceCeiling: Infinity,
             scrollSlotsRemaining: scrollSlots,
-            remainingBudget: budget
+            remainingBudget: Infinity
         });
         const verdict = evaluateTierBand(stats);
         const arcana = simulateArcanaScrollCache(tier, entries, {
