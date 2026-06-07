@@ -212,7 +212,7 @@ export class LootPoolAuditor {
         }
 
         const text = lines.join("\n");
-        console.log(text);
+        Logger.info(MODULE_LABEL, text);
         return text;
     }
 

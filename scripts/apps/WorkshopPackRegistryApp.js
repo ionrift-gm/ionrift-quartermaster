@@ -12,6 +12,7 @@
 const { AbstractPackRegistryApp } = await import("../../../ionrift-library/scripts/apps/AbstractPackRegistryApp.js");
 import { ContentPackLoader } from "../services/ContentPackLoader.js";
 import { ContentPackCompiler } from "../services/ContentPackCompiler.js";
+import { Logger, MODULE_LABEL } from "../_logger.js";
 
 export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
 
@@ -254,7 +255,7 @@ export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
                 this.render({ force: true });
             } catch (err) {
                 ui.notifications.error("Content pack compilation failed. Check the console.");
-                console.error(err);
+                Logger.error(MODULE_LABEL, "Content pack compilation failed:", err);
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fas fa-hammer"></i> Compile All`;
             }
