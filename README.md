@@ -22,6 +22,10 @@
 
 ## Features
 
+- **The Compiler:** Procedurally generate massive loot tables by "exploding" base templates into hundreds of variants with a single click.  
+  ![Compile Equipment](assets/screenshots/compile_equipment.webp)  
+  ![Compile Scrolls](assets/screenshots/compile_scrolls.webp)
+
 - **Cache Generator:** Terrain-aware, tier-scaled loot caches with a single click. Nine terrain
   themes, four party tiers, ten owner profiles. Full slot re-roll and preview before commit.
   Drag caches onto the canvas as interactive loot containers with [Item Piles](https://foundryvtt.com/packages/itempilesdnd5e).
