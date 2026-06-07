@@ -236,9 +236,10 @@ export class SignatureLedgerApp extends Application {
         /** @type {null | "pinned" | "pool"} */
         this._scrollDragType   = null;
         this._scrollDragInFlight = false;
-        /** @type {null | "shelf"} */
         this._partyDragType    = null;
         this._partyDragInFlight = false;
+        this._scrollTrackerExpanded = false;
+        this._partyTrackerExpanded  = false;
         this._cursedPoolHookRegistered = false;
         this._onCursedPoolDataExternalUpdate = () => {
             if (!this.rendered) return;
@@ -350,18 +351,41 @@ export class SignatureLedgerApp extends Application {
         // Auto-detect delivered items by scanning party inventories
         const syncedShelf = await this._syncDeliveryStatus(partyShelf, partyActors);
 
-        const scrollJitter = game.settings?.get("ionrift-quartermaster", "scrollJitter") ?? 1;
-        const shelfJitter  = game.settings?.get("ionrift-quartermaster", "shelfJitter")  ?? 1;
+        const shelfJitter      = game.settings?.get("ionrift-quartermaster", "shelfJitter")  ?? 1;
+        const scrollFloor      = game.settings?.get("ionrift-quartermaster", "scrollFloor") ?? 1;
+        const scrollUpperReach = game.settings?.get("ionrift-quartermaster", "scrollUpperReach") ?? 1;
+        const scrollConcentration = game.settings?.get("ionrift-quartermaster", "scrollConcentration") ?? 3;
 
         const hasParty = partyActors.length > 0;
+
+        // --- Policy Dashboard Data (Bell-Curve Distribution) ---
+        const partyMedian = SignatureLedgerApp._partyMedianLevel(partyActors);
+        const optimalLevel = Math.max(1, Math.ceil(partyMedian / 2));
+        const distribution = SignatureLedgerApp._computeScrollDistribution(
+            optimalLevel, scrollFloor, scrollUpperReach, scrollConcentration
+        );
+
+        const scrollPolicyData = {
+            partyLevel: partyMedian,
+            optimalLevel,
+            scrollFloor,
+            scrollUpperReach,
+            scrollConcentration,
+            distribution
+        };
 
         return {
             activeTab:       this._activeTab,
             milestones:      MILESTONES(),
             hasParty,
             curseSystemEnabled,
-            scrollJitter,
             shelfJitter,
+            scrollFloor,
+            scrollUpperReach,
+            scrollConcentration,
+            scrollTrackerExpanded: this._scrollTrackerExpanded,
+            partyTrackerExpanded:  this._partyTrackerExpanded,
+            scrollPolicyData,
             banCount:        banList.length,
             banList,
 
@@ -765,6 +789,55 @@ export class SignatureLedgerApp extends Application {
         return sorted.length % 2 === 1
             ? sorted[mid]
             : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
+    }
+
+    /**
+     * Compute a bell-curve probability distribution for scroll spell levels.
+     * Produces an array of { level, percent, isOptimal, barHeight } objects
+     * for rendering the bar chart visualization.
+     *
+     * @param {number} optimal      Most likely scroll level (derived from party median)
+     * @param {number} floor        Absolute minimum spell level (setting)
+     * @param {number} upperReach   Max levels above optimal (setting, replaces jitter)
+     * @param {number} concentration How tightly peaked (1=flat, 5=sharp)
+     * @returns {Array<{level: number, percent: number, isOptimal: boolean, barHeight: number}>}
+     */
+    static _computeScrollDistribution(optimal, floor, upperReach, concentration) {
+        const minLv = Math.max(1, Math.min(floor, optimal));
+        const maxLv = Math.min(9, optimal + upperReach);
+        if (minLv > maxLv) return [{ level: optimal, percent: 100, isOptimal: true, barHeight: 100 }];
+
+        // Build raw weights using a distance-from-optimal falloff
+        // shaped by concentration (higher = sharper peak)
+        const weights = {};
+        for (let lv = minLv; lv <= maxLv; lv++) {
+            const dist = Math.abs(lv - optimal);
+            // Exponential falloff: weight = concentration ^ (-dist)
+            // At dist=0 (optimal): weight=1. At dist=1: 1/conc. At dist=2: 1/conc^2. etc.
+            weights[lv] = Math.pow(concentration, -dist);
+        }
+
+        const total = Object.values(weights).reduce((a, b) => a + b, 0);
+        if (total <= 0) return [{ level: optimal, percent: 100, isOptimal: true, barHeight: 100 }];
+
+        const result = [];
+        let maxPct = 0;
+        for (let lv = minLv; lv <= maxLv; lv++) {
+            const pct = Math.round((weights[lv] / total) * 1000) / 10; // one decimal
+            if (pct > maxPct) maxPct = pct;
+            result.push({
+                level: lv,
+                percent: pct,
+                isOptimal: lv === optimal
+            });
+        }
+
+        // Normalise bar heights so the tallest bar = 100%
+        for (const entry of result) {
+            entry.barHeight = maxPct > 0 ? Math.round((entry.percent / maxPct) * 100) : 0;
+        }
+
+        return result;
     }
 
     /**
@@ -1357,6 +1430,56 @@ export class SignatureLedgerApp extends Application {
 
         // Tab switching
         html.find(".registry-tab").click(this._onSwitchTab.bind(this));
+
+        // Toggle trackers
+        html.find(".action-toggle-scroll-tracker").click(ev => {
+            ev.preventDefault();
+            this._scrollTrackerExpanded = !this._scrollTrackerExpanded;
+            this.render(false);
+        });
+        html.find(".action-toggle-party-tracker").click(ev => {
+            ev.preventDefault();
+            this._partyTrackerExpanded = !this._partyTrackerExpanded;
+            this.render(false);
+        });
+        // Scroll Policy slider live updates
+        const _updateSliderFill = (el) => {
+            const min = parseFloat(el.min) || 0;
+            const max = parseFloat(el.max) || 1;
+            const val = parseFloat(el.value) || 0;
+            const pct = ((val - min) / (max - min)) * 100;
+            el.style.setProperty("--pct", `${pct}%`);
+        };
+
+        // Initialise fill on render
+        html.find(".policy-slider").each((_, el) => _updateSliderFill(el));
+
+        // Update fill live while dragging (input), save on release (change)
+        html.find(".action-update-scroll-floor").on("input", ev => _updateSliderFill(ev.currentTarget));
+        html.find(".action-update-scroll-floor").change(async ev => {
+            const val = parseInt(ev.currentTarget.value, 10);
+            if (!Number.isNaN(val)) {
+                await game.settings.set("ionrift-quartermaster", "scrollFloor", val);
+                this.render(false);
+            }
+        });
+        html.find(".action-update-scroll-upper-reach").on("input", ev => _updateSliderFill(ev.currentTarget));
+        html.find(".action-update-scroll-upper-reach").change(async ev => {
+            const val = parseInt(ev.currentTarget.value, 10);
+            if (!Number.isNaN(val)) {
+                await game.settings.set("ionrift-quartermaster", "scrollUpperReach", val);
+                this.render(false);
+            }
+        });
+        html.find(".action-update-scroll-concentration").on("input", ev => _updateSliderFill(ev.currentTarget));
+        html.find(".action-update-scroll-concentration").change(async ev => {
+            const val = parseInt(ev.currentTarget.value, 10);
+            if (!Number.isNaN(val)) {
+                await game.settings.set("ionrift-quartermaster", "scrollConcentration", val);
+                this.render(false);
+            }
+        });
+
 
         // Party manager (delegates to library PartyRoster UI)
         html.find(".btn-manage-party").click(this._onManageParty.bind(this));

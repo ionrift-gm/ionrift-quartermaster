@@ -116,7 +116,6 @@
                 <div class="scroll-section-header-row">
                     <span class="scroll-section-title"><i class="fas fa-thumbtack"></i> Pinned Scrolls</span>
                 </div>
-                <span class="scroll-section-hint">This board is <strong class="hint-highlight">optional</strong>. The loot generator delivers spell scrolls on its own. Pin a scroll here if you want to manually hold back and place it at a specific milestone.</span>
             </div>
 
             {{#unless hasParty}}
@@ -125,87 +124,132 @@
             </div>
             {{/unless}}
 
-            {{!-- Pinned strip: milestone labels + reach band + 2-slot stacks --}}
             {{#with scrollPinnedRow}}
-            <div class="cursed-planned-strip-wrap scroll-planned-strip-wrap">
-                <div class="cursed-planned-col-labels scroll-planned-col-labels">
-                    <div class="cursed-planned-col-labels-grid">
-                        {{#each milestoneLabels}}
-                        <div class="cursed-planned-col-label scroll-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</div>
-                        {{/each}}
-                    </div>
-                    <div class="cursed-planned-median-overlay">
-                        <div class="cursed-planned-median-track" style="width: {{levelRangeBarPct}}%;">
-                            <span class="cursed-band-level-tip scroll-band-level-tip">{{partyLevelLabel}}</span>
-                        </div>
-                    </div>
+            {{!-- ── Scroll Policy Dashboard (always visible) ─────────── --}}
+            <div class="qm-policy-dashboard scroll-policy-dashboard">
+                <div class="policy-hero-badge">
+                    <span class="policy-hero-label">Party Level</span>
+                    <span class="policy-hero-value">{{../scrollPolicyData.partyLevel}}</span>
                 </div>
 
-                <div class="cursed-planned-band-row scroll-planned-band-row">
-                    <div class="sig-row-level-range cursed-row-level-range scroll-row-level-range" aria-hidden="true">
-                        <div class="sig-row-level-range-fill cursed-level-range-fill scroll-level-range-fill" style="width: {{levelRangeBarPct}}%;"></div>
-                    </div>
-                </div>
-
-                <div class="sig-slots-strip cursed-slots-strip scroll-slots-strip">
-                    {{#each columns}}
-                    <div class="cursed-milestone-stack scroll-milestone-stack">
-                        {{#each this.slots}}
-                        <div class="grid-slot scroll-slot {{#if this.filled}}slot-filled rarity-{{this.rarity}}{{else}}slot-empty{{/if}} {{#if this.delivered}}slot-delivered{{/if}} {{#if this.isPast}}slot-past{{/if}} {{#if this.isFuture}}slot-future{{/if}} {{#if this.isCurrent}}slot-current{{/if}} {{#if this.isNext}}slot-next{{/if}} {{#if this.isOverdue}}slot-overdue{{/if}} {{#if this.reachGlowActive}}slot-reach-glow{{/if}} {{#if this.locked}}slot-locked{{/if}}"
-                             data-level="{{this.level}}"
-                             data-slot-idx="{{this.slotIdx}}"
-                             {{#if this.uuid}}data-uuid="{{this.uuid}}"{{/if}}
-                             {{#if this.name}}data-name="{{this.name}}"{{/if}}
-                             draggable="{{#if this.filled}}true{{else}}false{{/if}}"
-                             style="--ir-reach-blend: {{this.reachBlend}}; --ir-reach-glow: {{this.reachGlow}};">
-                            {{#if this.filled}}
-                                <img src="{{this.img}}" class="slot-item-img" alt="{{this.name}}" draggable="false" />
-                                {{!-- Spell level badge --}}
-                                {{#if this.spellLevel}}<span class="scroll-slot-level-badge">Lv {{this.spellLevel}}</span>{{/if}}
-                                {{!-- Lock --}}
-                                <button type="button" class="slot-btn slot-btn-lock action-toggle-lock {{#if this.locked}}is-locked{{/if}}"
-                                        data-level="{{this.level}}" data-uuid="{{this.uuid}}" data-variant="scroll"
-                                        title="{{#if this.locked}}Unlock{{else}}Lock{{/if}}">
-                                    <i class="fas {{#if this.locked}}fa-lock{{else}}fa-lock-open{{/if}}"></i>
-                                </button>
-                                {{!-- Remove --}}
-                                <button type="button" class="slot-btn slot-btn-remove action-remove-scroll-pin"
-                                        data-level="{{this.level}}" data-uuid="{{this.uuid}}" title="Remove pinned scroll">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                                {{!-- Delivered toggle --}}
-                                <button type="button" class="slot-btn slot-btn-bl action-toggle-scroll-delivered"
-                                        data-level="{{this.level}}" data-uuid="{{this.uuid}}"
-                                        title="{{#if this.delivered}}Mark undelivered{{else}}Mark delivered{{/if}}">
-                                    <i class="fas {{#if this.delivered}}fa-rotate-left{{else}}fa-check{{/if}}"></i>
-                                </button>
-                            {{else}}
-                                <i class="fas fa-scroll slot-drop-icon"></i>
-                            {{/if}}
-                        </div>
-                        {{/each}}
+                <div class="policy-bar-chart">
+                    {{#each ../scrollPolicyData.distribution}}
+                    <div class="policy-bar-col {{#if this.isOptimal}}policy-bar-optimal{{/if}}">
+                        <div class="policy-bar" style="height: {{this.barHeight}}%;"></div>
+                        <span class="policy-bar-pct">{{this.percent}}%</span>
+                        <span class="policy-bar-label">Lv {{this.level}}</span>
                     </div>
                     {{/each}}
                 </div>
-            </div>
-            {{/with}}
 
-            {{!-- ── Divider ────────────────────────────────────────── --}}
-            <div class="cursed-planned-pool-divider scroll-planned-pool-divider"></div>
-
-            {{!-- ── Scroll Compendium Info ───────────────────────────── --}}
-            <div class="scroll-compendium-info">
-                <div class="scroll-compendium-buttons">
-                    <a class="scroll-open-compendium action-open-forged-scrolls" title="Open the forged spell scroll compendium">
-                        <i class="fas fa-book-open"></i> Open Quartermaster: Spell Scrolls
-                    </a>
-                    <button type="button" class="scroll-compile-btn action-compile-scroll-forge" title="Choose spell sources and recompile the scroll compendium">
-                        <i class="fas fa-hammer"></i> Recompile
-                    </button>
+                <div class="policy-sliders-row">
+                    <div class="policy-slider-group">
+                        <label class="policy-slider-label">Floor <span class="policy-slider-value">{{../scrollFloor}}</span></label>
+                        <input type="range" class="policy-slider action-update-scroll-floor" min="1" max="9" step="1" value="{{../scrollFloor}}">
+                    </div>
+                    <div class="policy-slider-group">
+                        <label class="policy-slider-label">Concentration <span class="policy-slider-value">{{../scrollConcentration}}</span></label>
+                        <input type="range" class="policy-slider action-update-scroll-concentration" min="1" max="5" step="1" value="{{../scrollConcentration}}">
+                    </div>
+                    <div class="policy-slider-group">
+                        <label class="policy-slider-label">Upper Reach <span class="policy-slider-value">+{{../scrollUpperReach}}</span></label>
+                        <input type="range" class="policy-slider action-update-scroll-upper-reach" min="0" max="4" step="1" value="{{../scrollUpperReach}}">
+                    </div>
                 </div>
-                <p class="scroll-jitter-note">
-                    Drag scrolls from the compendium into slots. <strong>Pinned</strong> scrolls bypass jitter and land at their milestone.
-                </p>
+
+                <button type="button" class="btn-qm-override action-toggle-scroll-tracker {{#if ../scrollTrackerExpanded}}is-expanded{{/if}}">
+                    <i class="fas {{#if ../scrollTrackerExpanded}}fa-chevron-up{{else}}fa-chevron-down{{/if}}"></i>
+                    {{#if ../scrollTrackerExpanded}}Collapse Scroll Overrides{{else}}Override on Specific Scrolls{{/if}}
+                </button>
+            </div>
+
+            {{!-- ── Accordion: tracker grid expands below dashboard ─── --}}
+            <div class="qm-tracker-accordion {{#if ../scrollTrackerExpanded}}qm-tracker-accordion-open{{/if}}">
+                
+                <div class="qm-tracker-accordion-scrollable">
+                    <span class="scroll-section-hint qm-accordion-hint">This board is <strong class="hint-highlight">optional</strong>. The loot generator delivers spell scrolls on its own. Pin a scroll here if you want to manually hold back and place it at a specific milestone.</span>
+                    
+                    <div class="cursed-planned-strip-wrap scroll-planned-strip-wrap">
+                    <div class="cursed-planned-col-labels scroll-planned-col-labels">
+                        <div class="cursed-planned-col-labels-grid">
+                            {{#each milestoneLabels}}
+                            <div class="cursed-planned-col-label scroll-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</div>
+                            {{/each}}
+                        </div>
+                        <div class="cursed-planned-median-overlay">
+                            <div class="cursed-planned-median-track" style="width: {{levelRangeBarPct}}%;">
+                                <span class="cursed-band-level-tip scroll-band-level-tip">{{partyLevelLabel}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cursed-planned-band-row scroll-planned-band-row">
+                        <div class="sig-row-level-range cursed-row-level-range scroll-row-level-range" aria-hidden="true">
+                            <div class="sig-row-level-range-fill cursed-level-range-fill scroll-level-range-fill" style="width: {{levelRangeBarPct}}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="sig-slots-strip cursed-slots-strip scroll-slots-strip">
+                        {{#each columns}}
+                        <div class="cursed-milestone-stack scroll-milestone-stack">
+                            {{#each this.slots}}
+                            <div class="grid-slot scroll-slot {{#if this.filled}}slot-filled rarity-{{this.rarity}}{{else}}slot-empty{{/if}} {{#if this.delivered}}slot-delivered{{/if}} {{#if this.isPast}}slot-past{{/if}} {{#if this.isFuture}}slot-future{{/if}} {{#if this.isCurrent}}slot-current{{/if}} {{#if this.isNext}}slot-next{{/if}} {{#if this.isOverdue}}slot-overdue{{/if}} {{#if this.reachGlowActive}}slot-reach-glow{{/if}} {{#if this.locked}}slot-locked{{/if}}"
+                                 data-level="{{this.level}}"
+                                 data-slot-idx="{{this.slotIdx}}"
+                                 {{#if this.uuid}}data-uuid="{{this.uuid}}"{{/if}}
+                                 {{#if this.name}}data-name="{{this.name}}"{{/if}}
+                                 draggable="{{#if this.filled}}true{{else}}false{{/if}}"
+                                 style="--ir-reach-blend: {{this.reachBlend}}; --ir-reach-glow: {{this.reachGlow}};">
+                                {{#if this.filled}}
+                                    <img src="{{this.img}}" class="slot-item-img" alt="{{this.name}}" draggable="false" />
+                                    {{!-- Spell level badge --}}
+                                    {{#if this.spellLevel}}<span class="scroll-slot-level-badge">Lv {{this.spellLevel}}</span>{{/if}}
+                                    {{!-- Lock --}}
+                                    <button type="button" class="slot-btn slot-btn-lock action-toggle-lock {{#if this.locked}}is-locked{{/if}}"
+                                            data-level="{{this.level}}" data-uuid="{{this.uuid}}" data-variant="scroll"
+                                            title="{{#if this.locked}}Unlock{{else}}Lock{{/if}}">
+                                        <i class="fas {{#if this.locked}}fa-lock{{else}}fa-lock-open{{/if}}"></i>
+                                    </button>
+                                    {{!-- Remove --}}
+                                    <button type="button" class="slot-btn slot-btn-remove action-remove-scroll-pin"
+                                            data-level="{{this.level}}" data-uuid="{{this.uuid}}" title="Remove pinned scroll">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    {{!-- Delivered toggle --}}
+                                    <button type="button" class="slot-btn slot-btn-bl action-toggle-scroll-delivered"
+                                            data-level="{{this.level}}" data-uuid="{{this.uuid}}"
+                                            title="{{#if this.delivered}}Mark undelivered{{else}}Mark delivered{{/if}}">
+                                        <i class="fas {{#if this.delivered}}fa-rotate-left{{else}}fa-check{{/if}}"></i>
+                                    </button>
+                                {{else}}
+                                    <i class="fas fa-scroll slot-drop-icon"></i>
+                                {{/if}}
+                            </div>
+                            {{/each}}
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                </div>{{!-- /qm-tracker-accordion-scrollable --}}
+                
+                {{!-- ── Scroll Compendium Info (Moved inside accordion) ── --}}
+                <div class="scroll-compendium-info" style="margin-top: 16px;">
+                    <div class="scroll-compendium-buttons">
+                        <button type="button" class="scroll-open-compendium action-open-forged-scrolls" title="Open the forged spell scroll compendium">
+                            <i class="fas fa-book-open"></i> Open Quartermaster: Spell Scrolls
+                        </button>
+                        <a role="button" class="qm-secondary-link action-compile-scroll-forge" title="Choose spell sources and recompile the scroll compendium">
+                            <i class="fas fa-hammer"></i> Item Compiler
+                        </a>
+                    </div>
+                    <p class="scroll-jitter-note">
+                        Drag scrolls from the compendium into slots. <strong>Pinned</strong> scrolls bypass jitter and land at their milestone.
+                    </p>
+                </div>
+
+            </div>{{!-- /qm-tracker-accordion --}}
+
+            {{/with}}
             </div>
 
         </div>
@@ -234,36 +278,69 @@
 
             {{!-- ── Party Shelf strip: milestone labels + reach band + 3-slot stacks --}}
             {{#with partyShelfRow}}
-            <div class="cursed-planned-strip-wrap party-planned-strip-wrap">
-                <div class="cursed-planned-col-labels party-planned-col-labels">
-                    <div class="cursed-planned-col-labels-grid">
-                        {{#each milestoneLabels}}
-                        <div class="cursed-planned-col-label party-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</div>
+            <div class="qm-tracker-container {{#if ../partyTrackerExpanded}}qm-tracker-expanded{{else}}qm-tracker-collapsed{{/if}}">
+                <div class="cursed-planned-strip-wrap party-planned-strip-wrap">
+                    <div class="cursed-planned-col-labels party-planned-col-labels">
+                        <div class="cursed-planned-col-labels-grid">
+                            {{#each milestoneLabels}}
+                            <div class="cursed-planned-col-label party-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</div>
+                            {{/each}}
+                        </div>
+                        <div class="cursed-planned-median-overlay">
+                            <div class="cursed-planned-median-track" style="width: {{levelRangeBarPct}}%;">
+                                <span class="cursed-band-level-tip party-band-level-tip">{{partyLevelLabel}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cursed-planned-band-row party-planned-band-row">
+                        <div class="sig-row-level-range cursed-row-level-range party-row-level-range" aria-hidden="true">
+                            <div class="sig-row-level-range-fill cursed-level-range-fill party-level-range-fill" style="width: {{levelRangeBarPct}}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="sig-slots-strip cursed-slots-strip party-slots-strip">
+                        {{#each columns}}
+                        <div class="cursed-milestone-stack party-milestone-stack">
+                            {{#each this.slots}}
+                            {{> "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs" this variant="party"}}
+                            {{/each}}
+                        </div>
                         {{/each}}
                     </div>
-                    <div class="cursed-planned-median-overlay">
-                        <div class="cursed-planned-median-track" style="width: {{levelRangeBarPct}}%;">
-                            <span class="cursed-band-level-tip party-band-level-tip">{{partyLevelLabel}}</span>
+                </div>
+            </div>
+
+            {{#unless ../partyTrackerExpanded}}
+            <div class="qm-policy-dashboard party-policy-dashboard">
+                <div class="policy-dashboard-content">
+                    <div class="policy-main-target">
+                        <i class="fas fa-layer-group policy-target-icon"></i>
+                        <span class="policy-target-label">Curated Sources</span>
+                        <span class="policy-target-sub">Wondrous Utility Items</span>
+                    </div>
+                    <div class="policy-flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="policy-flow-branch">
+                        <div class="policy-jitter-row">
+                            <span class="policy-jitter-label rarity-uncommon">Uncommon (60%)</span>
+                        </div>
+                        <div class="policy-jitter-row">
+                            <span class="policy-jitter-label rarity-rare">Rare (30%)</span>
+                        </div>
+                        <div class="policy-jitter-row">
+                            <span class="policy-jitter-label rarity-veryRare">Very Rare (10%)</span>
                         </div>
                     </div>
                 </div>
-
-                <div class="cursed-planned-band-row party-planned-band-row">
-                    <div class="sig-row-level-range cursed-row-level-range party-row-level-range" aria-hidden="true">
-                        <div class="sig-row-level-range-fill cursed-level-range-fill party-level-range-fill" style="width: {{levelRangeBarPct}}%;"></div>
-                    </div>
-                </div>
-
-                <div class="sig-slots-strip cursed-slots-strip party-slots-strip">
-                    {{#each columns}}
-                    <div class="cursed-milestone-stack party-milestone-stack">
-                        {{#each this.slots}}
-                        {{> "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs" this variant="party"}}
-                        {{/each}}
-                    </div>
-                    {{/each}}
-                </div>
+                <button type="button" class="btn-qm-override action-toggle-party-tracker">
+                    <i class="fas fa-chevron-down"></i> Override Policy (Expand Tracker)
+                </button>
             </div>
+            {{else}}
+            <button type="button" class="btn-qm-override btn-qm-override-collapse action-toggle-party-tracker">
+                <i class="fas fa-chevron-up"></i> Collapse Tracker
+            </button>
+            {{/unless}}
             {{/with}}
 
             {{!-- ── Divider ────────────────────────────────────────── --}}
@@ -275,9 +352,9 @@
                     <button type="button" class="scroll-open-compendium action-seed-shelf" title="Randomise party items from the configured compendiums by rarity">
                         <i class="fas fa-wand-magic-sparkles"></i> Randomise
                     </button>
-                    <button type="button" class="scroll-compile-btn action-curate-shelf" title="Choose which item compendiums the randomiser draws from">
-                        <i class="fas fa-sliders"></i> Curate Sources
-                    </button>
+                    <a role="button" class="qm-secondary-link action-curate-shelf" title="Choose which item compendiums the randomiser draws from">
+                        <i class="fas fa-sliders"></i> Item Forge
+                    </a>
                 </div>
                 <p class="scroll-jitter-note party-jitter-note">
                     Drop items from compendiums into slots to plan them. Planned items are preserved across rerolls. Items already in party inventories show as delivered.

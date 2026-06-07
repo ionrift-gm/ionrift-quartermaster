@@ -2386,11 +2386,7 @@ export class CacheGenerator {
 
         const effectiveCeiling = this._scrollPriceCeiling(tierData, priceCeiling, opts);
 
-        const jitter = game.settings?.get("ionrift-quartermaster", "scrollJitter") ?? 0;
-        if (jitter > 0 && Math.random() < 0.15) {
-            const extra = Math.ceil(Math.random() * jitter);
-            maxLevel = Math.min(maxLevel + extra, 9);
-        }
+
 
         const level = this._weightedScrollLevel(maxLevel, minLevel, tier);
         const entries = index?.contents ?? (Array.isArray(index) ? index : Array.from(index ?? []));

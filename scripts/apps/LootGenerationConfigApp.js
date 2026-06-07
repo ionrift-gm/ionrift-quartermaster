@@ -73,16 +73,7 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             popout: "ammoTypes",
             summary: () => AmmoTypeRegistry.getSummaryLabel()
         },
-        {
-            key: "scrollJitter",
-            label: "Scroll Jitter",
-            icon: "fas fa-scroll",
-            hint: "How far scroll spell level can overshoot the tier cap. 0 keeps scrolls within tier limits.",
-            type: "range",
-            min: 0,
-            max: 3,
-            step: 1
-        },
+
         {
             key: "distributeCoins",
             label: "Distribute Coinage",

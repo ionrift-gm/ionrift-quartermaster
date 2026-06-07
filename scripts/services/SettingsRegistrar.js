@@ -410,14 +410,37 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         restricted: true
     });
 
-    game.settings.register(MODULE_ID, "scrollJitter", {
-        name: "Scroll Jitter",
-        hint: "How much scroll spell level can overshoot the tier cap on a lucky roll. 0 = scrolls stay within tier limits. Higher values allow rare high-level scrolls in lower-tier caches.",
+
+    game.settings.register(MODULE_ID, "scrollFloor", {
+        name: "Scroll Floor",
+        hint: "Lowest spell level scrolls can drop at. The distribution stretches down to this level as the party levels up. Set higher to exclude low-level scrolls from high-level caches.",
         scope: "world",
         config: false,
         type: Number,
-        range: { min: 0, max: 3, step: 1 },
+        range: { min: 1, max: 9, step: 1 },
         default: 1,
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "scrollUpperReach", {
+        name: "Scroll Upper Reach",
+        hint: "Maximum spell levels above optimal that jitter can push. 0 = scrolls never exceed optimal. Higher values allow rare high-level scrolls.",
+        scope: "world",
+        config: false,
+        type: Number,
+        range: { min: 0, max: 4, step: 1 },
+        default: 1,
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "scrollConcentration", {
+        name: "Scroll Concentration",
+        hint: "How tightly the distribution clusters around the optimal level. 1 = flat spread, 5 = sharply peaked at optimal.",
+        scope: "world",
+        config: false,
+        type: Number,
+        range: { min: 1, max: 5, step: 1 },
+        default: 3,
         restricted: true
     });
 

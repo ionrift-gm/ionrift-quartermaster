@@ -20,7 +20,6 @@ const PROFILE_KEYS = [
     "obscureScrolls",
     "obscureMagicalItems",
     "gmOnlyIdentification",
-    "scrollJitter",
     "distributeCoins"
 ];
 
@@ -34,7 +33,6 @@ const KEY_LABELS = {
     obscureScrolls: "Obscure scrolls",
     obscureMagicalItems: "Obscure magical items",
     gmOnlyIdentification: "GM-only identification",
-    scrollJitter: "Scroll jitter",
     distributeCoins: "Distribute coinage"
 };
 
@@ -63,7 +61,6 @@ const PROFILES = [
             obscureScrolls: true,
             obscureMagicalItems: true,
             gmOnlyIdentification: true,
-            scrollJitter: 0,
             distributeCoins: true
         }
     },
@@ -82,7 +79,6 @@ const PROFILES = [
             obscureScrolls: true,
             obscureMagicalItems: true,
             gmOnlyIdentification: true,
-            scrollJitter: 1,
             distributeCoins: true
         }
     },
@@ -101,7 +97,6 @@ const PROFILES = [
             obscureScrolls: false,
             obscureMagicalItems: false,
             gmOnlyIdentification: false,
-            scrollJitter: 2,
             distributeCoins: true
         }
     }
@@ -144,10 +139,6 @@ function formatProfileCell(key, value) {
     }
     if (key === "ammoTypeTilt") {
         return { text: AMMO_LABELS[value] ?? value, cssClass: "value" };
-    }
-    if (key === "scrollJitter") {
-        const n = Number(value) || 0;
-        return { text: String(n), cssClass: "value" };
     }
     return { text: value ? "On" : "Off", cssClass: value ? "on" : "off" };
 }

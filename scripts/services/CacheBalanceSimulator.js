@@ -945,12 +945,127 @@ export async function simulateMastercraftPicks(tier, pool, opts = {}) {
         }
     }
 
+    scanItemsForEconomyLeaks(picks, {
+        label: `T${tier} ${opts.ownerTheme ?? "armaments"} mastercraft picks`
+    });
+
     return buildMastercraftPickStats(picks, {
         tier,
         theme: opts.theme ?? "dungeon",
         iterations,
         nulls
     });
+}
+
+// ── Zero-economy leak detection (Monte Carlo / balance probes) ─────────
+
+/**
+ * Read weight from a cache result row or pool pick.
+ * @param {object} item
+ * @returns {number}
+ */
+export function extractCacheItemWeight(item) {
+    if (item == null) return 0;
+    const flat = item.weight;
+    if (typeof flat === "number" && !Number.isNaN(flat)) return flat;
+    const sys = item.system?.weight;
+    if (typeof sys === "number") return sys;
+    if (sys && typeof sys === "object") return Number(sys.value) || 0;
+    return 0;
+}
+
+/**
+ * Read unit gp price from a cache result row or pool pick.
+ * @param {object} item
+ * @returns {number}
+ */
+export function extractCacheItemUnitPrice(item) {
+    if (item == null) return 0;
+    if (item._unitPrice !== undefined && item._unitPrice !== null) {
+        return Number(item._unitPrice) || 0;
+    }
+    const qty = Math.max(1, Number(item.quantity) || 1);
+    const priceObj = item.system?.price;
+    let line = Number(item.price ?? 0) || 0;
+    if (line <= 0 && priceObj && typeof priceObj === "object") {
+        line = Number(priceObj.value) || 0;
+    } else if (line <= 0 && typeof priceObj === "number") {
+        line = priceObj;
+    }
+    return line / qty;
+}
+
+/**
+ * @param {object} item
+ * @returns {string[]}
+ */
+export function inspectCacheItemEconomyIssues(item) {
+    const issues = [];
+    if (extractCacheItemUnitPrice(item) <= 0) issues.push("zero_price");
+    if (extractCacheItemWeight(item) <= 0) issues.push("zero_weight");
+    return issues;
+}
+
+/**
+ * Scan generated cache rows for items with 0 gp and/or 0 lb.
+ * Logs distinct leaks so incomplete compendium rows stay visible during Monte Carlo runs.
+ *
+ * @param {object[]} items Flat item rows or cache picks
+ * @param {object} [opts]
+ * @param {string} [opts.label]
+ * @param {boolean} [opts.log=true]
+ * @returns {object[]}
+ */
+export function scanItemsForEconomyLeaks(items, opts = {}) {
+    const label = opts.label ?? "cache simulation";
+    const log = opts.log !== false;
+    const seen = new Map();
+
+    for (const item of items ?? []) {
+        const issues = inspectCacheItemEconomyIssues(item);
+        if (!issues.length) continue;
+        const key = `${item.name}|${issues.join(",")}`;
+        const existing = seen.get(key);
+        if (existing) {
+            existing.count++;
+            continue;
+        }
+        seen.set(key, {
+            name: item.name,
+            price: extractCacheItemUnitPrice(item),
+            weight: extractCacheItemWeight(item),
+            quantity: item.quantity ?? 1,
+            slotType: item._cacheSlotType ?? item.slotType ?? null,
+            issues,
+            count: 1
+        });
+    }
+
+    const leaks = [...seen.values()];
+    if (log && leaks.length) {
+        console.warn(`[QM economy leak] ${label}: ${leaks.length} distinct zero-economy item(s)`);
+        for (const row of leaks) {
+            const parts = row.issues.map(issue => (issue === "zero_price" ? "0 gp" : "0 lb")).join(", ");
+            console.warn(
+                `  - ${row.name} (${parts}, qty ${row.quantity}` +
+                `${row.slotType ? `, slot ${row.slotType}` : ""}, seen ${row.count}x)`
+            );
+        }
+    }
+    return leaks;
+}
+
+/**
+ * @param {object[]} runs CacheGenerator.generate results
+ * @param {object} [opts]
+ * @returns {object[]}
+ */
+export function scanCacheRunsForEconomyLeaks(runs, opts = {}) {
+    const items = [];
+    for (const run of runs ?? []) {
+        items.push(...(run.items ?? []));
+    }
+    return scanItemsForEconomyLeaks(items, opts);
 }
 
 // ── Full cache simulation ──────────────────────────────────────────────
@@ -1484,6 +1599,10 @@ export async function runSettingsMatrixScenario(scenario, ctx) {
         }
     }
 
+    const economyLeaks = scanCacheRunsForEconomyLeaks(runs, {
+        label: `${scenario.id ?? "scenario"} T${tier} ${ownerTheme}`
+    });
+
     const cacheStats = aggregateCacheRuns(runs);
     const pickStats = extractMastercraftPickStats(runs, { tier, theme: "dungeon" });
     const merged = mergePickAndCacheStats(pickStats, cacheStats);
@@ -1505,7 +1624,8 @@ export async function runSettingsMatrixScenario(scenario, ctx) {
             ? formatScenarioPassMessage(merged, applied)
             : verdict.messages.join("; "),
         stats: merged,
-        verdict
+        verdict,
+        economyLeaks
     };
 }
 
@@ -1747,6 +1867,10 @@ export async function runSyntheticFullCacheSuite(opts = {}) {
         ItemPoolResolver.clearSimulationPool();
     }
 
+    const economyLeaks = scanCacheRunsForEconomyLeaks(runs, {
+        label: `T${tier} ${ownerTheme} full cache (synthetic)`
+    });
+
     const cacheStats = aggregateCacheRuns(runs);
     const pickStats = extractMastercraftPickStats(runs, {
         tier,
@@ -1769,7 +1893,8 @@ export async function runSyntheticFullCacheSuite(opts = {}) {
                   `~${merged.meanItemsPerCache.toFixed(1)} items/cache`
                 : verdict.messages.join("; "),
             stats: merged,
-            verdict
+            verdict,
+            economyLeaks
         }]
     };
 }
@@ -1809,6 +1934,10 @@ export async function runLiveCacheBalanceSuite() {
             }));
         }
 
+        const economyLeaks = scanCacheRunsForEconomyLeaks(runs, {
+            label: `T${scenario.tier} ${scenario.ownerTheme} (live)`
+        });
+
         const cacheStats = aggregateCacheRuns(runs);
         const pickStats = extractMastercraftPickStats(runs, {
             tier: scenario.tier,
@@ -1834,7 +1963,8 @@ export async function runLiveCacheBalanceSuite() {
                 : `${verdict.messages.join("; ")}${failDetail}`,
             stats: merged,
             probe,
-            verdict
+            verdict,
+            economyLeaks
         });
     }
 
