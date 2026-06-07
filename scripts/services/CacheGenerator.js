@@ -2921,11 +2921,6 @@ export class CacheGenerator {
         return tierWeight * f;
     }
 
-    /** @deprecated Use {@link _healingPotionTierWeight} */
-    static _healingPotionPickWeight(name, cacheTier) {
-        return CacheGenerator._healingPotionTierWeight(name, cacheTier);
-    }
-
     /**
      * Rations and water: modest stacks (not ammo-scale bulk).
      *
@@ -3087,46 +3082,6 @@ export class CacheGenerator {
         return null;
     }
 
-    /**
-     * @deprecated Stub scroll generator - retained only for reroll compatibility.
-     * ScrollForge is now the sole source of scroll items. _pickScroll returns null
-     * when no eligible scroll exists; the slot loop handles the empty pick.
-     * TODO: Remove once reroll paths are confirmed to never call this directly.
-     */
-    static _generateScrollStub(tierData) {
-        const maxLevel = tierData.scrollLevelMax;
-        const level = Math.max(1, Math.floor(Math.random() * maxLevel) + 1);
-
-        // Placeholder spell names by level (Phase 2 replaces with compendium lookup)
-        const spellsByLevel = {
-            1: ["Shield", "Healing Word", "Magic Missile", "Detect Magic", "Sleep", "Thunderwave", "Bless", "Guiding Bolt", "Feather Fall", "Mage Armor"],
-            2: ["Misty Step", "Hold Person", "Shatter", "Spiritual Weapon", "Web", "Invisibility", "Lesser Restoration", "Mirror Image"],
-            3: ["Fireball", "Counterspell", "Revivify", "Fly", "Haste", "Spirit Guardians", "Dispel Magic", "Lightning Bolt"],
-            4: ["Greater Invisibility", "Banishment", "Dimension Door", "Polymorph", "Wall of Fire", "Death Ward"],
-            5: ["Cone of Cold", "Hold Monster", "Raise Dead", "Wall of Force", "Telekinesis", "Greater Restoration"],
-            6: ["Chain Lightning", "Disintegrate", "Heal", "Globe of Invulnerability", "Sunbeam"],
-            7: ["Teleport", "Finger of Death", "Forcecage", "Resurrection", "Plane Shift"],
-            8: ["Power Word Stun", "Maze", "Sunburst", "Feeblemind", "Dominate Monster"],
-            9: ["Wish", "Power Word Kill", "Meteor Swarm", "True Resurrection", "Gate"]
-        };
-
-        const pool = spellsByLevel[level] ?? spellsByLevel[1];
-        const spell = pool[Math.floor(Math.random() * pool.length)];
-
-        const scrollPrices = { 1: 60, 2: 120, 3: 200, 4: 320, 5: 640, 6: 1280, 7: 2560, 8: 5120, 9: 10240 };
-
-        return {
-            name: `Scroll of ${spell}`,
-            weight: 0.1,
-            type: "consumable",
-            img: ItemMaskingHelper._genericIconFor("scroll"),
-            price: scrollPrices[level] ?? 60,
-            rarity: level <= 2 ? "common" : level <= 4 ? "uncommon" : level <= 6 ? "rare" : level <= 8 ? "veryRare" : "legendary",
-            quantity: 1,
-            spellLevel: level,
-            spellName: spell
-        };
-    }
 
     /**
      * Check if an item is on the GM ban list and should be excluded from generation.
