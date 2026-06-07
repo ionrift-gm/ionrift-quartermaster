@@ -781,11 +781,6 @@ export class CompendiumForgeApp extends FormApplication {
         await game.settings.set(MODULE_ID, LootPoolCompiler.SETTING_META, "");
     }
 
-    /** @deprecated kept for reference — superseded by _clearForgeTab */
-    async _clearCompiledPool() {
-        await this._clearForgeTab("lootPool");
-    }
-
     // ── Helpers ───────────────────────────────────────────────────────────
 
     _relativeTime(isoString) {
