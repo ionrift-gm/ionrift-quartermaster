@@ -22,7 +22,7 @@
 
 ## Features
 
-- **The Compiler:** Procedurally generate massive loot tables by "exploding" base templates into hundreds of variants with a single click.  
+- **The Compiler:** Procedurally generate complete loot tables by "exploding" base templates into hundreds of variants with a single click.  
   ![Compile Equipment](assets/screenshots/compile_equipment.webp)  
   ![Compile Scrolls](assets/screenshots/compile_scrolls.webp)
 
