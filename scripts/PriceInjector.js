@@ -1,4 +1,5 @@
 import { PriceMasker } from "./services/PriceMasker.js";
+import { Logger, MODULE_LABEL } from "./_logger.js";
 
 /**
  * PriceInjector
@@ -43,7 +44,7 @@ export class PriceInjector {
 
             PriceInjector._applyFuzzyDisplay(priceEl, output);
         } catch (err) {
-            console.warn("[Quartermaster:PriceInjector]", err);
+            Logger.warn(MODULE_LABEL, "PriceInjector:", err);
         }
     }
 

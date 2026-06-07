@@ -1,3 +1,5 @@
+import { Logger, MODULE_LABEL } from "../_logger.js";
+
 /**
  * PotionEnrichment
  *
@@ -368,8 +370,8 @@ export class PotionEnrichment {
         try {
             await item.update(patch, { curseBypass: true });
         } catch (err) {
-            console.warn(
-                "[PotionEnrichment] enrichIdentifiedItem: update failed for",
+            Logger.warn(MODULE_LABEL,
+                "PotionEnrichment.enrichIdentifiedItem: update failed for",
                 resolvedName, ":", err.message
             );
         }
