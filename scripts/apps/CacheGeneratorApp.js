@@ -1989,7 +1989,7 @@ export class CacheGeneratorApp extends Application {
                 `[CacheGen.placement] dropping ${pileItems.length} pile items at (${Math.round(x)}, ${Math.round(y)}). `
                 + `IP ITEM_SIMILARITIES: [${ipSimilarities.join(", ")}]`
             );
-            console.table(pileAudit);
+            Logger.info(MODULE_LABEL, "[CacheGen.placement] pile audit:", pileAudit);
 
             const containerName = result.container?.name ?? "Loot Cache";
             const containerImg = result.container?.img ?? "icons/containers/chest/chest-worn-oak-tan.webp";

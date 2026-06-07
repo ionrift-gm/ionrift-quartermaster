@@ -45,9 +45,6 @@ export class ItemPoolResolver {
     /** Secondary weight toward shields before weapons on armaments mastercraft slots. */
     static MASTERCRAFT_SHIELD_DRAW_WEIGHT = 0.22;
 
-    /** @deprecated Use MASTERCRAFT_BODY_ARMOR_DRAW_WEIGHT */
-    static MASTERCRAFT_ARMOR_DRAW_WEIGHT = 0.5;
-
     /**
      * Imputed gp value for generic +N items when filtering mastercraft bands.
      * Compiled armor keeps mundane base gp on the document; bonus tier carries
@@ -1378,13 +1375,6 @@ export class ItemPoolResolver {
         return Date.now() > this._cacheExpiry;
     }
 
-    /**
-     * Clear the session cache. Call when compendium sources change.
-     */
-    static clearCache() {
-        this._cache.clear();
-        this._cacheExpiry = Date.now() + this.CACHE_TTL_MS;
-    }
 
     /**
      * List compendiums that contain lootable item types for the config UI.

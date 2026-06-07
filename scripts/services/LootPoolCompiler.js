@@ -1779,20 +1779,4 @@ export class LootPoolCompiler {
             return null;
         }
     }
-
-    /**
-     * @deprecated Kept for SrdCurseAdapter parity -- use _ensureCompiledFolderId.
-     */
-    static async _ensureQuartermasterFolderId() {
-        const allFolders = [
-            ...game.folders.filter(f => f.type === "Compendium"),
-            ...(game.packs?.folders?.filter(f => f.type === "Compendium") ?? [])
-        ];
-        const ionriftRoots = allFolders.filter(f => f.name === "Ionrift" && !f.folder);
-        for (const ion of ionriftRoots) {
-            const qm = allFolders.find(f => f.name === "Quartermaster" && f.folder === ion.id);
-            if (qm) return qm.id;
-        }
-        return null;
-    }
 }
