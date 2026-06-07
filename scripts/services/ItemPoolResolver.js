@@ -1378,13 +1378,6 @@ export class ItemPoolResolver {
         return Date.now() > this._cacheExpiry;
     }
 
-    /**
-     * Clear the session cache. Call when compendium sources change.
-     */
-    static clearCache() {
-        this._cache.clear();
-        this._cacheExpiry = Date.now() + this.CACHE_TTL_MS;
-    }
 
     /**
      * List compendiums that contain lootable item types for the config UI.
