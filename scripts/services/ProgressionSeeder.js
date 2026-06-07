@@ -709,6 +709,22 @@ export class ProgressionSeeder {
         const { PartyShelfSourceApp } = await import("../apps/PartyShelfSourceApp.js");
         const sourceIds = PartyShelfSourceApp.getEnabledSources();
 
+        // Read category weights
+        const catRaw = game.settings?.get("ionrift-quartermaster", "shelfCategoryWeights")
+            ?? '{"wondrous":{"w":70,"on":true},"focus":{"w":15,"on":true},"armor":{"w":10,"on":true},"weapon":{"w":5,"on":true}}';
+        let catWeights;
+        try { catWeights = JSON.parse(catRaw); } catch { catWeights = {}; }
+
+        const enabledCats = new Set();
+        for (const [cat, cfg] of Object.entries(catWeights)) {
+            if (cfg?.on) enabledCats.add(cat);
+        }
+        if (!enabledCats.size) enabledCats.add("wondrous"); // fallback
+
+        // Read attunement bias: 0=Low(penalize), 1=Med(neutral), 2=High(boost)
+        const attBias = game.settings?.get("ionrift-quartermaster", "shelfAttunementBias") ?? 1;
+        const attMultiplier = [0.3, 1, 3][attBias] ?? 1;
+
         const results = [];
         const seen    = new Set();
         const allowedRarities = new Set(["uncommon", "rare", "veryRare", "very rare"]);
@@ -718,7 +734,8 @@ export class ProgressionSeeder {
             if (!pack || pack.documentName !== "Item") continue;
 
             const index = await pack.getIndex({
-                fields: ["system.rarity", "type", "img", "system.attunement", "system.uses"]
+                fields: ["system.rarity", "type", "img", "system.attunement", "system.uses",
+                         "system.type.value", "system.type.baseItem", "system.armor.type"]
             });
 
             for (const entry of index) {
@@ -726,7 +743,25 @@ export class ProgressionSeeder {
                 const rarity = entry.system.rarity.toLowerCase().replace(" ", "");
                 if (!allowedRarities.has(rarity) && !allowedRarities.has(entry.system.rarity)) continue;
 
-                if (entry.type !== "equipment") continue;
+                // Categorise item
+                let category;
+                if (entry.type === "weapon") {
+                    category = "weapon";
+                } else if (entry.type === "equipment") {
+                    const subtype = entry.system?.type?.value || "";
+                    const armorType = entry.system?.armor?.type || "";
+                    if (FOCUS_SUBTYPES.has(subtype) || FOCUS_SUBTYPES.has(entry.system?.type?.baseItem)) {
+                        category = "focus";
+                    } else if (armorType || ["light", "medium", "heavy", "shield"].includes(subtype)) {
+                        category = "armor";
+                    } else {
+                        category = "wondrous";
+                    }
+                } else {
+                    category = "wondrous"; // consumables, tools etc. default to wondrous
+                }
+
+                if (!enabledCats.has(category)) continue;
 
                 const key = entry.name.toLowerCase();
                 if (banSet.has(key) || seen.has(key)) continue;
@@ -740,13 +775,21 @@ export class ProgressionSeeder {
                 if (hasCharges) score += 2;
                 if (normalRarity === "uncommon") score += 1;
 
+                // Apply attunement bias
+                if (attuned) score *= attMultiplier;
+
+                // Apply category weight as a multiplier
+                const catWeight = catWeights[category]?.w ?? 10;
+                score *= (catWeight / 50); // normalise around 1.0 (50 = neutral)
+
                 results.push({
                     uuid:               `Compendium.${packId}.Item.${entry._id}`,
                     name:               entry.name,
                     img:                entry.img || "icons/svg/item-bag.svg",
                     rarity:             normalRarity,
                     requiresAttunement: attuned,
-                    _score:             score
+                    _score:             score,
+                    _category:          category
                 });
             }
         }

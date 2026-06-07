@@ -6225,6 +6225,326 @@ button.scroll-open-compendium {
     color: rgba(96, 214, 200, 0.55);
 }
 
+/* ══ Party Shelf Policy Dashboard ═══════════════════════════════════ */
+
+.party-policy-dashboard {
+    border-color: rgba(32, 178, 170, 0.35) !important;
+    box-shadow:
+        0 0 18px rgba(32, 178, 170, 0.08),
+        inset 0 0 30px rgba(32, 178, 170, 0.03) !important;
+}
+
+.party-policy-dashboard .policy-hero-badge {
+    border-color: rgba(32, 178, 170, 0.45);
+    box-shadow:
+        0 0 20px rgba(32, 178, 170, 0.15),
+        inset 0 0 12px rgba(32, 178, 170, 0.06);
+}
+
+.party-policy-dashboard .policy-hero-label {
+    color: rgba(96, 214, 200, 0.65);
+}
+
+.party-policy-dashboard .policy-hero-value {
+    color: rgba(96, 214, 200, 0.95);
+    text-shadow: 0 0 20px rgba(32, 178, 170, 0.5);
+}
+
+/* ── Split Column Layout ──────────────────────────────────────────── */
+
+.party-policy-columns {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.party-policy-left {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.party-policy-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+.party-policy-divider {
+    width: 1px;
+    align-self: stretch;
+    background: linear-gradient(180deg, transparent, rgba(32, 178, 170, 0.3), transparent);
+    flex-shrink: 0;
+}
+
+/* ── Rarity Bar Chart (teal variant) ──────────────────────────────── */
+
+.party-policy-dashboard .policy-bar-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 16px;
+    height: 110px;
+    padding: 0 12px;
+    width: 100%;
+}
+
+.party-policy-dashboard .policy-bar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    max-width: 60px;
+}
+
+.party-policy-dashboard .policy-bar {
+    width: 100%;
+    min-height: 4px;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.35s ease;
+    position: relative;
+}
+
+.party-policy-dashboard .policy-bar-col.rarity-uncommon .policy-bar {
+    background: linear-gradient(180deg, rgba(29, 157, 82, 0.95), rgba(29, 157, 82, 0.7));
+    box-shadow: 0 0 8px rgba(29, 157, 82, 0.3);
+}
+
+.party-policy-dashboard .policy-bar-col.rarity-rare .policy-bar {
+    background: linear-gradient(180deg, rgba(17, 104, 187, 0.95), rgba(17, 104, 187, 0.7));
+    box-shadow: 0 0 8px rgba(17, 104, 187, 0.3);
+}
+
+.party-policy-dashboard .policy-bar-col.rarity-veryRare .policy-bar {
+    background: linear-gradient(180deg, rgba(127, 50, 153, 0.95), rgba(127, 50, 153, 0.7));
+    box-shadow: 0 0 8px rgba(127, 50, 153, 0.3);
+}
+
+.party-policy-dashboard .policy-bar-col.policy-bar-optimal .policy-bar {
+    box-shadow: 0 0 14px rgba(32, 178, 170, 0.4), 0 0 6px rgba(96, 214, 200, 0.3);
+}
+
+.party-policy-dashboard .policy-bar-pct {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: rgba(200, 220, 218, 0.85);
+}
+
+.party-policy-dashboard .policy-bar-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(200, 220, 218, 0.5);
+}
+
+/* ── Sliders (teal) ───────────────────────────────────────────────── */
+
+.party-policy-dashboard .policy-sliders-row {
+    display: flex;
+    gap: 14px;
+    width: 100%;
+}
+
+.party-policy-dashboard .policy-slider-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: rgba(32, 178, 170, 0.04);
+    border: 1px solid rgba(32, 178, 170, 0.12);
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+.party-policy-dashboard .policy-slider-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(96, 214, 200, 0.65);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.party-policy-dashboard .policy-slider-value {
+    font-weight: 700;
+    color: rgba(96, 214, 200, 0.95);
+    font-size: 12px;
+}
+
+.party-policy-dashboard .policy-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(32, 178, 170, 0.15);
+    outline: none;
+    cursor: pointer;
+}
+
+.party-policy-dashboard .policy-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(96, 214, 200, 0.95);
+    box-shadow: 0 0 6px rgba(32, 178, 170, 0.5);
+    cursor: pointer;
+    border: 2px solid rgba(14, 40, 38, 0.9);
+}
+
+.party-policy-dashboard .policy-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(96, 214, 200, 0.95);
+    box-shadow: 0 0 6px rgba(32, 178, 170, 0.5);
+    cursor: pointer;
+    border: 2px solid rgba(14, 40, 38, 0.9);
+}
+
+/* ── Category Mix Panel ───────────────────────────────────────────── */
+
+.party-category-header {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: rgba(96, 214, 200, 0.55);
+    margin-bottom: 4px;
+}
+
+.party-category-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: opacity 0.25s ease, background 0.25s ease;
+    background: rgba(32, 178, 170, 0.03);
+    border: 1px solid rgba(32, 178, 170, 0.08);
+}
+
+.party-category-row:hover {
+    background: rgba(32, 178, 170, 0.06);
+}
+
+.party-category-row.is-disabled {
+    opacity: 0.35;
+    border-style: dashed;
+}
+
+.party-category-row.is-disabled .party-category-slider {
+    pointer-events: none;
+}
+
+.party-category-checkbox {
+    width: 14px;
+    height: 14px;
+    accent-color: rgba(96, 214, 200, 0.95);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.party-category-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.party-category-dot.cat-wondrous { background: rgba(32, 178, 170, 0.9); }
+.party-category-dot.cat-focus    { background: rgba(80, 200, 220, 0.9); }
+.party-category-dot.cat-armor    { background: rgba(160, 170, 180, 0.9); }
+.party-category-dot.cat-weapon   { background: rgba(218, 165, 32, 0.9); }
+
+.party-category-name {
+    font-size: 11px;
+    color: rgba(200, 220, 218, 0.8);
+    flex: 0 0 auto;
+    min-width: 58px;
+}
+
+.party-category-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(32, 178, 170, 0.12);
+    outline: none;
+    cursor: pointer;
+    min-width: 40px;
+    max-width: 80px;
+}
+
+.party-category-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(96, 214, 200, 0.85);
+    box-shadow: 0 0 4px rgba(32, 178, 170, 0.4);
+    cursor: pointer;
+    border: 1px solid rgba(14, 40, 38, 0.8);
+}
+
+.party-category-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(96, 214, 200, 0.85);
+    box-shadow: 0 0 4px rgba(32, 178, 170, 0.4);
+    cursor: pointer;
+    border: 1px solid rgba(14, 40, 38, 0.8);
+}
+
+.party-category-weight {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(96, 214, 200, 0.85);
+    min-width: 28px;
+    text-align: right;
+}
+
+.party-category-weight.is-off {
+    color: rgba(200, 220, 218, 0.3);
+}
+
+.party-category-note {
+    font-size: 9px;
+    color: rgba(200, 220, 218, 0.3);
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* ── Override Button (teal variant) ───────────────────────────────── */
+
+.party-policy-dashboard .btn-qm-override {
+    border-color: rgba(32, 178, 170, 0.25);
+    color: rgba(96, 214, 200, 0.75);
+}
+
+.party-policy-dashboard .btn-qm-override::before {
+    background: rgba(32, 178, 170, 0.65) !important;
+}
+
+.party-policy-dashboard .btn-qm-override:hover {
+    border-color: rgba(32, 178, 170, 0.45);
+    color: rgba(96, 214, 200, 0.95);
+    background: rgba(32, 178, 170, 0.06);
+}
+
+
 /* Cursed section title: crimson override (base .scroll-section-title is gold) */
 .cursed-planned-section-header .scroll-section-title,
 .cursed-pool-header .scroll-section-title {
@@ -10441,6 +10761,37 @@ button.scroll-open-compendium {
     border-color: rgba(212, 149, 10, 0.5);
     border-left-color: #f5c842;
     color: rgba(255, 255, 255, 0.9);
+}
+
+.qm-policy-dashboard {
+    position: relative;
+}
+
+.btn-qm-reset {
+    background: transparent;
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.3);
+    padding: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.btn-qm-reset:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.scroll-policy-dashboard .btn-qm-reset:hover {
+    color: rgba(245, 200, 66, 0.95);
+}
+
+.party-policy-dashboard .btn-qm-reset:hover {
+    color: rgba(96, 214, 200, 0.95);
 }
 
 /* Accordion: tracker grid */

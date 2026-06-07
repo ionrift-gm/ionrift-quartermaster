@@ -265,14 +265,6 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         }
     });
 
-    game.settings.register(MODULE_ID, "scrollLevelJitter", {
-        scope: "world",
-        config: false,
-        type: Number,
-        default: 0,
-        restricted: true
-    });
-
     game.settings.register(MODULE_ID, "scrollForgeEnabled", {
         scope: "world",
         config: false,
@@ -429,7 +421,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         config: false,
         type: Number,
         range: { min: 0, max: 4, step: 1 },
-        default: 1,
+        default: 2,
         restricted: true
     });
 
@@ -440,18 +432,55 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         config: false,
         type: Number,
         range: { min: 1, max: 5, step: 1 },
+        default: 2,
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "scrollOffset", {
+        name: "Scroll Optimal Offset",
+        hint: "Offsets the party's assumed optimal scroll level to favor pulling lower or higher level scrolls.",
+        scope: "world",
+        config: false,
+        type: Number,
+        range: { min: -4, max: 4, step: 1 },
+        default: -1,
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "shelfConcentration", {
+        name: "Party Shelf Concentration",
+        hint: "How tightly the rarity distribution peaks around Uncommon. 1 = flat spread across rarities, 5 = heavily Uncommon.",
+        scope: "world",
+        config: false,
+        type: Number,
+        range: { min: 1, max: 5, step: 1 },
         default: 3,
         restricted: true
     });
 
-    game.settings.register(MODULE_ID, "shelfJitter", {
-        name: "Party Shelf Jitter",
-        hint: "How much a party shelf item's suggested level can drift above or below the milestone. 0 = strict milestone match. Higher values surface items from adjacent tiers.",
+    game.settings.register(MODULE_ID, "shelfAttunementBias", {
+        name: "Party Shelf Attunement Bias",
+        hint: "0 = Low (avoid attunement items), 1 = Medium (neutral), 2 = High (prefer powerful attuned items).",
         scope: "world",
         config: false,
         type: Number,
-        range: { min: 0, max: 3, step: 1 },
+        range: { min: 0, max: 2, step: 1 },
         default: 1,
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "shelfCategoryWeights", {
+        name: "Party Shelf Category Weights",
+        hint: "Per-category weight and enabled flag for the party shelf randomiser.",
+        scope: "world",
+        config: false,
+        type: String,
+        default: JSON.stringify({
+            wondrous: { w: 70, on: true },
+            focus:    { w: 15, on: true },
+            armor:    { w: 10, on: true },
+            weapon:   { w: 5,  on: true }
+        }),
         restricted: true
     });
 
@@ -460,7 +489,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     game.settings.registerMenu(MODULE_ID, "lootGenerationConfig", {
         name: "Loot Generation",
         label: "Configure Loot Generation",
-        hint: "Loot abundance, magic frequency, ammunition, healing potions, scroll jitter, and coin distribution.",
+        hint: "Loot abundance, magic frequency, ammunition, healing potions, and coin distribution.",
         icon: "fas fa-coins",
         type: LootGenerationConfigApp,
         restricted: true

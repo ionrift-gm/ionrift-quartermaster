@@ -101,10 +101,9 @@ export class PartyShelfSourceApp extends FormApplication {
         ui.notifications.info(`Party shelf sources saved: ${enabled.length} compendium${enabled.length !== 1 ? "s" : ""} enabled.`);
     }
 
-    /** Read the stored source list (falls back to dnd5e.items). */
     static getEnabledSources() {
         try {
-            const raw = game.settings.get(MODULE_ID, SETTING_PARTY_SHELF_SOURCES);
+            const raw = game.settings.get(MODULE_ID, "lootPoolSources");
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed) && parsed.length) return parsed;
         } catch { /* fall through */ }

@@ -351,16 +351,20 @@ export class SignatureLedgerApp extends Application {
         // Auto-detect delivered items by scanning party inventories
         const syncedShelf = await this._syncDeliveryStatus(partyShelf, partyActors);
 
-        const shelfJitter      = game.settings?.get("ionrift-quartermaster", "shelfJitter")  ?? 1;
+        const shelfConcentration   = game.settings?.get("ionrift-quartermaster", "shelfConcentration") ?? 3;
+        const shelfAttunementBias  = game.settings?.get("ionrift-quartermaster", "shelfAttunementBias") ?? 1;
+        const shelfCategoryWeights = game.settings?.get("ionrift-quartermaster", "shelfCategoryWeights")
+            ?? '{"wondrous":{"w":70,"on":true},"focus":{"w":15,"on":true},"armor":{"w":10,"on":true},"weapon":{"w":5,"on":true}}';
         const scrollFloor      = game.settings?.get("ionrift-quartermaster", "scrollFloor") ?? 1;
-        const scrollUpperReach = game.settings?.get("ionrift-quartermaster", "scrollUpperReach") ?? 1;
-        const scrollConcentration = game.settings?.get("ionrift-quartermaster", "scrollConcentration") ?? 3;
+        const scrollUpperReach = game.settings?.get("ionrift-quartermaster", "scrollUpperReach") ?? 2;
+        const scrollConcentration = game.settings?.get("ionrift-quartermaster", "scrollConcentration") ?? 2;
+        const scrollOffset     = game.settings?.get("ionrift-quartermaster", "scrollOffset") ?? -1;
 
         const hasParty = partyActors.length > 0;
 
         // --- Policy Dashboard Data (Bell-Curve Distribution) ---
         const partyMedian = SignatureLedgerApp._partyMedianLevel(partyActors);
-        const optimalLevel = Math.max(1, Math.ceil(partyMedian / 2));
+        const optimalLevel = Math.max(1, Math.min(9, Math.ceil(partyMedian / 2) + scrollOffset));
         const distribution = SignatureLedgerApp._computeScrollDistribution(
             optimalLevel, scrollFloor, scrollUpperReach, scrollConcentration
         );
@@ -371,7 +375,18 @@ export class SignatureLedgerApp extends Application {
             scrollFloor,
             scrollUpperReach,
             scrollConcentration,
+            scrollOffset,
+            offsetLabel: scrollOffset > 0 ? `+${scrollOffset}` : `${scrollOffset}`,
             distribution
+        };
+
+        // --- Party Shelf Policy Dashboard Data ---
+        const shelfPolicyData = {
+            partyLevel: partyMedian,
+            distribution: SignatureLedgerApp._computeShelfRarityDistribution(shelfConcentration),
+            categoryMix:  SignatureLedgerApp._computeCategoryMix(shelfCategoryWeights),
+            attunementBias: shelfAttunementBias,
+            attunementLabel: ["LOW", "MED", "HIGH"][shelfAttunementBias] ?? "MED"
         };
 
         return {
@@ -379,13 +394,17 @@ export class SignatureLedgerApp extends Application {
             milestones:      MILESTONES(),
             hasParty,
             curseSystemEnabled,
-            shelfJitter,
+            shelfConcentration,
+            shelfAttunementBias,
+            shelfCategoryWeights,
             scrollFloor,
             scrollUpperReach,
             scrollConcentration,
+            scrollOffset,
             scrollTrackerExpanded: this._scrollTrackerExpanded,
             partyTrackerExpanded:  this._partyTrackerExpanded,
             scrollPolicyData,
+            shelfPolicyData,
             banCount:        banList.length,
             banList,
 
@@ -835,6 +854,74 @@ export class SignatureLedgerApp extends Application {
         // Normalise bar heights so the tallest bar = 100%
         for (const entry of result) {
             entry.barHeight = maxPct > 0 ? Math.round((entry.percent / maxPct) * 100) : 0;
+        }
+
+        return result;
+    }
+
+    /**
+     * Compute a rarity probability distribution for the Party Shelf bar chart.
+     * Uses concentration to shape how peaked the distribution is around Uncommon.
+     *
+     * @param {number} concentration  1=flat, 5=sharply peaked at Uncommon
+     * @returns {Array<{rarity: string, label: string, percent: number, barHeight: number, isOptimal: boolean, cssClass: string}>}
+     */
+    static _computeShelfRarityDistribution(concentration) {
+        const tiers = [
+            { rarity: "uncommon", label: "Uncommon", base: 6, cssClass: "rarity-uncommon" },
+            { rarity: "rare",     label: "Rare",     base: 3, cssClass: "rarity-rare" },
+            { rarity: "veryRare", label: "Very Rare", base: 1, cssClass: "rarity-veryRare" }
+        ];
+
+        const factor = Math.max(1, concentration) / 3;
+        const weights = tiers.map(t => Math.pow(t.base, factor));
+        const total = weights.reduce((a, b) => a + b, 0);
+
+        let maxPct = 0;
+        const result = tiers.map((t, i) => {
+            const pct = Math.round((weights[i] / total) * 1000) / 10;
+            if (pct > maxPct) maxPct = pct;
+            return { ...t, percent: pct, isOptimal: i === 0 };
+        });
+
+        for (const entry of result) {
+            entry.barHeight = maxPct > 0 ? Math.round((entry.percent / maxPct) * 100) : 0;
+        }
+        return result;
+    }
+
+    /**
+     * Parse category weights JSON and normalise enabled categories to 100%.
+     *
+     * @param {string} jsonStr  Serialised category weights object
+     * @returns {Array<{category: string, label: string, percent: number, enabled: boolean, weight: number, cssClass: string}>}
+     */
+    static _computeCategoryMix(jsonStr) {
+        const CATEGORY_META = {
+            wondrous: { label: "Wondrous", cssClass: "cat-wondrous" },
+            focus:    { label: "Focus",    cssClass: "cat-focus" },
+            armor:    { label: "Armor",    cssClass: "cat-armor" },
+            weapon:   { label: "Weapon",   cssClass: "cat-weapon" }
+        };
+
+        let parsed;
+        try { parsed = JSON.parse(jsonStr); } catch { parsed = {}; }
+
+        const result = [];
+        let enabledTotal = 0;
+
+        for (const [cat, meta] of Object.entries(CATEGORY_META)) {
+            const entry = parsed[cat] ?? { w: 0, on: false };
+            const enabled = !!entry.on;
+            const weight  = Math.max(0, Number(entry.w) || 0);
+            if (enabled) enabledTotal += weight;
+            result.push({ category: cat, ...meta, weight, enabled, percent: 0 });
+        }
+
+        for (const entry of result) {
+            entry.percent = entry.enabled && enabledTotal > 0
+                ? Math.round((entry.weight / enabledTotal) * 1000) / 10
+                : 0;
         }
 
         return result;
@@ -1479,6 +1566,23 @@ export class SignatureLedgerApp extends Application {
                 this.render(false);
             }
         });
+        html.find(".action-update-scroll-offset").on("input", ev => _updateSliderFill(ev.currentTarget));
+        html.find(".action-update-scroll-offset").change(async ev => {
+            const val = parseInt(ev.currentTarget.value, 10);
+            if (!Number.isNaN(val)) {
+                await game.settings.set("ionrift-quartermaster", "scrollOffset", val);
+                this.render(false);
+            }
+        });
+        html.find(".action-reset-scroll-defaults").click(async ev => {
+            ev.preventDefault();
+            await game.settings.set("ionrift-quartermaster", "scrollFloor", 1);
+            await game.settings.set("ionrift-quartermaster", "scrollUpperReach", 2);
+            await game.settings.set("ionrift-quartermaster", "scrollConcentration", 2);
+            await game.settings.set("ionrift-quartermaster", "scrollOffset", -1);
+            ui.notifications.info("Scroll distribution settings reset to defaults.");
+            this.render(false);
+        });
 
 
         // Party manager (delegates to library PartyRoster UI)
@@ -1517,6 +1621,68 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-toggle-delivered").click(this._onToggleDelivered.bind(this));
         html.find(".action-seed-shelf").click(this._onSeedPartyShelf.bind(this));
         html.find(".action-curate-shelf").click(this._onCurateShelfSources.bind(this));
+
+        // Party shelf policy sliders
+        html.find(".party-category-slider").each((_, el) => _updateSliderFill(el));
+        html.find(".action-update-shelf-concentration").on("input", ev => _updateSliderFill(ev.currentTarget));
+        html.find(".action-update-shelf-concentration").change(async ev => {
+            const val = parseInt(ev.currentTarget.value, 10);
+            if (!Number.isNaN(val)) {
+                await game.settings.set("ionrift-quartermaster", "shelfConcentration", val);
+                this.render(false);
+            }
+        });
+        html.find(".action-update-shelf-attunement").on("input", ev => _updateSliderFill(ev.currentTarget));
+        html.find(".action-update-shelf-attunement").change(async ev => {
+            const val = parseInt(ev.currentTarget.value, 10);
+            if (!Number.isNaN(val)) {
+                await game.settings.set("ionrift-quartermaster", "shelfAttunementBias", val);
+                this.render(false);
+            }
+        });
+
+        // Category mix checkboxes + weight sliders
+        html.find(".action-toggle-category").change(async ev => {
+            const cat = ev.currentTarget.dataset.category;
+            if (!cat) return;
+            const raw = game.settings?.get("ionrift-quartermaster", "shelfCategoryWeights")
+                ?? '{"wondrous":{"w":70,"on":true},"focus":{"w":15,"on":true},"armor":{"w":10,"on":true},"weapon":{"w":5,"on":true}}';
+            let parsed;
+            try { parsed = JSON.parse(raw); } catch { parsed = {}; }
+            if (parsed[cat]) parsed[cat].on = ev.currentTarget.checked;
+            await game.settings.set("ionrift-quartermaster", "shelfCategoryWeights", JSON.stringify(parsed));
+            this.render(false);
+        });
+        html.find(".action-update-category-weight").on("input", ev => {
+            _updateSliderFill(ev.currentTarget);
+            const row = ev.currentTarget.closest(".party-category-row");
+            const valEl = row?.querySelector(".party-category-weight");
+            if (valEl) valEl.textContent = `${ev.currentTarget.value}%`;
+        });
+        html.find(".action-update-category-weight").change(async ev => {
+            const cat = ev.currentTarget.dataset.category;
+            if (!cat) return;
+            const raw = game.settings?.get("ionrift-quartermaster", "shelfCategoryWeights")
+                ?? '{"wondrous":{"w":70,"on":true},"focus":{"w":15,"on":true},"armor":{"w":10,"on":true},"weapon":{"w":5,"on":true}}';
+            let parsed;
+            try { parsed = JSON.parse(raw); } catch { parsed = {}; }
+            if (parsed[cat]) parsed[cat].w = parseInt(ev.currentTarget.value, 10) || 0;
+            await game.settings.set("ionrift-quartermaster", "shelfCategoryWeights", JSON.stringify(parsed));
+            this.render(false);
+        });
+        html.find(".action-reset-party-defaults").click(async ev => {
+            ev.preventDefault();
+            await game.settings.set("ionrift-quartermaster", "shelfConcentration", 3);
+            await game.settings.set("ionrift-quartermaster", "shelfAttunementBias", 1);
+            await game.settings.set("ionrift-quartermaster", "shelfCategoryWeights", JSON.stringify({
+                wondrous: { w: 70, on: true },
+                focus:    { w: 15, on: true },
+                armor:    { w: 10, on: true },
+                weapon:   { w: 5,  on: true }
+            }));
+            ui.notifications.info("Party shelf policy settings reset to defaults.");
+            this.render(false);
+        });
 
         // Ban list tab
         html.find(".action-remove-ban").click(this._onRemoveBan.bind(this));
@@ -2157,15 +2323,10 @@ export class SignatureLedgerApp extends Application {
     /** Launches the Scroll Forge source-selection dialog, then re-renders. */
     async _onCompileScrollForge(event) {
         event.preventDefault();
-        const { ScrollForge } = await import("../services/ScrollForge.js");
-        const { ScrollForgeSourceApp } = await import("../apps/ScrollForgeSourceApp.js");
-        const candidates = await ScrollForge.discoverSpellCompendiums();
-        if (!candidates.length) {
-            ui.notifications.warn("No spell compendiums found. Install a game system with spells first.");
-            return;
-        }
-        const saved = await ScrollForgeSourceApp.waitForClose(candidates);
-        if (saved) this.render();
+        const { CompendiumForgeApp } = await import("./CompendiumForgeApp.js");
+        const app = new CompendiumForgeApp({}, { activeTab: "scrollForge" });
+        app.render(true);
+        Hooks.once("closeCompendiumForgeApp", () => this.render());
     }
 
     // ── Party Shelf Actions ───────────────────────────────────────────────────
@@ -2244,8 +2405,10 @@ export class SignatureLedgerApp extends Application {
 
     async _onCurateShelfSources(event) {
         event.preventDefault();
-        const { PartyShelfSourceApp } = await import("./PartyShelfSourceApp.js");
-        new PartyShelfSourceApp().render(true);
+        const { CompendiumForgeApp } = await import("./CompendiumForgeApp.js");
+        const app = new CompendiumForgeApp({}, { activeTab: "lootPool" });
+        app.render(true);
+        Hooks.once("closeCompendiumForgeApp", () => this.render());
     }
 
     // ── Cursed: Pool Management ─────────────────────────────────────────

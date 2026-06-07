@@ -111,19 +111,6 @@
     <div class="registry-panel panel-scrolls">
         <div class="ledger-scroll-area cursed-scroll-area">
 
-            {{!-- ── Pinned Scrolls Section ─────────────────────────── --}}
-            <div class="scroll-section-header scroll-pinned-header">
-                <div class="scroll-section-header-row">
-                    <span class="scroll-section-title"><i class="fas fa-thumbtack"></i> Pinned Scrolls</span>
-                </div>
-            </div>
-
-            {{#unless hasParty}}
-            <div class="no-party-notice">
-                <i class="fas fa-users-slash"></i> No player characters found. The reach band defaults to level 1.
-            </div>
-            {{/unless}}
-
             {{#with scrollPinnedRow}}
             {{!-- ── Scroll Policy Dashboard (always visible) ─────────── --}}
             <div class="qm-policy-dashboard scroll-policy-dashboard">
@@ -143,30 +130,54 @@
                 </div>
 
                 <div class="policy-sliders-row">
-                    <div class="policy-slider-group">
+                    <div class="policy-slider-group" title="Floor: The lowest spell level scrolls can drop at. The distribution stretches down to this level as the party levels up.">
                         <label class="policy-slider-label">Floor <span class="policy-slider-value">{{../scrollFloor}}</span></label>
                         <input type="range" class="policy-slider action-update-scroll-floor" min="1" max="9" step="1" value="{{../scrollFloor}}">
                     </div>
-                    <div class="policy-slider-group">
+                    <div class="policy-slider-group" title="Concentration: Controls how tightly the distribution clusters around the optimal level. 1 = flat spread, 5 = sharply peaked at optimal.">
                         <label class="policy-slider-label">Concentration <span class="policy-slider-value">{{../scrollConcentration}}</span></label>
                         <input type="range" class="policy-slider action-update-scroll-concentration" min="1" max="5" step="1" value="{{../scrollConcentration}}">
                     </div>
-                    <div class="policy-slider-group">
+                    <div class="policy-slider-group" title="Optimal Offset: Offsets the party's assumed optimal scroll level to favor pulling lower or higher level scrolls.">
+                        <label class="policy-slider-label">Optimal Offset <span class="policy-slider-value">{{../scrollPolicyData.offsetLabel}}</span></label>
+                        <input type="range" class="policy-slider action-update-scroll-offset" min="-4" max="4" step="1" value="{{../scrollOffset}}">
+                    </div>
+                    <div class="policy-slider-group" title="Upper Reach: The maximum spell levels above optimal that randomisation can push. 0 = scrolls never exceed optimal.">
                         <label class="policy-slider-label">Upper Reach <span class="policy-slider-value">+{{../scrollUpperReach}}</span></label>
                         <input type="range" class="policy-slider action-update-scroll-upper-reach" min="0" max="4" step="1" value="{{../scrollUpperReach}}">
                     </div>
                 </div>
 
-                <button type="button" class="btn-qm-override action-toggle-scroll-tracker {{#if ../scrollTrackerExpanded}}is-expanded{{/if}}">
-                    <i class="fas {{#if ../scrollTrackerExpanded}}fa-chevron-up{{else}}fa-chevron-down{{/if}}"></i>
-                    {{#if ../scrollTrackerExpanded}}Collapse Scroll Overrides{{else}}Override on Specific Scrolls{{/if}}
-                </button>
+                <div class="dashboard-footer-actions">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
+                        <a role="button" class="btn-qm-reset action-reset-scroll-defaults" title="Reset all scroll distribution settings to defaults">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    </div>
+                    <button type="button" class="btn-qm-override action-toggle-scroll-tracker {{#if ../scrollTrackerExpanded}}is-expanded{{/if}}">
+                        <i class="fas {{#if ../scrollTrackerExpanded}}fa-chevron-up{{else}}fa-chevron-down{{/if}}"></i>
+                        {{#if ../scrollTrackerExpanded}}Collapse Scroll Overrides{{else}}Override on Specific Scrolls{{/if}}
+                    </button>
+                </div>
             </div>
 
             {{!-- ── Accordion: tracker grid expands below dashboard ─── --}}
             <div class="qm-tracker-accordion {{#if ../scrollTrackerExpanded}}qm-tracker-accordion-open{{/if}}">
                 
                 <div class="qm-tracker-accordion-scrollable">
+                    {{!-- ── Pinned Scrolls Section ─────────────────────────── --}}
+                    <div class="scroll-section-header scroll-pinned-header">
+                        <div class="scroll-section-header-row">
+                            <span class="scroll-section-title"><i class="fas fa-thumbtack"></i> Pinned Scrolls</span>
+                        </div>
+                    </div>
+        
+                    {{#unless ../hasParty}}
+                    <div class="no-party-notice">
+                        <i class="fas fa-users-slash"></i> No player characters found. The reach band defaults to level 1.
+                    </div>
+                    {{/unless}}
+
                     <span class="scroll-section-hint qm-accordion-hint">This board is <strong class="hint-highlight">optional</strong>. The loot generator delivers spell scrolls on its own. Pin a scroll here if you want to manually hold back and place it at a specific milestone.</span>
                     
                     <div class="cursed-planned-strip-wrap scroll-planned-strip-wrap">
@@ -243,7 +254,7 @@
                         </a>
                     </div>
                     <p class="scroll-jitter-note">
-                        Drag scrolls from the compendium into slots. <strong>Pinned</strong> scrolls bypass jitter and land at their milestone.
+                        Drag scrolls from the compendium into slots. <strong>Pinned</strong> scrolls bypass randomisation and land at their milestone.
                     </p>
                 </div>
 
@@ -262,108 +273,153 @@
     <div class="registry-panel panel-party">
         <div class="ledger-scroll-area cursed-scroll-area">
 
-            {{!-- ── Party Shelf Section Header ───────────────────────── --}}
-            <div class="scroll-section-header party-shelf-header">
-                <div class="scroll-section-header-row">
-                    <span class="scroll-section-title"><i class="fas fa-users"></i> Party Items</span>
-                </div>
-                <span class="scroll-section-hint">Plan milestone-level party items. <strong class="hint-highlight">Planned</strong> items surface automatically when the party reaches the assigned level. Empty slots show randomised suggestions from your configured sources  - these cycle on each reroll and aren't saved.</span>
-            </div>
-
-            {{#unless hasParty}}
-            <div class="no-party-notice">
-                <i class="fas fa-users-slash"></i> No player characters found. The reach band defaults to level 1.
-            </div>
-            {{/unless}}
-
-            {{!-- ── Party Shelf strip: milestone labels + reach band + 3-slot stacks --}}
             {{#with partyShelfRow}}
-            <div class="qm-tracker-container {{#if ../partyTrackerExpanded}}qm-tracker-expanded{{else}}qm-tracker-collapsed{{/if}}">
-                <div class="cursed-planned-strip-wrap party-planned-strip-wrap">
-                    <div class="cursed-planned-col-labels party-planned-col-labels">
-                        <div class="cursed-planned-col-labels-grid">
-                            {{#each milestoneLabels}}
-                            <div class="cursed-planned-col-label party-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</div>
+            {{!-- ── Party Shelf Policy Dashboard (always visible) ──────── --}}
+            <div class="qm-policy-dashboard party-policy-dashboard">
+                <div class="party-policy-columns">
+
+                    {{!-- ── Left Column: Rarity Distribution ────── --}}
+                    <div class="party-policy-left">
+                        <div class="policy-hero-badge">
+                            <span class="policy-hero-label">Party Level</span>
+                            <span class="policy-hero-value">{{../shelfPolicyData.partyLevel}}</span>
+                        </div>
+
+                        <div class="policy-bar-chart">
+                            {{#each ../shelfPolicyData.distribution}}
+                            <div class="policy-bar-col {{this.cssClass}} {{#if this.isOptimal}}policy-bar-optimal{{/if}}">
+                                <div class="policy-bar" style="height: {{this.barHeight}}%;"></div>
+                                <span class="policy-bar-pct">{{this.percent}}%</span>
+                                <span class="policy-bar-label">{{this.label}}</span>
+                            </div>
                             {{/each}}
                         </div>
-                        <div class="cursed-planned-median-overlay">
-                            <div class="cursed-planned-median-track" style="width: {{levelRangeBarPct}}%;">
-                                <span class="cursed-band-level-tip party-band-level-tip">{{partyLevelLabel}}</span>
+
+                        <div class="policy-sliders-row">
+                            <div class="policy-slider-group" title="Concentration: Controls how tightly the rarity distribution clusters around Uncommon. 1 = flat spread across rarities, 5 = heavily Uncommon.">
+                                <label class="policy-slider-label">Concentration <span class="policy-slider-value">{{../shelfConcentration}}</span></label>
+                                <input type="range" class="policy-slider action-update-shelf-concentration" min="1" max="5" step="1" value="{{../shelfConcentration}}">
+                            </div>
+                            <div class="policy-slider-group" title="Attunement Bias: Controls the ratio of items that require attunement versus those that do not. Low = fewer attuned items, High = more attuned items.">
+                                <label class="policy-slider-label">Attunement Bias <span class="policy-slider-value">{{../shelfPolicyData.attunementLabel}}</span></label>
+                                <input type="range" class="policy-slider action-update-shelf-attunement" min="1" max="5" step="1" value="{{../shelfAttunementBias}}">
                             </div>
                         </div>
                     </div>
 
-                    <div class="cursed-planned-band-row party-planned-band-row">
-                        <div class="sig-row-level-range cursed-row-level-range party-row-level-range" aria-hidden="true">
-                            <div class="sig-row-level-range-fill cursed-level-range-fill party-level-range-fill" style="width: {{levelRangeBarPct}}%;"></div>
-                        </div>
-                    </div>
+                    {{!-- ── Vertical Divider ────────────────────── --}}
+                    <div class="party-policy-divider"></div>
 
-                    <div class="sig-slots-strip cursed-slots-strip party-slots-strip">
-                        {{#each columns}}
-                        <div class="cursed-milestone-stack party-milestone-stack">
-                            {{#each this.slots}}
-                            {{> "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs" this variant="party"}}
-                            {{/each}}
+                    {{!-- ── Right Column: Category Mix ──────────── --}}
+                    <div class="party-policy-right">
+                        <span class="party-category-header">Category Mix</span>
+
+                        {{#each ../shelfPolicyData.categoryMix}}
+                        <div class="party-category-row {{#unless this.enabled}}is-disabled{{/unless}}">
+                            <input type="checkbox" class="party-category-checkbox action-toggle-category"
+                                   data-category="{{this.category}}" {{#if this.enabled}}checked{{/if}}>
+                            <span class="party-category-dot {{this.cssClass}}"></span>
+                            <span class="party-category-name">{{this.label}}</span>
+                            <input type="range" class="party-category-slider action-update-category-weight"
+                                   data-category="{{this.category}}"
+                                   min="0" max="100" step="5"
+                                   value="{{this.weight}}"
+                                   {{#unless this.enabled}}disabled{{/unless}}>
+                            <span class="party-category-weight {{#unless this.enabled}}is-off{{/unless}}">{{#if this.enabled}}{{this.percent}}%{{else}}&mdash;{{/if}}</span>
                         </div>
                         {{/each}}
+
+                        <span class="party-category-note">Weights auto-normalise among enabled categories.</span>
                     </div>
                 </div>
-            </div>
 
-            {{#unless ../partyTrackerExpanded}}
-            <div class="qm-policy-dashboard party-policy-dashboard">
-                <div class="policy-dashboard-content">
-                    <div class="policy-main-target">
-                        <i class="fas fa-layer-group policy-target-icon"></i>
-                        <span class="policy-target-label">Curated Sources</span>
-                        <span class="policy-target-sub">Wondrous Utility Items</span>
+                <div class="dashboard-footer-actions">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
+                        <a role="button" class="btn-qm-reset action-reset-party-defaults" title="Reset all party shelf settings to defaults">
+                            <i class="fas fa-undo"></i>
+                        </a>
                     </div>
-                    <div class="policy-flow-arrow"><i class="fas fa-arrow-right"></i></div>
-                    <div class="policy-flow-branch">
-                        <div class="policy-jitter-row">
-                            <span class="policy-jitter-label rarity-uncommon">Uncommon (60%)</span>
-                        </div>
-                        <div class="policy-jitter-row">
-                            <span class="policy-jitter-label rarity-rare">Rare (30%)</span>
-                        </div>
-                        <div class="policy-jitter-row">
-                            <span class="policy-jitter-label rarity-veryRare">Very Rare (10%)</span>
-                        </div>
-                    </div>
-                </div>
-                <button type="button" class="btn-qm-override action-toggle-party-tracker">
-                    <i class="fas fa-chevron-down"></i> Override Policy (Expand Tracker)
-                </button>
-            </div>
-            {{else}}
-            <button type="button" class="btn-qm-override btn-qm-override-collapse action-toggle-party-tracker">
-                <i class="fas fa-chevron-up"></i> Collapse Tracker
-            </button>
-            {{/unless}}
-            {{/with}}
-
-            {{!-- ── Divider ────────────────────────────────────────── --}}
-            <div class="cursed-planned-pool-divider party-planned-pool-divider"></div>
-
-            {{!-- ── Party Shelf Actions ──────────────── --}}
-            <div class="scroll-compendium-info party-compendium-info">
-                <div class="scroll-compendium-buttons party-compendium-buttons">
-                    <button type="button" class="scroll-open-compendium action-seed-shelf" title="Randomise party items from the configured compendiums by rarity">
-                        <i class="fas fa-wand-magic-sparkles"></i> Randomise
+                    <button type="button" class="btn-qm-override action-toggle-party-tracker {{#if ../partyTrackerExpanded}}is-expanded{{/if}}">
+                        <i class="fas {{#if ../partyTrackerExpanded}}fa-chevron-up{{else}}fa-chevron-down{{/if}}"></i>
+                        {{#if ../partyTrackerExpanded}}Collapse Tracker{{else}}Override on Specific Items{{/if}}
                     </button>
-                    <a role="button" class="qm-secondary-link action-curate-shelf" title="Choose which item compendiums the randomiser draws from">
-                        <i class="fas fa-sliders"></i> Item Forge
-                    </a>
                 </div>
-                <p class="scroll-jitter-note party-jitter-note">
-                    Drop items from compendiums into slots to plan them. Planned items are preserved across rerolls. Items already in party inventories show as delivered.
-                </p>
             </div>
+
+            {{!-- ── Accordion: tracker grid expands below dashboard ─── --}}
+            <div class="qm-tracker-accordion {{#if ../partyTrackerExpanded}}qm-tracker-accordion-open{{/if}}">
+
+                <div class="qm-tracker-accordion-scrollable">
+                    {{!-- ── Party Shelf Section Header ───────────────────────── --}}
+                    <div class="scroll-section-header party-shelf-header">
+                        <div class="scroll-section-header-row">
+                            <span class="scroll-section-title"><i class="fas fa-users"></i> Party Items</span>
+                        </div>
+                    </div>
+
+                    <span class="scroll-section-hint qm-accordion-hint">Plan milestone-level party items. <strong class="hint-highlight">Planned</strong> items surface automatically when the party reaches the assigned level. Empty slots show randomised suggestions from your configured sources - these cycle on each reroll and aren't saved.</span>
+
+                    {{#unless ../../hasParty}}
+                    <div class="no-party-notice">
+                        <i class="fas fa-users-slash"></i> No player characters found. The reach band defaults to level 1.
+                    </div>
+                    {{/unless}}
+
+                    <div class="cursed-planned-strip-wrap party-planned-strip-wrap">
+                        <div class="cursed-planned-col-labels party-planned-col-labels">
+                            <div class="cursed-planned-col-labels-grid">
+                                {{#each milestoneLabels}}
+                                <div class="cursed-planned-col-label party-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</div>
+                                {{/each}}
+                            </div>
+                            <div class="cursed-planned-median-overlay">
+                                <div class="cursed-planned-median-track" style="width: {{levelRangeBarPct}}%;">
+                                    <span class="cursed-band-level-tip party-band-level-tip">{{partyLevelLabel}}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="cursed-planned-band-row party-planned-band-row">
+                            <div class="sig-row-level-range cursed-row-level-range party-row-level-range" aria-hidden="true">
+                                <div class="sig-row-level-range-fill cursed-level-range-fill party-level-range-fill" style="width: {{levelRangeBarPct}}%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="sig-slots-strip cursed-slots-strip party-slots-strip">
+                            {{#each columns}}
+                            <div class="cursed-milestone-stack party-milestone-stack">
+                                {{#each this.slots}}
+                                {{> "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs" this variant="party"}}
+                                {{/each}}
+                            </div>
+                            {{/each}}
+                        </div>
+                    </div>
+                </div>{{!-- /qm-tracker-accordion-scrollable --}}
+
+                {{!-- ── Party Shelf Actions (inside accordion) ── --}}
+                <div class="scroll-compendium-info party-compendium-info" style="margin-top: 16px;">
+                    <div class="scroll-compendium-buttons party-compendium-buttons">
+                        <button type="button" class="scroll-open-compendium action-seed-shelf" title="Randomise party items from the configured compendiums by rarity">
+                            <i class="fas fa-wand-magic-sparkles"></i> Randomise
+                        </button>
+                        <a role="button" class="qm-secondary-link action-curate-shelf" title="Choose which item compendiums the randomiser draws from and compile the loot pool">
+                            <i class="fas fa-hammer"></i> Item Compiler
+                        </a>
+                    </div>
+                    <p class="scroll-jitter-note party-jitter-note">
+                        Drop items from compendiums into slots to plan them. <strong>Planned</strong> items bypass randomisation and land at their milestone.
+                    </p>
+                </div>
+
+            </div>{{!-- /qm-tracker-accordion --}}
+
+            {{/with}}
 
         </div>
     </div>
     {{/if}}
+
 
     {{!-- ══ BAN LIST ═════════════════════════════════════════════ --}}
     {{#if (eq activeTab 'banlist')}}
