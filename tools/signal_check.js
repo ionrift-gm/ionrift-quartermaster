@@ -1,8 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-// CI copy: logic matches ionrift-devtools/scripts/signal_check.js.
-// When ionrift-gm/ionrift-devtools is public, workflow may switch back to checkout.
+// CI copy — logic kept in sync with devtools reference implementation.
 
 const TARGET_DIR = path.resolve(process.argv[2] || path.resolve(__dirname, '../scripts'));
 // Derive repo root from TARGET_DIR so symlinked dev dirs resolve correctly.
