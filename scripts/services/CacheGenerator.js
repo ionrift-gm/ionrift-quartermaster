@@ -400,9 +400,6 @@ export class CacheGenerator {
     /** Owner themes that may roll a reserved armor mastercraft slot (B1). */
     static ARMOR_PRESENCE_THEMES = new Set(["armaments", "unspecified"]);
 
-    /** Chance a gear-bearing cache reserves one armor mastercraft slot. */
-    static ARMOR_PRESENCE_CHANCE = 0.65;
-
     /** Armaments caches prefer containers at or above this nominal capacity. */
     static CONTAINER_STURDY_MIN_LBS = 110;
 
@@ -478,7 +475,8 @@ export class CacheGenerator {
      */
     static _rollArmorPresence(ownerTheme) {
         if (!this.ARMOR_PRESENCE_THEMES.has(ownerTheme)) return false;
-        return Math.random() < this.ARMOR_PRESENCE_CHANCE;
+        const chance = game.settings?.get(MODULE_ID, "armourDropChance") ?? 0.65;
+        return Math.random() < chance;
     }
 
     /**
@@ -940,9 +938,10 @@ export class CacheGenerator {
         //   T2: 10%  - rare find, a genuine discovery
         //   T3: 20%  - meaningful but not common
         //   T4: 35%  - more frequent but still cache-by-cache
+        const namedMagicMult = game.settings?.get(MODULE_ID, "namedMagicFrequency") ?? 1.0;
         const NAMED_MAGIC_PER_CACHE = { 1: 0, 2: 0.10, 3: 0.20, 4: 0.35 };
         const namedMagicalBudget = (() => {
-            const chance = NAMED_MAGIC_PER_CACHE[tier] ?? 0;
+            const chance = Math.min(1, (NAMED_MAGIC_PER_CACHE[tier] ?? 0) * namedMagicMult);
             if (chance === 0) return 0;  // never
             return Math.random() < chance ? 1 : 0;  // 0 = blocked, 1 = one allowed
         })();

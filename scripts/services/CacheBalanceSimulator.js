@@ -435,6 +435,8 @@ export function readBalanceSimulationSettings() {
     return {
         lootEconomy: game.settings?.get(MODULE_ID, "lootEconomy") ?? 1.0,
         magicFrequency: game.settings?.get(MODULE_ID, "magicFrequency") ?? 1.0,
+        armourDropChance: game.settings?.get(MODULE_ID, "armourDropChance") ?? 0.65,
+        namedMagicFrequency: game.settings?.get(MODULE_ID, "namedMagicFrequency") ?? 1.0,
         magicAmmoFrequency: game.settings?.get(MODULE_ID, "magicAmmoFrequency") ?? 1.0,
         healingPotionFrequency: game.settings?.get(MODULE_ID, "healingPotionFrequency") ?? 1.0
     };
@@ -466,9 +468,30 @@ export async function loadSettingsProfiles() {
     } catch {
         _settingsProfilesCache = {
             profiles: {
-                low: { lootEconomy: 0.5, magicFrequency: 0.25, magicAmmoFrequency: 0, healingPotionFrequency: 0.5 },
-                standard: { lootEconomy: 1, magicFrequency: 1, magicAmmoFrequency: 1, healingPotionFrequency: 1 },
-                high: { lootEconomy: 1.5, magicFrequency: 1.5, magicAmmoFrequency: 1.5, healingPotionFrequency: 2.5 }
+                low: {
+                    lootEconomy: 0.5,
+                    magicFrequency: 0.25,
+                    armourDropChance: 0.30,
+                    namedMagicFrequency: 0.5,
+                    magicAmmoFrequency: 0,
+                    healingPotionFrequency: 0.5
+                },
+                standard: {
+                    lootEconomy: 1,
+                    magicFrequency: 1,
+                    armourDropChance: 0.65,
+                    namedMagicFrequency: 1.0,
+                    magicAmmoFrequency: 1,
+                    healingPotionFrequency: 1
+                },
+                high: {
+                    lootEconomy: 1.5,
+                    magicFrequency: 1.5,
+                    armourDropChance: 0.90,
+                    namedMagicFrequency: 1.5,
+                    magicAmmoFrequency: 1.5,
+                    healingPotionFrequency: 2.5
+                }
             },
             edgeCases: {},
             profileExpectationScale: {
@@ -504,6 +527,8 @@ export function applyBalanceSimulationSettings(settings = {}) {
     const keys = [
         "lootEconomy",
         "magicFrequency",
+        "armourDropChance",
+        "namedMagicFrequency",
         "magicAmmoFrequency",
         "healingPotionFrequency"
     ];
@@ -726,9 +751,10 @@ export async function drawMastercraftInCacheContext(tier, opts = {}) {
         }
         return sum;
     }, 0);
+    const armorChance = game.settings?.get(MODULE_ID, "armourDropChance") ?? 0.65;
     const armorPresence = ownerTheme === "armaments"
         && CacheGenerator.ARMOR_PRESENCE_THEMES.has(ownerTheme)
-        && Math.random() < CacheGenerator.ARMOR_PRESENCE_CHANCE;
+        && Math.random() < armorChance;
     const guaranteedSlots = guaranteedBase + (armorPresence ? 1 : 0);
 
     const slotsProcessed = Math.min(
@@ -775,7 +801,8 @@ export async function drawMastercraftInCacheContext(tier, opts = {}) {
 
     let rejectNamedMagical = opts.rejectNamedMagical ?? true;
     if (opts.simulateNamedMagicRoll && tier >= 2) {
-        rejectNamedMagical = Math.random() >= (NAMED_MAGIC_PER_CACHE[tier] ?? 0);
+        const namedMagicMult = game.settings?.get(MODULE_ID, "namedMagicFrequency") ?? 1.0;
+        rejectNamedMagical = Math.random() >= Math.min(1, (NAMED_MAGIC_PER_CACHE[tier] ?? 0) * namedMagicMult);
     }
 
     const pickOpts = {

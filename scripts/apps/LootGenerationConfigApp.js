@@ -8,13 +8,14 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
     appId: "qm-loot-generation-config",
     title: "Loot Generation",
     icon: "fas fa-coins",
-    lead: "Scales cache value, magic rates, ammunition, healing potions, scroll overshoot, and coin breakdown.",
+    lead: "Cache value, magic rates, and consumable drops. Enhancement and named magic are configured separately.",
     savedMessage: "Loot generation settings saved.",
     popouts: {
         ammoTypes: AmmoTypeConfigApp,
         genericArmorBonus: GenericArmorBonusConfigApp
     },
     rows: [
+        { type: "section", label: "Economy" },
         {
             key: "lootEconomy",
             label: "Loot Abundance",
@@ -25,16 +26,60 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             max: 3,
             step: 0.25
         },
+        { type: "section", label: "Enhancement Items" },
         {
             key: "magicFrequency",
             label: "Magic Frequency",
             icon: "fas fa-wand-sparkles",
-            hint: "Likelihood of magical items (Uncommon+) in caches. 0 disables magic. 2.0 is high fantasy.",
+            hint: "Mastercraft slot draw weight for generic +N weapons and enhancement gear. Does not affect armour drops or named magic.",
             type: "range",
             min: 0,
             max: 2,
             step: 0.25
         },
+        {
+            key: "armourDropChance",
+            label: "Armour Drop Chance",
+            icon: "fas fa-shield-halved",
+            hint: "Chance a mastercraft armour slot is reserved per cache (Unspecified / Armaments themes). 0 = off. 0.65 = standard. 1.0 = guaranteed.",
+            type: "range",
+            min: 0,
+            max: 1,
+            step: 0.05
+        },
+        {
+            key: "genericArmorBonusConfig",
+            label: "Generic Armor Bonus Curve",
+            icon: "fas fa-shield-halved",
+            hint: "Tier caps for generic +N body armor and shields in mastercraft caches. Independent of magic frequency and weapon bonuses.",
+            type: "popout",
+            popout: "genericArmorBonus",
+            summary: () => GenericArmorBonusRegistry.getSummaryLabel()
+        },
+        { type: "section", label: "Named Magic" },
+        {
+            key: "namedMagicFrequency",
+            label: "Named Magic Frequency",
+            icon: "fas fa-wand-sparkles",
+            hint: "Scales how often one named magical item appears per cache. Baseline: T2 10%, T3 20%, T4 35%. 0 = off. 1 = standard. 2 = double.",
+            type: "range",
+            min: 0,
+            max: 2,
+            step: 0.25
+        },
+        { type: "column-break" },
+        { type: "section", label: "Consumables" },
+        {
+            key: "healingPotionFrequency",
+            label: "Healing Potion Frequency",
+            icon: "fas fa-heart-pulse",
+            hint: "Scales consumable slots, healing picks on those slots, and bonus healing lines per cache. 1.0 is moderate; 4.0 is heavy. Requires healing potions in Loot Pool Sources.",
+            type: "range",
+            min: 0,
+            max: 4,
+            step: 0.25
+        },
+        { type: "section", label: "Ammunition" },
         {
             key: "magicAmmoFrequency",
             label: "Magical Ammunition Frequency",
@@ -46,25 +91,6 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             step: 0.25
         },
         {
-            key: "genericArmorBonusConfig",
-            label: "Generic Armor Bonus Curve",
-            icon: "fas fa-shield-halved",
-            hint: "Tier caps for generic +N body armor and shields in mastercraft caches. Independent of magic frequency and weapon bonuses.",
-            type: "popout",
-            popout: "genericArmorBonus",
-            summary: () => GenericArmorBonusRegistry.getSummaryLabel()
-        },
-        {
-            key: "healingPotionFrequency",
-            label: "Healing Potion Frequency",
-            icon: "fas fa-heart-pulse",
-            hint: "Scales consumable slots, healing picks on those slots, and bonus healing lines per cache. 1.0 is moderate; 4.0 is heavy. Requires healing potions in Loot Pool Sources.",
-            type: "range",
-            min: 0,
-            max: 4,
-            step: 0.25
-        },
-        {
             key: "ammoTypeConfig",
             label: "Ammunition Type Curve",
             icon: "fas fa-bullseye-arrow",
@@ -73,7 +99,7 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             popout: "ammoTypes",
             summary: () => AmmoTypeRegistry.getSummaryLabel()
         },
-
+        { type: "section", label: "Coinage" },
         {
             key: "distributeCoins",
             label: "Distribute Coinage",

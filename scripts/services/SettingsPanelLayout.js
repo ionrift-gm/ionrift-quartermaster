@@ -4,6 +4,7 @@
  */
 
 import { openSetupGuide } from "../constants/SetupGuide.js";
+import { refreshOpenQuartermasterConfigApps } from "../apps/QuartermasterSubmenuConfigApp.js";
 import { LootPoolCompiler } from "./LootPoolCompiler.js";
 import { ScrollForge      } from "./ScrollForge.js";
 import { SrdCurseAdapter  } from "./SrdCurseAdapter.js";
@@ -13,6 +14,8 @@ const MODULE_ID = "ionrift-quartermaster";
 const PROFILE_KEYS = [
     "lootEconomy",
     "magicFrequency",
+    "armourDropChance",
+    "namedMagicFrequency",
     "magicAmmoFrequency",
     "healingPotionFrequency",
     "ammoTypeTilt",
@@ -26,6 +29,8 @@ const PROFILE_KEYS = [
 const KEY_LABELS = {
     lootEconomy: "Loot abundance",
     magicFrequency: "Magic frequency",
+    armourDropChance: "Armour drop chance",
+    namedMagicFrequency: "Named magic frequency",
     magicAmmoFrequency: "Magical ammunition",
     healingPotionFrequency: "Healing potions",
     ammoTypeTilt: "Ammunition preference",
@@ -54,6 +59,8 @@ const PROFILES = [
         values: {
             lootEconomy: 0.5,
             magicFrequency: 0.25,
+            armourDropChance: 0.30,
+            namedMagicFrequency: 0.5,
             magicAmmoFrequency: 0,
             healingPotionFrequency: 0.5,
             ammoTypeTilt: "balanced",
@@ -72,6 +79,8 @@ const PROFILES = [
         values: {
             lootEconomy: 1,
             magicFrequency: 1,
+            armourDropChance: 0.65,
+            namedMagicFrequency: 1.0,
             magicAmmoFrequency: 1,
             healingPotionFrequency: 1,
             ammoTypeTilt: "balanced",
@@ -90,6 +99,8 @@ const PROFILES = [
         values: {
             lootEconomy: 1.5,
             magicFrequency: 1.5,
+            armourDropChance: 0.90,
+            namedMagicFrequency: 1.5,
             magicAmmoFrequency: 1.5,
             healingPotionFrequency: 2.5,
             ammoTypeTilt: "balanced",
@@ -131,8 +142,13 @@ const GROUPS = [
  * @returns {{ text: string, cssClass: string }}
  */
 function formatProfileCell(key, value) {
-    if (key === "lootEconomy" || key === "magicFrequency" || key === "magicAmmoFrequency"
-            || key === "healingPotionFrequency") {
+    if (key === "armourDropChance") {
+        const n = Number(value);
+        const pct = Math.round(n * 100);
+        return { text: `${pct}%`, cssClass: "value" };
+    }
+    if (key === "lootEconomy" || key === "magicFrequency" || key === "namedMagicFrequency"
+            || key === "magicAmmoFrequency" || key === "healingPotionFrequency") {
         const n = Number(value);
         const text = `×${Number.isInteger(n) ? n : n.toFixed(2).replace(/\.?0+$/, "")}`;
         return { text, cssClass: "value" };
@@ -164,7 +180,8 @@ export function registerQuartermasterSettingsPanel() {
             ],
             confirmNote: "Green values will change. Neutral values already match this profile. Loot pool sources, campaign milestone profile, and content packs are left unchanged.",
             guideTooltip: "Opens the GM setup guide (loot profiles, sources, milestone grid).",
-            onGuide: () => openSetupGuide()
+            onGuide: () => openSetupGuide(),
+            onApplied: () => refreshOpenQuartermasterConfigApps()
         },
         groups: GROUPS
     });

@@ -4,6 +4,22 @@
 
 const MODULE_ID = "ionrift-quartermaster";
 
+/** @type {Set<string>} */
+const CONFIG_APP_IDS = new Set();
+
+/**
+ * Re-render any open Quartermaster submenu config popouts so controls match
+ * persisted settings (e.g. after a Quick Setup profile apply).
+ */
+export function refreshOpenQuartermasterConfigApps() {
+    const instances = foundry.applications?.instances;
+    if (!instances?.get) return;
+    for (const appId of CONFIG_APP_IDS) {
+        const app = instances.get(appId);
+        if (app?.rendered) app.render(false);
+    }
+}
+
 /**
  * @param {object} definition
  * @param {string} definition.appId
@@ -15,6 +31,10 @@ const MODULE_ID = "ionrift-quartermaster";
  * @returns {typeof foundry.applications.api.ApplicationV2}
  */
 export function createQuartermasterConfigApp(definition) {
+    CONFIG_APP_IDS.add(definition.appId);
+    const hasColumnBreak = definition.rows.some(row => row.type === "column-break");
+    const windowWidth = definition.width ?? (hasColumnBreak ? 760 : 460);
+
     return class QuartermasterSubmenuConfigApp extends foundry.applications.api.ApplicationV2 {
 
         static DEFAULT_OPTIONS = {
@@ -24,7 +44,7 @@ export function createQuartermasterConfigApp(definition) {
                 icon: definition.icon,
                 resizable: false
             },
-            position: { width: 460, height: "auto" },
+            position: { width: windowWidth, height: "auto" },
             classes: ["ionrift-window"]
         };
 
@@ -33,11 +53,27 @@ export function createQuartermasterConfigApp(definition) {
             return {
                 rows: definition.rows.map(row => ({
                     ...row,
-                    value: row.type === "popout"
-                        ? (typeof row.summary === "function" ? row.summary() : row.summary ?? "")
-                        : game.settings.get(MODULE_ID, row.key)
+                    value: row.type === "section" || row.type === "column-break"
+                        ? undefined
+                        : row.type === "popout"
+                            ? (typeof row.summary === "function" ? row.summary() : row.summary ?? "")
+                            : game.settings.get(MODULE_ID, row.key)
                 }))
             };
+        }
+
+        _renderRowHtml(row) {
+            return `
+            <div class="settings-config-row" data-key="${row.key}">
+                <div class="settings-config-head">
+                    <div class="settings-config-label">
+                        <i class="${row.icon} settings-config-icon"></i>
+                        ${row.label}
+                    </div>
+                    ${this._renderControl(row)}
+                </div>
+                <div class="settings-config-hint">${row.hint}</div>
+            </div>`;
         }
 
         /** @override */
@@ -45,23 +81,35 @@ export function createQuartermasterConfigApp(definition) {
             const el = document.createElement("div");
             el.classList.add("qm-settings-config");
 
-            let html = `<p class="settings-config-lead">${definition.lead}</p><div class="settings-config-list">`;
+            let html = `<p class="settings-config-lead">${definition.lead}</p>`;
 
-            for (const row of context.rows) {
-                html += `
-            <div class="settings-config-row" data-key="${row.key}">
-                <div class="settings-config-info">
-                    <div class="settings-config-label">
-                        <i class="${row.icon} settings-config-icon"></i>
-                        ${row.label}
-                    </div>
-                    <div class="settings-config-hint">${row.hint}</div>
-                </div>
-                ${this._renderControl(row)}
-            </div>`;
+            if (hasColumnBreak) {
+                html += `<div class="settings-config-columns"><div class="settings-config-col settings-config-col--left">`;
+                for (const row of context.rows) {
+                    if (row.type === "column-break") {
+                        html += `</div><div class="settings-config-col-divider"></div><div class="settings-config-col settings-config-col--right">`;
+                        continue;
+                    }
+                    if (row.type === "section") {
+                        html += `<div class="qm-config-section-header">${row.label}</div>`;
+                        continue;
+                    }
+                    html += this._renderRowHtml(row);
+                }
+                html += `</div></div>`;
+            } else {
+                html += `<div class="settings-config-list">`;
+                for (const row of context.rows) {
+                    if (row.type === "section") {
+                        html += `<div class="qm-config-section-header">${row.label}</div>`;
+                        continue;
+                    }
+                    html += this._renderRowHtml(row);
+                }
+                html += `</div>`;
             }
 
-            html += `</div>
+            html += `
         <div class="settings-config-actions">
             <button type="button" class="settings-config-save-btn">
                 <i class="fas fa-save"></i> Save
@@ -129,6 +177,7 @@ export function createQuartermasterConfigApp(definition) {
 
         async _onSave(el) {
             for (const row of definition.rows) {
+                if (row.type === "section" || row.type === "column-break") continue;
                 if (row.type === "boolean") {
                     const cb = el.querySelector(`.settings-config-cb[data-key="${row.key}"]`);
                     if (cb) await game.settings.set(MODULE_ID, row.key, cb.checked);

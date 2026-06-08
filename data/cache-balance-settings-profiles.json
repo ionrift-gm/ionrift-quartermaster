@@ -4,6 +4,8 @@
             "label": "Low",
             "lootEconomy": 0.5,
             "magicFrequency": 0.25,
+            "armourDropChance": 0.30,
+            "namedMagicFrequency": 0.5,
             "magicAmmoFrequency": 0,
             "healingPotionFrequency": 0.5
         },
@@ -11,6 +13,8 @@
             "label": "Standard",
             "lootEconomy": 1,
             "magicFrequency": 1,
+            "armourDropChance": 0.65,
+            "namedMagicFrequency": 1.0,
             "magicAmmoFrequency": 1,
             "healingPotionFrequency": 1
         },
@@ -18,6 +22,8 @@
             "label": "High",
             "lootEconomy": 1.5,
             "magicFrequency": 1.5,
+            "armourDropChance": 0.90,
+            "namedMagicFrequency": 1.5,
             "magicAmmoFrequency": 1.5,
             "healingPotionFrequency": 2.5
         }
@@ -27,6 +33,8 @@
             "label": "Heal heavy",
             "lootEconomy": 1,
             "magicFrequency": 1,
+            "armourDropChance": 0.65,
+            "namedMagicFrequency": 1.0,
             "magicAmmoFrequency": 1,
             "healingPotionFrequency": 4
         },
@@ -34,6 +42,8 @@
             "label": "Magic weak",
             "lootEconomy": 1,
             "magicFrequency": 0.25,
+            "armourDropChance": 0.30,
+            "namedMagicFrequency": 0.5,
             "magicAmmoFrequency": 0,
             "healingPotionFrequency": 1
         },
@@ -41,6 +51,8 @@
             "label": "Magic strong",
             "lootEconomy": 1,
             "magicFrequency": 1.5,
+            "armourDropChance": 0.90,
+            "namedMagicFrequency": 1.5,
             "magicAmmoFrequency": 1.5,
             "healingPotionFrequency": 1
         },
@@ -48,6 +60,8 @@
             "label": "Economy low",
             "lootEconomy": 0.5,
             "magicFrequency": 1,
+            "armourDropChance": 0.65,
+            "namedMagicFrequency": 1.0,
             "magicAmmoFrequency": 1,
             "healingPotionFrequency": 1
         },
@@ -55,6 +69,8 @@
             "label": "Heal off",
             "lootEconomy": 1,
             "magicFrequency": 1,
+            "armourDropChance": 0.65,
+            "namedMagicFrequency": 1.0,
             "magicAmmoFrequency": 1,
             "healingPotionFrequency": 0
         },
@@ -62,6 +78,8 @@
             "label": "Low magic + standard heal",
             "lootEconomy": 1,
             "magicFrequency": 0.25,
+            "armourDropChance": 0.30,
+            "namedMagicFrequency": 0.5,
             "magicAmmoFrequency": 0,
             "healingPotionFrequency": 1
         }
