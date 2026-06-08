@@ -82,6 +82,10 @@ export class ItemResolutionPipeline {
                             && (qmF.cursedMeta || qmF.forgedFrom)) {
                         data.system.identified = true;
                     }
+                    // SRD cursed rows store the player surface in latentMagic at
+                    // compile time. Normalise to standard promotion semantics and
+                    // apply the lure before enrichment and pile masking checks.
+                    ItemMaskingHelper.applyAuthoredDisguise(data);
                     // Potion enrichment runs on every healing-potion shape,
                     // including dnd5e 2024 PHB entries that ship with a blank
                     // `system.type.value`. The helper sets type, weight,
