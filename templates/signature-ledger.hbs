@@ -302,7 +302,7 @@
                             </div>
                             <div class="policy-slider-group" title="Attunement Bias: Controls the ratio of items that require attunement versus those that do not. Low = fewer attuned items, High = more attuned items.">
                                 <label class="policy-slider-label">Attunement Bias <span class="policy-slider-value">{{../shelfPolicyData.attunementLabel}}</span></label>
-                                <input type="range" class="policy-slider action-update-shelf-attunement" min="1" max="5" step="1" value="{{../shelfAttunementBias}}">
+                                <input type="range" class="policy-slider action-update-shelf-attunement" min="0" max="2" step="1" value="{{../shelfAttunementBias}}">
                             </div>
                         </div>
                     </div>
@@ -359,7 +359,7 @@
 
                     <span class="scroll-section-hint qm-accordion-hint">Plan milestone-level party items. <strong class="hint-highlight">Planned</strong> items surface automatically when the party reaches the assigned level. Empty slots show randomised suggestions from your configured sources - these cycle on each reroll and aren't saved.</span>
 
-                    {{#unless ../../hasParty}}
+                    {{#unless ../hasParty}}
                     <div class="no-party-notice">
                         <i class="fas fa-users-slash"></i> No player characters found. The reach band defaults to level 1.
                     </div>

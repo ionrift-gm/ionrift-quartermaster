@@ -10807,7 +10807,7 @@ button.scroll-open-compendium {
     border-top: 1px solid transparent;
 }
 .qm-tracker-accordion.qm-tracker-accordion-open {
-    max-height: 400px; /* Space for scrollable grid + footer buttons */
+    max-height: 800px; /* Space for scrollable grid + footer buttons */
     border-top-color: rgba(212, 149, 10, 0.18);
     margin-top: 8px;
 }
