@@ -10683,7 +10683,7 @@ button.scroll-open-compendium {
     flex-direction: column;
     gap: 6px;
     flex: 1;
-    max-width: 150px;
+    max-width: 180px;
 }
 .policy-slider-label {
     font-family: var(--font-primary);
