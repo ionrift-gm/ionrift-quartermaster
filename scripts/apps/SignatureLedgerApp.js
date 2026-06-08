@@ -7,6 +7,8 @@ import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "./CursedSourcesApp.js";
 import { CursedItemResolver } from "../services/CursedItemResolver.js";
 import { LootGenerationConfigApp } from "./LootGenerationConfigApp.js";
 
+const MODULE_ID = "ionrift-quartermaster";
+
 /** Always read fresh so profile changes take effect without reload. */
 function MILESTONES() { return SignatureLedger.MILESTONES; }
 
