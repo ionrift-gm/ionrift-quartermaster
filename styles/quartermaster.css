@@ -2782,8 +2782,9 @@
     flex: 1 1 auto;
     overflow-y: auto;
     overflow-x: auto;
-    padding: 0 10px;
+    padding: 0 10px 24px;
     background: rgba(255, 255, 255, 0.015);
+    min-height: 0;
 }
 
 /* ── Grid Header ──────────────────────────────────────────── */
@@ -5977,7 +5978,6 @@
 /* ── Scroll Compendium Info ───────────────────────────────────────── */
 
 .scroll-compendium-info {
-    margin-bottom: 24px;
     padding: 12px 14px 14px;
     display: flex;
     flex-direction: column;
