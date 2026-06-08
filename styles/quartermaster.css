@@ -2656,6 +2656,7 @@
     flex-direction: column;
     height: 100%;
     overflow: hidden;
+    min-height: 0;
 }
 
 /* ── Tab Bar ──────────────────────────────────────────────── */
@@ -2782,7 +2783,7 @@
     flex: 1 1 auto;
     overflow-y: auto;
     overflow-x: auto;
-    padding: 0 10px 24px;
+    padding: 0 10px;
     background: rgba(255, 255, 255, 0.015);
     min-height: 0;
 }
