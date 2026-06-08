@@ -20,13 +20,13 @@ export const SRD_CURSE_MANIFEST = [
         }
     },
     { match: "Sword of Vengeance",           tier: 1, curseType: "compulsion" },
-    { match: "Armor of Vulnerability",       tier: 2, curseType: "deceptive"  },
-    { match: "Bag of Devouring",             tier: 2, curseType: "physical"   },
+    { match: "Armor of Vulnerability",       tier: 3, curseType: "deceptive"  },
+    { match: "Bag of Devouring",             tier: 3, curseType: "physical"   },
     { match: "Boots of Dancing",             tier: 2, curseType: "compulsion" },
     { match: "Cloak of Poisonousness",       tier: 2, curseType: "deceptive"  },
     { match: "Crown of Madness",             tier: 2, curseType: "compulsion" },
     { match: "Shield of Missile Attraction", tier: 2, curseType: "deceptive"  },
-    { match: "Demon Armor",                  tier: 3, curseType: "binding"    },
+    { match: "Demon Armor",                  tier: 2, curseType: "binding"    },
     { match: "Necklace of Strangulation",    tier: 3, curseType: "binding"    },
     { match: "Scarab of Death",              tier: 3, curseType: "physical"   },
 ];

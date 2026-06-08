@@ -102,9 +102,52 @@ export class StandalonePoolRegistry {
     }
 
     /**
-     * Advisory sample from the settings-backed cursed pool (mirrors CurseRegistry.getPool).
-     * @param {number} [tier=1]
-     * @param {number} [count=3]
+     * Move `uuid` to `newIndex` within its tier column, persisting the new order.
+     * Position in the array is the priority weight — top (index 0) = highest.
+     * @param {number} tier      1-4
+     * @param {string[]} orderedUuids  Full ordered list of UUIDs for that tier (after reorder)
+     */
+    static async setPriorityOrder(tier, orderedUuids) {
+        const pool = await this.getCursedPool();
+        const t = Math.max(1, Math.min(4, Number(tier) || 1));
+
+        // Split into this-tier and other-tier entries, preserving other-tier order.
+        const others = pool.filter(e => (e.tier ?? 1) !== t);
+        const tierEntries = pool.filter(e => (e.tier ?? 1) === t);
+
+        // Re-index this tier according to the new uuid order.
+        const byUuid = new Map(tierEntries.map(e => [(e.uuid ?? "").toLowerCase(), e]));
+        const reordered = orderedUuids
+            .map(u => byUuid.get(u.toLowerCase()))
+            .filter(Boolean);
+
+        // Items in the pool but absent from orderedUuids are appended at the end.
+        const uuidSet = new Set(orderedUuids.map(u => u.toLowerCase()));
+        const extras = tierEntries.filter(e => !uuidSet.has((e.uuid ?? "").toLowerCase()));
+
+        await this.setCursedPool([...others, ...reordered, ...extras]);
+    }
+
+    /** Whether a given tier is enabled for advisory draw. */
+    static getTierEnabled(tier) {
+        const t = Math.max(1, Math.min(4, Number(tier) || 1));
+        if (t === 3) return game.settings.get(MODULE_ID, "cursedT3Enabled") ?? true;
+        if (t === 4) return game.settings.get(MODULE_ID, "cursedT4Enabled") ?? true;
+        return true; // T1 and T2 always enabled
+    }
+
+    static async setTierEnabled(tier, enabled) {
+        const t = Math.max(1, Math.min(4, Number(tier) || 1));
+        if (t === 3) await game.settings.set(MODULE_ID, "cursedT3Enabled", !!enabled);
+        else if (t === 4) await game.settings.set(MODULE_ID, "cursedT4Enabled", !!enabled);
+    }
+
+    /**
+     * Priority-ordered sample from the settings-backed cursed pool (mirrors CurseRegistry.getPool).
+     * Returns items in their stored array order (= priority order) within each enabled tier.
+     * No shuffle — position IS the weight signal.
+     * @param {number} [tier=1]    Tier cap (draws from tiers <= this)
+     * @param {number} [count=3]   Max items to return
      * @returns {Promise<Object[]>}
      */
     static async getPool(tier = 1, count = 3) {
@@ -112,10 +155,15 @@ export class StandalonePoolRegistry {
         const pool = await this.getCursedPool();
         const t = Math.max(1, Math.min(4, Number(tier) || 1));
         const cap = Math.max(1, Math.min(12, Number(count) || 3));
-        const eligible = pool.filter(r => (r.tier ?? 1) <= t);
-        if (!eligible.length) return [];
-        const shuffled = [...eligible].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, cap);
+
+        // Filter: within tier cap AND tier is enabled
+        const eligible = pool.filter(r => {
+            const itemTier = r.tier ?? 1;
+            return itemTier <= t && this.getTierEnabled(itemTier);
+        });
+
+        // Return in priority order (array position), up to cap — no shuffle
+        return eligible.slice(0, cap);
     }
 }
 

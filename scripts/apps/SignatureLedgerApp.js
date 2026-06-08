@@ -5,6 +5,7 @@ import { SrdCurseAdapter } from "../services/SrdCurseAdapter.js";
 import { StandalonePoolRegistry, getActiveCursedRegistry } from "../services/StandalonePoolRegistry.js";
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "./CursedSourcesApp.js";
 import { CursedItemResolver } from "../services/CursedItemResolver.js";
+import { LootGenerationConfigApp } from "./LootGenerationConfigApp.js";
 
 /** Always read fresh so profile changes take effect without reload. */
 function MILESTONES() { return SignatureLedger.MILESTONES; }
@@ -213,7 +214,7 @@ export class SignatureLedgerApp extends Application {
             height:   740,
             classes:  ["ionrift-window", "glass-ui"],
             resizable: true,
-            scrollY:  [".ledger-scroll-area", ".banlist-scroll-area"],
+            scrollY:  [".ledger-scroll-area", ".party-panel-scroll", ".banlist-scroll-area"],
             dragDrop: [{
                 dropSelector:
                     ".grid-slot, .sig-slots-strip, .party-slots-strip, .ban-drop-zone, .cursed-pool-drop-zone, .cursed-pool-receive, .cursed-pool-tier-lane"
@@ -293,16 +294,46 @@ export class SignatureLedgerApp extends Application {
 
         let curseData = {};
         {
-            // When CW is installed it owns the planned/pool registry.
-            // When it's absent QM maintains its own minimal stub pool sourced
-            // exclusively from the world.ionrift-srd-cursed compendium.
             const reg = getActiveCursedRegistry();
-            let cursedPlannedRaw = await reg.getCursedPlanned();
             if (game.user.isGM) await reg.ensureDefaultCursedPoolIfEmpty?.();
+
+            // ── One-time migration: promote any cursedPlanned entries into the pool ──
+            // Planned entries become high-priority pool items (prepended at top of their tier).
+            if (typeof reg.getCursedPlanned === "function") {
+                try {
+                    const planned = await reg.getCursedPlanned();
+                    if (planned.length > 0 && typeof reg.getCursedPool === "function" && typeof reg.setCursedPool === "function" && typeof reg.setCursedPlanned === "function") {
+                        const pool = await reg.getCursedPool();
+                        const poolUuids = new Set(pool.map(e => (e.uuid || "").toLowerCase()));
+                        const toAdd = planned
+                            .filter(p => p.uuid && !poolUuids.has(p.uuid.toLowerCase()))
+                            .map(p => ({
+                                uuid:            p.uuid,
+                                name:            p.name || "",
+                                img:             p.img || "icons/svg/item-bag.svg",
+                                curseType:       p.curseType ?? "unknown",
+                                decoyAppearance: p.decoyAppearance ?? "",
+                                trueNature:      p.trueNature ?? "",
+                                tier:            p.tier ?? 1
+                            }));
+                        if (toAdd.length > 0) {
+                            // Prepend to pool so they surface at high priority
+                            await reg.setCursedPool([...toAdd, ...pool]);
+                            await reg.setCursedPlanned([]);
+                            Logger.info(MODULE_LABEL, `Cursed planner migration: promoted ${toAdd.length} item(s) into the pool.`);
+                        } else {
+                            // Planned all already in pool — clear the stale planned list
+                            await reg.setCursedPlanned([]);
+                        }
+                    }
+                } catch (e) {
+                    Logger.warn(MODULE_LABEL, "Cursed planned migration failed (non-fatal):", e.message);
+                }
+            }
+
             const cursedPoolRaw = await reg.getCursedPool();
 
-            // Pool entries store names at load-time; they go stale when the forged
-            // pack is recompiled. Resolve display names live via shared service.
+            // Resolve display names live (pool entries go stale after pack recompile)
             let _forgedNameMap = new Map();
             try {
                 _forgedNameMap = await CursedItemResolver.buildForgedNameMap();
@@ -313,19 +344,30 @@ export class SignatureLedgerApp extends Application {
                 name: CursedItemResolver.resolveFromMap(_forgedNameMap, entry.uuid) ?? entry.name
             }));
 
-            const annotated = SignatureLedgerApp._annotateCursedPoolForView(cursedPlannedRaw, cursedPoolResolved);
-            const lanes     = SignatureLedgerApp._buildCursedPoolLanes(annotated);
+            // Per-source counts for footer
+            const cwPoolCount  = cursedPoolResolved.filter(p => (p.uuid || "").includes("ionrift-cursewright-forged")).length;
+            const srdPoolCount = cursedPoolResolved.filter(p => (p.uuid || "").includes("ionrift-srd-cursed")).length;
 
-            const typeSet   = new Set(annotated.map(e => (e.curseType || "").toLowerCase()).filter(Boolean));
-
-            // Per-source item counts - drive the source button active states
-            const cwPoolCount  = annotated.filter(p => (p.uuid || "").includes("ionrift-cursewright-forged")).length;
-            const srdPoolCount = annotated.filter(p => (p.uuid || "").includes("ionrift-srd-cursed")).length;
-
-            // Pack existence flags (used by _onOpenCursedCompendium and template conditionals)
+            // Pack existence flags
             const hasSrdPack    = !!game.packs.get("world.ionrift-srd-cursed");
             const hasCurseForge = !!game.packs.get("world.ionrift-cursewright-forged")
                                 || !!game.packs.get("world.ionrift-forged-cursed");
+
+            // T3/T4 enabled flags
+            const t3Enabled = reg.getTierEnabled?.(3) ?? (game.settings.get(MODULE_ID, "cursedT3Enabled") ?? true);
+            const t4Enabled = reg.getTierEnabled?.(4) ?? (game.settings.get(MODULE_ID, "cursedT4Enabled") ?? true);
+
+            // Build priority columns: T1-T4, max 5 per column, preserve array order
+            const PRIORITY_COL_CAP = 5;
+            const priorityColumns = SignatureLedgerApp._buildCursedPriorityColumns(
+                cursedPoolResolved, t3Enabled, t4Enabled, PRIORITY_COL_CAP
+            );
+
+            // Tier distribution chart
+            const partyLevel = SignatureLedgerApp._partyMedianLevel(partyActors);
+            const cursedTierDistribution = SignatureLedgerApp._buildCursedTierDistribution(
+                partyLevel, t3Enabled, t4Enabled
+            );
 
             curseData = {
                 cwPresent,
@@ -333,12 +375,13 @@ export class SignatureLedgerApp extends Application {
                 hasCurseForge,
                 cwPoolCount,
                 srdPoolCount,
-                cursedPlannedRow: this._buildCursedPlannedStrip(partyActors, cursedPlannedRaw),
-                cursedPool: annotated,
-                cursedPoolLanes: lanes,
-                cursedPoolCount: annotated.length,
-                cursedCanFill: game.user.isGM && annotated.length === 0,
-                cursedPoolTypes: [...typeSet].sort().map(t => ({ value: t, label: CURSE_TYPE_DESCRIPTIONS[t] || t }))
+                t3Enabled,
+                t4Enabled,
+                partyLevel,
+                priorityColumns,
+                cursedTierDistribution,
+                cursedPoolCount: cursedPoolResolved.length,
+                priorityColCap: PRIORITY_COL_CAP
             };
         }
 
@@ -928,9 +971,96 @@ export class SignatureLedgerApp extends Application {
     }
 
     /**
+     * Tier drop probability distribution for the cursed pool chart.
+     * Party level drives the weights: low level = T1/T2 dominant; higher level opens T3/T4.
+     * T3/T4 are gated by their enabled flags.
+     *
+     * Curve: base weight = exp(-decay * (tier - 1)) where decay softens as party levels up.
+     * Disabled tiers get weight 0 and a greyed bar.
+     *
+     * @param {number}  partyLevel
+     * @param {boolean} t3Enabled
+     * @param {boolean} t4Enabled
+     * @returns {Array<{tier, label, percent, barHeight, isDisabled}>}
+     */
+    static _buildCursedTierDistribution(partyLevel, t3Enabled, t4Enabled) {
+        const lv = Math.max(1, Number(partyLevel) || 1);
+        // Decay reduces as party levels up, opening higher tiers
+        const decay = Math.max(0.3, 1.2 - (lv / 20) * 0.9);
+        const tierMeta = [
+            { tier: 1, label: "T1",  enabled: true },
+            { tier: 2, label: "T2",  enabled: true },
+            { tier: 3, label: "T3",  enabled: t3Enabled },
+            { tier: 4, label: "T4",  enabled: t4Enabled }
+        ];
+        const rawWeights = tierMeta.map(m =>
+            m.enabled ? Math.exp(-decay * (m.tier - 1)) : 0
+        );
+        const total = rawWeights.reduce((a, b) => a + b, 0) || 1;
+        const percents = rawWeights.map(w => Math.round((w / total) * 1000) / 10);
+        const maxPct = Math.max(...percents, 1);
+        return tierMeta.map((m, i) => ({
+            tier:       m.tier,
+            label:      m.label,
+            percent:    percents[i],
+            barHeight:  Math.round((percents[i] / maxPct) * 72),
+            isDisabled: !m.enabled
+        }));
+    }
+
+    /**
+     * Build four priority columns (T1-T4) from the pool.
+     * Each column holds up to `cap` items in their stored array order (= priority).
+     * Disabled tiers still show their column but mark it locked.
+     *
+     * @param {object[]} pool
+     * @param {boolean}  t3Enabled
+     * @param {boolean}  t4Enabled
+     * @param {number}   cap   Max items per column
+     * @returns {Array<{tier, label, laneHead, enabled, items, count, isFull}>}
+     */
+    static _buildCursedPriorityColumns(pool, t3Enabled, t4Enabled, cap = 5) {
+        const tierEnabledMap = { 1: true, 2: true, 3: t3Enabled, 4: t4Enabled };
+        const cols = [
+            { tier: 1, label: "T1", laneHead: "T1 · Lv 3-5" },
+            { tier: 2, label: "T2", laneHead: "T2 · Lv 8-12" },
+            { tier: 3, label: "T3", laneHead: "T3 · Lv 16" },
+            { tier: 4, label: "T4", laneHead: "T4 · Lv 20" }
+        ];
+        return cols.map(col => {
+            // Items for this tier, preserving their pool array order (= priority)
+            const items = pool
+                .filter(e => (e.tier ?? 1) === col.tier)
+                .slice(0, cap)
+                .map((e, posInCol, arr) => {
+                    const n = arr.length;
+                    const weightSum = (n * (n + 1)) / 2;
+                    const w = n - posInCol;
+                    const weightPct = weightSum > 0 ? Math.round((w / weightSum) * 100) : 100;
+                    return {
+                        ...e,
+                        posInCol,
+                        curseTypeDesc: CURSE_TYPE_DESCRIPTIONS[(e.curseType || "").toLowerCase()] || "",
+                        weightPct,
+                        weightTooltip: `Draw weight within T${col.tier}: ${weightPct}% - drag to reorder`
+                    };
+                });
+            const enabled = tierEnabledMap[col.tier] ?? true;
+            return {
+                ...col,
+                enabled,
+                items,
+                count: items.length,
+                isFull: items.length >= cap
+            };
+        });
+    }
+
+    /**
      * One row: left "Party" cell + 6 milestone stacks of 2 grid-slots each,
      * with a level-reach band behind the strip (same math as signatures,
      * driven by party median level).
+     * @deprecated Kept for reference — replaced by priority column layout.
      */
     _buildCursedPlannedStrip(partyActors, cursedPlanned) {
         const CAP = 2;
@@ -1333,86 +1463,176 @@ export class SignatureLedgerApp extends Application {
         }
     }
 
+    /**
+     * Priority-pool drag-drop.
+     * Handles two interactions:
+     *   1. Reorder within a column: drag a .curse-priority-card to a new position in the same
+     *      or different tier column. Saves new order via setPriorityOrder.
+     *   2. External drop from compendium/sidebar: add item to column (blocked if full).
+     */
     _initCursedDragDrop(html) {
         const form = html[0];
-        const cursedDropHandler = async (target, payload) => {
-            const toLevel = parseInt(target.dataset.level, 10);
-            const toIdx   = parseInt(target.dataset.slotIdx || "0", 10);
-            if (Number.isNaN(toLevel)) return;
-            if (payload?.type === "cursed-planned-move") {
-                await this._swapOrMoveCursedPlanned(payload.level, payload.uuid, toLevel, toIdx);
-            } else if (payload?.type === "cursed-pool-move") {
-                await this._dropPoolCardOntoPlanned(payload.poolIndex, toLevel, toIdx);
-            } else { return; }
-            this.render();
+        const CAP = 5;
+        const MODULE_ID = "ionrift-quartermaster";
+
+        /** Resolve a Foundry drag-event data object from text/plain or standard Foundry DragData. */
+        const parseDragPayload = (ev) => {
+            try {
+                const raw = ev.dataTransfer.getData("text/plain");
+                if (raw) return JSON.parse(raw);
+            } catch { /* fall through */ }
+            return null;
         };
 
-        this._initSlotDragDrop(form, {
-            formDragClass: "cursed-drag-in-progress",
-            isDragging:    () => !!this._cursedDragType,
-            onDragStart:   (el) => {
-                this._cursedDragType = el.classList.contains("cursed-pool-card") ? "pool" : "planned";
+        /** Visual: highlight column on dragover; clear on leave/drop. */
+        const setColHighlight = (colEl, on) => {
+            colEl?.classList.toggle("curse-col-drag-over", on);
+        };
+
+        // ── Draggable priority cards (internal reorder) ───────────────────────
+        form.querySelectorAll(".curse-priority-card[data-uuid]").forEach(card => {
+            card.setAttribute("draggable", "true");
+            card.addEventListener("dragstart", ev => {
+                if (ev.target.closest(".curse-priority-card-remove")) { ev.preventDefault(); return; }
+                this._cursedDragType = "pool";
                 this._cursedDragInFlight = false;
-            },
-            onDragCleanup: () => {
-                this._cursedDragType = null;
-                this._cursedDragInFlight = false;
-            },
-            afterDragRestore: (px, py) => {
-                this._tryRestoreTooltipAfterDrag(px, py,
-                    ".cursed-slot.slot-filled[data-uuid], .cursed-pool-card[data-uuid]");
-            },
-            sources: [
-                {
-                    selector: ".cursed-slot.slot-filled[data-uuid]",
-                    skipEl: el => el.classList.contains("slot-locked"),
-                    buildPayload: el => ({
-                        type: "cursed-planned-move",
-                        level: parseInt(el.dataset.level, 10),
-                        slotIdx: parseInt(el.dataset.slotIdx || "0", 10),
-                        uuid: el.dataset.uuid
-                    })
-                },
-                {
-                    selector: ".cursed-pool-card[data-uuid]",
-                    buildPayload: el => ({
-                        type: "cursed-pool-move",
-                        poolIndex: parseInt(el.dataset.index ?? "-1", 10)
-                    })
-                }
-            ],
-            dropZones: [
-                {
-                    selector: ".cursed-slot",
-                    slotSelector: ".cursed-slots-strip",
-                    nearestSlotFn: (strip, x, y) => {
-                        const s = SignatureLedgerApp._nearestCursedSlot(strip, x, y);
-                        return s?.classList.contains("cursed-slot") ? s : null;
-                    },
-                    onDrop: cursedDropHandler
-                },
-                {
-                    selector: ".cursed-pool-tier-lane",
-                    canDrop: () => !!this._cursedDragType,
-                    onDrop: async (target, payload) => {
-                        if (payload?.type === "cursed-planned-move") {
-                            await this._cursedPlannedToPool(payload.level, payload.uuid);
-                        } else {
+                ev.dataTransfer.effectAllowed = "move";
+                ev.dataTransfer.setData("text/plain", JSON.stringify({
+                    type:     "cursed-priority-move",
+                    uuid:     card.dataset.uuid,
+                    tier:     parseInt(card.dataset.tier, 10),
+                    posInCol: parseInt(card.dataset.posInCol, 10)
+                }));
+                setTimeout(() => card.classList.add("curse-priority-card--dragging"), 0);
+            });
+            card.addEventListener("dragend", () => {
+                card.classList.remove("curse-priority-card--dragging");
+                form.querySelectorAll(".curse-col-drag-over").forEach(el => el.classList.remove("curse-col-drag-over"));
+                setTimeout(() => {
+                    this._cursedDragType = null;
+                    this._cursedDragInFlight = false;
+                }, 120);
+            });
+        });
+
+        // ── Drop zones: tier columns ──────────────────────────────────────────
+        form.querySelectorAll(".curse-priority-col").forEach(col => {
+            const tierNum = parseInt(col.dataset.tier, 10);
+
+            col.addEventListener("dragover", ev => {
+                ev.preventDefault();
+                ev.dataTransfer.dropEffect = "move";
+                setColHighlight(col, true);
+            });
+            col.addEventListener("dragleave", ev => {
+                if (!col.contains(ev.relatedTarget)) setColHighlight(col, false);
+            });
+
+            col.addEventListener("drop", async ev => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                setColHighlight(col, false);
+
+                const payload = parseDragPayload(ev);
+                const reg = getActiveCursedRegistry();
+
+                if (payload?.type === "cursed-priority-move") {
+                    // ── Reorder within/between tier columns ──────────────────
+                    const fromUuid = payload.uuid;
+                    const fromTier = payload.tier;
+
+                    const pool = await reg.getCursedPool();
+
+                    // Determine drop target position from cursor Y vs card midpoints
+                    const cards = [...col.querySelectorAll(".curse-priority-card")];
+                    let insertBefore = null;
+                    for (const c of cards) {
+                        const rect = c.getBoundingClientRect();
+                        if (ev.clientY < rect.top + rect.height / 2) { insertBefore = c; break; }
+                    }
+                    const insertBeforeUuid = insertBefore?.dataset.uuid ?? null;
+
+                    // Build new ordered UUID list for this tier
+                    const tierItems = pool
+                        .filter(e => (e.tier ?? 1) === tierNum && (e.uuid || "") !== fromUuid)
+                        .map(e => e.uuid);
+
+                    // Moving from another tier: check cap
+                    if (fromTier !== tierNum) {
+                        const currentCount = tierItems.length;
+                        if (currentCount >= CAP) {
+                            ui.notifications.warn(`T${tierNum} column is full (max ${CAP} items). Remove one before adding another.`);
                             return;
                         }
-                        this.render();
+                        // Also update the source tier to remove the item from there
+                        const sourceTierItems = pool
+                            .filter(e => (e.tier ?? 1) === fromTier && (e.uuid || "") !== fromUuid)
+                            .map(e => e.uuid);
+                        // Find the entry and update its tier
+                        const movingEntry = pool.find(e => (e.uuid || "") === fromUuid);
+                        if (movingEntry) movingEntry.tier = tierNum;
+                        if (typeof reg.setPriorityOrder === "function") {
+                            await reg.setPriorityOrder(fromTier, sourceTierItems);
+                        }
                     }
-                },
-                {
-                    selector: ".cursed-pool-planned-return-gutter",
-                    canDrop: () => this._cursedDragType === "planned",
-                    onDrop: async (target, payload) => {
-                        if (payload?.type !== "cursed-planned-move") return;
-                        await this._cursedPlannedToPool(payload.level, payload.uuid);
-                        this.render();
+
+                    // Insert at cursor position
+                    const insertIdx = insertBeforeUuid
+                        ? tierItems.indexOf(insertBeforeUuid)
+                        : -1;
+                    if (insertIdx >= 0) {
+                        tierItems.splice(insertIdx, 0, fromUuid);
+                    } else {
+                        tierItems.push(fromUuid);
                     }
+
+                    if (typeof reg.setPriorityOrder === "function") {
+                        await reg.setPriorityOrder(tierNum, tierItems);
+                    }
+                    this.render();
+                    return;
                 }
-            ]
+
+                // ── External drop: add new item from compendium/sidebar ───────
+                let uuid = payload?.uuid;
+                if (!uuid) {
+                    // Try Foundry v12/v13 standard drag data
+                    const TE = foundry.applications?.ux?.TextEditor?.implementation ?? globalThis.TextEditor;
+                    const foundryData = TE?.getDragEventData?.(ev) ?? null;
+                    uuid = foundryData?.uuid;
+                }
+                if (!uuid) return;
+
+                const pool = await reg.getCursedPool();
+                const tierItems = pool.filter(e => (e.tier ?? 1) === tierNum);
+                if (tierItems.length >= CAP) {
+                    ui.notifications.warn(`T${tierNum} column is full (max ${CAP} items). Remove one first.`);
+                    return;
+                }
+                if (pool.some(e => (e.uuid || "").toLowerCase() === uuid.toLowerCase())) {
+                    ui.notifications.info("That item is already in the cursed pool.");
+                    return;
+                }
+
+                // Resolve item doc for metadata
+                let doc;
+                try { doc = await fromUuid(uuid); } catch { /* */ }
+                if (!doc) return;
+
+                const meta = doc.flags?.[MODULE_ID]?.cursedMeta ?? {};
+                const newEntry = {
+                    uuid,
+                    name:            doc.name ?? "Unknown",
+                    img:             doc.img ?? "icons/svg/item-bag.svg",
+                    curseType:       meta.curseType ?? "unknown",
+                    decoyAppearance: meta.decoyAppearance ?? "",
+                    trueNature:      meta.trueNature ?? "",
+                    tier:            meta.tier ?? tierNum
+                };
+
+                await reg.setCursedPool([...pool, newEntry]);
+                this.render();
+            });
         });
     }
 
@@ -1670,6 +1890,10 @@ export class SignatureLedgerApp extends Application {
             await game.settings.set("ionrift-quartermaster", "shelfCategoryWeights", JSON.stringify(parsed));
             this.render(false);
         });
+        html.find(".action-open-loot-generation-config").click(ev => {
+            ev.preventDefault();
+            new LootGenerationConfigApp().render(true);
+        });
         html.find(".action-reset-party-defaults").click(async ev => {
             ev.preventDefault();
             await game.settings.set("ionrift-quartermaster", "shelfConcentration", 3);
@@ -1694,17 +1918,7 @@ export class SignatureLedgerApp extends Application {
             emptySelector:   ".ban-empty-state"
         });
 
-        // Cursed tab: planned curses
-        html.find(".cursed-slot.slot-filled[data-uuid]").click(ev => this._openItemSheetFromSlot(ev, {
-            dragGuard: () => this._sigDragInFlight || this._cursedDragInFlight,
-            ignoreSelector: ".slot-btn"
-        }));
-        html.find(".action-remove-cursed-item").click(this._onRemoveCursedItem.bind(this));
-        html.on("click", ".action-seed-cursed", this._onSeedCursedPlanned.bind(this));
-        html.find(".action-toggle-used").click(this._onToggleCursedUsed.bind(this));
-        html.find(".action-reroll-cursed-slot").click(this._onRerollCursedSlot.bind(this));
-
-        // Cursed tab: CurseRegistryPanel launch - delegates to Cursewright
+        // Cursed tab: CurseRegistryPanel launch (Curse Tracker button in header)
         html.find(".action-open-curse-registry").click(ev => {
             ev.preventDefault();
             const cw = game.ionrift?.cursewright;
@@ -1712,24 +1926,42 @@ export class SignatureLedgerApp extends Application {
             new cw.CurseRegistryPanel().render(true);
         });
 
-        // Lock toggle (all variants: signatures, cursed, scrolls)
+        // Lock toggle (signatures, scrolls)
         html.find(".action-toggle-lock").click(this._onToggleLock.bind(this));
 
-        // Cursed tab: pool
-        html.find(".cursed-pool-card[data-uuid]").click(ev => {
-            if (ev.target.closest(".cursed-pool-card-remove")) return;
+        // Cursed tab: priority pool cards — click to open sheet
+        html.find(".curse-priority-card[data-uuid]").click(ev => {
+            if (ev.target.closest(".curse-priority-card-remove")) return;
             if (this._cursedDragInFlight) return;
             const uuid = ev.currentTarget.dataset.uuid;
             if (uuid) fromUuid(uuid).then(doc => doc?.sheet?.render(true));
         });
-        html.find(".action-remove-pool-item").click(this._onRemovePoolItem.bind(this));
-        this._initCursedPoolDropZoneVisuals(html);
+
+        // Remove from priority pool
+        html.find(".curse-priority-card-remove").click(this._onRemovePoolItem.bind(this));
+
+        // T3/T4 tier enable toggles
+        html.find(".action-toggle-t3").change(async ev => {
+            const enabled = ev.currentTarget.checked;
+            const reg = getActiveCursedRegistry();
+            if (typeof reg.setTierEnabled === "function") await reg.setTierEnabled(3, enabled);
+            else await game.settings.set(MODULE_ID, "cursedT3Enabled", enabled);
+            this.render(false);
+        });
+        html.find(".action-toggle-t4").change(async ev => {
+            const enabled = ev.currentTarget.checked;
+            const reg = getActiveCursedRegistry();
+            if (typeof reg.setTierEnabled === "function") await reg.setTierEnabled(4, enabled);
+            else await game.settings.set(MODULE_ID, "cursedT4Enabled", enabled);
+            this.render(false);
+        });
+
+        // Source footer actions
         html.find(".action-compile-curse-forge").click(this._onRebuildCursedPool.bind(this));
         html.find(".action-compile-srd-cursed").click(this._onLoadSrdCursedItems.bind(this));
         html.find(".action-open-cursed-compendium").click(this._onOpenCursedCompendium.bind(this));
-        html.find(".action-import-all-cursed").click(this._onImportAllCursed.bind(this));
-        // Delegated handler for source card buttons (more robust than direct binding on <a>)
-        html.find(".cursed-source-cards").on("click", "[data-action]", (ev) => {
+        // Delegated handler for source footer inline buttons
+        html.find(".curse-source-footer").on("click", "[data-action]", (ev) => {
             ev.preventDefault();
             ev.stopPropagation();
             const action = ev.currentTarget.dataset.action;
@@ -1738,6 +1970,7 @@ export class SignatureLedgerApp extends Application {
             if (action === "remove-srd-cursed")   this._onRemoveSrdCursedFromPool(ev);
             if (action === "remove-curse-forge")  this._onRemoveCursewrightFromPool(ev);
         });
+
         if (this._activeTab === "cursed") this._initCursedDragDrop(html);
         if (this._activeTab === "scrolls") this._initScrollDragDrop(html);
         if (this._activeTab === "party") this._initPartyDragDrop(html);

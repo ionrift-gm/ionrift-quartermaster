@@ -6228,6 +6228,22 @@ button.scroll-open-compendium {
     color: rgba(96, 214, 200, 0.55);
 }
 
+/* Party tab: scroll body + footer pinned to panel bottom */
+.panel-party .party-panel-layout {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+
+.panel-party .party-panel-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 10px;
+}
+
 /* ══ Party Shelf Policy Dashboard ═══════════════════════════════════ */
 
 .party-policy-dashboard {
@@ -6238,10 +6254,8 @@ button.scroll-open-compendium {
 }
 
 .party-policy-dashboard .policy-hero-badge {
-    border-color: rgba(32, 178, 170, 0.45);
-    box-shadow:
-        0 0 20px rgba(32, 178, 170, 0.15),
-        inset 0 0 12px rgba(32, 178, 170, 0.06);
+    border-color: transparent;
+    box-shadow: none;
 }
 
 .party-policy-dashboard .policy-hero-label {
@@ -6528,6 +6542,33 @@ button.scroll-open-compendium {
     color: rgba(200, 220, 218, 0.3);
     margin-top: 4px;
     font-style: italic;
+}
+
+.party-shelf-loot-config-note {
+    font-size: 9px;
+    color: rgba(200, 220, 218, 0.35);
+    margin-top: 8px;
+    line-height: 1.45;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.35rem;
+    align-items: baseline;
+}
+
+.party-shelf-loot-config-note > i {
+    color: rgba(96, 214, 200, 0.45);
+    font-size: 8px;
+}
+
+.party-shelf-loot-config-link {
+    color: rgba(96, 214, 200, 0.55);
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.party-shelf-loot-config-link:hover {
+    color: rgba(96, 214, 200, 0.85);
 }
 
 /* ── Override Button (teal variant) ───────────────────────────────── */
@@ -9350,24 +9391,73 @@ button.scroll-open-compendium {
     gap: 0.35rem;
 }
 
+/* Two-column config layout */
+.qm-settings-config .settings-config-columns {
+    display: flex;
+    gap: 0;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.qm-settings-config .settings-config-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.qm-settings-config .settings-config-col--left {
+    padding-right: 14px;
+}
+
+.qm-settings-config .settings-config-col--right {
+    padding-left: 14px;
+}
+
+.qm-settings-config .settings-config-col-divider {
+    width: 1px;
+    align-self: stretch;
+    background: linear-gradient(180deg, transparent, rgba(200, 160, 60, 0.2), transparent);
+    flex-shrink: 0;
+}
+
+.qm-settings-config .qm-config-section-header {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    color: rgba(200, 160, 60, 0.55);
+    padding: 0.5rem 0.2rem 0.15rem;
+    border-bottom: 1px solid rgba(200, 160, 60, 0.12);
+    margin-bottom: 0.1rem;
+}
+
 .qm-settings-config .settings-config-row {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.55rem 0.65rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.3rem;
+    padding: 0.4rem 0.6rem 0.45rem;
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 8px;
 }
 
-.qm-settings-config .settings-config-info {
-    flex: 1;
+.qm-settings-config .settings-config-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
     min-width: 0;
 }
 
 .qm-settings-config .settings-config-label {
-    font-size: 0.86rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.84rem;
     font-weight: 600;
+    line-height: 1.25;
 }
 
 .qm-settings-config .settings-config-icon {
@@ -9376,9 +9466,10 @@ button.scroll-open-compendium {
 }
 
 .qm-settings-config .settings-config-hint {
-    font-size: 0.65rem;
+    font-size: 0.64rem;
     color: rgba(255, 255, 255, 0.35);
-    line-height: 1.35;
+    line-height: 1.3;
+    padding-right: 0.1rem;
 }
 
 .qm-settings-config .settings-config-toggle {
@@ -9438,8 +9529,15 @@ button.scroll-open-compendium {
 .qm-settings-config .settings-config-range-wrap {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    flex-shrink: 0;
+    gap: 0.4rem;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.qm-settings-config .settings-config-range {
+    width: 88px;
+    min-width: 72px;
+    flex: 0 1 auto;
 }
 
 .qm-settings-config .settings-config-range-val {
@@ -9468,16 +9566,24 @@ button.scroll-open-compendium {
 
 .qm-settings-config .settings-config-popout-wrap {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.35rem;
-    min-width: 9rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 58%;
 }
 
 .qm-settings-config .settings-config-popout-summary {
-    font-size: 0.78rem;
+    font-size: 0.68rem;
     color: rgba(200, 160, 60, 0.85);
     text-align: right;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .qm-settings-config .settings-config-popout-btn {
@@ -10671,6 +10777,14 @@ button.scroll-open-compendium {
     font-weight: 700;
     font-size: 11px;
 }
+/* Party shelf: override gold optimal-bar text with teal to match column palette */
+.party-policy-dashboard .policy-bar-col.policy-bar-optimal .policy-bar-pct {
+    color: rgba(96, 214, 200, 0.95);
+    text-shadow: 0 0 8px rgba(32, 178, 170, 0.45);
+}
+.party-policy-dashboard .policy-bar-col.policy-bar-optimal .policy-bar-label {
+    color: rgba(96, 214, 200, 0.85);
+}
 
 /* Sliders row */
 .policy-sliders-row {
@@ -10810,17 +10924,710 @@ button.scroll-open-compendium {
     border-top: 1px solid transparent;
 }
 .qm-tracker-accordion.qm-tracker-accordion-open {
-    max-height: 800px; /* Space for scrollable grid + footer buttons */
+    display: flex;
+    flex-direction: column;
+    max-height: 800px;
     border-top-color: rgba(212, 149, 10, 0.18);
     margin-top: 8px;
 }
 .qm-tracker-accordion-scrollable {
-    /* 2 rows high approx 180px (slot=64px, padding, headers) */
-    max-height: 200px; 
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 200px;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 4px; /* Space for scrollbar */
+    padding-right: 4px;
 }
+.qm-tracker-accordion .tracker-accordion-actions {
+    flex: 0 0 auto;
+    margin-top: 0;
+    padding: 10px 4px 6px;
+    border-top: 1px solid rgba(212, 149, 10, 0.15);
+}
+.qm-tracker-accordion .tracker-accordion-actions .scroll-jitter-note {
+    margin-bottom: 0;
+}
+.panel-party .qm-tracker-accordion.qm-tracker-accordion-open {
+    border-top-color: rgba(32, 178, 170, 0.18);
+}
+.panel-party .qm-tracker-accordion .tracker-accordion-actions {
+    border-top-color: rgba(32, 178, 170, 0.18);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CURSE TAB — Priority Pool Layout
+   Scoped to .cursed-priority-layout so no bleed onto other tabs.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Layout container ──────────────────────────────────────────────── */
+.cursed-priority-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+}
+
+/* ── Header bar ────────────────────────────────────────────────────── */
+.curse-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px 6px;
+    border-bottom: 1px solid rgba(220, 38, 38, 0.12);
+    flex: 0 0 auto;
+}
+
+.curse-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.curse-header-left > .fas {
+    color: rgba(220, 38, 38, 0.55);
+    font-size: 0.9em;
+    flex: 0 0 auto;
+}
+
+.curse-header-title {
+    font-size: 0.95em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: rgba(248, 113, 113, 0.9);
+    white-space: nowrap;
+}
+
+.curse-header-sub {
+    font-size: 0.82em;
+    color: rgba(255, 255, 255, 0.38);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.curse-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+
+.curse-cw-dot {
+    color: rgba(245, 158, 11, 0.6);
+    font-size: 1.3em;
+    line-height: 1;
+    animation: curse-dot-pulse 3.5s ease-in-out infinite;
+}
+
+@keyframes curse-dot-pulse {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1.0; }
+}
+
+.curse-cw-signal {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.82em;
+    color: rgba(245, 200, 100, 0.5);
+    letter-spacing: 0.01em;
+}
+
+.curse-header-level {
+    font-size: 0.72em;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.cursed-priority-layout .btn-cursed-tracker-launch {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    background: rgba(220, 38, 38, 0.10);
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    color: rgba(248, 113, 113, 0.85);
+    font-size: 0.72em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.cursed-priority-layout .btn-cursed-tracker-launch:hover {
+    border-color: rgba(220, 38, 38, 0.55);
+    background: rgba(220, 38, 38, 0.18);
+    color: rgba(252, 165, 165, 0.95);
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.12);
+}
+
+/* ── Tier distribution chart ───────────────────────────────────────── */
+/* ── Tier distribution panel — outer row ── */
+.curse-tier-dist-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex: 0 0 auto;
+    background: rgba(0, 0, 0, 0.12);
+    flex-wrap: wrap;
+}
+
+/* ── Unified inset box: bars + divider + toggles ── */
+.curse-dist-chart-group {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 7px;
+    flex: 0 0 auto;
+}
+
+.curse-dist-label {
+    font-size: 0.92em;
+    color: rgba(255, 255, 255, 0.38);
+    white-space: nowrap;
+    align-self: center;
+    letter-spacing: 0.02em;
+}
+
+.curse-dist-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    min-height: 52px;
+    height: auto;
+}
+
+.curse-dist-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    width: 44px;
+    gap: 4px;
+    height: 80px;
+}
+
+/* ── Vertical divider between bars and toggles ── */
+.curse-dist-vert-divider {
+    width: 1px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.08);
+    align-self: center;
+    flex: 0 0 auto;
+    margin: 0 2px;
+}
+
+.curse-dist-bar {
+    width: 30px;
+    border-radius: 4px 4px 0 0;
+    min-height: 3px;
+    background: linear-gradient(180deg, rgba(220, 38, 38, 0.65), rgba(180, 30, 30, 0.4));
+    transition: height 0.4s ease;
+}
+
+.curse-dist-col--off .curse-dist-bar {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.curse-dist-col:nth-child(3) .curse-dist-bar {
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.65), rgba(180, 100, 20, 0.4));
+}
+
+.curse-dist-col:nth-child(4) .curse-dist-bar {
+    background: linear-gradient(180deg, rgba(220, 38, 38, 0.8), rgba(140, 20, 20, 0.55));
+}
+
+.curse-dist-col--off:nth-child(3) .curse-dist-bar,
+.curse-dist-col--off:nth-child(4) .curse-dist-bar {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.curse-dist-pct {
+    font-size: 0.78em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+}
+
+.curse-dist-col--off .curse-dist-pct {
+    color: rgba(255, 255, 255, 0.18);
+}
+
+.curse-dist-tier-label {
+    font-size: 0.76em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+/* ── Toggles: inline inside chart group, no isolation ── */
+.curse-tier-toggles {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-self: center;
+}
+
+.curse-tier-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    padding: 2px 6px 2px 4px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.curse-tier-toggle-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.curse-tier-toggle-check {
+    width: 13px;
+    height: 13px;
+    accent-color: rgba(248, 113, 113, 0.9);
+    cursor: pointer;
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.curse-toggle-tier {
+    font-size: 0.9em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.82);
+    min-width: 22px;
+}
+
+.curse-tier-toggle-row:first-child .curse-toggle-tier {
+    color: rgba(245, 158, 11, 0.85);
+}
+
+.curse-tier-toggle-row:last-child .curse-toggle-tier {
+    color: rgba(248, 113, 113, 0.85);
+}
+
+.curse-toggle-hint {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+    font-style: italic;
+}
+
+.curse-toggle-off .curse-toggle-tier,
+.curse-toggle-off .curse-toggle-hint {
+    color: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* ── Priority columns grid ─────────────────────────────────────────── */
+/* ── 6: Asymmetric column widths — T1/T2 get more real estate, T3/T4 are narrower ── */
+.curse-priority-grid {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1.5fr 1fr;
+    gap: 6px;
+    padding: 8px 8px 6px;
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: start;
+}
+
+.curse-priority-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(18, 12, 30, 0.45);
+    border: 1px solid rgba(220, 38, 38, 0.14);
+    border-radius: 7px;
+    padding: 5px 5px 6px;
+    min-height: 80px;
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.curse-priority-col[data-tier="3"] {
+    border-color: rgba(245, 158, 11, 0.18);
+}
+
+.curse-priority-col[data-tier="4"] {
+    border-color: rgba(220, 38, 38, 0.22);
+}
+
+.curse-priority-col--disabled {
+    opacity: 0.55;
+    border-style: dashed;
+}
+
+.curse-col-drag-over {
+    border-color: rgba(248, 113, 113, 0.55) !important;
+    box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.25), inset 0 0 10px rgba(220, 38, 38, 0.05) !important;
+}
+
+/* ── 2: Column header with tier-coloured accent underline ── */
+.curse-priority-col-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2px 5px;
+    border-bottom: 2px solid rgba(220, 38, 38, 0.22);
+    margin-bottom: 4px;
+    flex: 0 0 auto;
+}
+
+.curse-priority-col[data-tier="1"] .curse-priority-col-head {
+    border-bottom-color: rgba(220, 38, 38, 0.28);
+}
+
+.curse-priority-col[data-tier="2"] .curse-priority-col-head {
+    border-bottom-color: rgba(220, 38, 38, 0.22);
+}
+
+.curse-priority-col[data-tier="3"] .curse-priority-col-head {
+    border-bottom-color: rgba(245, 158, 11, 0.35);
+}
+
+.curse-priority-col[data-tier="4"] .curse-priority-col-head {
+    border-bottom-color: rgba(239, 68, 68, 0.38);
+}
+
+.curse-col-label {
+    font-size: 0.74em;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(248, 113, 113, 0.65);
+}
+
+.curse-priority-col[data-tier="3"] .curse-col-label {
+    color: rgba(245, 158, 11, 0.75);
+}
+
+.curse-priority-col[data-tier="4"] .curse-col-label {
+    color: rgba(248, 113, 113, 0.85);
+}
+
+.curse-col-count {
+    font-size: 0.68em;
+    color: rgba(255, 255, 255, 0.28);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.curse-col-count--full {
+    color: rgba(248, 113, 113, 0.6);
+}
+
+/* ── Priority cards ────────────────────────────────────────────────── */
+/* ── Weight percentage badge (replaces braille handle) ── */
+.curse-card-weight-badge {
+    flex: 0 0 auto;
+    font-size: 0.68em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 3px;
+    padding: 1px 4px;
+    cursor: grab;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    min-width: 30px;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.curse-priority-card:hover .curse-card-weight-badge {
+    color: rgba(248, 113, 113, 0.8);
+    background: rgba(220, 38, 38, 0.1);
+    border-color: rgba(220, 38, 38, 0.25);
+}
+
+.curse-priority-col[data-tier="3"] .curse-priority-card:hover .curse-card-weight-badge {
+    color: rgba(245, 158, 11, 0.85);
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.22);
+}
+
+/* ── 1: Cards — taller, more breathing room ── */
+.curse-priority-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 26px 7px 6px;
+    min-height: 44px;
+    background: rgba(220, 38, 38, 0.04);
+    border: 1px solid rgba(220, 38, 38, 0.12);
+    border-radius: 6px;
+    cursor: grab;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.curse-priority-col[data-tier="3"] .curse-priority-card {
+    background: rgba(245, 158, 11, 0.04);
+    border-color: rgba(245, 158, 11, 0.14);
+}
+
+.curse-priority-col[data-tier="4"] .curse-priority-card {
+    background: rgba(220, 38, 38, 0.06);
+    border-color: rgba(220, 38, 38, 0.2);
+}
+
+.curse-priority-card:hover {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: rgba(220, 38, 38, 0.32);
+    box-shadow: 0 1px 6px rgba(220, 38, 38, 0.08);
+}
+
+.curse-priority-card--dragging {
+    opacity: 0.35;
+    box-shadow: none;
+}
+
+.curse-card-handle {
+    flex: 0 0 auto;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.15);
+    cursor: grab;
+    line-height: 1;
+    padding: 0 1px;
+    transition: color 0.15s;
+}
+
+.curse-priority-card:hover .curse-card-handle {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+/* ── 1: Icon — larger at 34px ── */
+.curse-card-icon {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.curse-card-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    object-fit: contain;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.curse-card-placeholder {
+    font-size: 1.25em;
+    color: rgba(220, 38, 38, 0.2);
+}
+
+.curse-card-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+/* ── 1: Name wraps to 2 lines; 5: curse type contrast bump ── */
+.curse-card-name {
+    font-size: 0.82em;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.88);
+    white-space: normal;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.curse-card-type {
+    font-size: 0.71em;
+    text-transform: capitalize;
+    color: rgba(200, 160, 255, 0.72);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.02em;
+}
+
+.curse-priority-card-remove {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.65em;
+    transition: all 0.15s;
+    line-height: 1;
+    opacity: 0;
+}
+
+.curse-priority-card:hover .curse-priority-card-remove {
+    opacity: 1;
+}
+
+.curse-priority-card-remove:hover {
+    color: rgba(248, 113, 113, 0.9);
+    border-color: rgba(220, 38, 38, 0.4);
+    background: rgba(220, 38, 38, 0.15);
+}
+
+/* ── Column helpers ────────────────────────────────────────────────── */
+.curse-col-disabled-notice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 4px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.22);
+    font-size: 0.78em;
+}
+
+.curse-col-disabled-notice .fas {
+    font-size: 1em;
+    color: rgba(255, 255, 255, 0.15);
+}
+
+.curse-col-drop-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 4px;
+    border: 1px dashed rgba(220, 38, 38, 0.18);
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.24);
+    font-size: 0.72em;
+    margin-top: 3px;
+    transition: border-color 0.2s, color 0.2s;
+    pointer-events: none;
+}
+
+.curse-priority-col.curse-col-drag-over .curse-col-drop-hint {
+    border-color: rgba(248, 113, 113, 0.4);
+    color: rgba(248, 113, 113, 0.6);
+}
+
+.curse-col-full-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px;
+    color: rgba(248, 113, 113, 0.5);
+    font-size: 0.7em;
+    text-align: center;
+    pointer-events: none;
+}
+
+/* ── Source footer ─────────────────────────────────────────────────── */
+.curse-source-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 10px 7px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.18);
+    flex: 0 0 auto;
+    min-height: 32px;
+}
+
+.curse-source-footer-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.curse-source-footer-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.curse-source-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.18);
+    white-space: nowrap;
+}
+
+.curse-source-pill--active {
+    color: rgba(134, 239, 172, 0.75);
+    border-color: rgba(74, 222, 128, 0.2);
+    background: rgba(34, 197, 94, 0.06);
+}
+
+.curse-source-pill--active .fas {
+    color: rgba(74, 222, 128, 0.65);
+}
+
+.curse-footer-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: rgba(248, 113, 113, 0.7);
+    padding: 3px 9px;
+    border-radius: 4px;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    background: rgba(220, 38, 38, 0.04);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.curse-footer-link:hover {
+    color: rgba(252, 165, 165, 0.9);
+    border-color: rgba(220, 38, 38, 0.45);
+    background: rgba(220, 38, 38, 0.12);
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.1);
+}
+
 
 
 

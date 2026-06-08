@@ -138,6 +138,26 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         restricted: true
     });
 
+    game.settings.register(MODULE_ID, "armourDropChance", {
+        name: "Armour Drop Chance",
+        scope: "world",
+        config: false,
+        type: Number,
+        range: { min: 0.0, max: 1.0, step: 0.05 },
+        default: 0.65,
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "namedMagicFrequency", {
+        name: "Named Magic Frequency",
+        scope: "world",
+        config: false,
+        type: Number,
+        range: { min: 0.0, max: 2.0, step: 0.25 },
+        default: 1.0,
+        restricted: true
+    });
+
     game.settings.register(MODULE_ID, "magicAmmoFrequency", {
         name: "Magical Ammunition Frequency",
         hint: "Scales how often magical ammunition (+1/+2/+3) appears in caches. 0 disables magical ammo entirely. 1.0 follows the tier-appropriate curve. 2.0 is generous. Independent of Magic Frequency.",
@@ -375,6 +395,26 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         config: false,
         type: String,
         default: "[]",
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "cursedT3Enabled", {
+        name: "Cursed Pool: T3 Enabled",
+        hint: "Allow Tier 3 cursed items to surface in advisory suggestions. T3 items are documented as high-lethality — they can kill players. Disable to keep them out of generated caches.",
+        scope: "world",
+        config: false,
+        type: Boolean,
+        default: true,
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "cursedT4Enabled", {
+        name: "Cursed Pool: T4 Enabled",
+        hint: "Allow Tier 4 cursed items to surface in advisory suggestions. T4 items are campaign-altering — side quests, major distractions, and long-term consequences. Disable to reserve them for deliberate placement.",
+        scope: "world",
+        config: false,
+        type: Boolean,
+        default: true,
         restricted: true
     });
 

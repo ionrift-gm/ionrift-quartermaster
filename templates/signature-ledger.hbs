@@ -242,23 +242,23 @@
                     </div>
                 </div>
                 </div>{{!-- /qm-tracker-accordion-scrollable --}}
-                
-            </div>{{!-- /qm-tracker-accordion --}}
 
-            {{!-- ── Scroll Compendium Info (below accordion) ── --}}
-            <div class="scroll-compendium-info" style="margin-top: 16px;">
-                <div class="scroll-compendium-buttons">
-                    <button type="button" class="scroll-open-compendium action-open-forged-scrolls" title="Open the forged spell scroll compendium">
-                        <i class="fas fa-book-open"></i> Open Quartermaster: Spell Scrolls
-                    </button>
-                    <a role="button" class="qm-secondary-link action-compile-scroll-forge" title="Choose spell sources and recompile the scroll compendium">
-                        <i class="fas fa-hammer"></i> Item Compiler
-                    </a>
+                {{!-- ── Scroll actions (inside override accordion) ── --}}
+                <div class="scroll-compendium-info tracker-accordion-actions">
+                    <div class="scroll-compendium-buttons">
+                        <button type="button" class="scroll-open-compendium action-open-forged-scrolls" title="Open the forged spell scroll compendium">
+                            <i class="fas fa-book-open"></i> Open Quartermaster: Spell Scrolls
+                        </button>
+                        <a role="button" class="qm-secondary-link action-compile-scroll-forge" title="Choose spell sources and recompile the scroll compendium">
+                            <i class="fas fa-hammer"></i> Item Compiler
+                        </a>
+                    </div>
+                    <p class="scroll-jitter-note">
+                        Drag scrolls from the compendium into slots. <strong>Pinned</strong> scrolls bypass randomisation and land at their milestone.
+                    </p>
                 </div>
-                <p class="scroll-jitter-note">
-                    Drag scrolls from the compendium into slots. <strong>Pinned</strong> scrolls bypass randomisation and land at their milestone.
-                </p>
-            </div>
+
+            </div>{{!-- /qm-tracker-accordion --}}
 
             {{/with}}
 
@@ -271,9 +271,10 @@
     {{!-- ══ PARTY SHELF ══════════════════════════════════════════ --}}
     {{#if (eq activeTab 'party')}}
     <div class="registry-panel panel-party">
-        <div class="ledger-scroll-area cursed-scroll-area">
+        <div class="ledger-scroll-area cursed-scroll-area party-panel-layout">
 
             {{#with partyShelfRow}}
+            <div class="party-panel-scroll">
             {{!-- ── Party Shelf Policy Dashboard (always visible) ──────── --}}
             <div class="qm-policy-dashboard party-policy-dashboard">
                 <div class="party-policy-columns">
@@ -330,6 +331,12 @@
                         {{/each}}
 
                         <span class="party-category-note">Weights auto-normalise among enabled categories.</span>
+
+                        <div class="party-shelf-loot-config-note">
+                            <i class="fas fa-circle-info"></i>
+                            <span>These filters control what appears in the advisory panel. Armour and weapon drops in generated caches are controlled separately in Loot Generation settings.</span>
+                            <a role="button" class="party-shelf-loot-config-link action-open-loot-generation-config">Open Config &rarr;</a>
+                        </div>
                     </div>
                 </div>
 
@@ -397,26 +404,26 @@
                     </div>
                 </div>{{!-- /qm-tracker-accordion-scrollable --}}
 
+                {{!-- ── Party Shelf actions (inside override accordion) ── --}}
+                <div class="scroll-compendium-info party-compendium-info tracker-accordion-actions">
+                    <div class="scroll-compendium-buttons party-compendium-buttons">
+                        <button type="button" class="scroll-open-compendium action-seed-shelf" title="Randomise party items from the configured compendiums by rarity">
+                            <i class="fas fa-wand-magic-sparkles"></i> Randomise
+                        </button>
+                        <a role="button" class="qm-secondary-link action-curate-shelf" title="Choose which item compendiums the randomiser draws from and compile the loot pool">
+                            <i class="fas fa-hammer"></i> Item Compiler
+                        </a>
+                    </div>
+                    <p class="scroll-jitter-note party-jitter-note">
+                        Drop items from compendiums into slots to plan them. <strong>Planned</strong> items bypass randomisation and land at their milestone.
+                    </p>
+                </div>
+
             </div>{{!-- /qm-tracker-accordion --}}
 
-            {{!-- ── Party Shelf Actions (below accordion) ── --}}
-            <div class="scroll-compendium-info party-compendium-info" style="margin-top: 16px;">
-                <div class="scroll-compendium-buttons party-compendium-buttons">
-                    <button type="button" class="scroll-open-compendium action-seed-shelf" title="Randomise party items from the configured compendiums by rarity">
-                        <i class="fas fa-wand-magic-sparkles"></i> Randomise
-                    </button>
-                    <a role="button" class="qm-secondary-link action-curate-shelf" title="Choose which item compendiums the randomiser draws from and compile the loot pool">
-                        <i class="fas fa-hammer"></i> Item Compiler
-                    </a>
-                </div>
-                <p class="scroll-jitter-note party-jitter-note">
-                    Drop items from compendiums into slots to plan them. <strong>Planned</strong> items bypass randomisation and land at their milestone.
-                </p>
-            </div>
+            </div>{{!-- /party-panel-scroll --}}
 
             {{/with}}
-
-            <div style="height: 24px; flex-shrink: 0; width: 100%;"></div>
         </div>
     </div>
     {{/if}}
@@ -478,200 +485,173 @@
 
 {{#if (eq activeTab 'cursed')}}
 <div class="registry-panel panel-cursed">
+    <div class="ledger-scroll-area cursed-scroll-area cursed-priority-layout">
 
-    <div class="ledger-scroll-area cursed-scroll-area">
-
-        {{!-- ── Section 1: Planned Curses ───────────────────────── --}}
-        <div class="scroll-section-header cursed-planned-section-header">
-            <div class="scroll-section-header-row">
-                <span class="scroll-section-title"><i class="fas fa-crosshairs"></i> Planned Curses</span>
+        {{!-- ── Compact header bar ────────────────────────────────────────── --}}
+        <div class="curse-header-bar">
+            <div class="curse-header-left">
+                <i class="fas fa-flask-vial"></i>
+                <span class="curse-header-title">Cursed Pool</span>
+                <span class="curse-header-sub">Priority shapes drop probability within each tier.</span>
+            </div>
+            <div class="curse-header-right">
+                {{#unless cwPresent}}
+                <span class="curse-cw-signal" title="Install Cursewright for extended curse content, tier-tagged recipes, and the full curse engine.">
+                    <span class="curse-cw-dot">◦</span> Cursewright not loaded
+                </span>
+                {{/unless}}
                 {{#if cwPresent}}
                 <button type="button" class="btn-cursed-tracker-launch action-open-curse-registry"
-                        title="View active cursed items being tracked by the Curse Engine">
+                        title="View active cursed items tracked by the Curse Engine">
                     <i class="fas fa-eye"></i> Curse Tracker
                 </button>
                 {{/if}}
+                <span class="curse-header-level">Lv {{partyLevel}}</span>
             </div>
-            <span class="scroll-section-hint">This board is <strong class="hint-highlight">optional</strong>. The loot generator delivers cursed items on its own. Pin a curse here if you want to guarantee it surfaces at a specific milestone.</span>
         </div>
 
-        {{!-- Planned strip: milestone labels + reach band + slot stacks (full-width) --}}
-        {{#with cursedPlannedRow}}
-        <div class="cursed-planned-strip-wrap">
-            <div class="cursed-planned-col-labels">
-                <div class="cursed-planned-col-labels-grid">
-                    {{#each milestoneLabels}}
-                    <span class="cursed-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</span>
+        {{!-- ── Tier distribution chart ────────────────────────────────────── --}}
+        <div class="curse-tier-dist-panel">
+            <span class="curse-dist-label">Drop probability at Lv {{partyLevel}}</span>
+            <div class="curse-dist-chart-group">
+                <div class="curse-dist-bars">
+                    {{#each cursedTierDistribution}}
+                    <div class="curse-dist-col {{#if this.isDisabled}}curse-dist-col--off{{/if}}">
+                        <div class="curse-dist-bar" style="height: {{this.barHeight}}px;"></div>
+                        <span class="curse-dist-pct">{{#if this.isDisabled}}-{{else}}{{this.percent}}%{{/if}}</span>
+                        <span class="curse-dist-tier-label">{{this.label}}</span>
+                    </div>
                     {{/each}}
                 </div>
-                <div class="cursed-planned-median-overlay" aria-hidden="true">
-                    <div class="cursed-planned-median-track" style="width: {{levelRangeBarPct}}%;">
-                        <span class="cursed-band-level-tip" title="Party median level (reach band)">{{partyLevelLabel}}</span>
-                    </div>
+                <div class="curse-dist-vert-divider"></div>
+                <div class="curse-tier-toggles">
+                    <label class="curse-tier-toggle-row {{#unless t3Enabled}}curse-toggle-off{{/unless}}" title="T3 cursed items are documented as high-lethality - capable of killing players. Enable when your campaign is ready for that.">
+                        <input type="checkbox" class="curse-tier-toggle-check action-toggle-t3" {{#if t3Enabled}}checked{{/if}}>
+                        <span class="curse-toggle-tier">T3</span>
+                        <span class="curse-toggle-hint">Dangerous - high lethality</span>
+                    </label>
+                    <label class="curse-tier-toggle-row {{#unless t4Enabled}}curse-toggle-off{{/unless}}" title="T4 cursed items are campaign-altering - expect side quests, major distractions, and long-term consequences.">
+                        <input type="checkbox" class="curse-tier-toggle-check action-toggle-t4" {{#if t4Enabled}}checked{{/if}}>
+                        <span class="curse-toggle-tier">T4</span>
+                        <span class="curse-toggle-hint">Campaign-altering</span>
+                    </label>
                 </div>
             </div>
-            <div class="cursed-planned-band-row">
-                <div class="sig-row-level-range cursed-row-level-range" aria-hidden="true">
-                    <div class="sig-row-level-range-fill cursed-level-range-fill" style="width: {{levelRangeBarPct}}%;"></div>
+        </div>
+
+        {{!-- ── Priority columns ────────────────────────────────────────────── --}}
+        <div class="curse-priority-grid">
+            {{#each priorityColumns}}
+            <div class="curse-priority-col {{#unless this.enabled}}curse-priority-col--disabled{{/unless}}"
+                 data-tier="{{this.tier}}">
+
+                <div class="curse-priority-col-head">
+                    <span class="curse-col-label">{{this.laneHead}}</span>
+                    <span class="curse-col-count {{#if this.isFull}}curse-col-count--full{{/if}}">{{this.count}}/{{../priorityColCap}}</span>
                 </div>
-            </div>
-            <div class="sig-slots-strip cursed-slots-strip">
-            {{#each columns}}
-            <div class="cursed-milestone-stack">
-                {{#each this.slots}}
-                {{> "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs" this variant="cursed"}}
-                {{/each}}
-            </div>
-            {{/each}}
-            </div>
-        </div>
-        {{/with}}
 
-        {{!-- ── Divider ────────────────────────────────────────── --}}
-        <div class="cursed-planned-pool-divider"></div>
+                {{#unless this.enabled}}
+                <div class="curse-col-disabled-notice">
+                    <i class="fas fa-lock"></i>
+                    <span>Tier disabled - items held in reserve</span>
+                </div>
+                {{/unless}}
 
-        <div class="cursed-pool-block">
-        <div class="scroll-section-header cursed-pool-header">
-            <div class="scroll-section-header-row">
-                <span class="scroll-section-title"><i class="fas fa-flask-vial"></i> Cursed Pool</span>
-            </div>
-            <span class="scroll-section-hint">A reserve of cursed items the generator draws from when filling slots. Drop items from compendiums or the sidebar to add them.</span>
-        </div>
-
-        <div class="cursed-pool-ladder-row cursed-pool-receive{{#unless cursedPoolCount}} cursed-pool-ladder-row--empty{{/unless}}">
-            {{#if cursedPoolCount}}
-            {{#each cursedPoolLanes}}
-            <div class="cursed-pool-tier-lane" data-drop-tier="{{this.tier}}">
-                <div class="cursed-pool-tier-lane-head">{{this.laneHead}}</div>
-                <div class="cursed-pool-tier-lane-stack">
+                {{#if this.enabled}}
                     {{#each this.items}}
-                    <div class="cursed-pool-card{{#if this.cursedPoolAlsoPlanned}} cursed-pool-card-also-planned{{/if}}"
-                         data-index="{{this.poolIndex}}" data-name="{{this.name}}" data-uuid="{{this.uuid}}" data-curse-type="{{this.curseType}}">
-                        {{#if this.cursedPoolAlsoPlanned}}
-                        <span class="cursed-pool-card-planned-badge" title="Same curse is assigned to a planned slot above">Planned</span>
-                        {{/if}}
-                        <button type="button" class="cursed-pool-card-remove action-remove-pool-item" data-index="{{this.poolIndex}}" title="Remove from pool">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        <div class="cursed-pool-card-icon">
+                    <div class="curse-priority-card"
+                         data-uuid="{{this.uuid}}"
+                         data-tier="{{../tier}}"
+                         data-pos-in-col="{{this.posInCol}}"
+                         draggable="true"
+                         title="{{this.weightLabel}}{{#if this.curseTypeDesc}} · {{this.curseTypeDesc}}{{/if}}">
+                        <span class="curse-card-weight-badge" title="{{this.weightTooltip}}">{{this.weightPct}}%</span>
+                        <div class="curse-card-icon">
                             {{#if this.img}}
-                            <img src="{{this.img}}" class="cursed-pool-card-img" alt="{{this.name}}" draggable="false" />
+                            <img src="{{this.img}}" class="curse-card-img" alt="{{this.name}}" draggable="false" />
                             {{else}}
-                            <i class="fas fa-flask-vial cursed-pool-card-placeholder"></i>
+                            <i class="fas fa-flask-vial curse-card-placeholder"></i>
                             {{/if}}
                         </div>
-                        <span class="cursed-pool-card-name" title="{{this.name}}">{{this.name}}</span>
-                        {{#if this.curseType}}<span class="cursed-pool-card-type" title="{{this.curseTypeDesc}}">{{this.curseType}}</span>{{/if}}
+                        <div class="curse-card-body">
+                            <span class="curse-card-name" title="{{this.name}}">{{this.name}}</span>
+                            {{#if this.curseType}}<span class="curse-card-type" title="{{this.curseTypeDesc}}">{{this.curseType}}</span>{{/if}}
+                        </div>
+                        <button type="button" class="curse-priority-card-remove action-remove-pool-item"
+                                data-index="{{this.posInCol}}"
+                                data-uuid="{{this.uuid}}"
+                                title="Remove from pool">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                     {{/each}}
-                </div>
+
+                    {{#unless this.isFull}}
+                    <div class="curse-col-drop-hint">
+                        <i class="fas fa-arrow-down-to-bracket"></i>
+                        <span>Drop item here</span>
+                    </div>
+                    {{/unless}}
+
+                    {{#if this.isFull}}
+                    <div class="curse-col-full-notice">
+                        <i class="fas fa-circle-info"></i>
+                        <span>Column full - remove to add</span>
+                    </div>
+                    {{/if}}
+                {{/if}}
+
             </div>
             {{/each}}
-            {{else}}
-            {{#if cursedPoolEmpty}}
-            <div class="empty-state cursed-pool-empty-state cursed-pool-unseeded">
-                <i class="fas fa-flask-vial"></i>
-                <p>The cursed pool hasn't been seeded yet.</p>
-                <p class="cursed-pool-unseeded-hint">Click <strong>Rebuild Cursed Pool</strong> below to populate it with the 12 SRD cursed items.</p>
-            </div>
-            {{else}}
-            <div class="empty-state cursed-pool-empty-state cursed-pool-empty-ladder">
-                <i class="fas fa-flask-vial"></i>
-                <p>Pool is empty. Drop cursed items here from a compendium.</p>
-            </div>
-            {{/if}}
-            {{/if}}
         </div>
 
-        {{!-- ── Pool sources ─────────────────────────────────────────────── --}}
-        <div class="cursed-pool-actions">
-            <div class="cursed-source-cards">
-
-                {{!-- SRD source card (always shown) --}}
-                <div class="cursed-source-card{{#if srdPoolCount}} source-card-active{{/if}}">
-                    <div class="source-card-icon">
-                        <i class="fas {{#if srdPoolCount}}fa-circle-check{{else}}fa-flask-vial{{/if}}"></i>
-                    </div>
-                    <div class="source-card-body">
-                        <strong>SRD Cursed Items</strong>
-                        <span>
-                            {{#if srdPoolCount}}
-                                {{srdPoolCount}} item{{#if (gt srdPoolCount 1)}}s{{/if}} in pool
-                            {{else}}
-                                12 standard cursed items: Berserker Axe, Bag of Devouring, and more
-                            {{/if}}
-                        </span>
-                    </div>
-                    <div class="source-card-actions">
-                        {{#if srdPoolCount}}
-                        <a role="button" class="source-card-btn source-card-btn-remove"
-                           data-action="remove-srd-cursed"
-                           title="Remove all SRD cursed items from the pool">
-                            <i class="fas fa-times"></i>
-                            Remove
-                        </a>
-                        {{/if}}
-                        <a role="button" class="source-card-btn action-compile-srd-cursed"
-                           data-action="compile-srd-cursed"
-                           title="{{#if srdPoolCount}}Recompile and refresh SRD cursed items in the pool{{else}}Load the 12 SRD cursed items into the pool{{/if}}">
-                            <i class="fas {{#if srdPoolCount}}fa-rotate{{else}}fa-plus{{/if}}"></i>
-                            {{#if srdPoolCount}}Refresh{{else}}Load{{/if}}
-                        </a>
-                    </div>
-                </div>
-
-                {{!-- Cursewright source card (only when CW installed) --}}
-                {{#if cwPresent}}
-                <div class="cursed-source-card{{#if cwPoolCount}} source-card-active{{/if}}">
-                    <div class="source-card-icon">
-                        <i class="fas {{#if cwPoolCount}}fa-circle-check{{else}}fa-skull-crossbones{{/if}}"></i>
-                    </div>
-                    <div class="source-card-body">
-                        <strong>Cursewright</strong>
-                        <span>
-                            {{#if cwPoolCount}}
-                                {{cwPoolCount}} item{{#if (gt cwPoolCount 1)}}s{{/if}} in pool
-                            {{else}}
-                                Ionrift curse recipes matched against your D&amp;D 5e items
-                            {{/if}}
-                        </span>
-                    </div>
-                    <div class="source-card-actions">
-                        {{#if cwPoolCount}}
-                        <a role="button" class="source-card-btn source-card-btn-remove"
-                           data-action="remove-curse-forge"
-                           title="Remove all Cursewright items from the pool">
-                            <i class="fas fa-times"></i>
-                            Remove
-                        </a>
-                        {{/if}}
-                        <a role="button" class="source-card-btn action-compile-curse-forge"
-                           data-action="compile-curse-forge"
-                           title="{{#if cwPoolCount}}Recompile and refresh Cursewright items in the pool{{else}}Compile Ionrift curse recipes and add matching items to the pool{{/if}}">
-                            <i class="fas {{#if cwPoolCount}}fa-rotate{{else}}fa-hammer{{/if}}"></i>
-                            {{#if cwPoolCount}}Refresh{{else}}Load{{/if}}
-                        </a>
-                    </div>
-                </div>
-                {{/if}}
-
-            </div>
-            <p class="pool-bar-note">
-                {{#if cursedPoolCount}}
-                    <i class="fas fa-circle-check" style="color:var(--color-level-success,#6bcb77);"></i>
-                    {{cursedPoolCount}} item{{#if (gt cursedPoolCount 1)}}s{{/if}} in pool.
-                    Drop items from any compendium to add more.
+        {{!-- ── Source footer ─────────────────────────────────────────────── --}}
+        <div class="curse-source-footer">
+            <div class="curse-source-footer-left">
+                {{#if srdPoolCount}}
+                <span class="curse-source-pill curse-source-pill--active">
+                    <i class="fas fa-circle-check"></i> SRD · {{srdPoolCount}} item{{#if (gt srdPoolCount 1)}}s{{/if}}
+                </span>
                 {{else}}
-                    Load a source above, or drop items from any compendium to build the pool.
+                <span class="curse-source-pill">
+                    <i class="fas fa-flask-vial"></i> SRD not loaded
+                </span>
                 {{/if}}
-            </p>
-        </div>
-
+                {{#if cwPresent}}
+                    {{#if cwPoolCount}}
+                    <span class="curse-source-pill curse-source-pill--active">
+                        <i class="fas fa-circle-check"></i> Cursewright · {{cwPoolCount}} item{{#if (gt cwPoolCount 1)}}s{{/if}}
+                    </span>
+                    {{else}}
+                    <span class="curse-source-pill">
+                        <i class="fas fa-skull-crossbones"></i> Cursewright not compiled
+                    </span>
+                    {{/if}}
+                {{/if}}
+            </div>
+            <div class="curse-source-footer-right">
+                {{#if hasSrdPack}}
+                <a role="button" class="curse-footer-link action-compile-srd-cursed"
+                   data-action="compile-srd-cursed"
+                   title="{{#if srdPoolCount}}Refresh SRD cursed items{{else}}Load SRD cursed items{{/if}}">
+                    <i class="fas {{#if srdPoolCount}}fa-rotate{{else}}fa-plus{{/if}}"></i>
+                    {{#if srdPoolCount}}Refresh SRD{{else}}Load SRD{{/if}}
+                </a>
+                {{/if}}
+                {{#if cwPresent}}
+                <a role="button" class="curse-footer-link action-compile-curse-forge"
+                   data-action="compile-curse-forge"
+                   title="{{#if cwPoolCount}}Refresh Cursewright items{{else}}Compile Cursewright curse recipes{{/if}}">
+                    <i class="fas {{#if cwPoolCount}}fa-rotate{{else}}fa-hammer{{/if}}"></i>
+                    {{#if cwPoolCount}}Refresh CW{{else}}Compile CW{{/if}}
+                </a>
+                {{/if}}
+            </div>
         </div>
 
     </div>
-
 </div>
 {{/if}}
 
 </form>
+
