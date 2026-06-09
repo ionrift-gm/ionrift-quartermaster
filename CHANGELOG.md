@@ -1,11 +1,16 @@
 # Changelog
 
+## [1.6.1] - 2026-06-09
+
+### Fixed
+- Fixed a UTF-8 BOM in the shipped module.json that caused a JSON parse error in the Foundry package installer on some platforms.
+
 ## [1.6.0] - 2026-06-09
 
 ### Added
-- **Priority pool tab.** The Curse tab now shows a live priority pool — the ordered list of cursed items the generator will draw from first before falling back to the general pool. Replaces the placeholder strip that shipped in 1.5.0.
+- **Priority pool tab.** The Curse tab now shows a live priority pool â€” the ordered list of cursed items the generator will draw from first before falling back to the general pool. Replaces the placeholder strip that shipped in 1.5.0.
 - **Named magic frequency.** A new slider controls how often a named magical item appears per cache, independent of the general magic frequency dial. Baseline rates by tier (T2 10%, T3 20%, T4 35%) scale from the slider. Set to 0 to turn named magic off entirely.
-- **Scroll distribution levers.** The old scroll jitter setting is replaced by three configurable policy sliders — floor, upper reach, and concentration — that shape a bell-curve distribution of scroll spell levels. A live chart shows the resulting spread before you save.
+- **Scroll distribution levers.** The old scroll jitter setting is replaced by three configurable policy sliders â€” floor, upper reach, and concentration â€” that shape a bell-curve distribution of scroll spell levels. A live chart shows the resulting spread before you save.
 - **Party Shelf attunement bias and rarity distribution.** Two new policy controls let you skew the Shelf toward low, medium, or high attunement items, and tune how concentrated the rarity spread is around Uncommon. Both show a live distribution bar.
 
 ### Changed
@@ -221,7 +226,7 @@ General availability release. Quartermaster is now publicly listed in the Foundr
 ## [1.2.0-ea.7] - 2026-04-24
 
 ### Fixed
-- **Loot Pool Sources dialog scrolls properly.** GMs with many compendiums installed no longer see a clipped, unscrollable list. The dialog now has a fixed height with an inner scroll area — all sources are visible and reachable.
+- **Loot Pool Sources dialog scrolls properly.** GMs with many compendiums installed no longer see a clipped, unscrollable list. The dialog now has a fixed height with an inner scroll area â€” all sources are visible and reachable.
 - **Pinned scrolls can be placed in all three Scroll Plan rows.** The bottom row of each milestone column was silently rejecting drops. All three slots per milestone are now fully functional for drag-and-drop placement and swapping.
 - **Scrollbar theming on source dialogs.** Foundry's default red scrollbar is overridden with the Ionrift purple theme across all source-picker windows.
 
@@ -266,9 +271,9 @@ General availability release. Quartermaster is now publicly listed in the Foundr
 
 ### Fixed
 
-- **Scroll Forge now handles 3rd-party spell compendiums.** Spells from modules like Chris's Premades and Conflux previously crashed the compile. They now fall back gracefully — any spells that can't produce a native scroll are built manually, and the compile continues. A skip count appears in the notification if any were skipped.
+- **Scroll Forge now handles 3rd-party spell compendiums.** Spells from modules like Chris's Premades and Conflux previously crashed the compile. They now fall back gracefully â€” any spells that can't produce a native scroll are built manually, and the compile continues. A skip count appears in the notification if any were skipped.
 - **Loot Pool Sources dialog is fully functional.** The compendium picker can now scroll, expand and collapse module groups, and no longer overlaps text. Both the Loot Pool and Scroll Forge source dialogs received a complete visual pass.
-- **Empty spell scroll folders no longer appear** after a partial compile failure. The root cause — a single unrecognised spell aborting the entire batch — is resolved.
+- **Empty spell scroll folders no longer appear** after a partial compile failure. The root cause â€” a single unrecognised spell aborting the entire batch â€” is resolved.
 
 ## [1.2.0-ea.2] - 2026-04-17
 
@@ -280,7 +285,7 @@ General availability release. Quartermaster is now publicly listed in the Foundr
 
 ### Added
 
-- **Gemstone & Treasure Content Pack** — 39 gemstones and 40 treasure items with original Ionrift icons, integrated into cache generation pools.
+- **Gemstone & Treasure Content Pack** â€” 39 gemstones and 40 treasure items with original Ionrift icons, integrated into cache generation pools.
 - Compendium packs now ship with the module: core items, gemstones, containers, and treasure.
 
 ### Changed
@@ -299,16 +304,16 @@ First early access build of the Ionrift Quartermaster. Available to Acolyte-tier
 
 ### Features
 
-- **Cache Generator** — Terrain-aware loot cache generation with 5 cache types (Mundane, Consumable, Mastercraft, Scroll, Signature), 7 terrain themes, and 4 party tiers. GP budget scaling, randomised coinage distribution, and per-slot re-roll.
-- **Scroll Forge** — Runtime scroll builder that reads installed spell compendiums and constructs scroll items. Configurable spell sources, level jitter, and party-aware level caps. Eliminates SRD scroll redistribution.
-- **Signature Ledger** — Per-character milestone timeline for planning campaign signature items. Drag-to-place from compendiums, delivery tracking, power score heuristics, and RVP fairness signals.
-- **Scroll Plan** — Milestone-based scroll placement board with pinned scrolls that bypass jitter. Party median level band with reach visualisation.
-- **Party Shelf** — Party-wide item planning board. Randomise from configured compendiums or manually pin items to milestones. Auto-delivery detection from party inventories.
-- **Ban List** — Exclude specific items from all cache generation. Drag from compendiums or the sidebar.
-- **Progression Advisory** — Power score deviation tracking, disparity flagging, and per-character budget pips.
-- **Loot Pool Configuration** — Choose which compendiums contribute items to the cache generator. Defaults to SRD system packs.
-- **Loot Abundance and Magic Frequency** — Global dials for cache value scaling and magical item probability.
-- **Spike Tolerance** — Controls how much loot timing can deviate from planned milestones (Strict / Flexible / Wild).
+- **Cache Generator** â€” Terrain-aware loot cache generation with 5 cache types (Mundane, Consumable, Mastercraft, Scroll, Signature), 7 terrain themes, and 4 party tiers. GP budget scaling, randomised coinage distribution, and per-slot re-roll.
+- **Scroll Forge** â€” Runtime scroll builder that reads installed spell compendiums and constructs scroll items. Configurable spell sources, level jitter, and party-aware level caps. Eliminates SRD scroll redistribution.
+- **Signature Ledger** â€” Per-character milestone timeline for planning campaign signature items. Drag-to-place from compendiums, delivery tracking, power score heuristics, and RVP fairness signals.
+- **Scroll Plan** â€” Milestone-based scroll placement board with pinned scrolls that bypass jitter. Party median level band with reach visualisation.
+- **Party Shelf** â€” Party-wide item planning board. Randomise from configured compendiums or manually pin items to milestones. Auto-delivery detection from party inventories.
+- **Ban List** â€” Exclude specific items from all cache generation. Drag from compendiums or the sidebar.
+- **Progression Advisory** â€” Power score deviation tracking, disparity flagging, and per-character budget pips.
+- **Loot Pool Configuration** â€” Choose which compendiums contribute items to the cache generator. Defaults to SRD system packs.
+- **Loot Abundance and Magic Frequency** â€” Global dials for cache value scaling and magical item probability.
+- **Spike Tolerance** â€” Controls how much loot timing can deviate from planned milestones (Strict / Flexible / Wild).
 
 ### Infrastructure
 
