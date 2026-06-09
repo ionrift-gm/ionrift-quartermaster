@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.6.1] - 2026-06-09
+## [1.6.2] - 2026-06-09
 
 ### Added
 - **Priority pool tab.** The Curse tab now shows a live priority pool - the ordered list of cursed items the generator will draw from first before falling back to the general pool. Replaces the placeholder strip that shipped in 1.5.0.
@@ -17,7 +17,6 @@
 - **SRD cursed-item disguise at pile placement.** The correct masked appearance now applies when a cursed SRD item is placed into an Item Piles container. Previously the disguise flag was applied too late and the item could appear unmasked.
 - **Signature Ledger crash.** A missing MODULE_ID constant in SignatureLedgerApp caused a reference error on first open after a fresh install.
 - **Slider ranges and party warning scope.** A handful of sliders had incorrect min/max values, and the party-size warning was firing for groups outside its intended scope.
-- Fixed a UTF-8 BOM in the shipped module.json that caused a JSON parse error in the Foundry package installer on some platforms.
 
 ## [1.5.0] - 2026-06-05
 
