@@ -1,6 +1,25 @@
 # Changelog
 
+## [1.6.0] - 2026-06-09
+
+### Added
+- **Priority pool tab.** The Curse tab now shows a live priority pool — the ordered list of cursed items the generator will draw from first before falling back to the general pool. Replaces the placeholder strip that shipped in 1.5.0.
+- **Named magic frequency.** A new slider controls how often a named magical item appears per cache, independent of the general magic frequency dial. Baseline rates by tier (T2 10%, T3 20%, T4 35%) scale from the slider. Set to 0 to turn named magic off entirely.
+- **Scroll distribution levers.** The old scroll jitter setting is replaced by three configurable policy sliders — floor, upper reach, and concentration — that shape a bell-curve distribution of scroll spell levels. A live chart shows the resulting spread before you save.
+- **Party Shelf attunement bias and rarity distribution.** Two new policy controls let you skew the Shelf toward low, medium, or high attunement items, and tune how concentrated the rarity spread is around Uncommon. Both show a live distribution bar.
+
+### Changed
+- **Scroll Policy UI.** The scroll policy panel has been overhauled: amber styling for risk indicators, a sticky footer with save and reset controls, and slider label widths widened so nothing gets clipped. Accordion hints are shorter and accordion overflow is properly contained.
+- **Dashboard defaults.** Policy levers are now wrapped in always-visible dashboard cards. The reset button is a subtle icon above the override toggles rather than a primary action. Party Shelf pin instructions move inside the collapsible tracker.
+- **Party Shelf action renamed.** The "Item Forge" action is now "Item Compiler" to match the language used in the Scroll tab.
+
+### Fixed
+- **SRD cursed-item disguise at pile placement.** The correct masked appearance now applies when a cursed SRD item is placed into an Item Piles container. Previously the disguise flag was applied too late and the item could appear unmasked.
+- **Signature Ledger crash.** A missing `MODULE_ID` constant in `SignatureLedgerApp` caused a reference error on first open after a fresh install.
+- **Slider ranges and party warning scope.** A handful of sliders had incorrect min/max values, and the party-size warning was firing for groups outside its intended scope.
+
 ## [1.5.0] - 2026-06-05
+
 
 ### Added
 - **Armor bonus cap.** A new config panel lets you set the maximum enchantment bonus for body armor by tier, independent of weapon magic frequency. Prevents magical plate from appearing at tiers where it would be out of place.
