@@ -9959,7 +9959,7 @@ button.scroll-open-compendium {
 .forge-status-card {
     flex-shrink: 0;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     padding: 9px 12px;
     border-radius: 6px;
@@ -9995,6 +9995,7 @@ button.scroll-open-compendium {
 .forge-status-card > i {
     flex: 0 0 auto;
     font-size: 1em;
+    margin-top: 2px;
 }
 
 .forge-status-card.status-fresh > i   { color: rgba(134, 239, 172, 0.85); }
@@ -10008,13 +10009,21 @@ button.scroll-open-compendium {
     padding: 0 0 0 1.1em;
     font-size: 0.86em;
     color: rgba(255, 255, 255, 0.55);
-    max-height: 120px;
+    max-height: 180px;
     overflow-y: auto;
 }
 
 .forge-skip-report li {
     margin: 2px 0;
     line-height: 1.35;
+}
+
+.forge-skip-overflow {
+    margin-top: 4px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.42);
+    list-style: none;
+    margin-left: -1.1em;
 }
 
 .forge-skip-name {
@@ -10060,6 +10069,35 @@ button.scroll-open-compendium {
     line-height: 1.4;
 }
 
+.forge-bug-report-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ionrift-bug-report-modal .ionrift-bug-report-ref {
+    margin: 8px 0;
+    font-size: 1.35em;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: rgba(253, 230, 138, 0.95);
+    text-align: center;
+}
+
+.ionrift-bug-report-modal .ionrift-bug-report-hint,
+.ionrift-bug-report-modal .ionrift-bug-report-id {
+    font-size: 0.88em;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.45;
+    text-align: center;
+}
+
+.ionrift-bug-report-modal .ionrift-bug-report-id code {
+    font-size: 0.82em;
+    word-break: break-all;
+}
+
 .forge-status-card-body {
     flex: 1 1 auto;
     min-width: 0;
@@ -10076,6 +10114,26 @@ button.scroll-open-compendium {
 .forge-status-card-meta {
     font-size: 0.88em;
     color: rgba(255, 255, 255, 0.4);
+}
+
+.forge-status-card-skip {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
+}
+
+.forge-status-card-skip-title {
+    margin: 0 0 4px;
+    font-size: 0.92em;
+    color: rgba(253, 186, 116, 0.95);
+}
+
+.forge-status-card-skip-summary {
+    margin: 0;
+    font-size: 0.88em;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.4;
 }
 
 /* Clear button inside status card */

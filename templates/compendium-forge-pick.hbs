@@ -88,13 +88,41 @@
             {{#if compiledStatus.meta}}
             <span class="forge-status-card-meta">{{compiledStatus.meta}}</span>
             {{/if}}
-            {{#if compiledStatus.skipReport}}
-            <ul class="forge-skip-report">
-                {{#each compiledStatus.skipReport}}
-                <li><span class="forge-skip-name">{{this.name}}</span>{{#if this.packId}} <span class="forge-skip-pack">{{this.packId}}</span>{{/if}} <span class="forge-skip-phase">[{{this.phase}}]</span></li>
-                {{/each}}
-            </ul>
-            <p class="forge-skip-hint">Skipped source rows do not block the compiled pool. Add replacements manually to the compiled compendium if needed.</p>
+            {{#if compiledStatus.skipSummary}}
+            <div class="forge-status-card-skip">
+                <p class="forge-status-card-skip-title"><i class="fas fa-triangle-exclamation"></i> Compatibility warnings</p>
+                <p class="forge-status-card-skip-summary">{{compiledStatus.skipSummary}}</p>
+                {{#if compiledStatus.skipReport}}
+                <ul class="forge-skip-report">
+                    {{#each compiledStatus.skipReport.rows}}
+                    <li><span class="forge-skip-name">{{this.name}}</span>{{#if this.packId}} <span class="forge-skip-pack">{{this.packId}}</span>{{/if}} <span class="forge-skip-phase">[{{this.phase}}]</span></li>
+                    {{/each}}
+                    {{#if compiledStatus.skipReport.overflowCount}}
+                    <li class="forge-skip-overflow">… and {{compiledStatus.skipReport.overflowCount}} more (see debug report for full list)</li>
+                    {{/if}}
+                </ul>
+                <p class="forge-skip-hint">Skipped source rows do not block the compiled pool. Add replacements manually to the compiled compendium if needed.</p>
+                {{/if}}
+            </div>
+            {{/if}}
+            {{#if bugReportUi}}
+            <div class="forge-bug-report-actions">
+                <button type="button" class="cache-btn-secondary forge-copy-bug-report">
+                    <i class="fas fa-copy"></i> Copy debug report
+                </button>
+                {{#if bugReportUi.canSubmit}}
+                <button type="button" class="cache-btn-accent forge-send-bug-report">
+                    <i class="fas fa-paper-plane"></i> Send report
+                </button>
+                {{/if}}
+            </div>
+            <p class="forge-skip-hint">
+                {{#if bugReportUi.canSubmit}}
+                You get a reference number to cite in Discord when you send.
+                {{else}}
+                Connect Patreon in Ionrift Library (free tier is fine) to send directly, or copy the report for <a href="{{bugReportUi.discordUrl}}" target="_blank" rel="noopener">Discord</a>.
+                {{/if}}
+            </p>
             {{/if}}
         </div>
         {{#if compiledStatus.clearable}}

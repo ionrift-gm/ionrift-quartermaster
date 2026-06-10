@@ -292,6 +292,22 @@ export class LootPoolCompiler {
         return `${names.length} ${noun} not imported due to compatibility issues: ${text}.`;
     }
 
+    /** Max skip rows shown in Forge status cards and done panel. Full list stays in meta / bug report. */
+    static SKIP_REPORT_DISPLAY_MAX = 12;
+
+    /**
+     * Trim skip rows for Forge UI lists. Summary line and bug report keep the full set.
+     * @param {object[]} skips
+     * @param {{ maxRows?: number }} [opts]
+     * @returns {{ rows: object[], overflowCount: number }}
+     */
+    static formatSkipReportForDisplay(skips, { maxRows = this.SKIP_REPORT_DISPLAY_MAX } = {}) {
+        if (!skips?.length) return { rows: [], overflowCount: 0 };
+        const limit = Math.max(1, maxRows);
+        const rows = skips.slice(0, limit);
+        return { rows, overflowCount: Math.max(0, skips.length - limit) };
+    }
+
     /**
      * Verify a source document can be read for expansion (name + toObject).
      * @param {Item} doc

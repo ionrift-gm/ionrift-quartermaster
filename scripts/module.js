@@ -12,6 +12,7 @@ import { SignatureLedger } from "./services/SignatureLedger.js";
 import { ProgressionSeeder } from "./services/ProgressionSeeder.js";
 import { ProgressionAdvisor } from "./services/ProgressionAdvisor.js";
 import { ItemPoolResolver } from "./services/ItemPoolResolver.js";
+import { LootPoolCompiler } from "./services/LootPoolCompiler.js";
 import { ScrollForge } from "./services/ScrollForge.js";
 import { SrdCurseAdapter } from "./services/SrdCurseAdapter.js";
 import { ItemMaskingHelper } from "./services/ItemMaskingHelper.js";
@@ -122,6 +123,19 @@ Hooks.once('init', async () => {
 
     const { CompendiumForgeApp } = await import("./apps/CompendiumForgeApp.js");
     registerQuartermasterSettings({ CompendiumForgeApp });
+
+    Hooks.on("ionrift.collectBugReport", (builder, { context } = {}) => {
+        if (context !== "quartermaster-loot-pool-compile") return;
+        const meta = LootPoolCompiler.getCompiledMeta();
+        builder.attach("quartermaster", {
+            compileStatus:    LootPoolCompiler.getStatus(),
+            compiledMeta:     meta,
+            skippedItems:     meta?.skippedItems ?? [],
+            skippedCount:     meta?.skippedCount ?? 0,
+            lootPoolSources:  ItemPoolResolver.getEnabledSources(),
+            compilerVersion:  LootPoolCompiler.COMPILER_VERSION,
+        });
+    });
 
     // Core pack nudge: shared library banner in Module Settings when the core
     // overlay is offered but not installed (see hoardPackNudge.js).

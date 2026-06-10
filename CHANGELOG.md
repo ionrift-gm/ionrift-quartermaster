@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.3] - 2026-06-10
+
+### Fixed
+- A single broken item in a loot pool no longer fails the entire pool compilation. The broken item is isolated and logged, while the rest of the pool continues to build normally. If the bug report tool is available, you will be prompted to send a report so the item can be investigated.
+
 ## [1.6.2] - 2026-06-09
 
 ### Added

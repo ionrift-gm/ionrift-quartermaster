@@ -21,6 +21,7 @@ import { refreshForgeAlertBadge } from "../services/SettingsPanelLayout.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
+const QM_BUG_REPORT_CONTEXT = "quartermaster-loot-pool-compile";
 
 const LOOT_PHASE_LABELS = {
     setup:     "Preparing...",
@@ -150,6 +151,7 @@ export class CompendiumForgeApp extends FormApplication {
 
             // Done phase
             doneResult:        doneResult ? this._formatDoneResult(tab, doneResult) : null,
+            bugReportUi:       this._buildBugReportUi(tab, phase, doneResult),
 
             // Pick phase: view existing compendium if already compiled
             showViewCompendium: phase === "pick" && !!this._existingPackId(tab),
@@ -184,7 +186,9 @@ export class CompendiumForgeApp extends FormApplication {
                 skippedSummary: skipCount > 0
                     ? LootPoolCompiler.formatSkippedItemsSummary(r.skippedItems)
                     : "",
-                skipReport:     r.skippedItems ?? [],
+                skipReport:     skipCount > 0
+                    ? LootPoolCompiler.formatSkipReportForDisplay(r.skippedItems)
+                    : null,
                 showViewPack:   true,
                 packId:         LootPoolCompiler.worldCollectionId,
             };
@@ -324,20 +328,23 @@ export class CompendiumForgeApp extends FormApplication {
 
             if (status === "error") {
                 const when = meta?.errorAt ? this._relativeTime(meta.errorAt) : "recently";
-                let msg  = meta?.errorMessage
+                const errMsg = meta?.errorMessage
                     ? meta.errorMessage.length > 120
                         ? meta.errorMessage.slice(0, 120) + "..."
                         : meta.errorMessage
                     : "Unknown error -- check the browser console for details.";
-                if (meta?.skippedCount > 0) {
-                    msg += ` ${LootPoolCompiler.formatSkippedItemsSummary(meta.skippedItems)}`;
-                }
+                const skipCount = meta?.skippedCount ?? meta?.skippedItems?.length ?? 0;
                 return {
                     type: "error",
                     icon: "fas fa-circle-exclamation",
                     text: `Compile failed ${when}.`,
-                    meta: msg,
-                    skipReport: meta?.skippedItems ?? [],
+                    meta: errMsg,
+                    skipSummary: skipCount > 0
+                        ? LootPoolCompiler.formatSkippedItemsSummary(meta.skippedItems)
+                        : null,
+                    skipReport: skipCount > 0
+                        ? LootPoolCompiler.formatSkipReportForDisplay(meta.skippedItems)
+                        : null,
                     clearable: false,
                 };
             }
@@ -364,8 +371,8 @@ export class CompendiumForgeApp extends FormApplication {
                         : skipCount > 0
                             ? "Pool compiled with compatibility warnings."
                             : "Pool compiled and up to date.";
-                const skipSummary = skipCount > 0
-                    ? LootPoolCompiler.formatSkippedItemsSummary(meta.skippedItems)
+                const compileMeta = meta.itemCount != null
+                    ? `${meta.itemCount} items - compiled ${age}`
                     : null;
                 return {
                     type: packGone ? "stale" : (skipCount > 0 && status === "fresh" ? "warning" : status),
@@ -375,8 +382,13 @@ export class CompendiumForgeApp extends FormApplication {
                             ? "fas fa-triangle-exclamation"
                             : "fas fa-circle-check",
                     text: baseText,
-                    meta: skipSummary ?? `${meta.itemCount ?? "?"} items - compiled ${age}`,
-                    skipReport: skipCount > 0 ? (meta.skippedItems ?? []) : null,
+                    meta: compileMeta,
+                    skipSummary: skipCount > 0
+                        ? LootPoolCompiler.formatSkippedItemsSummary(meta.skippedItems)
+                        : null,
+                    skipReport: skipCount > 0
+                        ? LootPoolCompiler.formatSkipReportForDisplay(meta.skippedItems)
+                        : null,
                     clearable: !packGone,
                 };
             }
@@ -505,6 +517,75 @@ export class CompendiumForgeApp extends FormApplication {
         });
     }
 
+    _buildBugReportUi(tab, phase, doneResult) {
+        if (tab !== "lootPool") return null;
+
+        const meta       = LootPoolCompiler.getCompiledMeta();
+        const skipCount  = meta?.skippedCount ?? meta?.skippedItems?.length ?? 0;
+        const showOnPick = phase === "pick" && (skipCount > 0 || LootPoolCompiler.getStatus() === "error");
+        const showOnDone = phase === "done" && (doneResult?.skippedCount > 0);
+        if (!showOnPick && !showOnDone) return null;
+
+        const bugReport = game.ionrift?.library?.bugReport;
+        return {
+            context:   QM_BUG_REPORT_CONTEXT,
+            canSubmit: bugReport?.canSubmit?.() ?? false,
+            discordUrl: bugReport?.getDiscordUrl?.() ?? "https://discord.gg/vFGXf7Fncj",
+        };
+    }
+
+    async _onCopyBugReport() {
+        const bugReport = game.ionrift?.library?.bugReport;
+        if (!bugReport) {
+            ui.notifications.error("Ionrift Library is required for debug reports.");
+            return;
+        }
+        try {
+            const copied = await bugReport.copyToClipboard({ context: QM_BUG_REPORT_CONTEXT });
+            ui.notifications.info(
+                copied
+                    ? "Debug report copied to clipboard."
+                    : "Debug report downloaded as JSON."
+            );
+        } catch (err) {
+            Logger.error(MODULE_LABEL, "Copy bug report failed:", err);
+            ui.notifications.error("Could not copy debug report. Check the browser console.");
+        }
+    }
+
+    async _onSendBugReport() {
+        const bugReport = game.ionrift?.library?.bugReport;
+        if (!bugReport) {
+            ui.notifications.error("Ionrift Library is required to send reports.");
+            return;
+        }
+        if (!bugReport.canSubmit()) {
+            ui.notifications.warn(
+                "Connect Patreon in Ionrift Library (free tier is fine), or copy the report and paste it in Discord.",
+                { permanent: true }
+            );
+            return;
+        }
+
+        const $sendBtn = this.element?.find?.(".forge-send-bug-report");
+        if ($sendBtn?.length) $sendBtn.prop("disabled", true);
+
+        try {
+            const result = await bugReport.submit({ context: QM_BUG_REPORT_CONTEXT });
+            if (!result?.ok) {
+                const msg = bugReport.formatSubmitError?.(result?.error) ?? (result?.error ?? "Upload failed.");
+                ui.notifications.error(msg, { permanent: true });
+                return;
+            }
+            await bugReport.showSubmitSuccess(result);
+        } catch (err) {
+            Logger.error(MODULE_LABEL, "Send bug report failed:", err);
+            ui.notifications.error("Could not send bug report. Try copy and Discord instead.");
+        } finally {
+            if ($sendBtn?.length) $sendBtn.prop("disabled", false);
+        }
+    }
+
     _buildCurseSourceInfo() {
         // SrdCurseAdapter matches its hardcoded manifest against the dnd5e
         // equipment packs specifically. Display only those two sources --
@@ -561,6 +642,16 @@ export class CompendiumForgeApp extends FormApplication {
             ev.preventDefault();
             await this._saveSources(html);
             this.close();
+        });
+
+        html.find(".forge-copy-bug-report").on("click", async ev => {
+            ev.preventDefault();
+            await this._onCopyBugReport();
+        });
+
+        html.find(".forge-send-bug-report").on("click", async ev => {
+            ev.preventDefault();
+            await this._onSendBugReport();
         });
 
         // Compile

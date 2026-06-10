@@ -58,11 +58,33 @@
         <p class="forge-skip-panel-title"><i class="fas fa-triangle-exclamation"></i> Compatibility warnings</p>
         <p class="forge-skip-panel-summary">{{doneResult.skippedSummary}}</p>
         <ul class="forge-skip-report">
-            {{#each doneResult.skipReport}}
+            {{#each doneResult.skipReport.rows}}
             <li><span class="forge-skip-name">{{this.name}}</span>{{#if this.packId}} <span class="forge-skip-pack">{{this.packId}}</span>{{/if}} <span class="forge-skip-phase">[{{this.phase}}]</span></li>
             {{/each}}
+            {{#if doneResult.skipReport.overflowCount}}
+            <li class="forge-skip-overflow">… and {{doneResult.skipReport.overflowCount}} more (see debug report for full list)</li>
+            {{/if}}
         </ul>
         <p class="forge-skip-hint">You can drag compatible items into the compiled compendium manually, or fix the source pack and recompile.</p>
+        {{#if bugReportUi}}
+        <div class="forge-bug-report-actions">
+            <button type="button" class="cache-btn-secondary forge-copy-bug-report">
+                <i class="fas fa-copy"></i> Copy debug report
+            </button>
+            {{#if bugReportUi.canSubmit}}
+            <button type="button" class="cache-btn-accent forge-send-bug-report">
+                <i class="fas fa-paper-plane"></i> Send report
+            </button>
+            {{/if}}
+        </div>
+        <p class="forge-skip-hint">
+            {{#if bugReportUi.canSubmit}}
+            You get a reference number to cite in Discord when you send.
+            {{else}}
+            Connect Patreon in Ionrift Library (free tier is fine), or copy the report for <a href="{{bugReportUi.discordUrl}}" target="_blank" rel="noopener">Discord</a>.
+            {{/if}}
+        </p>
+        {{/if}}
     </div>
     {{/if}}
 
