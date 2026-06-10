@@ -53,6 +53,19 @@
     </button>
     {{/if}}
 
+    {{#if doneResult.skippedCount}}
+    <div class="forge-skip-panel">
+        <p class="forge-skip-panel-title"><i class="fas fa-triangle-exclamation"></i> Compatibility warnings</p>
+        <p class="forge-skip-panel-summary">{{doneResult.skippedSummary}}</p>
+        <ul class="forge-skip-report">
+            {{#each doneResult.skipReport}}
+            <li><span class="forge-skip-name">{{this.name}}</span>{{#if this.packId}} <span class="forge-skip-pack">{{this.packId}}</span>{{/if}} <span class="forge-skip-phase">[{{this.phase}}]</span></li>
+            {{/each}}
+        </ul>
+        <p class="forge-skip-hint">You can drag compatible items into the compiled compendium manually, or fix the source pack and recompile.</p>
+    </div>
+    {{/if}}
+
     <p class="forge-done-note">
         {{#if isScrollForge}}Scroll caches will now include forged spell scrolls. No further action needed until your spell sources change.
         {{else if isCursedItems}}Cursed item pool is updated. No further action needed until your sources change.

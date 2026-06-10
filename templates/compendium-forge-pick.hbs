@@ -88,6 +88,14 @@
             {{#if compiledStatus.meta}}
             <span class="forge-status-card-meta">{{compiledStatus.meta}}</span>
             {{/if}}
+            {{#if compiledStatus.skipReport}}
+            <ul class="forge-skip-report">
+                {{#each compiledStatus.skipReport}}
+                <li><span class="forge-skip-name">{{this.name}}</span>{{#if this.packId}} <span class="forge-skip-pack">{{this.packId}}</span>{{/if}} <span class="forge-skip-phase">[{{this.phase}}]</span></li>
+                {{/each}}
+            </ul>
+            <p class="forge-skip-hint">Skipped source rows do not block the compiled pool. Add replacements manually to the compiled compendium if needed.</p>
+            {{/if}}
         </div>
         {{#if compiledStatus.clearable}}
         <button type="button" class="forge-clear-pool" title="Remove the compiled pool and revert to raw SRD reads.">

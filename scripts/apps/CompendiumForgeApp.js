@@ -175,12 +175,18 @@ export class CompendiumForgeApp extends FormApplication {
 
     _formatDoneResult(tab, r) {
         if (tab === "lootPool") {
+            const skipCount = r.skippedCount ?? r.skippedItems?.length ?? 0;
             return {
-                primary:      { label: "Items",     value: r.itemCount     ?? 0 },
-                secondary:    { label: "Templates", value: r.templateCount ?? 0 },
-                tertiary:     { label: "Sources",   value: (r.sourceIds ?? []).length },
-                showViewPack: true,
-                packId:       LootPoolCompiler.worldCollectionId,
+                primary:        { label: "Items",     value: r.itemCount     ?? 0 },
+                secondary:      { label: "Templates", value: r.templateCount ?? 0 },
+                tertiary:       { label: "Sources",   value: (r.sourceIds ?? []).length },
+                skippedCount:   skipCount,
+                skippedSummary: skipCount > 0
+                    ? LootPoolCompiler.formatSkippedItemsSummary(r.skippedItems)
+                    : "",
+                skipReport:     r.skippedItems ?? [],
+                showViewPack:   true,
+                packId:         LootPoolCompiler.worldCollectionId,
             };
         }
         if (tab === "scrollForge") {
@@ -318,12 +324,22 @@ export class CompendiumForgeApp extends FormApplication {
 
             if (status === "error") {
                 const when = meta?.errorAt ? this._relativeTime(meta.errorAt) : "recently";
-                const msg  = meta?.errorMessage
+                let msg  = meta?.errorMessage
                     ? meta.errorMessage.length > 120
                         ? meta.errorMessage.slice(0, 120) + "..."
                         : meta.errorMessage
                     : "Unknown error -- check the browser console for details.";
-                return { type: "error", icon: "fas fa-circle-exclamation", text: `Compile failed ${when}.`, meta: msg, clearable: false };
+                if (meta?.skippedCount > 0) {
+                    msg += ` ${LootPoolCompiler.formatSkippedItemsSummary(meta.skippedItems)}`;
+                }
+                return {
+                    type: "error",
+                    icon: "fas fa-circle-exclamation",
+                    text: `Compile failed ${when}.`,
+                    meta: msg,
+                    skipReport: meta?.skippedItems ?? [],
+                    clearable: false,
+                };
             }
             if (status === "never" && LootPoolCompiler.is2024ArchitecturePresent()) {
                 return { type: "never", icon: "fas fa-circle-xmark", text: "Pool not compiled -- 2024 sources contain templates that need expanding.", meta: null, clearable: false };
@@ -340,16 +356,27 @@ export class CompendiumForgeApp extends FormApplication {
             if ((status === "stale" || status === "fresh") && meta) {
                 const age       = this._relativeTime(meta.compiledAt);
                 const packGone  = !game.packs.get(LootPoolCompiler.worldCollectionId);
+                const skipCount = meta.skippedCount ?? meta.skippedItems?.length ?? 0;
                 const baseText  = packGone
                     ? "Compiled pool was removed -- recompile to restore expanded weapons."
                     : status === "stale"
                         ? "Sources changed since last compile."
-                        : "Pool compiled and up to date.";
+                        : skipCount > 0
+                            ? "Pool compiled with compatibility warnings."
+                            : "Pool compiled and up to date.";
+                const skipSummary = skipCount > 0
+                    ? LootPoolCompiler.formatSkippedItemsSummary(meta.skippedItems)
+                    : null;
                 return {
-                    type: packGone ? "stale" : status,
-                    icon: (packGone || status === "stale") ? "fas fa-triangle-exclamation" : "fas fa-circle-check",
+                    type: packGone ? "stale" : (skipCount > 0 && status === "fresh" ? "warning" : status),
+                    icon: (packGone || status === "stale")
+                        ? "fas fa-triangle-exclamation"
+                        : skipCount > 0
+                            ? "fas fa-triangle-exclamation"
+                            : "fas fa-circle-check",
                     text: baseText,
-                    meta: `${meta.itemCount ?? "?"} items - compiled ${age}`,
+                    meta: skipSummary ?? `${meta.itemCount ?? "?"} items - compiled ${age}`,
+                    skipReport: skipCount > 0 ? (meta.skippedItems ?? []) : null,
                     clearable: !packGone,
                 };
             }

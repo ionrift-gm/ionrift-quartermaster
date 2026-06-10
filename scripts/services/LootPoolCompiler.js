@@ -229,6 +229,145 @@ export class LootPoolCompiler {
         return `world.${this.WORLD_PACK_NAME}`;
     }
 
+    // ── Compile resilience (per-item isolation) ───────────────────────────
+
+    /** @returns {{ skips: Array<{ name: string, packId: string, phase: string, reason: string }> }} */
+    static _newCompileReport() {
+        return { skips: [] };
+    }
+
+    /**
+     * Record one skipped row. Compile continues; skips are surfaced in Forge UI.
+     * @param {{ skips: object[] }} report
+     * @param {{ name?: string, packId?: string, phase: string, reason: unknown }} entry
+     */
+    static _recordSkip(report, { name, packId = "", phase, reason }) {
+        if (!report) return;
+        const row = {
+            name:   (name || "(unnamed)").toString(),
+            packId: packId || "",
+            phase:  phase || "unknown",
+            reason: reason?.message ?? String(reason ?? "unknown error"),
+        };
+        report.skips.push(row);
+        Logger.warn(
+            MODULE_LABEL,
+            `LootPoolCompiler: skipped [${row.phase}] "${row.name}"` +
+            `${row.packId ? ` (${row.packId})` : ""}: ${row.reason}`
+        );
+    }
+
+    /**
+     * Run one expansion builder; record and continue on failure.
+     * @param {{ skips: object[] }} report
+     * @param {string} phase
+     * @param {string} itemName
+     * @param {string} [packId]
+     * @param {function(): object|null|undefined} buildFn
+     * @returns {object|null}
+     */
+    static _safeExpand(report, phase, itemName, packId, buildFn) {
+        try {
+            return buildFn() ?? null;
+        } catch (err) {
+            this._recordSkip(report, { name: itemName, packId, phase, reason: err });
+            return null;
+        }
+    }
+
+    /**
+     * Human-readable skip summary for Forge status cards and notifications.
+     * @param {object[]} skips
+     * @param {{ maxNames?: number }} [opts]
+     * @returns {string}
+     */
+    static formatSkippedItemsSummary(skips, { maxNames = 5 } = {}) {
+        if (!skips?.length) return "";
+        const names = [...new Set(skips.map(s => s.name).filter(Boolean))];
+        const shown = names.slice(0, maxNames);
+        const extra = names.length - shown.length;
+        let text = shown.join(", ");
+        if (extra > 0) text += `, and ${extra} more`;
+        const noun = names.length === 1 ? "item was" : "items were";
+        return `${names.length} ${noun} not imported due to compatibility issues: ${text}.`;
+    }
+
+    /**
+     * Verify a source document can be read for expansion (name + toObject).
+     * @param {Item} doc
+     */
+    static _probeSourceDocument(doc) {
+        if (!doc) throw new Error("missing document");
+        const name = doc.name;
+        if (!name || !String(name).trim()) throw new Error("missing name");
+        if (typeof doc.toObject === "function") doc.toObject();
+    }
+
+    /**
+     * Load compendium items with per-document isolation. Falls back to index +
+     * getDocument when batch getDocuments() fails (common with stale adventure data).
+     *
+     * @param {CompendiumCollection} pack
+     * @param {{ skips: object[] }} report
+     * @returns {Promise<Item[]>}
+     */
+    static async _loadPackDocuments(pack, report) {
+        const packId = pack.collection;
+        const docs   = [];
+
+        const tryPush = (doc, fallbackName = "") => {
+            try {
+                this._probeSourceDocument(doc);
+                docs.push(doc);
+            } catch (err) {
+                this._recordSkip(report, {
+                    name:   doc?.name ?? fallbackName ?? doc?.id ?? "(unknown)",
+                    packId,
+                    phase:  "source",
+                    reason: err,
+                });
+            }
+        };
+
+        try {
+            const batch = await pack.getDocuments();
+            for (const doc of batch) tryPush(doc);
+            if (docs.length) return docs;
+        } catch (err) {
+            Logger.warn(
+                MODULE_LABEL,
+                `LootPoolCompiler: batch read failed for "${packId}", trying per-document: ${err.message}`
+            );
+        }
+
+        try {
+            const index = await pack.getIndex({ fields: ["name"] });
+            for (const entry of index) {
+                try {
+                    const doc = await pack.getDocument(entry._id);
+                    tryPush(doc, entry.name);
+                } catch (err) {
+                    this._recordSkip(report, {
+                        name:   entry.name ?? entry._id ?? "(unknown)",
+                        packId,
+                        phase:  "source",
+                        reason: err,
+                    });
+                }
+            }
+        } catch (err) {
+            Logger.warn(MODULE_LABEL, `LootPoolCompiler: could not read "${packId}": ${err.message}`);
+            this._recordSkip(report, {
+                name:   pack.metadata?.label ?? packId,
+                packId,
+                phase:  "source",
+                reason: err,
+            });
+        }
+
+        return docs;
+    }
+
     /**
      * Manifest summary for LootPoolAuditor and Forge diagnostics.
      * @returns {object}
@@ -363,16 +502,13 @@ export class LootPoolCompiler {
         // ── Load source packs ──────────────────────────────────────────
         emit("setup", 0, 1, "Loading source compendiums…");
 
+        const report   = this._newCompileReport();
         const packDocs = new Map(); // packId → Item[]
         for (const packId of sources) {
             const pack = game.packs.get(packId);
             if (!pack || pack.documentName !== "Item") continue;
-            try {
-                const docs = await pack.getDocuments();
-                packDocs.set(packId, docs);
-            } catch (err) {
-                Logger.warn(MODULE_LABEL, `LootPoolCompiler: could not read "${packId}": ${err.message}`);
-            }
+            const docs = await this._loadPackDocuments(pack, report);
+            if (docs.length) packDocs.set(packId, docs);
         }
 
         // Build name → { item, sourcePackId } map (first-seen wins within each pass)
@@ -420,7 +556,10 @@ export class LootPoolCompiler {
                     templatesDone++;
                     emit("templates", templatesDone, totalTemplateItems, label);
 
-                    const data = this._buildTemplateItem(templateDoc, baseDoc, templateName, baseName, tier);
+                    const data = this._safeExpand(
+                        report, "expand", itemName, templateEntry.packId,
+                        () => this._buildTemplateItem(templateDoc, baseDoc, templateName, baseName, tier)
+                    );
                     if (data) expandedItems.push(data);
                 }
             }
@@ -454,7 +593,10 @@ export class LootPoolCompiler {
                     const existingEntry = allByName.get(itemName.trim().toLowerCase());
                     if (existingEntry) continue; // skip - raw pool already has it
 
-                    const data = this._buildAmmoItem(baseEntry.item, base, tier);
+                    const data = this._safeExpand(
+                        report, "expand", itemName, baseEntry.packId,
+                        () => this._buildAmmoItem(baseEntry.item, base, tier)
+                    );
                     if (data) expandedItems.push(data);
                 }
             }
@@ -463,7 +605,7 @@ export class LootPoolCompiler {
         // ── Armor template expansion ───────────────────────────────────
         emit("armor", 0, 1, "Expanding armor templates…");
 
-        const armorItems = this._expandArmorTemplates(allByName);
+        const armorItems = this._expandArmorTemplates(allByName, report);
         const genericArmorPlusCount = armorItems.filter(
             i => /\+\d\b/.test(i.name ?? "") && !i.name.includes("Arrow") && !i.name.includes("Bolt")
         ).length;
@@ -472,7 +614,7 @@ export class LootPoolCompiler {
         }
         expandedItems.push(...armorItems);
 
-        const genericWeaponItems = this._expandGenericWeaponBonus(allByName);
+        const genericWeaponItems = this._expandGenericWeaponBonus(allByName, report);
         for (let weaponDone = 0; weaponDone < genericWeaponItems.length; weaponDone++) {
             emit("weapons", weaponDone + 1, genericWeaponItems.length, genericWeaponItems[weaponDone].name ?? "");
         }
@@ -480,7 +622,7 @@ export class LootPoolCompiler {
 
         // ── Wondrous template expansion (belts, etc.) ────────────────────
         emit("wondrous", 0, 1, "Expanding wondrous templates…");
-        const wondrousItems = this._expandWondrousTemplates(allByName);
+        const wondrousItems = this._expandWondrousTemplates(allByName, report);
         for (let i = 0; i < wondrousItems.length; i++) {
             emit("wondrous", i + 1, wondrousItems.length, wondrousItems[i].name ?? "");
         }
@@ -488,7 +630,7 @@ export class LootPoolCompiler {
 
         // ── Named economy enrichment (helms, etc.) ─────────────────────
         emit("enrich", 0, 1, "Enriching named economy…");
-        const enrichedItems = this._expandNamedEconomyEnrichment(allByName);
+        const enrichedItems = this._expandNamedEconomyEnrichment(allByName, report);
         for (let i = 0; i < enrichedItems.length; i++) {
             emit("enrich", i + 1, enrichedItems.length, enrichedItems[i].name ?? "");
         }
@@ -496,7 +638,7 @@ export class LootPoolCompiler {
 
         // ── Slaying ammunition expansion ───────────────────────────────
         emit("slaying", 0, 1, "Expanding slaying ammunition…");
-        const slayingItems = this._expandSlayingAmmunition(allByName);
+        const slayingItems = this._expandSlayingAmmunition(allByName, report);
         for (let i = 0; i < slayingItems.length; i++) {
             emit("slaying", i + 1, slayingItems.length, slayingItems[i].name ?? "");
         }
@@ -505,7 +647,7 @@ export class LootPoolCompiler {
         // ── Collision resolution ───────────────────────────────────────
         emit("collision", 0, 1, "Resolving collisions…");
         const resolved = this._filterCursedFromCompiled(
-            this._collisionResolve(expandedItems, allByName)
+            this._collisionResolve(expandedItems, allByName, report)
         );
 
         // ── Write to world pack ────────────────────────────────────────
@@ -521,21 +663,22 @@ export class LootPoolCompiler {
             pack = game.packs.get(this.worldCollectionId) ?? pack;
         }
 
+        let writeStats;
         try {
-            await this._reconcilePack(pack, resolved, (current, total, label) => {
+            writeStats = await this._reconcilePack(pack, resolved, (current, total, label) => {
                 emit("writing", current, total, label);
-            });
+            }, report);
         } catch (err) {
             Logger.error(MODULE_LABEL, "LootPoolCompiler: reconcile failed:", err);
+            this._recordSkip(report, { name: "(pack write)", phase: "write", reason: err });
 
-            // Persist error state so the Forge UI can surface it on next open.
-            // Hash is NOT written so the boot compile retries on next world load
-            // and the nudge fires (status "error" !== "fresh").
             const errorMeta = {
                 error: true,
                 errorMessage: err.message ?? String(err),
                 errorAt: new Date().toISOString(),
                 sourceIds: sources,
+                skippedItems: report.skips,
+                skippedCount: report.skips.length,
             };
             await game.settings.set(MODULE_ID, this.SETTING_META, JSON.stringify(errorMeta)).catch(() => {});
 
@@ -546,16 +689,35 @@ export class LootPoolCompiler {
             return;
         }
 
+        if (resolved.length > 0 && (writeStats?.written ?? 0) === 0) {
+            const errorMeta = {
+                error: true,
+                errorMessage: "No compiled items could be written to the world compendium.",
+                errorAt: new Date().toISOString(),
+                sourceIds: sources,
+                skippedItems: report.skips,
+                skippedCount: report.skips.length,
+            };
+            await game.settings.set(MODULE_ID, this.SETTING_META, JSON.stringify(errorMeta)).catch(() => {});
+            ui.notifications.error(
+                "Quartermaster: loot pool compile failed. Open Compendium Forge to review skipped items.",
+                { permanent: true }
+            );
+            return;
+        }
+
         // ── Finalise ───────────────────────────────────────────────────
         const trackedSources = this._getCompileTrackedSources(sources);
         const meta = {
-            compiledAt:      new Date().toISOString(),
-            sourceIds:       trackedSources,
-            itemCount:       resolved.length,
-            templateCount:   templateEntries.length,
+            compiledAt:         new Date().toISOString(),
+            sourceIds:          trackedSources,
+            itemCount:          writeStats?.written ?? resolved.length,
+            templateCount:      templateEntries.length,
             genericArmorPlusCount,
             genericWeaponCount: genericWeaponItems.length,
-            compilerVersion: this.COMPILER_VERSION,
+            compilerVersion:    this.COMPILER_VERSION,
+            skippedItems:       report.skips,
+            skippedCount:       report.skips.length,
         };
 
         await game.settings.set(MODULE_ID, this.SETTING_HASH, sourceHash);
@@ -567,14 +729,19 @@ export class LootPoolCompiler {
 
         ItemPoolResolver.clearCache();
 
+        const skipNote = report.skips.length
+            ? ` ${this.formatSkippedItemsSummary(report.skips)}`
+            : "";
         ui.notifications.info(
-            `Quartermaster: compiled loot pool - ${resolved.length} items ` +
-            `(${genericArmorPlusCount} generic +N armor, ${genericWeaponItems.length} generic +N weapons).`
+            `Quartermaster: compiled loot pool - ${meta.itemCount} items ` +
+            `(${genericArmorPlusCount} generic +N armor, ${genericWeaponItems.length} generic +N weapons).` +
+            skipNote
         );
         Logger.info(
             MODULE_LABEL,
-            `LootPoolCompiler: ${resolved.length} items written ` +
-            `(${genericArmorPlusCount} generic +N armor, ${genericWeaponItems.length} generic +N weapons).`
+            `LootPoolCompiler: ${meta.itemCount} items written ` +
+            `(${genericArmorPlusCount} generic +N armor, ${genericWeaponItems.length} generic +N weapons).` +
+            (report.skips.length ? ` ${report.skips.length} skipped.` : "")
         );
     }
 
@@ -755,16 +922,25 @@ export class LootPoolCompiler {
      * @param {Map<string, {item: Item, packId: string}>} allByName
      * @returns {string[]}
      */
-    static _discoverGenericWeaponBases(allByName) {
+    static _discoverGenericWeaponBases(allByName, report = null) {
         const templateNames = new Set(Object.keys(WEAPON_TEMPLATES).map(n => n.toLowerCase()));
         const discovered = [];
 
-        for (const { item } of allByName.values()) {
-            const doc = typeof item?.toObject === "function" ? item.toObject() : item;
-            const name = (doc?.name ?? "").trim();
-            if (!name || templateNames.has(name.toLowerCase())) continue;
-            if (!this._isLootReadyWeaponBase(doc)) continue;
-            discovered.push(name);
+        for (const { item, packId } of allByName.values()) {
+            try {
+                const doc = typeof item?.toObject === "function" ? item.toObject() : item;
+                const name = (doc?.name ?? "").trim();
+                if (!name || templateNames.has(name.toLowerCase())) continue;
+                if (!this._isLootReadyWeaponBase(doc)) continue;
+                discovered.push(name);
+            } catch (err) {
+                this._recordSkip(report, {
+                    name:   item?.name ?? "(weapon base scan)",
+                    packId: packId ?? "",
+                    phase:  "source",
+                    reason: err,
+                });
+            }
         }
 
         if (discovered.length >= 8) {
@@ -786,9 +962,9 @@ export class LootPoolCompiler {
      * @param {Map<string, {item: Item, packId: string}>} allByName
      * @returns {object[]}
      */
-    static _expandGenericWeaponBonus(allByName) {
+    static _expandGenericWeaponBonus(allByName, report = null) {
         const expanded = [];
-        const bases = this._discoverGenericWeaponBases(allByName);
+        const bases = this._discoverGenericWeaponBases(allByName, report);
 
         for (const baseName of bases) {
             const baseEntry = allByName.get(baseName.trim().toLowerCase());
@@ -801,7 +977,10 @@ export class LootPoolCompiler {
                 if (existing?.item && this._isLootReadyGenericPlusEntry(existing.item)) {
                     continue;
                 }
-                const data = this._buildGenericBonusWeapon(baseDoc, baseName, tier);
+                const data = this._safeExpand(
+                    report, "expand", itemName, baseEntry.packId,
+                    () => this._buildGenericBonusWeapon(baseDoc, baseName, tier)
+                );
                 if (data) expanded.push(data);
             }
         }
@@ -1061,16 +1240,21 @@ export class LootPoolCompiler {
      * @param {Map<string, {item: Item, packId: string}>} allByName
      * @returns {object[]}
      */
-    static _expandArmorTemplates(allByName) {
+    static _expandArmorTemplates(allByName, report = null) {
         const expanded = [];
 
         const shouldSkip = (name, templateDoc) => {
-            const entry = allByName.get((name || "").trim().toLowerCase());
-            if (!entry?.item) return false;
-            if (entry.item === templateDoc) return false;
-            if (this._isLootReadyGenericPlusEntry(entry.item)) return true;
-            if (this._isLootReadyNamedArmorOutput(entry.item)) return true;
-            return false;
+            try {
+                const entry = allByName.get((name || "").trim().toLowerCase());
+                if (!entry?.item) return false;
+                if (entry.item === templateDoc) return false;
+                if (this._isLootReadyGenericPlusEntry(entry.item)) return true;
+                if (this._isLootReadyNamedArmorOutput(entry.item)) return true;
+                return false;
+            } catch (err) {
+                this._recordSkip(report, { name, phase: "expand", reason: err });
+                return true;
+            }
         };
 
         const lookupTemplate = (name) => allByName.get(name.trim().toLowerCase())?.item ?? null;
@@ -1078,13 +1262,23 @@ export class LootPoolCompiler {
         const lookupBaseData = (baseName) => {
             const entry = allByName.get(baseName.trim().toLowerCase());
             if (!entry) return null;
-            const base = entry.item.toObject();
-            const sys  = base.system ?? {};
-            return {
-                subtype: sys.type?.value ?? "",
-                weight:  this._extractWeight(sys),
-                price:   sys.price?.value ?? 0,
-            };
+            try {
+                const base = entry.item.toObject();
+                const sys  = base.system ?? {};
+                return {
+                    subtype: sys.type?.value ?? "",
+                    weight:  this._extractWeight(sys),
+                    price:   sys.price?.value ?? 0,
+                };
+            } catch (err) {
+                this._recordSkip(report, {
+                    name:   baseName,
+                    packId: entry.packId ?? "",
+                    phase:  "source",
+                    reason: err,
+                });
+                return null;
+            }
         };
 
         const templateMeta = (templateDoc) => {
@@ -1096,9 +1290,11 @@ export class LootPoolCompiler {
             };
         };
 
-        const pushArmor = (templateDoc, baseName, baseData, opts) => {
-            if (shouldSkip(opts.name, templateDoc)) return;
-            const data = this._buildArmorItem(templateDoc, baseName, baseData, opts);
+        const pushArmor = (templateDoc, baseName, baseData, opts, packId = "") => {
+            const data = this._safeExpand(report, "expand", opts.name, packId, () => {
+                if (shouldSkip(opts.name, templateDoc)) return null;
+                return this._buildArmorItem(templateDoc, baseName, baseData, opts);
+            });
             if (data) expanded.push(data);
         };
 
@@ -1187,16 +1383,28 @@ export class LootPoolCompiler {
      * @param {Map<string, {item: Item, packId: string}>} allByName
      * @returns {object[]}
      */
-    static _expandWondrousTemplates(allByName) {
+    static _expandWondrousTemplates(allByName, report = null) {
         const expanded = [];
 
         for (const [templateName, variants] of Object.entries(WONDROUS_TEMPLATE_SHELLS)) {
-            const templateDoc = allByName.get(templateName.trim().toLowerCase())?.item ?? null;
+            const templateEntry = allByName.get(templateName.trim().toLowerCase());
+            const templateDoc   = templateEntry?.item ?? null;
 
             for (const variant of variants) {
                 const key = variant.name.trim().toLowerCase();
                 const existing = allByName.get(key);
-                const existingDoc = existing?.item?.toObject?.() ?? existing?.item ?? null;
+                let existingDoc = null;
+                try {
+                    existingDoc = existing?.item?.toObject?.() ?? existing?.item ?? null;
+                } catch (err) {
+                    this._recordSkip(report, {
+                        name:   variant.name,
+                        packId: existing?.packId ?? "",
+                        phase:  "source",
+                        reason: err,
+                    });
+                    continue;
+                }
                 const existingPrice = existingDoc
                     ? ItemPoolResolver._extractPrice(existingDoc)
                     : 0;
@@ -1205,10 +1413,9 @@ export class LootPoolCompiler {
                 const sourceDoc = existing?.item ?? templateDoc;
                 if (!sourceDoc) continue;
 
-                const data = this._buildWondrousVariant(
-                    sourceDoc,
-                    variant,
-                    templateName
+                const data = this._safeExpand(
+                    report, "expand", variant.name, existing?.packId ?? templateEntry?.packId ?? "",
+                    () => this._buildWondrousVariant(sourceDoc, variant, templateName)
                 );
                 if (data) expanded.push(data);
             }
@@ -1223,20 +1430,32 @@ export class LootPoolCompiler {
      * @param {Map<string, {item: Item, packId: string}>} allByName
      * @returns {object[]}
      */
-    static _expandNamedEconomyEnrichment(allByName) {
+    static _expandNamedEconomyEnrichment(allByName, report = null) {
         const expanded = [];
 
         for (const [itemName, spec] of Object.entries(NAMED_ECONOMY_ENRICHMENT)) {
             const entry = allByName.get(itemName.trim().toLowerCase());
             if (!entry?.item) continue;
 
-            const sourceDoc = entry.item.toObject?.() ?? entry.item;
-            const price = ItemPoolResolver._extractPrice(sourceDoc);
-            const weight = ItemPoolResolver._extractWeight(sourceDoc);
-            if (price > 0 && weight > 0) continue;
+            try {
+                const sourceDoc = entry.item.toObject?.() ?? entry.item;
+                const price = ItemPoolResolver._extractPrice(sourceDoc);
+                const weight = ItemPoolResolver._extractWeight(sourceDoc);
+                if (price > 0 && weight > 0) continue;
 
-            const data = this._buildNamedEconomyItem(entry.item, itemName, spec);
-            if (data) expanded.push(data);
+                const data = this._safeExpand(
+                    report, "expand", itemName, entry.packId,
+                    () => this._buildNamedEconomyItem(entry.item, itemName, spec)
+                );
+                if (data) expanded.push(data);
+            } catch (err) {
+                this._recordSkip(report, {
+                    name:   itemName,
+                    packId: entry.packId ?? "",
+                    phase:  "source",
+                    reason: err,
+                });
+            }
         }
 
         return expanded;
@@ -1318,9 +1537,10 @@ export class LootPoolCompiler {
      * @param {Map<string, {item: Item, packId: string}>} allByName
      * @returns {object[]}
      */
-    static _expandSlayingAmmunition(allByName) {
+    static _expandSlayingAmmunition(allByName, report = null) {
         const expanded = [];
-        const shellDoc = allByName.get(SLAYING_AMMO_TEMPLATE.toLowerCase())?.item ?? null;
+        const shellEntry = allByName.get(SLAYING_AMMO_TEMPLATE.toLowerCase());
+        const shellDoc     = shellEntry?.item ?? null;
         if (!shellDoc) return expanded;
 
         for (const { base, short } of SLAYING_AMMO_BASES) {
@@ -1333,18 +1553,32 @@ export class LootPoolCompiler {
             for (const creatureType of SLAYING_CREATURE_TYPES) {
                 const itemName = `${short} of Slaying (${creatureType})`;
                 const existing = allByName.get(itemName.toLowerCase());
-                const existingDoc = existing?.item?.toObject?.() ?? existing?.item ?? null;
+                let existingDoc = null;
+                try {
+                    existingDoc = existing?.item?.toObject?.() ?? existing?.item ?? null;
+                } catch (err) {
+                    this._recordSkip(report, {
+                        name:   itemName,
+                        packId: existing?.packId ?? "",
+                        phase:  "source",
+                        reason: err,
+                    });
+                    continue;
+                }
                 if (existingDoc && ItemPoolResolver._extractPrice(existingDoc) > 0) continue;
 
                 const riderName = `${SLAYING_AMMO_TEMPLATE} ${creatureType}`;
                 const riderDoc = allByName.get(riderName.toLowerCase())?.item ?? null;
 
-                const data = this._buildSlayingAmmoItem(
-                    shellDoc,
-                    baseEntry.item,
-                    short,
-                    creatureType,
-                    riderDoc
+                const data = this._safeExpand(
+                    report, "expand", itemName, baseEntry.packId,
+                    () => this._buildSlayingAmmoItem(
+                        shellDoc,
+                        baseEntry.item,
+                        short,
+                        creatureType,
+                        riderDoc
+                    )
                 );
                 if (data) expanded.push(data);
             }
@@ -1481,24 +1715,31 @@ export class LootPoolCompiler {
         return kept;
     }
 
-    static _collisionResolve(expanded, allByName) {
+    static _collisionResolve(expanded, allByName, report = null) {
         for (const data of expanded) {
-            const key = (data.name || "").trim().toLowerCase();
-            const legacy = allByName.get(key);
-            if (!legacy) continue;
+            try {
+                const key = (data.name || "").trim().toLowerCase();
+                const legacy = allByName.get(key);
+                if (!legacy) continue;
 
-            // Legacy collision: only fix weight if our version is 0
-            const ourWeight = this._extractWeight(data.system ?? {});
-            if (ourWeight === 0) {
-                const legacyWeight = this._extractWeight(legacy.item.system ?? {});
-                if (legacyWeight > 0) {
-                    const sys = data.system ??= {};
-                    if (sys.weight !== null && typeof sys.weight === "object") {
-                        sys.weight = { ...sys.weight, value: legacyWeight };
-                    } else {
-                        sys.weight = { value: legacyWeight, units: "lb" };
+                const ourWeight = this._extractWeight(data.system ?? {});
+                if (ourWeight === 0) {
+                    const legacyWeight = this._extractWeight(legacy.item.system ?? {});
+                    if (legacyWeight > 0) {
+                        const sys = data.system ??= {};
+                        if (sys.weight !== null && typeof sys.weight === "object") {
+                            sys.weight = { ...sys.weight, value: legacyWeight };
+                        } else {
+                            sys.weight = { value: legacyWeight, units: "lb" };
+                        }
                     }
                 }
+            } catch (err) {
+                this._recordSkip(report, {
+                    name:   data.name ?? "(collision)",
+                    phase:  "collision",
+                    reason: err,
+                });
             }
         }
         return expanded;
@@ -1596,16 +1837,65 @@ export class LootPoolCompiler {
     }
 
     /**
+     * Create compendium rows; on batch failure, retry per item and record skips.
+     * @param {typeof Item} ItemClass
+     * @param {object[]} items
+     * @param {CompendiumCollection} pack
+     * @param {{ skips: object[] }} report
+     * @param {string} phase
+     * @returns {Promise<number>} Count written
+     */
+    static async _createDocumentsResilient(ItemClass, items, pack, report, phase = "write") {
+        if (!items.length) return 0;
+        const minting = game.ionrift?.library?.minting;
+        const packKey = pack.collection;
+
+        try {
+            if (minting?.guardAll) {
+                minting.guardAll(items, { moduleId: MODULE_ID, mode: "pack" });
+            }
+            await ItemClass.createDocuments(items, { pack: packKey });
+            return items.length;
+        } catch (batchErr) {
+            Logger.warn(
+                MODULE_LABEL,
+                `LootPoolCompiler: batch ${phase} failed (${items.length} items), retrying per-item: ${batchErr.message}`
+            );
+        }
+
+        let written = 0;
+        for (const data of items) {
+            try {
+                if (minting?.guardAll) {
+                    minting.guardAll([data], { moduleId: MODULE_ID, mode: "pack" });
+                }
+                await ItemClass.createDocuments([data], { pack: packKey });
+                written++;
+            } catch (err) {
+                this._recordSkip(report, {
+                    name:   data.name ?? "(unnamed)",
+                    packId: packKey,
+                    phase,
+                    reason: err,
+                });
+            }
+        }
+        return written;
+    }
+
+    /**
      * Reconcile pack contents: update existing, create missing, delete orphans.
      * Mirrors SrdCurseAdapter._reconcilePack.
      *
      * @param {CompendiumCollection} pack
      * @param {object[]} pendingItems
      * @param {function} [onItemWritten]  Called with (current, total, name) per item
+     * @param {{ skips: object[] }} [report]
+     * @returns {Promise<{ written: number, attempted: number }>}
      */
-    static async _reconcilePack(pack, pendingItems, onItemWritten) {
+    static async _reconcilePack(pack, pendingItems, onItemWritten, report = null) {
         const ItemClass = CONFIG.Item.documentClass;
-        const minting   = game.ionrift?.library?.minting;
+        const safeReport = report ?? this._newCompileReport();
 
         const existingByName = new Map();
         try {
@@ -1641,17 +1931,16 @@ export class LootPoolCompiler {
             for (const doc of docs) toDelete.push(doc.id);
         }
 
-        if (minting?.guardAll && toCreate.length) {
-            minting.guardAll(toCreate, { moduleId: MODULE_ID, mode: "pack" });
-        }
-
         let written = 0;
         const total = toCreate.length + toUpdate.length;
 
         if (toCreate.length) {
-            await ItemClass.createDocuments(toCreate, { pack: pack.collection });
-            written += toCreate.length;
-            if (typeof onItemWritten === "function") onItemWritten(written, total, `Created ${toCreate.length} items`);
+            written += await this._createDocumentsResilient(
+                ItemClass, toCreate, pack, safeReport, "write"
+            );
+            if (typeof onItemWritten === "function") {
+                onItemWritten(written, total, `Created ${toCreate.length} items`);
+            }
         }
 
         // Update path: delete then recreate. updateDocuments does a differential
@@ -1664,9 +1953,13 @@ export class LootPoolCompiler {
                 await ItemClass.deleteDocuments(updateIds, { pack: pack.collection });
             } catch { /* if delete fails, create will just add */ }
             const freshData = toUpdate.map(({ _id, ...rest }) => rest);
-            await ItemClass.createDocuments(freshData, { pack: pack.collection });
-            written += toUpdate.length;
-            if (typeof onItemWritten === "function") onItemWritten(written, total, `Updated ${toUpdate.length} items`);
+            const updated = await this._createDocumentsResilient(
+                ItemClass, freshData, pack, safeReport, "write"
+            );
+            written += updated;
+            if (typeof onItemWritten === "function") {
+                onItemWritten(written, total, `Updated ${toUpdate.length} items`);
+            }
         }
 
         for (const id of toDelete) {
@@ -1674,6 +1967,8 @@ export class LootPoolCompiler {
                 await ItemClass.deleteDocuments([id], { pack: pack.collection });
             } catch { /* phantom; skip */ }
         }
+
+        return { written, attempted: total };
     }
 
     static _enforceOwnership() {
