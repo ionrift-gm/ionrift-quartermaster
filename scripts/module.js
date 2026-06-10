@@ -243,62 +243,6 @@ Hooks.on('ready', () => {
 
 
 
-    // Forge safety tests (infrastructure, non-IP-sensitive)
-    if (game.ionrift?.library?.tests) {
-        game.ionrift.library.tests.register("ionrift-quartermaster-forge", {
-            name: "Quartermaster Forge Safety",
-            description: "Partial registration checks",
-            runFn: async () => {
-                const { QuartermasterForgeTestRunner } = await import("./tests/ForgeTestRunner.js");
-                return QuartermasterForgeTestRunner.runAll();
-            }
-        });
-
-        game.ionrift.library.tests.register("ionrift-quartermaster-spine", {
-            name: "Quartermaster Terrain Spine",
-            description: "Verifies QM reads the spine faithfully and never pollutes it",
-            runFn: async () => {
-                try {
-                    const { runTerrainSpineTests } = await import("./tests/TerrainSpineTests.js");
-                    return runTerrainSpineTests();
-                } catch {
-                    return { passed: 0, failed: 0, total: 0, skipped: true,
-                        results: [{ name: "TerrainSpineTests", status: "skip", message: "Test file not present (production build)." }] };
-                }
-            }
-        });
-
-        game.ionrift.library.tests.register("ionrift-quartermaster-pool-resolver", {
-            name: "Quartermaster Pool Resolver",
-            description: "Guards the cache generator role-pack resolver against lootPoolSources mis-gating",
-            runFn: async () => {
-                try {
-                    const { runPoolResolverTests } = await import("./tests/PoolResolverTests.js");
-                    return runPoolResolverTests();
-                } catch {
-                    return { passed: 0, failed: 0, total: 0, skipped: true,
-                        results: [{ name: "PoolResolverTests", status: "skip", message: "Test file not present (production build)." }] };
-                }
-            }
-        });
-
-        game.ionrift.library.tests.register("ionrift-quartermaster-overlay-materialiser", {
-            name: "Quartermaster Overlay Materialiser",
-            description: "Guards the overlay item walker against the silent empty-pack regression on nested terrain layouts",
-            runFn: async () => {
-                try {
-                    const { runOverlayMaterialiserTests } = await import("./tests/OverlayMaterialiserTests.js");
-                    return runOverlayMaterialiserTests();
-                } catch {
-                    return { passed: 0, failed: 0, total: 0, skipped: true,
-                        results: [{ name: "OverlayMaterialiserTests", status: "skip", message: "Test file not present (production build)." }] };
-                }
-            }
-        });
-    }
-
-
-
     // Expose services on namespace for companion modules (Cursewright)
     game.ionrift.quartermaster = game.ionrift.quartermaster ?? {};
     game.ionrift.quartermaster.openSetupGuide = openSetupGuide;
