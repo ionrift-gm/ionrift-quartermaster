@@ -253,9 +253,38 @@ Hooks.on('ready', () => {
 
     Logger.info(MODULE_LABEL, "Ready.");
 
-    // Signal companion modules that QM is fully initialized
+    // Signal companion modules that QM is fully initialized.
+    // Cursewright listens on this hook and sets game.ionrift.cursewright synchronously
+    // within its handler, so by the time our queueMicrotask below runs, CW is wired.
     Hooks.callAll("ionrift-quartermaster.ready", game.ionrift.quartermaster);
     Logger.log(MODULE_LABEL, "Cache Generator available: game.ionrift.workshop.generateCache()");
+
+    // ── SRD pool purge when Cursewright is present ───────────────────────────
+    // Deferred one microtask so all ionrift-quartermaster.ready listeners
+    // (including CW's own wiring) have completed before we inspect the namespace.
+    if (game.user.isGM) {
+        queueMicrotask(async () => {
+            try {
+                if (!game.ionrift?.cursewright) return; // CW not loaded - nothing to do
+                const { getActiveCursedRegistry } = await import("./services/StandalonePoolRegistry.js");
+                const reg  = getActiveCursedRegistry();
+                const pool = await reg.getCursedPool();
+                const next = pool.filter(e => !(e.uuid || "").includes("ionrift-srd-cursed"));
+                const removed = pool.length - next.length;
+                if (removed > 0) {
+                    await reg.setCursedPool(next);
+                    Logger.info(MODULE_LABEL,
+                        `Cursewright detected: purged ${removed} SRD cursed item${removed !== 1 ? "s" : ""} from pool (superseded by Cursewright).`
+                    );
+                    ui.notifications.info(
+                        `Quartermaster: removed ${removed} SRD cursed item${removed !== 1 ? "s" : ""} — Cursewright is active and provides its own pool.`
+                    );
+                }
+            } catch (err) {
+                Logger.error(MODULE_LABEL, "SRD pool purge failed:", err);
+            }
+        });
+    }
 
     if (game.user.isGM && game.settings.get(MODULE_ID, "scrollForgeEnabled")) {
         ScrollForge.runAfterReady().catch(err => {

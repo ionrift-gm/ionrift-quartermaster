@@ -608,6 +608,7 @@
         {{!-- ── Source footer ─────────────────────────────────────────────── --}}
         <div class="curse-source-footer">
             <div class="curse-source-footer-left">
+                {{#unless cwPresent}}
                 {{#if srdPoolCount}}
                 <span class="curse-source-pill curse-source-pill--active">
                     <i class="fas fa-circle-check"></i> SRD · {{srdPoolCount}} item{{#if (gt srdPoolCount 1)}}s{{/if}}
@@ -617,6 +618,7 @@
                     <i class="fas fa-flask-vial"></i> SRD not loaded
                 </span>
                 {{/if}}
+                {{/unless}}
                 {{#if cwPresent}}
                     {{#if cwPoolCount}}
                     <span class="curse-source-pill curse-source-pill--active">
@@ -630,6 +632,7 @@
                 {{/if}}
             </div>
             <div class="curse-source-footer-right">
+                {{#unless cwPresent}}
                 {{#if hasSrdPack}}
                 <a role="button" class="curse-footer-link action-compile-srd-cursed"
                    data-action="compile-srd-cursed"
@@ -638,6 +641,7 @@
                     {{#if srdPoolCount}}Refresh SRD{{else}}Load SRD{{/if}}
                 </a>
                 {{/if}}
+                {{/unless}}
                 {{#if cwPresent}}
                 <a role="button" class="curse-footer-link action-compile-curse-forge"
                    data-action="compile-curse-forge"

@@ -2691,6 +2691,12 @@ export class SignatureLedgerApp extends Application {
     async _onLoadSrdCursedItems(event) {
         event.preventDefault();
         if (!game.user.isGM) return;
+        // SRD items are superseded when Cursewright is loaded. Block silently so
+        // any programmatic caller doesn't pollute the pool with obsolete items.
+        if (game.ionrift?.cursewright) {
+            ui.notifications.warn("Cursewright is active — use Compile CW to refresh the cursed pool. SRD items are not used when Cursewright is loaded.");
+            return;
+        }
 
         ui.notifications.info("Quartermaster: compiling SRD cursed items...");
         await SrdCurseAdapter.compile({ forceRecompile: true });
@@ -3152,10 +3158,15 @@ export class SignatureLedgerApp extends Application {
 
     async _onRemovePoolItem(event) {
         event.preventDefault();
-        const idx  = parseInt(event.currentTarget.dataset.index);
+        // Use UUID for removal - data-index carries posInCol (a within-tier ordinal),
+        // NOT a global pool array index. Splicing by posInCol would delete the wrong
+        // item when tiers 1/2 have entries ahead of the target tier in the pool array.
+        const uuid = event.currentTarget.dataset.uuid;
+        if (!uuid) return;
         const pool = await getActiveCursedRegistry().getCursedPool();
-        pool.splice(idx, 1);
-        await getActiveCursedRegistry().setCursedPool(pool);
+        const next = pool.filter(e => (e.uuid || "") !== uuid);
+        if (next.length === pool.length) return; // nothing matched - bail
+        await getActiveCursedRegistry().setCursedPool(next);
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
         this.render();
     }
