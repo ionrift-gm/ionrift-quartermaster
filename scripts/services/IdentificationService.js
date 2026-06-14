@@ -87,7 +87,12 @@ export class IdentificationService {
         let displayName = item.name;
 
         const forgedFrom = item.flags?.[MODULE_ID]?.forgedFrom;
-        const isCurseForgeLatent = !!(latent && forgedFrom && !latent.promoted);
+        const hasCurseMeta = !!(
+            cursedMeta?.latent
+            || cursedMeta?.archetypeId
+            || cursedMeta?.lureName
+        );
+        const isCurseForgeLatent = !!(latent && !latent.promoted && (forgedFrom || hasCurseMeta));
 
         if (isCurseForgeLatent) {
             // Prefer twin-doc promotion: CurseForge emits a paired identified

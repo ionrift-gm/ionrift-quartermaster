@@ -567,7 +567,9 @@ export class ItemMaskingHelper {
             patch["system.mastery"] = tSystem.mastery;
         }
 
-        const desc = latent?.originalDescription ?? tSystem.description?.value;
+        const desc = latent?.originalDescription
+            ?? liveItem?.flags?.["ionrift-quartermaster"]?.cursedMeta?.decoyAppearance
+            ?? tSystem.description?.value;
         if (desc !== undefined) {
             // Preserve any curse-reveal block already appended to the live
             // description so an activated curse doesn't visually revert to
