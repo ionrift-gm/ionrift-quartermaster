@@ -9,6 +9,7 @@ import { CacheGenerator } from "./CacheGenerator.js";
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
 import { ItemClassifier } from "./ItemClassifier.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
+import { Logger, MODULE_LABEL } from "../_logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -1070,10 +1071,10 @@ export function scanItemsForEconomyLeaks(items, opts = {}) {
 
     const leaks = [...seen.values()];
     if (log && leaks.length) {
-        console.warn(`[QM economy leak] ${label}: ${leaks.length} distinct zero-economy item(s)`);
+        Logger.warn(MODULE_LABEL, `[economy leak] ${label}: ${leaks.length} distinct zero-economy item(s)`);
         for (const row of leaks) {
             const parts = row.issues.map(issue => (issue === "zero_price" ? "0 gp" : "0 lb")).join(", ");
-            console.warn(
+            Logger.warn(MODULE_LABEL,
                 `  - ${row.name} (${parts}, qty ${row.quantity}` +
                 `${row.slotType ? `, slot ${row.slotType}` : ""}, seen ${row.count}x)`
             );

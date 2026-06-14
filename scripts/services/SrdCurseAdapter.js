@@ -525,26 +525,6 @@ export class SrdCurseAdapter {
         }
     }
 
-    /** @deprecated Use _ensureQuartermasterFolderId() */
-    static _findQuartermasterFolderId() {
-        const cfg     = game.settings.get("core", "compendiumConfiguration") ?? {};
-        const fromRef = cfg["ionrift-quartermaster.quartermaster-containers"]?.folder;
-        if (fromRef) {
-            const f = game.folders.get(fromRef);
-            if (f?.name === "Quartermaster") return fromRef;
-        }
-        const ionriftRoots = game.folders.filter(f =>
-            f.type === "Compendium" && f.name === "Ionrift" && !f.folder
-        );
-        for (const ion of ionriftRoots) {
-            const qm = game.folders.find(f =>
-                f.type === "Compendium" && f.name === "Quartermaster" && f.folder === ion.id
-            );
-            if (qm) return qm.id;
-        }
-        return null;
-    }
-
     // ── Status / metadata helpers (mirrors LootPoolCompiler API) ───────────
 
     /**
