@@ -284,13 +284,14 @@ export class ContentPackCompiler {
     // ═══════════════════════════════════════════════════════════════
 
     /**
-     * Place a world compendium next to other Quartermaster packs in the sidebar.
-     * Reuses ScrollForge's approach.
+     * Place a world compendium under Ionrift > Quartermaster > Compiled.
+     * Delegates to LootPoolCompiler so folder hierarchy logic lives in one place.
      * @param {CompendiumCollection} pack
      */
     static async _assignSidebarFolder(pack) {
         if (!game.user.isGM) return;
-        const folderId = this._findQuartermasterFolderId();
+        const { LootPoolCompiler } = await import("./LootPoolCompiler.js");
+        const folderId = await LootPoolCompiler._ensureCompiledFolderId();
         if (!folderId) return;
 
         const packId = pack.collection;
@@ -299,33 +300,6 @@ export class ContentPackCompiler {
         );
         cfg[packId] = foundry.utils.mergeObject(cfg[packId] ?? {}, { folder: folderId });
         await game.settings.set("core", "compendiumConfiguration", cfg);
-    }
-
-    /**
-     * Find the Quartermaster compendium sidebar folder ID.
-     * @returns {string|null}
-     */
-    static _findQuartermasterFolderId() {
-        // Try to find via a known Quartermaster pack reference
-        const cfg = game.settings.get("core", "compendiumConfiguration") ?? {};
-        const refPackId = "ionrift-quartermaster.quartermaster-containers";
-        const fromRef = cfg[refPackId]?.folder;
-        if (fromRef) {
-            const f = game.folders.get(fromRef);
-            if (f?.type === "Compendium" && f.name === "Quartermaster") return fromRef;
-        }
-
-        // Walk folder tree
-        const ionriftRoots = game.folders.filter(f =>
-            f.type === "Compendium" && f.name === "Ionrift" && !f.folder
-        );
-        for (const ion of ionriftRoots) {
-            const qm = game.folders.find(f =>
-                f.type === "Compendium" && f.name === "Quartermaster" && f.folder === ion.id
-            );
-            if (qm) return qm.id;
-        }
-        return null;
     }
 
     /**
