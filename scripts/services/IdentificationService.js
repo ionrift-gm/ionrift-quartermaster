@@ -1,6 +1,7 @@
 import { Logger } from "../_logger.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
+import { traceIdentify, traceItemFlags } from "./IdentificationTrace.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 const FLAG_LATENT_MAGIC = "latentMagic";
@@ -45,10 +46,14 @@ export class IdentificationService {
      * @returns {Promise<{identified: boolean, kind: string, reason?: string}>}
      */
     static async identify(item, { silent = false } = {}) {
+        traceIdentify("identify:start", { silent, ...traceItemFlags(item) });
+
         if (!game.user.isGM) {
+            traceIdentify("identify:abort", { reason: "not-gm" });
             return { identified: false, kind: "none", reason: "not-gm" };
         }
         if (!item) {
+            traceIdentify("identify:abort", { reason: "no-item" });
             return { identified: false, kind: "none", reason: "no-item" };
         }
 
@@ -67,8 +72,15 @@ export class IdentificationService {
             || (cursedMeta?.lure && item.system?.identified === false)
             || hasCursedOnlyMeta;
         if (!hasPendingPayload) {
+            traceIdentify("identify:abort", { reason: "already-identified", ...traceItemFlags(item) });
             return { identified: false, kind: "none", reason: "already-identified" };
         }
+
+        traceIdentify("identify:promote", {
+            hasUnpromotedLatent,
+            hasCursedOnlyMeta,
+            forgedFrom: item.flags?.[MODULE_ID]?.forgedFrom ?? null
+        });
 
         const updates = { "system.identified": true };
         let kind = "mundane";
@@ -125,6 +137,7 @@ export class IdentificationService {
         try {
             await item.update(updates, { curseBypass: true });
         } catch (err) {
+            traceIdentify("identify:abort", { reason: "update-failed", error: err.message });
             Logger.error("Quartermaster", `IdentificationService: update failed for ${item.name}:`, err.message);
             return { identified: false, kind, reason: "update-failed" };
         }
@@ -218,6 +231,7 @@ export class IdentificationService {
         Hooks.callAll(`${MODULE_ID}.itemIdentified`, item, { kind, cursedMeta });
 
         Logger.info("Quartermaster", `IdentificationService: ${kind} -> "${item.name}".`);
+        traceIdentify("identify:done", { kind, displayName, ...traceItemFlags(item) });
         return { identified: true, kind };
     }
 
@@ -259,6 +273,31 @@ export class IdentificationService {
         const latent = item.getFlag?.(MODULE_ID, FLAG_LATENT_MAGIC);
         const cursedMeta = item.getFlag?.(MODULE_ID, FLAG_CURSED_META);
         return !!(latent || cursedMeta);
+    }
+
+    /**
+     * Whether `identify()` would promote or reveal a pending payload.
+     * Used by IdentificationGuard to route GM wand clicks.
+     *
+     * @param {Item} item
+     * @returns {boolean}
+     */
+    static hasPendingIdentification(item) {
+        if (!item) return false;
+        const latent = item.getFlag?.(MODULE_ID, FLAG_LATENT_MAGIC) ?? null;
+        const cursedMeta = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? null;
+
+        const hasUnpromotedLatent = !!(latent && !latent.promoted);
+        const hasCursedOnlyMeta = !!(
+            cursedMeta
+            && !cursedMeta.lure
+            && !hasUnpromotedLatent
+            && !cursedMeta.gmRevealed
+        );
+
+        return hasUnpromotedLatent
+            || (cursedMeta?.lure && item.system?.identified === false)
+            || hasCursedOnlyMeta;
     }
 
     /**

@@ -575,5 +575,15 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         restricted: true
     });
 
+    game.settings.register(MODULE_ID, "identifyTrace", {
+        name: "Identification Trace Logging",
+        hint: "Logs GM wand clicks and identification routing to the browser console (F12). Prefix: [QM Identify].",
+        scope: "client",
+        config: true,
+        type: Boolean,
+        default: true,
+        restricted: true
+    });
+
     registerQuartermasterSettingsPanel();
 }
