@@ -531,8 +531,13 @@ export class OverlayItemMaterialiser {
         }
     }
 
+    /**
+     * Place a world compendium under Ionrift > Quartermaster > Compiled.
+     * Delegates to LootPoolCompiler so folder hierarchy logic lives in one place.
+     */
     static async _assignSidebarFolder(pack) {
-        const folderId = this._findQuartermasterFolderId();
+        const { LootPoolCompiler } = await import("./LootPoolCompiler.js");
+        const folderId = await LootPoolCompiler._ensureCompiledFolderId();
         if (!folderId) return;
 
         const cfg = foundry.utils.duplicate(
@@ -540,27 +545,6 @@ export class OverlayItemMaterialiser {
         );
         cfg[pack.collection] = foundry.utils.mergeObject(cfg[pack.collection] ?? {}, { folder: folderId });
         await game.settings.set("core", "compendiumConfiguration", cfg);
-    }
-
-    static _findQuartermasterFolderId() {
-        const cfg = game.settings.get("core", "compendiumConfiguration") ?? {};
-        const refPackId = "ionrift-quartermaster.quartermaster-containers";
-        const fromRef = cfg[refPackId]?.folder;
-        if (fromRef) {
-            const f = game.folders.get(fromRef);
-            if (f?.type === "Compendium" && f.name === "Quartermaster") return fromRef;
-        }
-
-        const ionriftRoots = game.folders.filter(f =>
-            f.type === "Compendium" && f.name === "Ionrift" && !f.folder
-        );
-        for (const ion of ionriftRoots) {
-            const qm = game.folders.find(f =>
-                f.type === "Compendium" && f.name === "Quartermaster" && f.folder === ion.id
-            );
-            if (qm) return qm.id;
-        }
-        return null;
     }
 
     static _enforceOwnership(pack) {
