@@ -70,7 +70,7 @@ jobs:
 
       - name: Validate compiled packs
         if: github.event.inputs.dry_run_discord != 'true'
-        run: node tools/validate-packs-local.mjs
+        run: node tools/validate-packs-local.mjs --verify-only
 
       - name: Validate shipping manifest
         if: github.event.inputs.dry_run_discord != 'true'

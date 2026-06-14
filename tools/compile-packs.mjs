@@ -15,75 +15,13 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { compilePack } from "@foundryvtt/foundryvtt-cli";
+import { stageJournalPackSrc } from "./journal-pack-staging.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE_ROOT = path.resolve(__dirname, "..");
 const SHIPPING_PATH = path.join(MODULE_ROOT, "packs", "SHIPPING.json");
 const SRC_ROOT = path.join(MODULE_ROOT, "packs", "src");
 const OUT_ROOT = path.join(MODULE_ROOT, "packs");
-
-/**
- * @param {string} srcDir
- * @returns {{ srcDir: string, cleanup: (() => void) | null }}
- */
-function stageJournalPackSrc(srcDir) {
-    const entries = fs.readdirSync(srcDir)
-        .filter((f) => f.endsWith(".json"))
-        .map((f) => ({
-            file: f,
-            doc: JSON.parse(fs.readFileSync(path.join(srcDir, f), "utf8")),
-        }));
-
-    const pageDocs = [];
-    const parents = new Map();
-    const standalone = [];
-
-    for (const entry of entries) {
-        const key = entry.doc._key ?? "";
-        if (key.startsWith("!journal.pages!")) {
-            pageDocs.push(entry);
-        } else if (key.startsWith("!journal!")) {
-            parents.set(entry.doc._id, entry);
-        } else {
-            standalone.push(entry);
-        }
-    }
-
-    if (pageDocs.length === 0) {
-        return { srcDir, cleanup: null };
-    }
-
-    for (const { doc: page } of pageDocs) {
-        const match = (page._key ?? "").match(/^!journal\.pages!([^.]+)\./);
-        const parentId = match?.[1];
-        if (!parentId) continue;
-        const parent = parents.get(parentId);
-        if (!parent) continue;
-        if (!Array.isArray(parent.doc.pages)) {
-            parent.doc.pages = [];
-        }
-        parent.doc.pages.push(page);
-    }
-
-    const tmpDir = fs.mkdtempSync(path.join(MODULE_ROOT, ".pack-stage-"));
-    for (const entry of parents.values()) {
-        fs.writeFileSync(
-            path.join(tmpDir, entry.file),
-            `${JSON.stringify(entry.doc, null, 4)}\n`,
-        );
-    }
-    for (const entry of standalone) {
-        fs.writeFileSync(
-            path.join(tmpDir, entry.file),
-            `${JSON.stringify(entry.doc, null, 4)}\n`,
-        );
-    }
-
-    return {
-        srcDir: tmpDir,
-        cleanup: () => fs.rmSync(tmpDir, { recursive: true, force: true }),
-    };
-}
 
 async function main() {
     if (!fs.existsSync(SHIPPING_PATH)) {
@@ -118,7 +56,7 @@ async function main() {
         fs.mkdirSync(outDir, { recursive: true });
 
         console.log(`  compile: packs/src/${name} → packs/${name}`);
-        const staged = stageJournalPackSrc(srcDir);
+        const staged = stageJournalPackSrc(MODULE_ROOT, srcDir);
         try {
             await compilePack(staged.srcDir, outDir, { log: true });
         } finally {
