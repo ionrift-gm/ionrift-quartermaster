@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0] - 2026-06-15
+
+### Fixed
+- The GM Wand identify action now correctly toggles the identify state on DnD5e items, resolving a regression introduced by the DnD5e frame update.
+- Scroll Forge now detects when its world compendium has been deleted and forces a recompile, rather than silently skipping generation on hash match.
+- The GM guide compendium now only compiles pages that have substantive content, removing blank pages from the in-game journal.
+
 ## [1.6.3] - 2026-06-10
 
 ### Fixed

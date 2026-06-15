@@ -729,9 +729,7 @@ export async function drawMastercraftInCacheContext(tier, opts = {}) {
     const tierData = { ...(tables.tiers?.[String(tier)] ?? TIER_DATA[tier]), _tier: tier };
     const ownerDef = tables.ownerThemes?.[ownerTheme] ?? SYNTHETIC_CACHE_TABLES.ownerThemes.armaments;
     const economy = settings.lootEconomy ?? 1.0;
-    const effectiveBudget = (tierData.budgetCap ?? 600)
-        * (ownerDef.budgetMultiplier ?? 1.0)
-        * economy;
+    const effectiveBudget = (tierData.budgetCap ?? 600) * (ownerDef.budgetMultiplier ?? 1.0) * economy;
     const goldFillerFloor = [0, 3, 9, 25, 60][tier] ?? 3;
 
     const capacityLbs = opts.capacityLbs ?? 140;
