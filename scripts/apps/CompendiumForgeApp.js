@@ -729,9 +729,6 @@ export class CompendiumForgeApp extends FormApplication {
         }
 
         else if (tab === "scrollForge") {
-            const ScrollForge = this._scrollForgeRef?.ScrollForge;
-            if (!ScrollForge) return;
-
             const enabled = [];
             html.find('input[type="checkbox"][name^="pack-"]').each(function () {
                 if (this.checked) enabled.push(this.name.replace("pack-", ""));

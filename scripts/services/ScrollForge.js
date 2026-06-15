@@ -208,7 +208,8 @@ export class ScrollForge {
 
         const sourceHash = await this._computeSourceHash(spellPacks);
         const lastHash = game.settings.get(MODULE_ID, this.SETTING_HASH);
-        if (!forceRecompile && sourceHash === lastHash) {
+        const packExists = !!game.packs.get(this.worldCollectionId);
+        if (!forceRecompile && sourceHash === lastHash && packExists) {
             await this.ensureSidebarPlacement();
             return;
         }
