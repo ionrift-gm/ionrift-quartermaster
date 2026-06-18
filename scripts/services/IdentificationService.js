@@ -182,6 +182,9 @@ export class IdentificationService {
                 if (!IdentificationService._itemActivitiesHaveDamageFormula(item)) {
                     await IdentificationService._retryActivityPromotion(item, latent.activities);
                 }
+                if (!IdentificationService._itemActivitiesHaveDamageFormula(item)) {
+                    await IdentificationService._promoteActivityDamageModels(item, latent.activities);
+                }
             }
 
             // Clear IP canStack restriction after identification.
@@ -440,16 +443,39 @@ export class IdentificationService {
      * @param {Item} item
      * @returns {boolean}
      */
+    static _activityDamageFormula(act) {
+        if (!act) return null;
+
+        const parts = act.damage?.parts;
+        if (parts) {
+            const list = typeof parts[Symbol.iterator] === "function"
+                ? [...parts]
+                : (typeof parts.values === "function" ? [...parts.values()] : Object.values(parts));
+            const formula = list[0]?.formula ?? list[0]?.getFormula?.();
+            if (formula) return formula;
+        }
+
+        const base = act.damage?.base;
+        if (base?.number != null && base?.denomination != null) {
+            return `${base.number}d${base.denomination}`;
+        }
+
+        const plain = act.toObject?.() ?? act;
+        const plainParts = plain?.damage?.parts;
+        if (Array.isArray(plainParts) && plainParts[0]?.formula) return plainParts[0].formula;
+        const plainBase = plain?.damage?.base;
+        if (plainBase?.number != null && plainBase?.denomination != null) {
+            return `${plainBase.number}d${plainBase.denomination}`;
+        }
+        return plain?.damage?.formula ?? null;
+    }
+
     static _itemActivitiesHaveDamageFormula(item) {
         const acts = item?.system?.activities ?? {};
         const list = typeof acts.values === "function"
             ? [...acts.values()]
             : Object.values(acts);
-        return list.some((act) => {
-            if (act?.damage?.parts?.[0]?.formula) return true;
-            const base = act?.damage?.base;
-            return base?.number != null && base?.denomination != null;
-        });
+        return list.some((act) => !!IdentificationService._activityDamageFormula(act));
     }
 
     /**
@@ -504,12 +530,60 @@ export class IdentificationService {
             if (!IdentificationService._itemActivitiesHaveDamageFormula(item) && Object.keys(basePatch).length) {
                 await item.update(basePatch, { curseBypass: true });
             }
+
+            if (!IdentificationService._itemActivitiesHaveDamageFormula(item)) {
+                await IdentificationService._promoteActivityDamageModels(item, latentActivities);
+            }
         } catch (err) {
             Logger.warn(
                 "Quartermaster",
                 `IdentificationService: activity retry failed for ${item.name}:`,
                 err.message
             );
+        }
+    }
+
+    /**
+     * Last-resort promotion via live Activity documents when flat item.update
+     * keys leave a shell activity without damage on dnd5e MappingField rows.
+     *
+     * @param {Item} item
+     * @param {object} latentActivities
+     * @returns {Promise<void>}
+     */
+    static async _promoteActivityDamageModels(item, latentActivities) {
+        const acts = item.system?.activities;
+        if (!acts || typeof acts.get !== "function") return;
+
+        for (const [id, latentAct] of Object.entries(latentActivities ?? {})) {
+            let liveAct = acts.get(id);
+            if (!liveAct && latentAct?.name) {
+                liveAct = [...acts].find((row) => row?.name === latentAct.name) ?? null;
+            }
+            if (!liveAct?.update) continue;
+
+            const damage = foundry.utils.deepClone(latentAct.damage ?? {});
+            const formula = latentAct?.damage?.parts?.[0]?.formula;
+            const match = formula ? String(formula).match(/^(\d+)d(\d+)$/i) : null;
+            if (match && !damage.base) {
+                damage.base = {
+                    number: Number(match[1]),
+                    denomination: Number(match[2])
+                };
+            }
+            if (!damage.parts?.length && formula) {
+                damage.parts = foundry.utils.deepClone(latentAct.damage.parts);
+            }
+
+            try {
+                await liveAct.update({ damage });
+            } catch (err) {
+                Logger.warn(
+                    "Quartermaster",
+                    `IdentificationService: activity model update failed for ${item.name}:`,
+                    err.message
+                );
+            }
         }
     }
 }
