@@ -108,6 +108,13 @@ export class IdentificationService {
                 Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type, item));
                 displayName = latent.originalName ?? item.name;
             }
+
+            if (latent?.activities && Object.keys(latent.activities).length > 0) {
+                Object.assign(
+                    updates,
+                    ItemMaskingHelper.buildActivityPromotionPatch(item, latent.activities)
+                );
+            }
             kind = "cursed-lure";
         } else if (latent && !latent.promoted) {
             Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type, item));
@@ -162,6 +169,19 @@ export class IdentificationService {
                 });
             } catch (err) {
                 Logger.warn("Quartermaster", `IdentificationService: failed to mark latentMagic promoted on ${item.name}:`, err.message);
+            }
+
+            if (isCurseForgeLatent && latent?.activities && Object.keys(latent.activities).length > 0) {
+                await IdentificationService._retryActivityPromotion(item, latent.activities);
+                if (!IdentificationService._itemActivitiesHaveDamageFormula(item)) {
+                    const migrator = game.ionrift?.cursewright?.migrator;
+                    if (migrator?._ensureIdentifiedActivities) {
+                        await migrator._ensureIdentifiedActivities(item);
+                    }
+                }
+                if (!IdentificationService._itemActivitiesHaveDamageFormula(item)) {
+                    await IdentificationService._retryActivityPromotion(item, latent.activities);
+                }
             }
 
             // Clear IP canStack restriction after identification.
@@ -409,6 +429,85 @@ export class IdentificationService {
             Logger.warn(
                 "Quartermaster",
                 `IdentificationService: stack merge failed for "${resolvedName}":`,
+                err.message
+            );
+        }
+    }
+
+    /**
+     * Whether any weapon activity on the item carries a damage formula.
+     *
+     * @param {Item} item
+     * @returns {boolean}
+     */
+    static _itemActivitiesHaveDamageFormula(item) {
+        const acts = item?.system?.activities ?? {};
+        const list = typeof acts.values === "function"
+            ? [...acts.values()]
+            : Object.values(acts);
+        return list.some((act) => {
+            if (act?.damage?.parts?.[0]?.formula) return true;
+            const base = act?.damage?.base;
+            return base?.number != null && base?.denomination != null;
+        });
+    }
+
+    /**
+     * Second-pass activity promotion when a single atomic identify update
+     * leaves activities present but without damage parts (MappingField race).
+     *
+     * @param {Item} item
+     * @param {object} latentActivities
+     * @returns {Promise<void>}
+     */
+    static async _retryActivityPromotion(item, latentActivities) {
+        if (IdentificationService._itemActivitiesHaveDamageFormula(item)) return;
+
+        const deletePatch = {};
+        const acts = item.system?.activities ?? {};
+        const liveIds = typeof acts.keys === "function" ? [...acts.keys()] : Object.keys(acts);
+        for (const id of liveIds) {
+            deletePatch[`system.activities.-=${id}`] = null;
+        }
+
+        try {
+            if (Object.keys(deletePatch).length) {
+                await item.update(deletePatch, { curseBypass: true });
+            }
+
+            const addPatch = ItemMaskingHelper.buildActivityPromotionPatch(item, latentActivities);
+            if (Object.keys(addPatch).length) {
+                await item.update(addPatch, { curseBypass: true });
+            }
+
+            if (IdentificationService._itemActivitiesHaveDamageFormula(item)) return;
+
+            const partsPatch = {};
+            const basePatch = {};
+            for (const [id, act] of Object.entries(latentActivities)) {
+                const formula = act?.damage?.parts?.[0]?.formula;
+                if (formula) {
+                    partsPatch[`system.activities.${id}.damage.parts`] = foundry.utils.deepClone(act.damage.parts);
+                    const match = String(formula).match(/^(\d+)d(\d+)$/i);
+                    if (match) {
+                        basePatch[`system.activities.${id}.damage.base.number`] = Number(match[1]);
+                        basePatch[`system.activities.${id}.damage.base.denomination`] = Number(match[2]);
+                    }
+                } else if (act?.damage?.base?.number != null && act?.damage?.base?.denomination != null) {
+                    basePatch[`system.activities.${id}.damage.base.number`] = act.damage.base.number;
+                    basePatch[`system.activities.${id}.damage.base.denomination`] = act.damage.base.denomination;
+                }
+            }
+            if (Object.keys(partsPatch).length) {
+                await item.update(partsPatch, { curseBypass: true });
+            }
+            if (!IdentificationService._itemActivitiesHaveDamageFormula(item) && Object.keys(basePatch).length) {
+                await item.update(basePatch, { curseBypass: true });
+            }
+        } catch (err) {
+            Logger.warn(
+                "Quartermaster",
+                `IdentificationService: activity retry failed for ${item.name}:`,
                 err.message
             );
         }

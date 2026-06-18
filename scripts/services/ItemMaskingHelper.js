@@ -580,10 +580,33 @@ export class ItemMaskingHelper {
         }
 
         // Activities: per-id patch using the twin's raw activity data.
-        if (tSystem.activities && Object.keys(tSystem.activities).length > 0) {
+        const twinActivities = tSystem.activities;
+        const twinActList = twinActivities
+            ? (typeof twinActivities.values === "function"
+                ? [...twinActivities.values()]
+                : Object.values(twinActivities))
+            : [];
+        const twinHasFormula = twinActList.some((act) =>
+            act?.damage?.parts?.[0]?.formula
+            || (act?.damage?.base?.number != null && act?.damage?.base?.denomination != null));
+        const latentActs = latent?.activities ?? null;
+        const latentHasPartsFormula = latentActs
+            && Object.values(latentActs).some((act) => act?.damage?.parts?.[0]?.formula);
+
+        if (latentHasPartsFormula) {
             Object.assign(
                 patch,
-                ItemMaskingHelper.buildActivityPromotionPatch(liveItem, tSystem.activities)
+                ItemMaskingHelper.buildActivityPromotionPatch(liveItem, latentActs)
+            );
+        } else if (twinHasFormula) {
+            Object.assign(
+                patch,
+                ItemMaskingHelper.buildActivityPromotionPatch(liveItem, twinActivities)
+            );
+        } else if (latentActs && Object.keys(latentActs).length > 0) {
+            Object.assign(
+                patch,
+                ItemMaskingHelper.buildActivityPromotionPatch(liveItem, latentActs)
             );
         }
 
