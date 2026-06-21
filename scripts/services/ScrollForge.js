@@ -5,6 +5,7 @@
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
+import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 const FORGED_FLAG = "ionrift-quartermaster";
@@ -80,23 +81,7 @@ export class ScrollForge {
      * Covers packs created before the ownership field was added to _createWorldPack.
      */
     static enforceOwnership() {
-        if (!game.user.isGM) return;
-        const pack = this.getForgedPack();
-        if (!pack) return;
-
-        const cfg = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
-        const entry = cfg[pack.collection] ??= {};
-        const wanted = {};
-        wanted["PLAYER"]    = "NONE";
-        wanted["TRUSTED"]   = "NONE";
-        wanted["ASSISTANT"] = "NONE";
-        wanted["GAMEMASTER"]= "OWNER";
-        const current = entry.ownership ?? {};
-        const needsUpdate = Object.entries(wanted).some(([k, v]) => current[k] !== v);
-        if (!needsUpdate) return;
-
-        entry.ownership = wanted;
-        game.settings.set("core", "compendiumConfiguration", cfg);
+        enforcePackOwnership(this.getForgedPack());
     }
 
     /**
@@ -363,24 +348,10 @@ export class ScrollForge {
 
     /**
      * Place the forged world pack next to other compiled Quartermaster outputs
-     * (Ionrift > Quartermaster > Compiled). Delegates to LootPoolCompiler so
-     * all three compilers share a single, duplicate-safe folder-creation path.
+     * (Ionrift > Quartermaster > Compiled).
      */
     static async assignForgedPackSidebarFolder(pack) {
-        if (!game.user.isGM) return;
-        const { LootPoolCompiler } = await import("./LootPoolCompiler.js");
-        const folderId = await LootPoolCompiler._ensureCompiledFolderId();
-        if (!folderId) {
-            Logger.log(MODULE_LABEL,
-                "Scroll Forge: could not locate or create Ionrift > Quartermaster > Compiled folder."
-            );
-            return;
-        }
-        const packId = pack.collection;
-        const cfg = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
-        if (cfg[packId]?.folder === folderId) return; // already correct
-        cfg[packId] = foundry.utils.mergeObject(cfg[packId] ?? {}, { folder: folderId });
-        await game.settings.set("core", "compendiumConfiguration", cfg);
+        await assignPackToCompiledFolder(pack);
     }
 
     /**

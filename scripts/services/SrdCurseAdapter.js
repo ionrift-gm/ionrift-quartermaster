@@ -15,6 +15,7 @@ import {
     SRD_CURSE_MANIFEST,
     SRD_CURSE_ITEM_FALLBACKS as SRD_ITEM_FALLBACKS
 } from "./SrdCurseCatalog.js";
+import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -118,8 +119,8 @@ export class SrdCurseAdapter {
             itemCount:   matchCount,
             sourceCount: itemPacks.length,
         });
-        this._enforceOwnership();
-        await this._assignSidebarFolder(pack);
+        enforcePackOwnership(pack);
+        await assignPackToCompiledFolder(pack);
 
         const skipNote = missCount > 0 ? ` (${missCount} item${missCount !== 1 ? "s" : ""} not found in your dnd5e packs)` : "";
         ui.notifications.info(
@@ -453,36 +454,6 @@ export class SrdCurseAdapter {
         Logger.error(MODULE_LABEL, "SrdCurseAdapter: failed to create world compendium:", lastErr);
         ui.notifications.error("Quartermaster: could not create SRD cursed items compendium. Check the console.");
         return null;
-    }
-
-    static _enforceOwnership() {
-        if (!game.user.isGM) return;
-        const pack = this.getSrdPack();
-        if (!pack) return;
-
-        const cfg   = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
-        const entry = cfg[pack.collection] ??= {};
-        const wanted  = { PLAYER: "NONE", TRUSTED: "NONE", ASSISTANT: "NONE", GAMEMASTER: "OWNER" };
-        const current = entry.ownership ?? {};
-        const needsUpdate = Object.entries(wanted).some(([k, v]) => current[k] !== v);
-        if (!needsUpdate) return;
-
-        entry.ownership = wanted;
-        game.settings.set("core", "compendiumConfiguration", cfg);
-    }
-
-    static async _assignSidebarFolder(pack) {
-        if (!game.user.isGM) return;
-        // Pipeline outputs share the Ionrift > Quartermaster > Compiled folder.
-        // Delegate to LootPoolCompiler so the hierarchy logic lives in one place.
-        const { LootPoolCompiler } = await import("./LootPoolCompiler.js");
-        const folderId = await LootPoolCompiler._ensureCompiledFolderId();
-        if (!folderId) return;
-
-        const packId = pack.collection;
-        const cfg    = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
-        cfg[packId]  = foundry.utils.mergeObject(cfg[packId] ?? {}, { folder: folderId });
-        await game.settings.set("core", "compendiumConfiguration", cfg);
     }
 
     // ── Status / metadata helpers (mirrors LootPoolCompiler API) ───────────
