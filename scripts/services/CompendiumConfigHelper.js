@@ -1,10 +1,15 @@
 /**
  * Shared compendium configuration helpers.
  *
- * Consolidates the GM-only ownership enforcement and sidebar folder
- * placement patterns used by LootPoolCompiler, ScrollForge,
- * SrdCurseAdapter, ContentPackCompiler, and OverlayItemMaterialiser.
+ * Consolidates the GM-only ownership enforcement, sidebar folder
+ * placement, and pack-clearing patterns used by LootPoolCompiler,
+ * ScrollForge, SrdCurseAdapter, ContentPackCompiler, and
+ * OverlayItemMaterialiser.
  */
+
+import { Logger, MODULE_LABEL } from "../_logger.js";
+
+const MODULE_ID = "ionrift-quartermaster";
 
 /**
  * Lock a world compendium to GM-only visibility.
@@ -48,4 +53,31 @@ export async function assignPackToCompiledFolder(pack) {
     if (cfg[packId]?.folder === folderId) return;
     cfg[packId]  = foundry.utils.mergeObject(cfg[packId] ?? {}, { folder: folderId });
     await game.settings.set("core", "compendiumConfiguration", cfg);
+}
+
+/**
+ * Delete all documents from a compiled world pack and reset its hash/meta
+ * settings to empty strings. Used by ScrollForge and SrdCurseAdapter to
+ * clear their compiled output and force a fresh compile on next trigger.
+ *
+ * @param {string} collectionId  Pack collection id (e.g. "world.quartermaster-scrolls")
+ * @param {string} hashSetting   Settings key for the source hash
+ * @param {string} metaSetting   Settings key for the compile metadata
+ * @param {string} callerLabel   Label for warning messages (e.g. "ScrollForge")
+ */
+export async function clearPackAndResetMeta(collectionId, hashSetting, metaSetting, callerLabel) {
+    const pack = game.packs.get(collectionId);
+    if (pack) {
+        try {
+            const ItemClass = CONFIG.Item.documentClass;
+            const docs = await pack.getDocuments();
+            if (docs.length) {
+                await ItemClass.deleteDocuments(docs.map(d => d.id), { pack: pack.collection });
+            }
+        } catch (err) {
+            Logger.warn(MODULE_LABEL, `${callerLabel}.clearCompiledPack: partial failure:`, err);
+        }
+    }
+    await game.settings.set(MODULE_ID, hashSetting, "");
+    await game.settings.set(MODULE_ID, metaSetting, "");
 }

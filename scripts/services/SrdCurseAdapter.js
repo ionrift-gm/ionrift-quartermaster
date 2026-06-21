@@ -15,7 +15,7 @@ import {
     SRD_CURSE_MANIFEST,
     SRD_CURSE_ITEM_FALLBACKS as SRD_ITEM_FALLBACKS
 } from "./SrdCurseCatalog.js";
-import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
+import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta } from "./CompendiumConfigHelper.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -491,24 +491,7 @@ export class SrdCurseAdapter {
         } catch { /* non-fatal */ }
     }
 
-    /**
-     * Clear the compiled cursed items pack and reset hash + metadata.
-     * Mirrors LootPoolCompiler's clear pattern.
-     */
     static async clearCompiledPack() {
-        const pack = game.packs.get(this.worldCollectionId);
-        if (pack) {
-            try {
-                const ItemClass = CONFIG.Item.documentClass;
-                const docs = await pack.getDocuments();
-                if (docs.length) {
-                    await ItemClass.deleteDocuments(docs.map(d => d.id), { pack: pack.collection });
-                }
-            } catch (err) {
-                Logger.warn(MODULE_LABEL, "SrdCurseAdapter.clearCompiledPack: partial failure:", err);
-            }
-        }
-        await game.settings.set(MODULE_ID, this.SETTING_HASH, "");
-        await game.settings.set(MODULE_ID, this.SETTING_META, "");
+        await clearPackAndResetMeta(this.worldCollectionId, this.SETTING_HASH, this.SETTING_META, "SrdCurseAdapter");
     }
 }
