@@ -161,6 +161,8 @@ describe("PotionEnrichment", () => {
 
         await PotionEnrichment.enrichIdentifiedItem(item);
 
-        expect(update).not.toHaveBeenCalled();
+        expect(update).toHaveBeenCalledTimes(1);
+        const [patch] = update.mock.calls[0];
+        expect(Object.keys(patch).filter(k => k.startsWith("system.activities."))).toEqual([]);
     });
 });
