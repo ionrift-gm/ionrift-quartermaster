@@ -15,6 +15,7 @@ import {
     SRD_CURSE_MANIFEST,
     SRD_CURSE_ITEM_FALLBACKS as SRD_ITEM_FALLBACKS
 } from "./SrdCurseCatalog.js";
+import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta } from "./CompendiumConfigHelper.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -118,8 +119,8 @@ export class SrdCurseAdapter {
             itemCount:   matchCount,
             sourceCount: itemPacks.length,
         });
-        this._enforceOwnership();
-        await this._assignSidebarFolder(pack);
+        enforcePackOwnership(pack);
+        await assignPackToCompiledFolder(pack);
 
         const skipNote = missCount > 0 ? ` (${missCount} item${missCount !== 1 ? "s" : ""} not found in your dnd5e packs)` : "";
         ui.notifications.info(
@@ -455,76 +456,6 @@ export class SrdCurseAdapter {
         return null;
     }
 
-    static _enforceOwnership() {
-        if (!game.user.isGM) return;
-        const pack = this.getSrdPack();
-        if (!pack) return;
-
-        const cfg   = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
-        const entry = cfg[pack.collection] ??= {};
-        const wanted  = { PLAYER: "NONE", TRUSTED: "NONE", ASSISTANT: "NONE", GAMEMASTER: "OWNER" };
-        const current = entry.ownership ?? {};
-        const needsUpdate = Object.entries(wanted).some(([k, v]) => current[k] !== v);
-        if (!needsUpdate) return;
-
-        entry.ownership = wanted;
-        game.settings.set("core", "compendiumConfiguration", cfg);
-    }
-
-    static async _assignSidebarFolder(pack) {
-        if (!game.user.isGM) return;
-        // Pipeline outputs share the Ionrift > Quartermaster > Compiled folder.
-        // Delegate to LootPoolCompiler so the hierarchy logic lives in one place.
-        const { LootPoolCompiler } = await import("./LootPoolCompiler.js");
-        const folderId = await LootPoolCompiler._ensureCompiledFolderId();
-        if (!folderId) return;
-
-        const packId = pack.collection;
-        const cfg    = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
-        cfg[packId]  = foundry.utils.mergeObject(cfg[packId] ?? {}, { folder: folderId });
-        await game.settings.set("core", "compendiumConfiguration", cfg);
-    }
-
-    /**
-     * Finds the "Quartermaster" compendium browser folder (child of "Ionrift").
-     * Falls back to creating the folder hierarchy if it doesn't exist yet.
-     * Returns the folder ID, or null on failure.
-     */
-    static async _ensureQuartermasterFolderId() {
-        // 1. Try to find via the known module pack's current folder assignment.
-        const cfg     = game.settings.get("core", "compendiumConfiguration") ?? {};
-        const refPack = "ionrift-quartermaster.quartermaster-containers";
-        const fromRef = cfg[refPack]?.folder;
-        if (fromRef) {
-            const f = game.folders.get(fromRef);
-            if (f?.name === "Quartermaster") return fromRef;
-        }
-
-        // 2. Search by name in both game.folders and game.packs.folders.
-        const allFolders = [
-            ...game.folders.filter(f => f.type === "Compendium"),
-            ...(game.packs?.folders?.filter(f => f.type === "Compendium") ?? [])
-        ];
-        const ionriftRoots = allFolders.filter(f => f.name === "Ionrift" && !f.folder);
-        for (const ion of ionriftRoots) {
-            const qm = allFolders.find(f => f.name === "Quartermaster" && f.folder === ion.id);
-            if (qm) return qm.id;
-        }
-
-        // 3. Not found: create the hierarchy so the pack is placed correctly.
-        try {
-            let ionrift = ionriftRoots[0];
-            if (!ionrift) {
-                ionrift = await Folder.create({ name: "Ionrift", type: "Compendium", color: "#8b5cf6", sorting: "a" });
-            }
-            const qm = await Folder.create({ name: "Quartermaster", type: "Compendium", folder: ionrift.id, sorting: "a" });
-            return qm.id;
-        } catch (err) {
-            Logger.warn(MODULE_LABEL, "SrdCurseAdapter: could not create compendium folder hierarchy:", err);
-            return null;
-        }
-    }
-
     // ── Status / metadata helpers (mirrors LootPoolCompiler API) ───────────
 
     /**
@@ -560,24 +491,7 @@ export class SrdCurseAdapter {
         } catch { /* non-fatal */ }
     }
 
-    /**
-     * Clear the compiled cursed items pack and reset hash + metadata.
-     * Mirrors LootPoolCompiler's clear pattern.
-     */
     static async clearCompiledPack() {
-        const pack = game.packs.get(this.worldCollectionId);
-        if (pack) {
-            try {
-                const ItemClass = CONFIG.Item.documentClass;
-                const docs = await pack.getDocuments();
-                if (docs.length) {
-                    await ItemClass.deleteDocuments(docs.map(d => d.id), { pack: pack.collection });
-                }
-            } catch (err) {
-                Logger.warn(MODULE_LABEL, "SrdCurseAdapter.clearCompiledPack: partial failure:", err);
-            }
-        }
-        await game.settings.set(MODULE_ID, this.SETTING_HASH, "");
-        await game.settings.set(MODULE_ID, this.SETTING_META, "");
+        await clearPackAndResetMeta(this.worldCollectionId, this.SETTING_HASH, this.SETTING_META, "SrdCurseAdapter");
     }
 }

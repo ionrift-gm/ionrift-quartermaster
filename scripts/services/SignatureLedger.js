@@ -245,11 +245,6 @@ export class SignatureLedger {
         return this.getScrollPinned();
     }
 
-    /** @deprecated Use setScrollPinned instead. */
-    static async setScrollPlan(data) {
-        return this.setScrollPinned(data);
-    }
-
     // ── Party Shelf ───────────────────────────────────────────────────────────
 
     static async getPartyShelf() {

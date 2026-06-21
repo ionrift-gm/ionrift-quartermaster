@@ -38,6 +38,7 @@
  */
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
+import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 const OVERLAY_ROOT = "ionrift-data/overlays";
@@ -314,8 +315,8 @@ export class OverlayItemMaterialiser {
             await ItemClass.createDocuments(chunk, { pack: fresh.collection });
         }
 
-        await this._assignSidebarFolder(fresh);
-        this._enforceOwnership(fresh);
+        await assignPackToCompiledFolder(fresh);
+        enforcePackOwnership(fresh);
 
         const newState = this._getState();
         newState[overlayId] = newState[overlayId] ?? { version: overlayVersion, packs: [], packHashes: {} };
@@ -529,39 +530,6 @@ export class OverlayItemMaterialiser {
                 );
             }
         }
-    }
-
-    /**
-     * Place a world compendium under Ionrift > Quartermaster > Compiled.
-     * Delegates to LootPoolCompiler so folder hierarchy logic lives in one place.
-     */
-    static async _assignSidebarFolder(pack) {
-        const { LootPoolCompiler } = await import("./LootPoolCompiler.js");
-        const folderId = await LootPoolCompiler._ensureCompiledFolderId();
-        if (!folderId) return;
-
-        const cfg = foundry.utils.duplicate(
-            game.settings.get("core", "compendiumConfiguration") ?? {}
-        );
-        cfg[pack.collection] = foundry.utils.mergeObject(cfg[pack.collection] ?? {}, { folder: folderId });
-        await game.settings.set("core", "compendiumConfiguration", cfg);
-    }
-
-    static _enforceOwnership(pack) {
-        const cfg = foundry.utils.duplicate(
-            game.settings.get("core", "compendiumConfiguration") ?? {}
-        );
-        const entry = cfg[pack.collection] ??= {};
-        const roles = ["PLAYER", "TRUSTED", "ASSI" + "STANT", "GAMEMASTER"];
-        const wanted = {};
-        for (const r of roles) wanted[r] = r === "GAMEMASTER" ? "OWNER" : "NONE";
-
-        const current = entry.ownership ?? {};
-        const needsUpdate = Object.entries(wanted).some(([k, v]) => current[k] !== v);
-        if (!needsUpdate) return;
-
-        entry.ownership = wanted;
-        game.settings.set("core", "compendiumConfiguration", cfg);
     }
 
     static async _registerLootSources(collectionIds) {

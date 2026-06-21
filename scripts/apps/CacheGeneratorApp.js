@@ -5,7 +5,7 @@ import { LootPoolCompiler } from "../services/LootPoolCompiler.js";
 import { PartyShelfPool } from "../services/PartyShelfPool.js";
 import { ProgressionAdvisor } from "../services/ProgressionAdvisor.js";
 import { SignatureLedger } from "../services/SignatureLedger.js";
-import { StandalonePoolRegistry } from "../services/StandalonePoolRegistry.js";
+import { StandalonePoolRegistry, getActiveCursedRegistry } from "../services/StandalonePoolRegistry.js";
 import { takeVisibleCapped } from "../services/AdvisoryStripUtils.js";
 import { CursedItemResolver } from "../services/CursedItemResolver.js";
 import { ItemResolutionPipeline } from "../services/ItemResolutionPipeline.js";
@@ -88,10 +88,6 @@ function nearestBracketIndex(brackets, gp) {
     return best;
 }
 
-/** Same registry Quartermaster uses: Cursewright when present, else QM settings + SRD pool. */
-function getCursedPoolRegistry() {
-    return game.ionrift?.cursewright?.registry ?? StandalonePoolRegistry;
-}
 
 /**
  * Cache Generator UI.
@@ -140,6 +136,7 @@ export class CacheGeneratorApp extends Application {
         this._budgetMax = null;
         this._budgetBracketIndex = null;
         this._sliderDebounce = null;
+        this._sliderPersistTimer = null;
         /** @type {number|undefined} Pool row index to refocus after a qty-step re-render. */
         this._qtyStepFocusIndex = undefined;
     }
@@ -281,7 +278,7 @@ export class CacheGeneratorApp extends Application {
      * Called after generation so the pool reflects the current tier.
      */
     async _refreshCursedPool(tier = 1) {
-        const reg = getCursedPoolRegistry();
+        const reg = getActiveCursedRegistry();
 
         try {
             if (typeof reg.ensureDefaultCursedPoolIfEmpty === "function") {

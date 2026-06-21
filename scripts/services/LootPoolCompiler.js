@@ -17,6 +17,7 @@
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
 import { isSrdCursedLootName, isSrdCursedTemplateName } from "./SrdCurseCatalog.js";
+import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -738,8 +739,8 @@ export class LootPoolCompiler {
 
         await game.settings.set(MODULE_ID, this.SETTING_HASH, sourceHash);
         await game.settings.set(MODULE_ID, this.SETTING_META, JSON.stringify(meta));
-        this._enforceOwnership();
-        await this._assignSidebarFolder(pack);
+        enforcePackOwnership(pack);
+        await assignPackToCompiledFolder(pack);
 
         emit("done", resolved.length, resolved.length, "");
 
@@ -1985,35 +1986,6 @@ export class LootPoolCompiler {
         }
 
         return { written, attempted: total };
-    }
-
-    static _enforceOwnership() {
-        if (!game.user.isGM) return;
-        const pack = game.packs.get(this.worldCollectionId);
-        if (!pack) return;
-
-        const cfg    = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
-        const entry  = cfg[pack.collection] ??= {};
-        const wanted = { PLAYER: "NONE", TRUSTED: "NONE", ASSISTANT: "NONE", GAMEMASTER: "OWNER" };
-        const current = entry.ownership ?? {};
-        const needsUpdate = Object.entries(wanted).some(([k, v]) => current[k] !== v);
-        if (!needsUpdate) return;
-
-        entry.ownership = wanted;
-        game.settings.set("core", "compendiumConfiguration", cfg);
-    }
-
-    static async _assignSidebarFolder(pack) {
-        if (!game.user.isGM) return;
-        // Place compiled output packs under Ionrift > Quartermaster > Compiled
-        // to keep them visually separate from curated content packs.
-        const folderId = await this._ensureCompiledFolderId();
-        if (!folderId) return;
-
-        const packId = pack.collection;
-        const cfg    = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
-        cfg[packId]  = foundry.utils.mergeObject(cfg[packId] ?? {}, { folder: folderId });
-        await game.settings.set("core", "compendiumConfiguration", cfg);
     }
 
     /**
