@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.8.0] - 2026-06-21
+
+### Fixed
+- Identified weapons now carry a rollable damage formula on dnd5e 5.x instead of showing blank damage fields.
+
+
 ## [1.7.0] - 2026-06-15
 
 ### Fixed
