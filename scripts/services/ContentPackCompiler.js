@@ -13,6 +13,7 @@
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ContentPackLoader } from "./ContentPackLoader.js";
+import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -133,11 +134,8 @@ export class ContentPackCompiler {
 
             totalItems += items.length;
 
-            // Place under Ionrift/Quartermaster sidebar folder
-            await this._assignSidebarFolder(freshPack);
-
-            // Enforce GM-only ownership
-            this._enforceOwnership(freshPack);
+            await assignPackToCompiledFolder(freshPack);
+            enforcePackOwnership(freshPack);
         }
 
         // Save compiled state
@@ -282,49 +280,6 @@ export class ContentPackCompiler {
     // ═══════════════════════════════════════════════════════════════
     //  SIDEBAR + OWNERSHIP
     // ═══════════════════════════════════════════════════════════════
-
-    /**
-     * Place a world compendium under Ionrift > Quartermaster > Compiled.
-     * Delegates to LootPoolCompiler so folder hierarchy logic lives in one place.
-     * @param {CompendiumCollection} pack
-     */
-    static async _assignSidebarFolder(pack) {
-        if (!game.user.isGM) return;
-        const { LootPoolCompiler } = await import("./LootPoolCompiler.js");
-        const folderId = await LootPoolCompiler._ensureCompiledFolderId();
-        if (!folderId) return;
-
-        const packId = pack.collection;
-        const cfg = foundry.utils.duplicate(
-            game.settings.get("core", "compendiumConfiguration") ?? {}
-        );
-        cfg[packId] = foundry.utils.mergeObject(cfg[packId] ?? {}, { folder: folderId });
-        await game.settings.set("core", "compendiumConfiguration", cfg);
-    }
-
-    /**
-     * Enforce GM-only ownership on a world compendium.
-     * @param {CompendiumCollection} pack
-     */
-    static _enforceOwnership(pack) {
-        if (!game.user.isGM) return;
-
-        const cfg = foundry.utils.duplicate(
-            game.settings.get("core", "compendiumConfiguration") ?? {}
-        );
-        const entry = cfg[pack.collection] ??= {};
-        // Roles listed for signal_check.js: Foundry ownership roles, not AI agents.
-        const roles = ["PLAYER", "TRUSTED", "ASSI" + "STANT", "GAMEMASTER"];
-        const wanted = {};
-        for (const r of roles) wanted[r] = r === "GAMEMASTER" ? "OWNER" : "NONE";
-
-        const current = entry.ownership ?? {};
-        const needsUpdate = Object.entries(wanted).some(([k, v]) => current[k] !== v);
-        if (!needsUpdate) return;
-
-        entry.ownership = wanted;
-        game.settings.set("core", "compendiumConfiguration", cfg);
-    }
 
     // ═══════════════════════════════════════════════════════════════
     //  HASH + STATE

@@ -1,3 +1,5 @@
+import { Logger, MODULE_LABEL } from "../_logger.js";
+
 const MODULE_ID = "ionrift-quartermaster";
 
 /**
@@ -9,7 +11,7 @@ const MODULE_ID = "ionrift-quartermaster";
  */
 export function traceIdentify(step, detail = {}) {
     if (!game?.settings?.get?.(MODULE_ID, "identifyTrace")) return;
-    console.info(`[QM Identify] ${step}`, detail);
+    Logger.info(MODULE_LABEL, `[Identify] ${step}`, detail);
 }
 
 /**
