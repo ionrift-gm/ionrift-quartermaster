@@ -185,6 +185,9 @@ export class IdentificationService {
                 if (!IdentificationService._itemActivitiesHaveDamageFormula(item)) {
                     await IdentificationService._promoteActivityDamageModels(item, latent.activities);
                 }
+                if (!IdentificationService._itemActivitiesHaveDamageFormula(item)) {
+                    await IdentificationService._promoteActivitiesViaDnd5eApi(item, latent.activities);
+                }
             }
 
             // Clear IP canStack restriction after identification.
@@ -453,6 +456,9 @@ export class IdentificationService {
                 : (typeof parts.values === "function" ? [...parts.values()] : Object.values(parts));
             const formula = list[0]?.formula ?? list[0]?.getFormula?.();
             if (formula) return formula;
+            if (list[0]?.number != null && list[0]?.denomination != null) {
+                return `${list[0].number}d${list[0].denomination}`;
+            }
         }
 
         const base = act.damage?.base;
@@ -512,13 +518,21 @@ export class IdentificationService {
             const basePatch = {};
             for (const [id, act] of Object.entries(latentActivities)) {
                 const formula = act?.damage?.parts?.[0]?.formula;
-                if (formula) {
+                const normalizedPart = ItemMaskingHelper._normalizeDamagePart(
+                    act?.damage?.parts?.[0] ?? null
+                );
+                if (normalizedPart) {
+                    partsPatch[`system.activities.${id}.damage.parts`] = [normalizedPart];
+                } else if (formula) {
                     partsPatch[`system.activities.${id}.damage.parts`] = foundry.utils.deepClone(act.damage.parts);
-                    const match = String(formula).match(/^(\d+)d(\d+)$/i);
-                    if (match) {
-                        basePatch[`system.activities.${id}.damage.base.number`] = Number(match[1]);
-                        basePatch[`system.activities.${id}.damage.base.denomination`] = Number(match[2]);
-                    }
+                }
+                const match = formula ? String(formula).match(/^(\d+)d(\d+)$/i) : null;
+                if (match) {
+                    basePatch[`system.activities.${id}.damage.parts.0.number`] = Number(match[1]);
+                    basePatch[`system.activities.${id}.damage.parts.0.denomination`] = Number(match[2]);
+                } else if (normalizedPart?.number != null && normalizedPart?.denomination != null) {
+                    basePatch[`system.activities.${id}.damage.parts.0.number`] = normalizedPart.number;
+                    basePatch[`system.activities.${id}.damage.parts.0.denomination`] = normalizedPart.denomination;
                 } else if (act?.damage?.base?.number != null && act?.damage?.base?.denomination != null) {
                     basePatch[`system.activities.${id}.damage.base.number`] = act.damage.base.number;
                     basePatch[`system.activities.${id}.damage.base.denomination`] = act.damage.base.denomination;
@@ -533,6 +547,9 @@ export class IdentificationService {
 
             if (!IdentificationService._itemActivitiesHaveDamageFormula(item)) {
                 await IdentificationService._promoteActivityDamageModels(item, latentActivities);
+            }
+            if (!IdentificationService._itemActivitiesHaveDamageFormula(item)) {
+                await IdentificationService._promoteActivitiesViaDnd5eApi(item, latentActivities);
             }
         } catch (err) {
             Logger.warn(
@@ -562,17 +579,23 @@ export class IdentificationService {
             }
             if (!liveAct?.update) continue;
 
-            const damage = foundry.utils.deepClone(latentAct.damage ?? {});
-            const formula = latentAct?.damage?.parts?.[0]?.formula;
+            const damage = foundry.utils.deepClone(
+                ItemMaskingHelper._normalizeActivityForPromotion(latentAct).damage ?? {}
+            );
+            const formula = IdentificationService._activityDamageFormula(latentAct);
             const match = formula ? String(formula).match(/^(\d+)d(\d+)$/i) : null;
-            if (match && !damage.base) {
-                damage.base = {
-                    number: Number(match[1]),
-                    denomination: Number(match[2])
-                };
+            if (match && !damage.parts?.[0]?.number) {
+                damage.parts = [
+                    ItemMaskingHelper._normalizeDamagePart({
+                        ...(damage.parts?.[0] ?? {}),
+                        formula
+                    })
+                ];
             }
             if (!damage.parts?.length && formula) {
-                damage.parts = foundry.utils.deepClone(latentAct.damage.parts);
+                damage.parts = [
+                    ItemMaskingHelper._normalizeDamagePart({ formula, types: ["slashing"] })
+                ];
             }
 
             try {
@@ -581,6 +604,79 @@ export class IdentificationService {
                 Logger.warn(
                     "Quartermaster",
                     `IdentificationService: activity model update failed for ${item.name}:`,
+                    err.message
+                );
+            }
+        }
+    }
+
+    /**
+     * Last-resort promotion through dnd5e Item.createActivity / updateActivity
+     * when flat MappingField patches leave a shell row without damage.
+     *
+     * @param {Item} item
+     * @param {object} latentActivities
+     * @returns {Promise<void>}
+     */
+    static async _promoteActivitiesViaDnd5eApi(item, latentActivities) {
+        if (!item?.system?.activities) return;
+        if (typeof item.createActivity !== "function") return;
+
+        for (const [id, latentAct] of Object.entries(latentActivities ?? {})) {
+            const targetFormula = IdentificationService._activityDamageFormula(latentAct);
+            if (!targetFormula) continue;
+
+            const acts = item.system.activities;
+            let liveAct = acts.get?.(id) ?? null;
+            if (!liveAct && latentAct?.name) {
+                liveAct = [...acts].find((row) => row?.name === latentAct.name) ?? null;
+            }
+
+            const liveFormula = IdentificationService._activityDamageFormula(liveAct);
+            if (liveFormula === targetFormula) continue;
+
+            const normalizedAct = ItemMaskingHelper._normalizeActivityForPromotion(latentAct);
+            const damage = foundry.utils.deepClone(normalizedAct.damage ?? {});
+
+            if (liveAct && typeof item.updateActivity === "function") {
+                try {
+                    await item.updateActivity(liveAct.id, {
+                        name: latentAct.name ?? liveAct.name,
+                        type: latentAct.type ?? "attack",
+                        damage
+                    });
+                    continue;
+                } catch (err) {
+                    Logger.warn(
+                        "Quartermaster",
+                        `IdentificationService: updateActivity failed for ${item.name}:`,
+                        err.message
+                    );
+                }
+            }
+
+            if (liveAct && typeof item.deleteActivity === "function") {
+                try {
+                    await item.deleteActivity(liveAct.id);
+                } catch (err) {
+                    Logger.warn(
+                        "Quartermaster",
+                        `IdentificationService: deleteActivity failed for ${item.name}:`,
+                        err.message
+                    );
+                }
+            }
+
+            const createData = ItemMaskingHelper._normalizeActivityForPromotion(latentAct);
+            delete createData._id;
+            delete createData.id;
+
+            try {
+                await item.createActivity(createData.type, createData, { renderSheet: false });
+            } catch (err) {
+                Logger.warn(
+                    "Quartermaster",
+                    `IdentificationService: createActivity failed for ${item.name}:`,
                     err.message
                 );
             }

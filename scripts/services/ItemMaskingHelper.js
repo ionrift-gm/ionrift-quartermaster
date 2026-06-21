@@ -628,6 +628,69 @@ export class ItemMaskingHelper {
     }
 
     /**
+     * Normalize a legacy `{ formula: "1d12" }` damage part to dnd5e 5.x
+     * `{ number, denomination, types }` so MappingField rows expose a formula.
+     *
+     * @param {object|null|undefined} part
+     * @returns {object|null|undefined}
+     */
+    static _normalizeDamagePart(part) {
+        if (!part) return part;
+
+        const normalized = foundry.utils.deepClone(part);
+        const legacyFormula = normalized.formula
+            ?? (normalized.custom?.enabled ? normalized.custom.formula : null);
+
+        if (legacyFormula && normalized.number == null && normalized.denomination == null) {
+            const match = String(legacyFormula).match(/^(\d+)d(\d+)$/i);
+            if (match) {
+                normalized.number = Number(match[1]);
+                normalized.denomination = Number(match[2]);
+            } else {
+                normalized.custom = { enabled: true, formula: String(legacyFormula) };
+            }
+            delete normalized.formula;
+        }
+
+        if (normalized.types instanceof Set) {
+            normalized.types = [...normalized.types];
+        } else if (Array.isArray(normalized.types)) {
+            normalized.types = [...normalized.types];
+        }
+
+        return normalized;
+    }
+
+    /**
+     * Normalize a latent or twin activity row for dnd5e 5.x promotion.
+     *
+     * @param {object} act
+     * @returns {object}
+     */
+    static _normalizeActivityForPromotion(act) {
+        const clone = foundry.utils.deepClone(act ?? {});
+        clone.type = clone.type ?? "attack";
+
+        if (Array.isArray(clone.damage?.parts)) {
+            clone.damage.parts = clone.damage.parts.map(
+                (part) => ItemMaskingHelper._normalizeDamagePart(part)
+            );
+        } else if (clone.damage?.parts?.[0]?.formula) {
+            clone.damage.parts = [
+                ItemMaskingHelper._normalizeDamagePart(clone.damage.parts[0])
+            ];
+        }
+
+        const firstPart = clone.damage?.parts?.[0];
+        const legacyFormula = act?.damage?.parts?.[0]?.formula;
+        if (legacyFormula && firstPart?.number != null && firstPart?.denomination != null) {
+            delete clone.damage.base;
+        }
+
+        return clone;
+    }
+
+    /**
      * Per-activity update keys for dnd5e 5.x. Live documents use a MappingField
      * collection; assigning `system.activities` as one object is ignored.
      *
@@ -637,9 +700,10 @@ export class ItemMaskingHelper {
      */
     static buildActivityPromotionPatch(itemOrSystem, latentActivities) {
         const patch = {};
-        if (!latentActivities || !Object.keys(latentActivities).length) return patch;
+        const normalized = ItemMaskingHelper._normalizeActivitiesInput(latentActivities);
+        if (!normalized || !Object.keys(normalized).length) return patch;
 
-        const newIds = new Set(Object.keys(latentActivities));
+        const newIds = new Set(Object.keys(normalized));
         const acts = itemOrSystem?.system?.activities ?? itemOrSystem?.activities;
         if (acts) {
             const liveIds = typeof acts.keys === "function" ? [...acts.keys()] : Object.keys(acts);
@@ -654,11 +718,36 @@ export class ItemMaskingHelper {
             }
         }
 
-        for (const [id, act] of Object.entries(latentActivities)) {
-            patch[`system.activities.${id}`] = foundry.utils.deepClone(act);
+        for (const [id, act] of Object.entries(normalized)) {
+            patch[`system.activities.${id}`] = ItemMaskingHelper._normalizeActivityForPromotion(act);
         }
         ItemMaskingHelper._guardPromotionPatch(patch);
         return patch;
+    }
+
+    /**
+     * Normalize dnd5e activity input from plain objects or live collections.
+     *
+     * @param {object|Collection|null|undefined} activities
+     * @returns {object}
+     */
+    static _normalizeActivitiesInput(activities) {
+        if (!activities) return {};
+
+        if (typeof activities.get === "function" && typeof activities.keys === "function") {
+            const out = {};
+            for (const id of activities.keys()) {
+                const act = activities.get(id);
+                out[id] = act?.toObject?.() ?? act;
+            }
+            if (Object.keys(out).length) return out;
+        }
+
+        const out = {};
+        for (const [id, act] of Object.entries(activities)) {
+            out[id] = act?.toObject?.() ?? act;
+        }
+        return out;
     }
 
     // ── Base Item Price Lookup ───────────────────────────────────────
