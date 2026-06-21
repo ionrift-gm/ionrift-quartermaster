@@ -136,6 +136,7 @@ export class CacheGeneratorApp extends Application {
         this._budgetMax = null;
         this._budgetBracketIndex = null;
         this._sliderDebounce = null;
+        this._sliderPersistTimer = null;
         /** @type {number|undefined} Pool row index to refocus after a qty-step re-render. */
         this._qtyStepFocusIndex = undefined;
     }
