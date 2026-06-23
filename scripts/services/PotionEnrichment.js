@@ -29,7 +29,7 @@ export class PotionEnrichment {
             weight:  0.5,
             price:   500,
             rarity:  "legendary",
-            uses:    { max: 1, spent: 0, recovery: [] },
+            uses:    { max: 1, spent: 0, recovery: [], autoDestroy: true },
             description: "<p>A shimmering, opalescent liquid swirls inside this heavy crystal vial. The stopper is sealed with silver wax pressed with a radiant sun motif.</p>"
         },
         {
@@ -38,7 +38,7 @@ export class PotionEnrichment {
             weight:  0.5,
             price:   250,
             rarity:  "rare",
-            uses:    { max: 1, spent: 0, recovery: [] },
+            uses:    { max: 1, spent: 0, recovery: [], autoDestroy: true },
             description: "<p>A deep violet liquid fills this thick glass flask, catching light with a faint inner luminescence. The cork is bound with copper wire.</p>"
         },
         {
@@ -47,7 +47,7 @@ export class PotionEnrichment {
             weight:  0.5,
             price:   100,
             rarity:  "uncommon",
-            uses:    { max: 1, spent: 0, recovery: [] },
+            uses:    { max: 1, spent: 0, recovery: [], autoDestroy: true },
             description: "<p>A vivid red liquid settles inside this bulbous vial. It catches the light with a warm, rose-gold shimmer and smells faintly of honeyed herbs.</p>"
         }
     ];
@@ -58,7 +58,7 @@ export class PotionEnrichment {
         weight:  0.5,
         price:   50,
         rarity:  "common",
-        uses:    { max: 1, spent: 0, recovery: [] },
+        uses:    { max: 1, spent: 0, recovery: [], autoDestroy: true },
         description: "<p>A clear red liquid swirls inside this small vial. It catches the light with a faint rosy shimmer and smells lightly of berries.</p>"
     };
 
@@ -231,6 +231,9 @@ export class PotionEnrichment {
         // Limited Uses: ensure `max` is populated so the Charges column
         // shows N/N rather than "-". `spent` defaults to 0; `recovery`
         // empty array renders as "Never" in the dnd5e details panel.
+        // `autoDestroy` is required for stacked potions: dnd5e decrements
+        // quantity and resets spent when the current unit's last charge is
+        // consumed. Without it, a stack of 2 at 1/1 becomes 1 at 0/1.
         data.system.uses = data.system.uses ?? {};
         const currentMax = Number(data.system.uses.max);
         if (!Number.isFinite(currentMax) || currentMax < 1) {
@@ -239,6 +242,9 @@ export class PotionEnrichment {
             if (!Array.isArray(data.system.uses.recovery)) {
                 data.system.uses.recovery = [...tier.uses.recovery];
             }
+        }
+        if (!data.system.uses.autoDestroy) {
+            data.system.uses.autoDestroy = true;
         }
 
         // HealActivity: only inject when the item has no activity at all.
@@ -337,6 +343,9 @@ export class PotionEnrichment {
         if (!currentUsesMax || Number(currentUsesMax) < 1) {
             patch["system.uses.max"] = tier.uses.max;
             patch["system.uses.spent"] = item.system?.uses?.spent ?? 0;
+        }
+        if (!item.system?.uses?.autoDestroy) {
+            patch["system.uses.autoDestroy"] = true;
         }
 
         // ── MIDI HealActivity ───────────────────────────────────────────
