@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.8.1] - 2026-06-23
+
+### Fixed
+- Stacked healing potions now correctly decrement quantity when a unit is consumed instead of leaving a spent charge on the stack.
+- Identified healing potions always get a Consume activity, so players can drink them even in worlds without midi-qol.
+
 ## [1.8.0] - 2026-06-21
 
 ### Fixed

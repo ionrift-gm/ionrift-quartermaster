@@ -348,12 +348,13 @@ export class PotionEnrichment {
             patch["system.uses.autoDestroy"] = true;
         }
 
-        // ── MIDI HealActivity ───────────────────────────────────────────
-        // Inject only when ALL of these are true:
-        //   a) midi-qol is active
-        //   b) the item has no activities (or only empty activities map)
-        //   c) the item is a potion-type consumable (not a roll-only item)
-        const midiActive = !!game.modules?.get("midi-qol")?.active;
+        // ── HealActivity ────────────────────────────────────────────────
+        // Inject a Consume (heal) activity whenever the identified potion has
+        // none. This is the mechanic a player uses to drink or administer the
+        // potion; it is required in both midi-qol and vanilla dnd5e worlds.
+        // Gating this on midi-qol left non-midi players with charges (1/1)
+        // but no usable activity. The activityCount check below dedups, so a
+        // potion that already carries its SRD activity is never doubled.
         const acts = item.system?.activities;
         // `item.system.activities` on a live dnd5e document is a MappingField /
         // Collection, NOT a plain object. Object.values() on a Collection does
@@ -369,7 +370,7 @@ export class PotionEnrichment {
         // one activity type. A second pass must never add a duplicate.
         const hasNoHealActivity = activityCount === 0;
 
-        if (midiActive && hasNoHealActivity) {
+        if (hasNoHealActivity) {
             const activityData = PotionEnrichment._buildHealActivityData(tier.formula);
             patch[`system.activities.${activityData._id}`] = activityData;
         }
