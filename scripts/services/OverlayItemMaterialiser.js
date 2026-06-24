@@ -454,10 +454,18 @@ export class OverlayItemMaterialiser {
             && path.split("/").pop() !== FOLDERS_FILE
         );
 
+        // Hosted reads are latency-bound, so fetching one file at a time makes
+        // large packs slow to materialise. Fetch in bounded-concurrency batches.
+        const CONCURRENCY = 16;
         const collected = [];
-        for (const relPath of itemPaths) {
-            const data = await overlay.readOverlayFile(moduleId, sublayer, relPath);
-            if (data && data.name) collected.push(data);
+        for (let i = 0; i < itemPaths.length; i += CONCURRENCY) {
+            const batch = itemPaths.slice(i, i + CONCURRENCY);
+            const results = await Promise.all(batch.map(relPath =>
+                overlay.readOverlayFile(moduleId, sublayer, relPath).catch(() => null)
+            ));
+            for (const data of results) {
+                if (data && data.name) collected.push(data);
+            }
         }
         return collected;
     }
