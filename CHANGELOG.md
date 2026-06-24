@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.5] - 2026-06-24
+
+### Fixed
+- Fixed overlay terrain data not loading on Sqyre-hosted games. Update and, if terrains are still missing, reinstall the pack once.
+
 ## [1.8.4] - 2026-06-24
 
 ### Fixed
