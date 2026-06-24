@@ -203,8 +203,22 @@ export class OverlayItemMaterialiser {
     static async _materialiseSublayerContent(sublayer, overlayId, overlayVersion) {
         const overlay = game.ionrift?.library?.overlay;
 
-        const itemsListing = await overlay.listOverlayDir(MODULE_ID, sublayer, "items");
-        const packDirs = (itemsListing?.dirs ?? []).filter(d => d && !d.startsWith("."));
+        // Prefer the browse-independent file index written at install. On Sqyre,
+        // FilePicker.browse does not list freshly uploaded files, so the browse
+        // walk returns nothing and packs yield zero items. The index lists every
+        // file by path; we fetch each directly. Fall back to the browse walk for
+        // legacy installs with no index, and on platforms where browse is reliable.
+        const fileIndex = typeof overlay.readFileIndex === "function"
+            ? await overlay.readFileIndex(MODULE_ID, sublayer)
+            : null;
+
+        let packDirs;
+        if (fileIndex) {
+            packDirs = this._packDirsFromIndex(fileIndex);
+        } else {
+            const itemsListing = await overlay.listOverlayDir(MODULE_ID, sublayer, "items");
+            packDirs = (itemsListing?.dirs ?? []).filter(d => d && !d.startsWith("."));
+        }
         if (!packDirs.length) {
             Logger.log(MODULE_LABEL,
                 `OverlayItemMaterialiser | "${overlayId}" has no items/ payload.`
@@ -220,7 +234,9 @@ export class OverlayItemMaterialiser {
         for (const packDir of packDirs.sort()) {
             const itemsPath = `items/${packDir}`;
             const folderDefs = await this._readFolders(sublayer, itemsPath);
-            const items = await this._collectItemsRecursive(sublayer, itemsPath);
+            const items = fileIndex
+                ? await this._collectItemsFromIndex(sublayer, packDir, fileIndex)
+                : await this._collectItemsRecursive(sublayer, itemsPath);
             if (!items.length) {
                 Logger.warn(MODULE_LABEL,
                     `OverlayItemMaterialiser | "${overlayId}" packDir "${packDir}" yielded zero items; ` +
@@ -398,6 +414,54 @@ export class OverlayItemMaterialiser {
      * @returns {Promise<object[]>}
      * @private
      */
+    /**
+     * Derive packDir names from a file index. Paths look like
+     * `items/{packDir}/...`; the first segment under `items/` is the packDir.
+     * @param {string[]} fileIndex
+     * @returns {string[]}
+     * @private
+     */
+    static _packDirsFromIndex(fileIndex) {
+        const set = new Set();
+        for (const path of fileIndex ?? []) {
+            const match = /^items\/([^/]+)\//.exec(path);
+            if (match && !match[1].startsWith(".")) set.add(match[1]);
+        }
+        return [...set];
+    }
+
+    /**
+     * Collect items for a packDir from the file index, fetching each `.json`
+     * by direct path. Mirrors {@link _collectItemsRecursive} (including nested
+     * terrain folders) but never browses, so it works on Sqyre. `_folders.json`
+     * files are loaded separately via {@link _readFolders}.
+     * @param {string} sublayer
+     * @param {string} packDir
+     * @param {string[]} fileIndex
+     * @param {object} [deps]  Optional injection for unit tests.
+     * @returns {Promise<object[]>}
+     * @private
+     */
+    static async _collectItemsFromIndex(sublayer, packDir, fileIndex, deps = null) {
+        const overlay = deps?.overlay ?? game.ionrift?.library?.overlay;
+        const moduleId = deps?.moduleId ?? MODULE_ID;
+        if (!overlay) return [];
+
+        const prefix = `items/${packDir}/`;
+        const itemPaths = (fileIndex ?? []).filter(path =>
+            path.startsWith(prefix)
+            && path.endsWith(".json")
+            && path.split("/").pop() !== FOLDERS_FILE
+        );
+
+        const collected = [];
+        for (const relPath of itemPaths) {
+            const data = await overlay.readOverlayFile(moduleId, sublayer, relPath);
+            if (data && data.name) collected.push(data);
+        }
+        return collected;
+    }
+
     static async _collectItemsRecursive(sublayer, itemsPath, deps = null) {
         const overlay = deps?.overlay ?? game.ionrift?.library?.overlay;
         const moduleId = deps?.moduleId ?? MODULE_ID;
