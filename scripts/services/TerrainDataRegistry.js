@@ -119,10 +119,27 @@ export class TerrainDataRegistry {
                 );
                 if (!active) continue;
 
-                const listing = await overlay.listOverlayDir(
-                    MODULE_ID, sublayer, "data/terrains"
-                );
-                const terrainDirs = listing?.dirs ?? [];
+                // Prefer the browse-independent file index (library 2.5.0+). On
+                // Sqyre, FilePicker.browse does not list freshly uploaded overlay
+                // content, so the directory walk finds no terrains. Derive terrain
+                // dirs from the index; fall back to the browse walk otherwise.
+                const fileIndex = typeof overlay.readFileIndex === "function"
+                    ? await overlay.readFileIndex(MODULE_ID, sublayer)
+                    : null;
+                let terrainDirs;
+                if (fileIndex) {
+                    const found = new Set();
+                    for (const path of fileIndex) {
+                        const match = /^data\/terrains\/([^/]+)\/terrain-qm\.json$/.exec(path);
+                        if (match) found.add(match[1]);
+                    }
+                    terrainDirs = [...found];
+                } else {
+                    const listing = await overlay.listOverlayDir(
+                        MODULE_ID, sublayer, "data/terrains"
+                    );
+                    terrainDirs = listing?.dirs ?? [];
+                }
 
                 for (const terrainId of terrainDirs) {
                     try {
