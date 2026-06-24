@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.2] - 2026-06-24
+
+### Fixed
+- Fixed content packs showing no items after install on Sqyre-hosted games. If a pack installed but its compendium came up empty, update the module and reinstall the pack once to apply the fix.
+
 ## [1.8.1] - 2026-06-23
 
 ### Fixed
