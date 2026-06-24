@@ -370,15 +370,25 @@ export class PotionEnrichment {
         // one activity type. A second pass must never add a duplicate.
         const hasNoHealActivity = activityCount === 0;
 
+        const activityPatch = {};
         if (hasNoHealActivity) {
             const activityData = PotionEnrichment._buildHealActivityData(tier.formula);
-            patch[`system.activities.${activityData._id}`] = activityData;
+            activityPatch[`system.activities.${activityData._id}`] = activityData;
         }
 
-        if (Object.keys(patch).length === 0) return;
+        if (Object.keys(patch).length === 0 && Object.keys(activityPatch).length === 0) return;
+
+        const parent = item.parent ?? item.actor ?? null;
+        const itemId = item.id;
 
         try {
-            await item.update(patch, { curseBypass: true });
+            if (Object.keys(patch).length > 0) {
+                await item.update(patch, { curseBypass: true });
+            }
+            if (Object.keys(activityPatch).length > 0) {
+                const liveItem = parent?.items?.get?.(itemId) ?? item;
+                await liveItem.update(activityPatch, { curseBypass: true });
+            }
         } catch (err) {
             Logger.warn(MODULE_LABEL,
                 "PotionEnrichment.enrichIdentifiedItem: update failed for",
