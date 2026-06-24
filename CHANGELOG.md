@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.3] - 2026-06-24
+
+### Fixed
+- Fixed content packs installing but showing an empty compendium on Sqyre-hosted games. Update Quartermaster and, if a pack still looks empty, reinstall it once. Self-hosted and Forge games were unaffected.
+
 ## [1.8.2] - 2026-06-24
 
 ### Fixed
