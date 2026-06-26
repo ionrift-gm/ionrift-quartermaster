@@ -15,6 +15,7 @@ import { ItemPoolResolver } from "./services/ItemPoolResolver.js";
 import { LootPoolCompiler } from "./services/LootPoolCompiler.js";
 import { ScrollForge } from "./services/ScrollForge.js";
 import { SrdCurseAdapter } from "./services/SrdCurseAdapter.js";
+import { getCurseAdapter } from "./services/getCurseAdapter.js";
 import { ItemMaskingHelper } from "./services/ItemMaskingHelper.js";
 import { StandalonePoolRegistry } from "./services/StandalonePoolRegistry.js";
 import { TerrainDataRegistry } from "./services/TerrainDataRegistry.js";
@@ -335,8 +336,8 @@ Hooks.on('ready', () => {
         } catch { /* default to enabled on parse failure */ }
 
         if (srdSourceEnabled) {
-            SrdCurseAdapter.compile().catch(err => {
-                Logger.error(MODULE_LABEL, "SrdCurseAdapter failed:", err);
+            getCurseAdapter().compile().catch(err => {
+                Logger.error(MODULE_LABEL, "Curse adapter compile failed:", err);
             });
         }
     }

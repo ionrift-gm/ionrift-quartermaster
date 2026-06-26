@@ -1,5 +1,5 @@
 import { Logger, MODULE_LABEL } from "../_logger.js";
-import { SrdCurseAdapter } from "./SrdCurseAdapter.js";
+import { getCurseAdapter } from "./getCurseAdapter.js";
 import { CursedItemResolver } from "./CursedItemResolver.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -65,7 +65,7 @@ export class StandalonePoolRegistry {
      * @returns {Promise<Object[]>}
      */
     static async getDefaultPoolPayload() {
-        const packId = SrdCurseAdapter.worldCollectionId;
+        const packId = getCurseAdapter().worldCollectionId;
         try {
             const pack = game.packs.get(packId);
             if (!pack) return [];

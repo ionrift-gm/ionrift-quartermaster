@@ -1,7 +1,7 @@
 import { SignatureLedger } from "../services/SignatureLedger.js";
 import { ProgressionSeeder }  from "../services/ProgressionSeeder.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
-import { SrdCurseAdapter } from "../services/SrdCurseAdapter.js";
+import { getCurseAdapter } from "../services/getCurseAdapter.js";
 import { StandalonePoolRegistry, getActiveCursedRegistry } from "../services/StandalonePoolRegistry.js";
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "./CursedSourcesApp.js";
 import { CursedItemResolver } from "../services/CursedItemResolver.js";
@@ -2398,9 +2398,9 @@ export class SignatureLedgerApp extends Application {
         }
 
         ui.notifications.info("Quartermaster: compiling SRD cursed items...");
-        await SrdCurseAdapter.compile({ forceRecompile: true });
+        await getCurseAdapter().compile({ forceRecompile: true });
 
-        const srdPack = game.packs.get(SrdCurseAdapter.worldCollectionId);
+        const srdPack = game.packs.get(getCurseAdapter().worldCollectionId);
         if (!srdPack) {
             ui.notifications.warn("SRD cursed items could not be found. Check your D&D 5e system installation.");
             return;

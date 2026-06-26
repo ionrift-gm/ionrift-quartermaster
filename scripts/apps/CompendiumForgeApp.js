@@ -16,7 +16,7 @@
 import { ItemPoolResolver } from "../services/ItemPoolResolver.js";
 import { LootPoolCompiler  } from "../services/LootPoolCompiler.js";
 import { ScrollForge       } from "../services/ScrollForge.js";
-import { SrdCurseAdapter   } from "../services/SrdCurseAdapter.js";
+import { getCurseAdapter   } from "../services/getCurseAdapter.js";
 import { refreshForgeAlertBadge } from "../services/SettingsPanelLayout.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
@@ -288,7 +288,10 @@ export class CompendiumForgeApp extends FormApplication {
             return "Select which spell compendiums Scroll Forge may draw from.";
         }
         if (this._activeTab === "cursedItems") {
-            return "The SRD Curse Adapter scans dnd5e equipment compendiums for the 21 known SRD cursed items and compiles them into a GM-only pool. No configuration needed -- approve the compile and review the output.";
+            if (game.system?.id === "pf2e") {
+                return "Compiles every item with the cursed trait from pf2e equipment compendiums into a GM-only pool. Known GMG cursed items receive catalog tier metadata. No configuration needed.";
+            }
+            return "The SRD Curse Adapter scans dnd5e equipment compendiums for the 12 canonical SRD cursed items and compiles them into a GM-only pool. No configuration needed.";
         }
         if (!LootPoolCompiler.is2024ArchitecturePresent()) {
             return "Select which compendiums contribute items to the loot cache generator. Enable dnd5e.equipment24 to unlock weapon template compilation.";
@@ -303,7 +306,7 @@ export class CompendiumForgeApp extends FormApplication {
     }
 
     _getCursedStatus() {
-        return SrdCurseAdapter.getStatus();
+        return getCurseAdapter().getStatus();
     }
 
     _shouldShowCompileButton() {
@@ -448,8 +451,9 @@ export class CompendiumForgeApp extends FormApplication {
         }
 
         if (tab === "cursedItems") {
+            const CurseAdapter = getCurseAdapter();
             const status = this._getCursedStatus();
-            const meta   = SrdCurseAdapter.getCompiledMeta();
+            const meta   = CurseAdapter.getCompiledMeta();
 
             if (status === "error") {
                 const when = meta?.errorAt ? this._relativeTime(meta.errorAt) : "recently";
@@ -459,7 +463,7 @@ export class CompendiumForgeApp extends FormApplication {
             if (status === "never") {
                 return { type: "never", icon: "fas fa-circle-xmark", text: "Not yet compiled. Click Compile Pool to build the cursed item pool.", meta: null, clearable: false };
             }
-            const packGone = !game.packs.get(SrdCurseAdapter.worldCollectionId);
+            const packGone = !game.packs.get(CurseAdapter.worldCollectionId);
             if (packGone) {
                 return { type: "stale", icon: "fas fa-triangle-exclamation", text: "Compiled pack was removed -- recompile to restore.", meta: null, clearable: false };
             }
@@ -613,15 +617,18 @@ export class CompendiumForgeApp extends FormApplication {
     }
 
     _buildCurseSourceInfo() {
-        // SrdCurseAdapter matches its hardcoded manifest against the dnd5e
-        // equipment packs specifically. Display only those two sources --
-        // the broader "any dnd5e Item pack" loop in _discoverItemPacks is an
-        // internal safety net, not something the GM needs to see.
         const info = [];
+        if (game.system?.id === "pf2e") {
+            for (const id of ["pf2e.equipment-srd", "pf2e.consumables-srd"]) {
+                const pack = game.packs.get(id);
+                if (pack) info.push({ id: pack.collection, label: pack.title ?? pack.metadata?.label ?? id });
+            }
+            return info;
+        }
         const pack24 = game.packs.get("dnd5e.equipment24");
         if (pack24) info.push({ id: pack24.collection, label: pack24.title ?? "Equipment (2024)" });
         const legacy = game.packs.get("dnd5e.items");
-        if (legacy)  info.push({ id: legacy.collection, label: legacy.title  ?? "Items (SRD)" });
+        if (legacy) info.push({ id: legacy.collection, label: legacy.title ?? "Items (SRD)" });
         return info;
     }
 
@@ -839,10 +846,10 @@ export class CompendiumForgeApp extends FormApplication {
         this.render(false);
 
         try {
-            const { SrdCurseAdapter } = await import("../services/SrdCurseAdapter.js");
-            await SrdCurseAdapter.compile({ forceRecompile: true });
+            const CurseAdapter = getCurseAdapter();
+            await CurseAdapter.compile({ forceRecompile: true });
 
-            const pack   = game.packs.get(SrdCurseAdapter.worldCollectionId);
+            const pack   = game.packs.get(CurseAdapter.worldCollectionId);
             const count  = pack ? (await pack.getIndex()).size : 0;
             const { CursedSourcesApp } = await import("./CursedSourcesApp.js");
             const sources = CursedSourcesApp.getEnabledSources();
@@ -902,7 +909,7 @@ export class CompendiumForgeApp extends FormApplication {
         } else if (tab === "scrollForge") {
             await ScrollForge.clearCompiledPack();
         } else if (tab === "cursedItems") {
-            await SrdCurseAdapter.clearCompiledPack();
+            await getCurseAdapter().clearCompiledPack();
         }
 
         if (tab === "lootPool") ItemPoolResolver.clearCache();

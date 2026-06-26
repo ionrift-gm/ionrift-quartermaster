@@ -26,6 +26,7 @@ const PF2E_SUPPORTED = new Set([
 
 const PF2E_LIB_FEATURES = new Set([
     QM_FEATURES.SCROLL_FORGE,
+    QM_FEATURES.SRD_CURSES,
 ]);
 
 /**

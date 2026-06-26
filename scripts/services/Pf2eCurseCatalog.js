@@ -236,6 +236,88 @@ export const DND5E_ONLY_SRD_CURSES = [
 /** @type {Pf2eArchetypeTarget} */
 export const PF2E_V1_COMPILER_MODE = "compendium-faithful";
 
+/**
+ * Resolve catalog metadata for a PF2e compendium cursed item.
+ * @param {string} name
+ * @param {number|null} [itemLevel]
+ * @returns {Pf2eCurseCatalogEntry|null}
+ */
+export function lookupPf2eCurseCatalogEntry(name, itemLevel = null) {
+    const normalized = normalizePf2eCurseName(name);
+    if (!normalized) return null;
+
+    for (const entry of PF2E_GMG_CURSE_MANIFEST) {
+        if (normalizePf2eCurseName(entry.match) === normalized) return entry;
+    }
+
+    for (const entry of PF2E_GMG_CURSE_MANIFEST) {
+        const prefix = normalizePf2eCurseName(entry.match).replace(/\s*\(type\s+[ivx\d]+\)$/i, "");
+        if (prefix && normalized.startsWith(prefix)) return entry;
+    }
+
+    if (itemLevel != null) {
+        for (const entry of PF2E_GMG_CURSE_MANIFEST) {
+            if (entry.itemLevel === itemLevel && normalized.startsWith(
+                normalizePf2eCurseName(entry.match).replace(/\s*\(type\s+[ivx\d]+\)$/i, "")
+            )) {
+                return entry;
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Normalize PF2e curse item names for manifest matching.
+ * @param {string} name
+ * @returns {string}
+ */
+export function normalizePf2eCurseName(name) {
+    let normalized = (name ?? "").trim().toLowerCase();
+    normalized = normalized.replace(/\s*,\s*type\s+([ivx\d]+)/gi, " (type $1)");
+    normalized = normalized.replace(/\s*\(\s*type\s+([ivx\d]+)\s*\)/gi, (_, token) => {
+        return ` (type ${String(token).toLowerCase()})`;
+    });
+    return normalized;
+}
+
+/**
+ * @param {object} sourceItem  Item document or plain object with name/system
+ * @returns {{ tier: number, curseType: string, catalogMatch: string|null }}
+ */
+export function inferPf2eCurseMeta(sourceItem) {
+    const name = sourceItem?.name ?? "";
+    const levelRaw = sourceItem?.system?.level?.value ?? sourceItem?.system?.level;
+    const itemLevel = Number.isFinite(levelRaw) ? levelRaw : null;
+
+    const catalog = lookupPf2eCurseCatalogEntry(name, itemLevel);
+    if (catalog) {
+        return {
+            tier: catalog.tier,
+            curseType: catalog.curseType,
+            catalogMatch: catalog.match
+        };
+    }
+
+    const lvl = itemLevel ?? 1;
+    let tier = 1;
+    if (lvl >= 18) tier = 4;
+    else if (lvl >= 13) tier = 3;
+    else if (lvl >= 7) tier = 2;
+
+    return { tier, curseType: "deceptive", catalogMatch: null };
+}
+
+/**
+ * @param {Item|object} item
+ * @returns {boolean}
+ */
+export function itemHasPf2eCursedTrait(item) {
+    const traits = item?.system?.traits?.value ?? [];
+    return Array.isArray(traits) && traits.includes("cursed");
+}
+
 const MANIFEST_NAMES_LC = new Set(
     PF2E_GMG_CURSE_MANIFEST.map(e => e.match.trim().toLowerCase())
 );

@@ -7,7 +7,7 @@ import { openSetupGuide } from "../constants/SetupGuide.js";
 import { refreshOpenQuartermasterConfigApps } from "../apps/QuartermasterSubmenuConfigApp.js";
 import { LootPoolCompiler } from "./LootPoolCompiler.js";
 import { ScrollForge      } from "./ScrollForge.js";
-import { SrdCurseAdapter  } from "./SrdCurseAdapter.js";
+import { getCurseAdapter } from "./getCurseAdapter.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -199,7 +199,7 @@ export function registerQuartermasterSettingsPanel() {
 function _isSrdCurseSourceEnabled() {
     try {
         const sources = JSON.parse(game.settings.get(MODULE_ID, "cursedItemSources") ?? "[]");
-        return sources.includes(SrdCurseAdapter.worldCollectionId);
+        return sources.includes(getCurseAdapter().worldCollectionId);
     } catch {
         return false;
     }
@@ -246,7 +246,7 @@ export function getWorstForgeStatus() {
         }
 
         if (_isSrdCurseSourceEnabled()) {
-            statuses.push(_normalizeForgeStatus(SrdCurseAdapter.getStatus()));
+            statuses.push(_normalizeForgeStatus(getCurseAdapter().getStatus()));
         }
 
         if (!statuses.length) return "fresh";
