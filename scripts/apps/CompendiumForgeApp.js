@@ -497,7 +497,9 @@ export class CompendiumForgeApp extends FormApplication {
     }
 
     _buildScrollGroups() {
-        const RECOMMENDED_SCROLL = new Set(["dnd5e.spells24", "dnd5e.spells"]);
+        const rules = game.ionrift?.quartermaster?.adapter?.getScrollForgeRules?.();
+        const recommendedIds = rules?.getRecommendedPackIds?.() ?? [];
+        const RECOMMENDED_SCROLL = new Set(recommendedIds);
         const candidates = this._scrollCandidates ?? [];
         const checkedSet = new Set(ScrollForge.initialCheckedIds(candidates));
 

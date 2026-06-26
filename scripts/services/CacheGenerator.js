@@ -2334,8 +2334,11 @@ export class CacheGenerator {
         const dnd = entry.flags?.dnd5e?.spellLevel?.value;
         if (Number.isFinite(dnd) && dnd >= 1) return dnd;
 
+        const pf2eLvl = entry.system?.level?.value;
+        if (Number.isFinite(pf2eLvl) && pf2eLvl >= 1) return pf2eLvl;
+
         const sys = entry.system?.level;
-        if (Number.isFinite(sys) && sys >= 1) return sys;
+        if (typeof sys === "number" && sys >= 1) return sys;
 
         return null;
     }

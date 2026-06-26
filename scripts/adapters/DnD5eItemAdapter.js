@@ -3,6 +3,7 @@ import { QM_FEATURES } from "../constants/QMFeatures.js";
 import { ItemMaskingHelper } from "../services/ItemMaskingHelper.js";
 import { PotionEnrichment } from "../services/PotionEnrichment.js";
 import * as DnD5ePool from "./pool/DnD5ePoolRules.js";
+import { DnD5eScrollForge } from "./scroll/DnD5eScrollForge.js";
 
 const DND5E_DEFAULT_SOURCES = [
     "dnd5e.items",
@@ -102,4 +103,6 @@ export class DnD5eItemAdapter extends QuartermasterItemAdapter {
         }
         return data;
     }
+
+    getScrollForgeRules() { return DnD5eScrollForge; }
 }

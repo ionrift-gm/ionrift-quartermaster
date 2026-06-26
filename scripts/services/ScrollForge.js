@@ -4,27 +4,10 @@
  */
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
-import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta } from "./CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
-const FORGED_FLAG = "ionrift-quartermaster";
-
-/**
- * One Foundry scroll art per spell school (same paths as legacy quartermaster-scrolls / build-scroll-compendium).
- * Level-based SCROLL_ICONS lived in scripts/build-scroll-compendium.mjs; forge uses school for a stable shelf read.
- */
-const SCROLL_IMG_BY_SCHOOL = {
-    abj: "icons/sundries/scrolls/scroll-bound-blue-white.webp",
-    con: "icons/sundries/scrolls/scroll-bound-sealed-orange.webp",
-    div: "icons/sundries/scrolls/scroll-symbol-eye-brown.webp",
-    enc: "icons/sundries/scrolls/scroll-bound-gold.webp",
-    evo: "icons/sundries/scrolls/scroll-runed-brown-white.webp",
-    ill: "icons/sundries/scrolls/scroll-runed-brown-grey.webp",
-    nec: "icons/sundries/scrolls/scroll-bound-skull-brown.webp",
-    trs: "icons/sundries/scrolls/scroll-bound-green.webp"
-};
 
 export class ScrollForge {
     static WORLD_PACK_NAME = "ionrift-forged-scrolls";
@@ -42,6 +25,12 @@ export class ScrollForge {
     static SETTING_SOURCES  = "scrollForgeSpellPacks";
     static SETTING_SNAPSHOT = "scrollForgeCandidateSnapshot";
 
+    /** @returns {object|null} Active system scroll rules from the QM adapter. */
+    static _scrollRules() {
+        if (!game.ionrift?.quartermaster?.adapter?.supports(QM_FEATURES.SCROLL_FORGE)) return null;
+        return game.ionrift.quartermaster.adapter.getScrollForgeRules?.() ?? null;
+    }
+
     /**
      * GM ready hook: silently compile with saved sources.
      * Never opens the source-picker dialog on load - that violates the nudge
@@ -50,7 +39,7 @@ export class ScrollForge {
      */
     static async runAfterReady() {
         if (!game.user.isGM) return;
-        if (!game.ionrift?.quartermaster?.adapter?.supports(QM_FEATURES.SCROLL_FORGE)) return;
+        if (!this._scrollRules()) return;
         if (!game.settings.get(MODULE_ID, "scrollForgeEnabled")) return;
 
         const candidates = await this.discoverSpellCompendiums();
@@ -61,7 +50,6 @@ export class ScrollForge {
             return;
         }
 
-        // Detect snapshot drift but do NOT open the dialog - just log.
         const currentSnap = this._candidateSnapshot(candidates);
         const lastSnap = game.settings.get(MODULE_ID, this.SETTING_SNAPSHOT) || "";
         if (lastSnap && currentSnap !== lastSnap) {
@@ -69,7 +57,6 @@ export class ScrollForge {
                 "Scroll Forge: available spell compendiums changed since last save. " +
                 "Compiling with existing sources. Open the Quartermaster to review spell sources."
             );
-            // Update the snapshot so we don't log every reload
             await game.settings.set(MODULE_ID, this.SETTING_SNAPSHOT, currentSnap);
         }
 
@@ -161,7 +148,8 @@ export class ScrollForge {
 
     static async compile({ forceRecompile = false } = {}) {
         if (!game.user.isGM) return;
-        if (!game.ionrift?.quartermaster?.adapter?.supports(QM_FEATURES.SCROLL_FORGE)) return;
+        const rules = this._scrollRules();
+        if (!rules) return;
 
         let enabledIds = [];
         try {
@@ -183,14 +171,7 @@ export class ScrollForge {
             return;
         }
 
-        // 2024 packs win name collisions -- process them before legacy packs
-        // so seenSpellNames deduplication favours the newer content.
-        const PRIORITY_ORDER = ["dnd5e.spells24", "dnd5e.spells"];
-        spellPacks.sort((a, b) => {
-            const ai = PRIORITY_ORDER.indexOf(a.collection);
-            const bi = PRIORITY_ORDER.indexOf(b.collection);
-            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-        });
+        rules.sortSpellPacks(spellPacks);
 
         const sourceHash = await this._computeSourceHash(spellPacks);
         const lastHash = game.settings.get(MODULE_ID, this.SETTING_HASH);
@@ -201,7 +182,7 @@ export class ScrollForge {
         }
 
         const ItemClass = CONFIG.Item.documentClass;
-        /** @type {{ data: object, schoolKey: string, level: number }[]} */
+        /** @type {{ data: object, groupKey: string, level: number }[]} */
         const pendingRows = [];
         const seenSpellNames = new Set();
         let skipCount = 0;
@@ -231,8 +212,10 @@ export class ScrollForge {
 
             for (const spell of spells) {
                 if (spell.type !== "spell") continue;
-                const lvl = spell.system?.level;
-                if (typeof lvl !== "number" || lvl < 1) continue;
+                if (!rules.isLeveledSpell(spell)) continue;
+
+                const lvl = rules.getSpellLevel(spell);
+                if (lvl === null) continue;
 
                 const nameKey = (spell.name || "").toLowerCase();
                 if (!nameKey || banSet.has(nameKey)) continue;
@@ -240,12 +223,12 @@ export class ScrollForge {
                 seenSpellNames.add(nameKey);
 
                 try {
-                    const data = await this._spellToScrollData(spell, ItemClass);
+                    const data = await rules.spellToScrollData(spell, ItemClass);
                     if (!data) { skipCount++; continue; }
                     pendingRows.push({
                         data,
-                        schoolKey: spell.system?.school ?? "unknown",
-                        level:     lvl
+                        groupKey: rules.getSpellFolderGroupKey(spell),
+                        level: lvl
                     });
                 } catch (spellErr) {
                     skipCount++;
@@ -272,11 +255,11 @@ export class ScrollForge {
         pack = game.packs.get(this.worldCollectionId) ?? pack;
 
         this._compileFolderCache = new Map();
-        this._compileSchoolFolderByKey = new Map();
+        this._compileGroupFolderByKey = new Map();
         this._compileLevelFolderByKey = new Map();
         const scrollItems = [];
         for (const row of pendingRows) {
-            row.data.folder = await this._ensureSchoolLevelFolder(pack, row.schoolKey, row.level);
+            row.data.folder = await this._ensureGroupLevelFolder(pack, row.groupKey, row.level, rules);
             scrollItems.push(row.data);
         }
 
@@ -301,25 +284,30 @@ export class ScrollForge {
 
         if (scrollItems.length > 0 && writeOk) {
             await game.settings.set(MODULE_ID, this.SETTING_HASH, sourceHash);
-            // Persist rich metadata so the Forge UI can show "N scrolls - compiled X ago".
-            const enabledIds = spellPacks.map(p => p.collection);
-            await this._writeMeta({ compiledAt: new Date().toISOString(), scrollCount: scrollItems.length, sourceIds: enabledIds });
+            const enabledPackIds = spellPacks.map(p => p.collection);
+            await this._writeMeta({
+                compiledAt: new Date().toISOString(),
+                scrollCount: scrollItems.length,
+                sourceIds: enabledPackIds
+            });
         }
         await this.ensureSidebarPlacement();
-        const skipNote = skipCount > 0 ? ` (${skipCount} spell${skipCount !== 1 ? 's' : ''} skipped, see console)` : "";
+        const skipNote = skipCount > 0
+            ? ` (${skipCount} spell${skipCount !== 1 ? "s" : ""} skipped, see console)`
+            : "";
         ui.notifications.info(
             `Scroll Forge: compiled ${scrollItems.length} spell scrolls into "${this.PACK_LABEL}"${skipNote}. Opening it now.`
         );
         await this.openForgedPack();
     }
 
-    /** Per-compile cache: `${schoolKey}|${level}` -> leaf folder document id */
+    /** Per-compile cache: `${groupKey}|${level}` -> leaf folder document id */
     static _compileFolderCache = new Map();
 
-    /** Per-compile: schoolKey (e.g. abj) -> school Folder document */
-    static _compileSchoolFolderByKey = new Map();
+    /** Per-compile: groupKey -> group Folder document */
+    static _compileGroupFolderByKey = new Map();
 
-    /** Per-compile: `${schoolKey}|${level}` -> level Folder document */
+    /** Per-compile: `${groupKey}|${level}` -> level Folder document */
     static _compileLevelFolderByKey = new Map();
 
     /** @param {Folder} folderDoc */
@@ -357,43 +345,31 @@ export class ScrollForge {
 
     /**
      * @param {CompendiumCollection} pack
-     * @param {string} schoolKey dnd5e school id (e.g. abj)
-     * @param {number} level spell level 1-9
+     * @param {string} groupKey school or tradition id
+     * @param {number} level spell rank / level
+     * @param {object} rules scroll forge rules from the active adapter
      */
-    static async _ensureSchoolLevelFolder(pack, schoolKey, level) {
-        const leafKey = `${schoolKey}|${level}`;
+    static async _ensureGroupLevelFolder(pack, groupKey, level, rules) {
+        const leafKey = `${groupKey}|${level}`;
         if (this._compileFolderCache.has(leafKey)) return this._compileFolderCache.get(leafKey);
 
-        let schoolFolder = this._compileSchoolFolderByKey.get(schoolKey);
-        if (!schoolFolder) {
-            const schoolLabel = this._schoolFolderLabel(schoolKey);
-            schoolFolder = await this._findOrCreateItemFolder(pack, schoolLabel, null);
-            this._compileSchoolFolderByKey.set(schoolKey, schoolFolder);
+        let groupFolder = this._compileGroupFolderByKey.get(groupKey);
+        if (!groupFolder) {
+            const groupLabel = rules.getSpellFolderGroupLabel(groupKey);
+            groupFolder = await this._findOrCreateItemFolder(pack, groupLabel, null);
+            this._compileGroupFolderByKey.set(groupKey, groupFolder);
         }
 
-        const levelMapKey = `${schoolKey}|${level}`;
+        const levelMapKey = `${groupKey}|${level}`;
         let levelFolder = this._compileLevelFolderByKey.get(levelMapKey);
         if (!levelFolder) {
-            const levelLabel = this._levelFolderLabel(level);
-            levelFolder = await this._findOrCreateItemFolder(pack, levelLabel, schoolFolder.id);
+            const levelLabel = rules.getSpellLevelFolderLabel(level);
+            levelFolder = await this._findOrCreateItemFolder(pack, levelLabel, groupFolder.id);
             this._compileLevelFolderByKey.set(levelMapKey, levelFolder);
         }
 
         this._compileFolderCache.set(leafKey, levelFolder.id);
         return levelFolder.id;
-    }
-
-    static _schoolFolderLabel(schoolKey) {
-        const def = CONFIG.DND5E?.spellSchools?.[schoolKey];
-        if (def?.label) return game.i18n.localize(def.label);
-        if (schoolKey === "unknown") return "Unknown";
-        return String(schoolKey);
-    }
-
-    static _levelFolderLabel(level) {
-        const locKey = CONFIG.DND5E?.spellLevels?.[level];
-        if (locKey) return game.i18n.localize(locKey);
-        return `Level ${level}`;
     }
 
     /**
@@ -458,7 +434,13 @@ export class ScrollForge {
             name:   this.WORLD_PACK_NAME,
             type:   "Item",
             system: game.system.id,
-            ownership: (o => { o["PLAYER"] = "NONE"; o["TRUSTED"] = "NONE"; o["ASSISTANT"] = "NONE"; o["GAMEMASTER"] = "OWNER"; return o; })({})
+            ownership: (o => {
+                o["PLAYER"] = "NONE";
+                o["TRUSTED"] = "NONE";
+                o["ASSISTANT"] = "NONE";
+                o["GAMEMASTER"] = "OWNER";
+                return o;
+            })({})
         };
         const attempts = [];
         if (CONST.COMPENDIUM_PACKAGE_TYPES?.WORLD !== undefined) {
@@ -479,147 +461,6 @@ export class ScrollForge {
         return null;
     }
 
-    /**
-     * @param {Item} spell
-     * @param {typeof Item} ItemClass
-     */
-    static async _spellToScrollData(spell, ItemClass) {
-        const schoolKey = spell.system?.school ?? "unknown";
-        const scrollMeta = {
-            spellName:  spell.name,
-            spellLevel: spell.system?.level ?? 1
-        };
-
-        if (typeof ItemClass?.createScrollFromSpell === "function") {
-            try {
-                const scrollConfig = { dialog: false, explanation: "full" };
-                const created = await ItemClass.createScrollFromSpell(spell, {}, scrollConfig);
-                const plain = created?.toObject
-                    ? created.toObject()
-                    : foundry.utils.duplicate(created);
-                plain.flags = foundry.utils.mergeObject(plain.flags ?? {}, {
-                    [FORGED_FLAG]: {
-                        scrollMeta,
-                        forgedFrom: spell.uuid,
-                        school:     schoolKey
-                    }
-                });
-                plain.img = this._scrollImgForSchool(schoolKey);
-                return plain;
-            } catch (err) {
-                Logger.warn(MODULE_LABEL,
-                    `Scroll Forge: createScrollFromSpell failed for "${spell.name}" - using manual fallback. (${err.message})`
-                );
-            }
-        }
-
-        return this._manualScrollFromSpell(spell, scrollMeta, schoolKey);
-    }
-
-    /**
-     * @param {string} schoolKey dnd5e school id (abj, con, …)
-     */
-    static _scrollImgForSchool(schoolKey) {
-        if (SCROLL_IMG_BY_SCHOOL[schoolKey]) return SCROLL_IMG_BY_SCHOOL[schoolKey];
-        const keys = Object.keys(CONFIG.DND5E?.spellSchools ?? {});
-        const idx = keys.indexOf(schoolKey);
-        if (idx >= 0) {
-            const pool = Object.values(SCROLL_IMG_BY_SCHOOL);
-            return pool[idx % pool.length];
-        }
-        return ItemMaskingHelper._genericIconFor("scroll");
-    }
-
-    static _manualScrollFromSpell(spell, scrollMeta, schoolKey) {
-        const level = scrollMeta.spellLevel;
-        const rarity = this._scrollRarity(level);
-        const priceVal = this._scrollPrice(level);
-        const desc = spell.system?.description?.value ?? "";
-        const sk = schoolKey ?? spell.system?.school ?? "unknown";
-
-        const { dc, bonus } = this._scrollChallengeValues(level);
-        const activityId = foundry.utils.randomID();
-        const activities = {
-            [activityId]: {
-                _id: activityId,
-                type: "cast",
-                consumption: {
-                    targets: [{ type: "itemUses", value: "1" }]
-                },
-                spell: {
-                    challenge: { attack: bonus, save: dc, override: true },
-                    level,
-                    uuid: spell.uuid
-                }
-            }
-        };
-
-        return {
-            name: `Spell Scroll (${spell.name})`,
-            type: "consumable",
-            img:  this._scrollImgForSchool(sk),
-            system: {
-                description: { value: desc },
-                rarity,
-                weight:  { value: 0.1, units: "lb" },
-                price:   { value: priceVal, denomination: "gp" },
-                type:    { value: "scroll" },
-                uses:    { max: 1, spent: 0, recovery: "", autoDestroy: true },
-                quantity: 1,
-                activities
-            },
-            flags: {
-                [FORGED_FLAG]: {
-                    scrollMeta,
-                    forgedFrom: spell.uuid,
-                    school:     sk
-                }
-            }
-        };
-    }
-
-    /**
-     * DMG spell scroll DC and attack bonus by spell level.
-     * Reads from CONFIG.DND5E.spellScrollValues at runtime when available,
-     * falls back to hardcoded 2024 DMG table.
-     * @param {number} level
-     * @returns {{ dc: number, bonus: number }}
-     */
-    static _scrollChallengeValues(level) {
-        const cfg = CONFIG.DND5E?.spellScrollValues;
-        if (cfg) {
-            for (let lv = level; lv >= 0; lv--) {
-                if (cfg[lv]) return { dc: cfg[lv].dc, bonus: cfg[lv].bonus };
-            }
-        }
-        const table = [
-            { dc: 13, bonus: 5 },  // 0
-            { dc: 13, bonus: 5 },  // 1
-            { dc: 13, bonus: 5 },  // 2
-            { dc: 15, bonus: 7 },  // 3
-            { dc: 15, bonus: 7 },  // 4
-            { dc: 17, bonus: 9 },  // 5
-            { dc: 17, bonus: 9 },  // 6
-            { dc: 18, bonus: 10 }, // 7
-            { dc: 18, bonus: 10 }, // 8
-            { dc: 19, bonus: 11 }  // 9
-        ];
-        return table[Math.min(level, 9)] ?? table[1];
-    }
-
-    static _scrollRarity(level) {
-        if (level <= 1) return "common";
-        if (level <= 3) return "uncommon";
-        if (level <= 5) return "rare";
-        if (level <= 8) return "veryRare";
-        return "legendary";
-    }
-
-    static _scrollPrice(level) {
-        const table = [0, 25, 75, 150, 300, 500, 1000, 2000, 5000, 10000, 25000];
-        return table[level] ?? 25;
-    }
-
     /** @param {{ id: string }[]} candidates */
     static initialCheckedIds(candidates) {
         const candidateIds = new Set(candidates.map(c => c.id));
@@ -634,15 +475,12 @@ export class ScrollForge {
         const intersection = saved.filter(id => candidateIds.has(id));
         if (intersection.length) return intersection;
 
-        // No saved prefs: default-select both SRD spell packs when available.
-        // Collisions are resolved at compile time in favour of 2024 content.
-        const defaults = [];
-        if (candidateIds.has("dnd5e.spells24")) defaults.push("dnd5e.spells24");
-        if (candidateIds.has("dnd5e.spells"))   defaults.push("dnd5e.spells");
-        return defaults.length ? defaults : [];
+        const rules = this._scrollRules();
+        if (rules?.getDefaultSpellPackIds) {
+            return rules.getDefaultSpellPackIds(candidates);
+        }
+        return [];
     }
-
-    // ── Status / metadata helpers (mirrors LootPoolCompiler API) ───────────
 
     /**
      * Synchronous status check — same contract as LootPoolCompiler.getStatus().
@@ -659,13 +497,14 @@ export class ScrollForge {
             const hash = game.settings.get(MODULE_ID, this.SETTING_HASH);
             if (!hash) return "never";
             if (!game.packs.get(this.worldCollectionId)) return "stale";
-            // Source-change staleness: compare stored sourceIds vs currently enabled.
             const meta = this.getCompiledMeta();
             if (meta?.sourceIds?.length) {
                 let current = [];
-                try { current = JSON.parse(game.settings.get(MODULE_ID, this.SETTING_SOURCES) || "[]"); } catch { /* ok */ }
-                const stored  = new Set(meta.sourceIds);
-                const now     = new Set(current);
+                try {
+                    current = JSON.parse(game.settings.get(MODULE_ID, this.SETTING_SOURCES) || "[]");
+                } catch { /* ok */ }
+                const stored = new Set(meta.sourceIds);
+                const now = new Set(current);
                 const changed = stored.size !== now.size || [...stored].some(id => !now.has(id));
                 if (changed) return "stale";
             }
@@ -692,6 +531,11 @@ export class ScrollForge {
     }
 
     static async clearCompiledPack() {
-        await clearPackAndResetMeta(this.worldCollectionId, this.SETTING_HASH, this.SETTING_META, "ScrollForge");
+        await clearPackAndResetMeta(
+            this.worldCollectionId,
+            this.SETTING_HASH,
+            this.SETTING_META,
+            "ScrollForge"
+        );
     }
 }

@@ -202,4 +202,10 @@ export class QuartermasterItemAdapter {
      * @returns {object}
      */
     normalizeItemData(itemData) { return itemData; }
+
+    /**
+     * Scroll Forge rules for this system, or null when unsupported.
+     * @returns {object|null}
+     */
+    getScrollForgeRules() { return null; }
 }

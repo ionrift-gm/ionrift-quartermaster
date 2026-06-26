@@ -9,6 +9,7 @@ import {
     matchesPf2eSlotType,
     normalizePf2eRarityForTier
 } from "./PF2ePoolRules.js";
+import { PF2eScrollForge } from "./scroll/PF2eScrollForge.js";
 
 const PF2E_SOURCE_CANDIDATES = [
     "pf2e.equipment-srd",
@@ -23,6 +24,10 @@ const PF2E_SUPPORTED = new Set([
     QM_FEATURES.WORKSHOP,
 ]);
 
+const PF2E_LIB_FEATURES = new Set([
+    QM_FEATURES.SCROLL_FORGE,
+]);
+
 /**
  * Pass-through loot mode for Pathfinder 2e. Items drop as compendium-faithful
  * documents without QM latent-magic masking or loot-pool compilation.
@@ -33,6 +38,9 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
 
     supports(featureId) {
         if (PF2E_SUPPORTED.has(featureId)) return true;
+        if (PF2E_LIB_FEATURES.has(featureId)) {
+            return game.ionrift?.library?.system?.isSupported?.(featureId) ?? true;
+        }
         return false;
     }
 
@@ -141,4 +149,6 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
         }
         return data;
     }
+
+    getScrollForgeRules() { return PF2eScrollForge; }
 }
