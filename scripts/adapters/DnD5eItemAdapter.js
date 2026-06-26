@@ -2,6 +2,7 @@ import { QuartermasterItemAdapter } from "./QuartermasterItemAdapter.js";
 import { QM_FEATURES } from "../constants/QMFeatures.js";
 import { ItemMaskingHelper } from "../services/ItemMaskingHelper.js";
 import { PotionEnrichment } from "../services/PotionEnrichment.js";
+import * as DnD5ePool from "./pool/DnD5ePoolRules.js";
 
 const DND5E_DEFAULT_SOURCES = [
     "dnd5e.items",
@@ -39,6 +40,26 @@ export class DnD5eItemAdapter extends QuartermasterItemAdapter {
 
     getDefaultLootPoolSources() {
         return DND5E_DEFAULT_SOURCES.filter(id => game.packs?.get(id));
+    }
+
+    getRarityFromEntry(entry) {
+        return (entry.system?.rarity ?? "common").toLowerCase().trim();
+    }
+
+    extractPrice(entry) {
+        return DnD5ePool.extractDnd5ePrice(entry);
+    }
+
+    extractWeight(entry) {
+        return DnD5ePool.extractDnd5eWeight(entry);
+    }
+
+    matchesSlotType(entry, slotType) {
+        return DnD5ePool.matchesDnd5eSlotType(entry, slotType);
+    }
+
+    isExcludedFromPool(entry) {
+        return DnD5ePool.isDnd5eExcludedFromPool(entry);
     }
 
     shouldApplyLatentMasking() { return true; }

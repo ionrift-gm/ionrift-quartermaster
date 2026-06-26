@@ -14,6 +14,7 @@ import { GenericArmorBonusRegistry } from "./GenericArmorBonusRegistry.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
 import { isSrdCursedLootName } from "./SrdCurseCatalog.js";
 import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
+import * as DnD5ePool from "../adapters/pool/DnD5ePoolRules.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -98,21 +99,12 @@ export class ItemPoolResolver {
      * Packs that use the 2024 architecture where consumables were renamed
      * to include their container type. Used by _isLegacyRenamedItem.
      */
-    static EQUIPMENT24_PACKS = new Set(["dnd5e.equipment24"]);
+    static EQUIPMENT24_PACKS = DnD5ePool.EQUIPMENT24_PACKS;
 
     /**
      * Items renamed in SRD 5.2 / 2024 to include their container type.
-     * Key = legacy lowercase name to suppress when a 2024 pack is enabled.
-     * Value = 2024 replacement name (documentation only).
-     *
-     * Suppression is one-directional: the legacy entry is hidden so only
-     * the 2024 form appears in the pool. The 2024 form is never touched.
      */
-    static LEGACY_2024_RENAMED = new Map([
-        ["holy water",  "Flask of Holy Water"],
-        ["acid",        "Acid (vial)"],
-        ["antitoxin",   "Antitoxin (vial)"],
-    ]);
+    static LEGACY_2024_RENAMED = DnD5ePool.LEGACY_2024_RENAMED;
 
     /**
      * Get enabled compendium source IDs from module settings.
@@ -878,12 +870,7 @@ export class ItemPoolResolver {
      * @returns {boolean}
      */
     static _isArmorEntry(entry) {
-        if (entry.type === "armor") return true;
-        if (entry.type !== "equipment") return false;
-        const armorType = (entry.system?.armor?.type ?? "").trim();
-        if (armorType) return true;
-        const subtype = (entry.subtype ?? entry.system?.type?.value ?? "").trim();
-        return ["light", "medium", "heavy", "shield"].includes(subtype);
+        return DnD5ePool.isArmorEntry(entry);
     }
 
     /** @param {object} item - Resolved pool item (flat shape with optional subtype). */
@@ -976,75 +963,14 @@ export class ItemPoolResolver {
      * @param {object} entry
      */
     static _isQmDedicatedPickerItem(entry) {
-        const qm = entry.flags?.["ionrift-quartermaster"];
-        if (!qm) return false;
-        if (qm.gemMeta?.tier) return true;
-        const cat = qm.coreMeta?.category;
-        if (cat === "Treasure" || cat === "Trinkets") return true;
-        if ((entry.system?.type?.value ?? "") === "gem") return true;
-        return false;
+        return DnD5ePool.isQmDedicatedPickerItem(entry);
     }
 
     /**
      * Map slotType to Foundry item type filters.
      */
     static _matchesSlotType(entry, slotType) {
-        const adapter = getQuartermasterAdapter();
-        if (adapter.id !== "dnd5e") {
-            return adapter.matchesSlotType(entry, slotType);
-        }
-
-        const type = entry.type;
-        const subtype = (entry.system?.type?.value ?? "").toLowerCase();
-
-        switch (slotType) {
-            case "consumable": {
-                if (type !== "consumable") return false;
-                if (PotionEnrichment.isHealingPotion(entry.name)) return true;
-                if (subtype === "scroll") return false;
-                // Ammunition now has its own dedicated slot type - exclude
-                // ammo subtypes from the consumable pool to prevent
-                // double-counting between consumable and ammo slots.
-                if (subtype === "ammo" || subtype === "ammunition") return false;
-                const n = (entry.name ?? "").toLowerCase();
-                if (/^(arrows?|bolts?|needles?|sling bullets?)\b/i.test(n)) return false;
-                // Only actual potions, poisons, and food - not mundane gear
-                // (rod, wand, trinket) that dnd5e classifies as consumable.
-                const potionSubtypes = ["potion", "poison", "food", ""];
-                return potionSubtypes.includes(subtype);
-            }
-            case "ammo": {
-                // Dedicated ammunition slot: subtypes 'ammo'/'ammunition'
-                // plus name-based detection for compendiums that leave
-                // the subtype blank.
-                if (type !== "consumable") return false;
-                if (subtype === "ammo" || subtype === "ammunition") return true;
-                const n = (entry.name ?? "").toLowerCase();
-                return /^(arrows?|bolts?|needles?|sling bullets?)\b/i.test(n);
-            }
-            case "scroll":
-                return type === "consumable" && subtype === "scroll";
-            case "mundane": {
-                // Mundane pool: loot and tools always qualify.
-                // Equipment only qualifies if it has NO rarity (common/empty)
-                // to prevent wondrous items like Decanter of Endless Water
-                // from appearing in the mundane loot pool.
-                if (type === "loot" || type === "tool") {
-                    if (this._isQmDedicatedPickerItem(entry)) return false;
-                    return true;
-                }
-                if (type === "equipment") {
-                    const rarity = (entry.system?.rarity ?? "").toLowerCase();
-                    return !rarity || rarity === "common" || rarity === "none";
-                }
-                return false;
-            }
-            case "mastercraft":
-                // Weapons and armor of any rarity. SRD armor is usually equipment, not armor.
-                return type === "weapon" || this._isArmorEntry(entry);
-            default:
-                return false;
-        }
+        return getQuartermasterAdapter().matchesSlotType(entry, slotType);
     }
 
     /**
@@ -1061,253 +987,59 @@ export class ItemPoolResolver {
      * Exclude problematic items (cursed, artifacts, class-specific features).
      */
     static _isExcluded(entry) {
-        const adapter = getQuartermasterAdapter();
-        if (adapter.id !== "dnd5e") {
-            return adapter.isExcludedFromPool(entry);
-        }
-
-        const name = entry.name?.trim() ?? "";
-        const nameLower = name.toLowerCase();
-        // Skip class features, spells, feats masquerading as items
-        if (entry.type === "feat" || entry.type === "class" || entry.type === "spell") return true;
-        // Skip items with no name
-        if (!name) return true;
-        if (this._isPlaceholderPoolEntry(entry, nameLower)) return true;
-        if (this._isContainerContentOnly(entry, nameLower)) return true;
-        if (this._isTrapOrHazard(entry)) return true;
-        if (this._isZeroDataPlaceholder(entry)) return true;
-        if (this._isZeroWeightWeaponTemplate(entry)) return true;
-        if (this._isZeroWeightArmorTemplate(entry)) return true;
-        if (this._isEconomyPendingLoot(entry)) return true;
-        if (this._isSlayingTemplateShell(entry, nameLower)) return true;
-        if (this._isNarrativeReserveLoot(entry)) return true;
-        if (this._isBulkAmmoCollection(entry, nameLower)) return true;
-        if (this._isGmPlacedPoison(entry, nameLower)) return true;
-        if (this._isLegacyRenamedItem(entry, nameLower)) return true;
-        if (isSrdCursedLootName(name)) return true;
-        return false;
+        return getQuartermasterAdapter().isExcludedFromPool(entry);
     }
 
-    /**
-     * 2024 slaying ammo template shell and enchantment rider documents.
-     * Compiled output replaces these in the loot pool.
-     */
-    static _isSlayingTemplateShell(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
-        if (nameLower === "ammunition of slaying") return true;
-        if (nameLower.startsWith("ammunition of slaying ")) return true;
-        if (entry.type === "enchantment" && /^ammunition of slaying /i.test(entry.name ?? "")) return true;
-        return false;
+    static _isSlayingTemplateShell(entry, nameLower) {
+        return DnD5ePool.isSlayingTemplateShell(entry, nameLower);
     }
 
-    /**
-     * Single-use narrative ammunition reserved for deliberate placement.
-     */
     static _isNarrativeReserveLoot(entry) {
-        return ItemClassifier.isSlayingAmmo(entry);
+        return DnD5ePool.isNarrativeReserveLoot(entry);
     }
 
-    /**
-     * Bulk ammo bundles (2024 SRD pack-of-N entries). The 2024 compendium ships
-     * both a singular form ("Arrow") and a plural bundle form ("Arrows", qty 20).
-     * The loot generator uses the singular and stacks via the quantity resolver;
-     * including the plural bundle alongside it would create duplicate pool entries
-     * that double the probability of ammo landing and produce misleading qty math.
-     *
-     * Filter list is a closed set - only the known SRD bundle names are excluded.
-     * Any new plural ammo added by future content should be evaluated and added here.
-     */
-    static _isBulkAmmoCollection(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
-        if (entry.type !== "consumable") return false;
-        const subtype = (entry.system?.type?.value ?? "").trim();
-        if (subtype !== "ammo") return false;
-        const BULK_BUNDLES = new Set(["arrows", "bolts", "bullets, sling", "bullets, firearm", "needles"]);
-        return BULK_BUNDLES.has(nameLower);
+    static _isBulkAmmoCollection(entry, nameLower) {
+        return DnD5ePool.isBulkAmmoCollection(entry, nameLower);
     }
 
-    /**
-     * Combat poisons and poison potions are GM-placed only (Cursewright, deliberate
-     * placement). Random caches must not roll DMG sample poisons (Malice, Wyvern
-     * Poison, etc.) or Potion of Poison variants.
-     *
-     * Basic Poison and Antitoxin remain eligible as mundane adventuring gear.
-     *
-     * @param {object} entry
-     * @param {string} [nameLower]
-     */
-    static _isGmPlacedPoison(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
-        if (/^potion of (?:greater |superior |supreme )?poison$/i.test(nameLower)) return true;
-
-        const subtype = (entry.system?.type?.value ?? "").toString().toLowerCase();
-        if (subtype !== "poison") return false;
-
-        if (/^basic poison$/i.test(nameLower)) return false;
-        if (/antitoxin/i.test(nameLower)) return false;
-
-        return true;
+    static _isGmPlacedPoison(entry, nameLower) {
+        return DnD5ePool.isGmPlacedPoison(entry, nameLower);
     }
 
-    /**
-     * SRD compendium stubs that are not real loot rows (table pointers, empty shells).
-     */
-    static _isPlaceholderPoolEntry(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
-        if (nameLower === "trinket") return true;
-
-        // SRD table-aggregator stubs: entries like "Ammunition, +1, +2, or +3" list a
-        // bonus range rather than naming a specific item. No real loot item has ", or +"
-        // in its name, so this pattern reliably identifies roll-table pointers.
-        if (/, or \+\d/.test(nameLower)) return true;
-
-        const desc = this._entryDescriptionText(entry);
-        if (!desc) return false;
-        if (desc.includes("placeholder for the non-srd")) return true;
-        if (desc.includes("placeholder") && desc.includes("d100 table")) return true;
-        return false;
+    static _isPlaceholderPoolEntry(entry, nameLower) {
+        return DnD5ePool.isPlaceholderPoolEntry(entry, nameLower);
     }
 
-    /**
-     * SRD compendium rows with no economy or rarity data (table pointers, variant
-     * shells). dnd5e.equipment24 ships many magic items at price 0, weight 0,
-     * rarity "" until a specific variant is chosen.
-     */
     static _isZeroDataPlaceholder(entry) {
-        if (PotionEnrichment.isHealingPotion(entry.name)) return false;
-        const price = this._extractPrice(entry);
-        const weight = this._extractWeight(entry);
-        const rarity = (entry.system?.rarity ?? "").trim();
-        return price === 0 && weight === 0 && rarity === "";
+        return DnD5ePool.isZeroDataPlaceholder(entry);
     }
 
-    /**
-     * Named magic rows with zero price and zero weight. These are not loot-ready
-     * until LootPoolCompiler enrichment emits a compiled counterpart.
-     */
     static _isEconomyPendingLoot(entry) {
-        if (PotionEnrichment.isHealingPotion(entry.name)) return false;
-        const price = this._extractPrice(entry);
-        const weight = this._extractWeight(entry);
-        if (price !== 0 || weight !== 0) return false;
-        const rarity = (entry.system?.rarity ?? "").trim().toLowerCase();
-        if (!rarity || rarity === "common" || rarity === "none") return false;
-        return true;
+        return DnD5ePool.isEconomyPendingLoot(entry);
     }
 
-    /**
-     * 2024 SRD named weapon templates (Dragon Slayer, Holy Avenger, Vorpal Sword,
-     * etc.). The dnd5e.equipment24 pack ships these as GM-application shells - the
-     * GM attaches one to a real base weapon rather than dropping it as loot.
-     *
-     * Fingerprint: weapon type + weight=0 + no base item subtype. All real loot
-     * weapons carry a subtype (martialM, simpleR, martialR, etc.). A blank or
-     * literal "-" subtype combined with zero weight is the reliable signal.
-     *
-     * This does NOT affect mundane zero-weight weapons like Sling (which have a
-     * subtype), only shell entries that lack one.
-     */
     static _isZeroWeightWeaponTemplate(entry) {
-        if (entry.type !== "weapon") return false;
-        const weight = this._extractWeight(entry);
-        if (weight !== 0) return false;
-        const subtype = (entry.system?.type?.value ?? "").trim();
-        return !subtype || subtype === "-";
+        return DnD5ePool.isZeroWeightWeaponTemplate(entry);
     }
 
-    /**
-     * 2024 SRD named armor template shells (Adamantine Armor, Mithral Armor,
-     * Armor of Resistance, Armor of Vulnerability, Demon Armor, Efreeti Chain,
-     * Elven Chain, Plate Armor of Etherealness).
-     *
-     * Identical pattern to weapon templates: the 2024 pack ships these as
-     * GM-application overlays. A GM attaches "Adamantine Armor" to a Chain Mail
-     * or Plate Armor — it is not a standalone loot item. The shell has no base
-     * armor subtype (heavy/medium/light/shield is left blank) and weight=0.
-     *
-     * Fingerprint: type=equipment + weight=0 + subtype is blank/dash, and NOT
-     * one of the known non-armor equipment subtypes (wondrous, ring, trinket,
-     * clothing, wand, rod, gear). Full stubs (price=0, rarity="") are already
-     * removed by _isZeroDataPlaceholder; traps are removed by _isTrapOrHazard.
-     * This catches only the template shells that have rarity and price set.
-     */
     static _isZeroWeightArmorTemplate(entry) {
-        if (entry.type !== "equipment") return false;
-        const weight = this._extractWeight(entry);
-        if (weight !== 0) return false;
-        const subtype = (entry.system?.type?.value ?? "").trim();
-        // Known non-armor equipment subtypes — these are NOT armor templates
-        const WONDROUS_SUBTYPES = new Set([
-            "wondrous", "ring", "trinket", "clothing", "wand", "rod", "gear"
-        ]);
-        if (WONDROUS_SUBTYPES.has(subtype)) return false;
-        // Armor subtypes that are real items (already have proper data)
-        const ARMOR_SUBTYPES = new Set(["heavy", "medium", "light", "shield"]);
-        if (ARMOR_SUBTYPES.has(subtype)) return false;
-        // Blank or literal dash = no base armor type assigned = template shell
-        return !subtype || subtype === "-";
+        return DnD5ePool.isZeroWeightArmorTemplate(entry);
     }
 
-    /**
-     * Items that only exist as contents of a container and should never appear
-     * as standalone loot drops. Bulk liquids measured in pints (water, common
-     * wine, etc.) arrive in waterskins or flasks - they have no meaning as a
-     * loose item in a cache.
-     *
-     * Rule: consumable food/drink items whose name ends with a parenthesised
-     * unit of measure such as "(Pint)", "(Gallon)", "(Ounce)", or "(Portion)"
-     * are treated as container-content stubs.
-     */
-    /**
-     * Trap and hazard items from SRD 5.2 (Hidden Pit, Falling Net, etc.) are
-     * classified as equipment with no rarity, so they pass the mundane filter.
-     * Every trap stat block has a "Trigger:" line in its description - no real
-     * loot item uses that keyword - making it a safe, targeted rejection signal.
-     */
     static _isTrapOrHazard(entry) {
-        const desc = this._entryDescriptionText(entry);
-        if (!desc) return false;
-        // "trigger:" is the canonical trap stat-block header in SRD 5.2
-        if (desc.includes("trigger:")) return true;
-        // Belt-and-suspenders: also catch "nuisance trap" and "setpiece trap" headers
-        if (/\b(?:nuisance|setpiece)\s+trap\b/.test(desc)) return true;
-        return false;
+        return DnD5ePool.isTrapOrHazard(entry);
     }
 
-    static _isContainerContentOnly(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
-        // Only applies to consumable food/drink items
-        const subtype = (entry.system?.type?.value ?? "").toLowerCase();
-        if (entry.type !== "consumable" || (subtype !== "food" && subtype !== "drink" && subtype !== "")) return false;
-
-        // Reject anything whose display name ends with a liquid/bulk unit in parentheses
-        if (/\(pint(?:s)?\)$/i.test(nameLower)) return true;
-        if (/\(gallon(?:s)?\)$/i.test(nameLower)) return true;
-        if (/\(ounce(?:s)?\)$/i.test(nameLower)) return true;
-        if (/\(portion(?:s)?\)$/i.test(nameLower)) return true;
-
-        return false;
+    static _isContainerContentOnly(entry, nameLower) {
+        return DnD5ePool.isContainerContentOnly(entry, nameLower);
     }
 
-    /**
-     * Items renamed in SRD 5.2 to include their container type
-     * (e.g. "Holy Water" became "Flask of Holy Water", "Acid" became
-     * "Acid (vial)"). When a 2024-architecture pack is an enabled source,
-     * suppress the legacy name so only the 2024 form appears in the pool.
-     *
-     * Suppression is one-directional: the legacy entry is rejected here;
-     * the 2024 entry is unaffected and passes through normally.
-     *
-     * @param {object} entry
-     * @param {string} [nameLower]
-     */
-    static _isLegacyRenamedItem(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
-        if (!this.LEGACY_2024_RENAMED.has(nameLower)) return false;
-        const sources = this.getEnabledSources();
-        return sources.some(id => this.EQUIPMENT24_PACKS.has(id));
+    static _isLegacyRenamedItem(entry, nameLower) {
+        return DnD5ePool.isLegacyRenamedItem(entry, nameLower);
     }
 
     static _entryDescriptionText(entry) {
-        const raw = entry.system?.description?.value
-            ?? entry.system?.description
-            ?? "";
-        if (typeof raw !== "string") return "";
-        return raw.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+        return DnD5ePool.entryDescriptionText(entry);
     }
 
     /**
