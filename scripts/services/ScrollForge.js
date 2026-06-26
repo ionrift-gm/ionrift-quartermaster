@@ -9,6 +9,9 @@ import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
+/** Per-pack index load timeout (ms). Prevents one bad compendium from stalling discovery. */
+const PACK_INDEX_TIMEOUT_MS = 12_000;
+
 export class ScrollForge {
     static WORLD_PACK_NAME = "ionrift-forged-scrolls";
 
@@ -78,39 +81,90 @@ export class ScrollForge {
     static async discoverSpellCompendiums() {
         const forgedId = this.worldCollectionId;
         const out = [];
+        const seen = new Set();
+
+        const rules = game.ionrift?.quartermaster?.adapter?.getScrollForgeRules?.();
+        const priorityIds = rules?.getRecommendedPackIds?.() ?? [];
+
+        for (const id of priorityIds) {
+            const pack = game.packs.get(id);
+            if (!pack || pack.documentName !== "Item" || pack.collection === forgedId) continue;
+            const row = await this._describeSpellPack(pack);
+            if (row) {
+                out.push(row);
+                seen.add(row.id);
+            }
+        }
 
         for (const pack of game.packs) {
             if (pack.documentName !== "Item") continue;
             if (pack.collection === forgedId) continue;
+            if (seen.has(pack.collection)) continue;
 
             const packSystem = pack.metadata?.system;
             if (packSystem && game.system?.id && packSystem !== game.system.id) continue;
 
-            try {
-                const index = await pack.getIndex({ fields: ["type"] });
-                const spellCount = index.filter(e => e.type === "spell").length;
-                if (spellCount === 0) continue;
-
-                const pkg = pack.metadata?.packageName
-                    ?? pack.metadata?.package
-                    ?? "unknown";
-                const pkgTitle = game.modules.get(pkg)?.title
-                    ?? (pkg === game.system?.id ? game.system.title : null)
-                    ?? pkg;
-
-                out.push({
-                    id:           pack.collection,
-                    label:        pack.metadata?.label ?? pack.collection,
-                    packageLabel: pkgTitle,
-                    spellCount
-                });
-            } catch {
-                /* skip unreadable pack */
-            }
+            const row = await this._describeSpellPack(pack);
+            if (row) out.push(row);
         }
 
         out.sort((a, b) => a.label.localeCompare(b.label));
         return out;
+    }
+
+    /**
+     * @param {CompendiumCollection} pack
+     * @returns {Promise<{ id: string, label: string, packageLabel: string, spellCount: number }|null>}
+     */
+    static async _describeSpellPack(pack) {
+        try {
+            const index = await this._getPackIndexWithTimeout(pack, ["type"]);
+            const spellCount = [...index.values()].filter(e => e.type === "spell").length;
+            if (spellCount === 0) return null;
+
+            const pkg = pack.metadata?.packageName
+                ?? pack.metadata?.package
+                ?? "unknown";
+            const pkgTitle = game.modules.get(pkg)?.title
+                ?? (pkg === game.system?.id ? game.system.title : null)
+                ?? pkg;
+
+            return {
+                id:           pack.collection,
+                label:        pack.metadata?.label ?? pack.collection,
+                packageLabel: pkgTitle,
+                spellCount
+            };
+        } catch (err) {
+            Logger.warn(MODULE_LABEL,
+                `Scroll Forge: skipped pack "${pack.collection}" during discovery (${err.message}).`
+            );
+            return null;
+        }
+    }
+
+    /**
+     * @param {CompendiumCollection} pack
+     * @param {string[]} fields
+     * @param {number} [timeoutMs]
+     */
+    static async _getPackIndexWithTimeout(pack, fields, timeoutMs = PACK_INDEX_TIMEOUT_MS) {
+        if (pack.index?.size) return pack.index;
+
+        let timer;
+        try {
+            return await Promise.race([
+                pack.getIndex({ fields }),
+                new Promise((_, reject) => {
+                    timer = setTimeout(
+                        () => reject(new Error(`index load timed out after ${timeoutMs}ms`)),
+                        timeoutMs
+                    );
+                })
+            ]);
+        } finally {
+            if (timer) clearTimeout(timer);
+        }
     }
 
     /**
@@ -413,8 +467,8 @@ export class ScrollForge {
     static async _computeSourceHash(spellPacks) {
         const parts = [];
         for (const p of spellPacks.sort((a, b) => a.collection.localeCompare(b.collection))) {
-            const index = await p.getIndex({ fields: ["type"] });
-            const n = index.filter(e => e.type === "spell").length;
+            const index = await this._getPackIndexWithTimeout(p, ["type"]);
+            const n = [...index.values()].filter(e => e.type === "spell").length;
             parts.push(`${p.collection}:${n}`);
         }
         return this._stableHash(parts.join("|"));

@@ -73,6 +73,11 @@ export class CompendiumForgeApp extends FormApplication {
     get _isCompiling() { return this._compiling[this._activeTab]; }
     get _doneResult()  { return this._doneResults[this._activeTab]; }
 
+    /** True while scroll compendium discovery has not finished. */
+    get _scrollLoading() {
+        return this._scrollCandidates === null || this._scrollCandidates === false;
+    }
+
     // ── Foundry app shell ─────────────────────────────────────────────────
 
     static get defaultOptions() {
@@ -275,7 +280,12 @@ export class CompendiumForgeApp extends FormApplication {
 
     _paneDesc() {
         if (this._activeTab === "scrollForge") {
-            return "Select which spell compendiums Scroll Forge may draw from. Both SRD sources are recommended -- 2024 spells take priority when names collide.";
+            const rules = game.ionrift?.quartermaster?.adapter?.getScrollForgeRules?.();
+            const rec = rules?.getRecommendedPackIds?.() ?? [];
+            if (rec.length) {
+                return `Select which spell compendiums Scroll Forge may draw from. Recommended: ${rec.join(", ")}.`;
+            }
+            return "Select which spell compendiums Scroll Forge may draw from.";
         }
         if (this._activeTab === "cursedItems") {
             return "The SRD Curse Adapter scans dnd5e equipment compendiums for the 21 known SRD cursed items and compiles them into a GM-only pool. No configuration needed -- approve the compile and review the output.";
@@ -640,14 +650,20 @@ export class CompendiumForgeApp extends FormApplication {
     activateListeners(html) {
         super.activateListeners(html);
 
+        // Opening directly on Scroll Forge (e.g. from Signature Ledger) never hits the
+        // tab-click handler, so kick off discovery on first paint.
+        if (this._activeTab === "scrollForge" && this._phase === "pick" && this._scrollCandidates === null) {
+            this._loadScrollCandidates();
+        }
+
         // Tab switching
         html.find(".forge-tab").on("click", ev => {
             const tab = ev.currentTarget.dataset.tab;
             if (tab === this._activeTab && this._phase === "pick") return;
             this._activeTab = tab;
             // Re-render with current phase -- don't reset other tabs
-            if (tab === "scrollForge" && (this._scrollCandidates === null || this._scrollCandidates === false)) {
-                this._loadScrollCandidates(); // triggers its own render sequence
+            if (tab === "scrollForge" && this._scrollCandidates === null) {
+                this._loadScrollCandidates();
             } else {
                 this.render(false);
             }
