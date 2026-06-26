@@ -337,24 +337,14 @@ export class SignatureLedger {
     static computePowerScore(actor) {
         if (!actor) return 0;
         let score = 0;
-        const eligible = this.POWER_ITEM_TYPES;
+        const adapter = game.ionrift?.quartermaster?.adapter;
+        const eligible = adapter?.getPowerScoreItemTypes?.() ?? this.POWER_ITEM_TYPES;
         const items = actor.items.filter(i => eligible.has(i.type));
         for (const item of items) {
-            const system = item.system || {};
-            const hasMgc = system.properties instanceof Set
-                ? system.properties.has("mgc")
-                : false;
-            const rarity  = system.rarity || "common";
-            const isMagic = hasMgc || rarity !== "common" || system.attunement;
-            if (!isMagic) continue;
-
-            let itemScore = this.POWER_WEIGHTS.rarity[rarity] || 0;
-            if (system.attunement) itemScore *= this.POWER_WEIGHTS.attunement;
-            if (system.uses?.max)  itemScore += (system.uses.max * this.POWER_WEIGHTS.charges);
-            if (system.attackBonus && !isNaN(parseInt(system.attackBonus))) {
-                itemScore += (parseInt(system.attackBonus) * this.POWER_WEIGHTS.flatBonus);
-            }
-            score += itemScore;
+            const contribution = adapter?.getPowerScoreContribution?.(item, this.POWER_WEIGHTS)
+                ?? game.ionrift?.library?.system?.getPowerScoreContribution?.(item, this.POWER_WEIGHTS)
+                ?? 0;
+            score += contribution;
         }
         return Math.round(score * 10) / 10;
     }

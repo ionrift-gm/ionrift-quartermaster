@@ -19,6 +19,8 @@ import { ScrollForge       } from "../services/ScrollForge.js";
 import { SrdCurseAdapter   } from "../services/SrdCurseAdapter.js";
 import { refreshForgeAlertBadge } from "../services/SettingsPanelLayout.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
+import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
+import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 const QM_BUG_REPORT_CONTEXT = "quartermaster-loot-pool-compile";
@@ -217,11 +219,12 @@ export class CompendiumForgeApp extends FormApplication {
     // ── Tab helpers ───────────────────────────────────────────────────────
 
     _buildTabs() {
+        const adapter = getQuartermasterAdapter();
         const scrollStatus = this._getScrollForgeStatus();
         const lootStatus   = LootPoolCompiler.getStatus();
         const curseStatus  = this._getCursedStatus();
 
-        return [
+        const tabs = [
             {
                 id:          "scrollForge",
                 label:       "Scroll Forge",
@@ -232,7 +235,7 @@ export class CompendiumForgeApp extends FormApplication {
             },
             {
                 id:          "lootPool",
-                label:       "Loot Pool",
+                label:       adapter.supports(QM_FEATURES.LOOT_POOL_COMPILE) ? "Loot Pool" : "Loot Sources",
                 icon:        "fas fa-treasure-chest",
                 active:      this._activeTab === "lootPool",
                 status:      lootStatus,
@@ -247,6 +250,13 @@ export class CompendiumForgeApp extends FormApplication {
                 statusLabel: this._dotLabel(curseStatus),
             },
         ];
+
+        return tabs.filter(tab => {
+            if (tab.id === "scrollForge") return adapter.supports(QM_FEATURES.SCROLL_FORGE);
+            if (tab.id === "cursedItems") return adapter.supports(QM_FEATURES.SRD_CURSES);
+            if (tab.id === "lootPool") return adapter.supports(QM_FEATURES.LOOT_CACHE);
+            return true;
+        });
     }
 
     _dotLabel(status) {
@@ -287,7 +297,11 @@ export class CompendiumForgeApp extends FormApplication {
     }
 
     _shouldShowCompileButton() {
+        const adapter = getQuartermasterAdapter();
         const tab    = this._activeTab;
+        if (tab === "lootPool" && !adapter.supports(QM_FEATURES.LOOT_POOL_COMPILE)) {
+            return false;
+        }
         const status = tab === "lootPool"
             ? LootPoolCompiler.getStatus()
             : tab === "scrollForge" ? this._getScrollForgeStatus()

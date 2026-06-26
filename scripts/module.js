@@ -25,15 +25,10 @@ import { ContentPackLoader } from "./services/ContentPackLoader.js";
 import { ContentPackCompiler } from "./services/ContentPackCompiler.js";
 import { OverlayItemMaterialiser } from "./services/OverlayItemMaterialiser.js";
 import { Logger, MODULE_LABEL } from "./_logger.js";
+import { createQuartermasterAdapter } from "./adapters/adapterFactory.js";
+import { QM_FEATURES } from "./constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
-
-/**
- * Systems with full Quartermaster support. On other systems the module loads
- * but logs an advisory; core loot and progression features require DnD5e schema.
- * Extend this list when a formal QMSystemAdapter is implemented.
- */
-const SUPPORTED_SYSTEMS = ["dnd5e"];
 
 function isResonanceActive() {
     return game.modules.get("ionrift-resonance")?.active ?? false;
@@ -59,6 +54,31 @@ async function migrateLootPoolSources() {
 }
 
 /**
+ * Replace factory-default dnd5e loot sources when the active system is not dnd5e.
+ */
+async function migrateDefaultLootPoolSources() {
+    if (!game.user.isGM) return;
+    const adapter = game.ionrift?.quartermaster?.adapter;
+    if (!adapter || adapter.id === "dnd5e") return;
+    try {
+        const raw = game.settings.get(MODULE_ID, "lootPoolSources");
+        const sources = JSON.parse(raw);
+        if (!Array.isArray(sources)) return;
+        const dnd5eDefaults = ["dnd5e.items", "dnd5e.tradegoods"];
+        const stillOnDnd5eDefaults = dnd5eDefaults.every(id => sources.includes(id))
+            && sources.length <= 3;
+        if (!stillOnDnd5eDefaults) return;
+        const next = adapter.getDefaultLootPoolSources();
+        if (!next.length || JSON.stringify(next) === JSON.stringify(sources)) return;
+        await game.settings.set(MODULE_ID, "lootPoolSources", JSON.stringify(next));
+        Logger.log(MODULE_LABEL,
+            `Loot pool sources updated for ${adapter.id}: ${next.join(", ")}`);
+    } catch {
+        /* ignore unparseable setting */
+    }
+}
+
+/**
  * Hash-gated loot pool compile on world load. Runs after overlay materialisation
  * so auto-registered world.quartermaster-* sources do not false-flag staleness.
  *
@@ -66,7 +86,8 @@ async function migrateLootPoolSources() {
  * Forge badge and Cache Generator pip prompt a deliberate recompile.
  */
 async function runLootPoolCompilerBoot() {
-    if (!game.user.isGM || game.system?.id !== "dnd5e") return;
+    const adapter = game.ionrift?.quartermaster?.adapter;
+    if (!game.user.isGM || !adapter?.supports(QM_FEATURES.LOOT_POOL_COMPILE)) return;
     try {
         await migrateLootPoolSources();
         const { LootPoolCompiler } = await import("./services/LootPoolCompiler.js");
@@ -103,11 +124,16 @@ Hooks.once('init', async () => {
     const version = game.modules.get(MODULE_ID)?.version ?? "unknown";
     Logger.info(MODULE_LABEL, `v${version} | Initializing.`);
 
-    if (!SUPPORTED_SYSTEMS.includes(game.system?.id)) {
+    const adapter = createQuartermasterAdapter();
+    game.ionrift = game.ionrift ?? {};
+    game.ionrift.quartermaster = game.ionrift.quartermaster ?? {};
+    game.ionrift.quartermaster.adapter = adapter;
+
+    if (!adapter.supports(QM_FEATURES.LOOT_CACHE)) {
         Logger.warn(
             MODULE_LABEL,
-            `System '${game.system?.id}' is not officially supported. ` +
-            `Core features require DnD5e. The module will load but results may be unpredictable.`
+            `System '${adapter.id}' has limited Quartermaster support. ` +
+            `Loot cache and compendium compile features may be unavailable.`
         );
     }
 
@@ -244,7 +270,6 @@ Hooks.on('ready', () => {
 
 
     // Expose services on namespace for companion modules (Cursewright)
-    game.ionrift.quartermaster = game.ionrift.quartermaster ?? {};
     game.ionrift.quartermaster.openSetupGuide = openSetupGuide;
     game.ionrift.quartermaster.itemMaskingHelper = ItemMaskingHelper;
     game.ionrift.quartermaster.identificationService = IdentificationService;
@@ -286,13 +311,20 @@ Hooks.on('ready', () => {
         });
     }
 
-    if (game.user.isGM && game.settings.get(MODULE_ID, "scrollForgeEnabled")) {
+    if (game.user.isGM && game.settings.get(MODULE_ID, "scrollForgeEnabled")
+            && game.ionrift.quartermaster.adapter.supports(QM_FEATURES.SCROLL_FORGE)) {
         ScrollForge.runAfterReady().catch(err => {
             Logger.error(MODULE_LABEL, "Scroll Forge failed:", err);
         });
     }
 
-    if (game.user.isGM && game.system?.id === "dnd5e") {
+    if (game.user.isGM) {
+        queueMicrotask(async () => {
+            await migrateDefaultLootPoolSources();
+        });
+    }
+
+    if (game.user.isGM && game.ionrift.quartermaster.adapter.supports(QM_FEATURES.SRD_CURSES)) {
         // Only compile SRD cursed items if the source is still enabled.
         // GMs who remove it from cursedItemSources shouldn't see compile
         // errors for data they've opted out of.

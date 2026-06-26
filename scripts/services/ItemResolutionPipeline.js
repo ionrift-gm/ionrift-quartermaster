@@ -1,5 +1,4 @@
-import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
-import { PotionEnrichment } from "./PotionEnrichment.js";
+import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -82,57 +81,12 @@ export class ItemResolutionPipeline {
                             && (qmF.cursedMeta || qmF.forgedFrom)) {
                         data.system.identified = true;
                     }
-                    // SRD cursed rows store the player surface in latentMagic at
-                    // compile time. Normalise to standard promotion semantics and
-                    // apply the lure before enrichment and pile masking checks.
-                    ItemMaskingHelper.applyAuthoredDisguise(data);
-                    // Potion enrichment runs on every healing-potion shape,
-                    // including dnd5e 2024 PHB entries that ship with a blank
-                    // `system.type.value`. The helper sets type, weight,
-                    // `system.uses.max = 1`, and injects a HealActivity when
-                    // none is present, so the masked actor item still shows
-                    // charges and a Consume activity in the inventory.
-                    PotionEnrichment.enrichPileItemData(data);
-                    // Strip attunement from all consumables.
-                    // dnd5e's #migrateAttunement runs on every getDocument() call and
-                    // converts legacy integer attunement values (e.g. 1 → "required")
-                    // even on Potions of Healing that have no attunement requirement.
-                    // The SRD source shows "Attunement Not Required" but the migration
-                    // corrupts it in memory. Clear it unconditionally for consumables -
-                    // no consumable in dnd5e 2024 requires attunement.
-                    if (data.type === "consumable" && data.system) {
-                        data.system.attunement = "";
-                    }
-                    // Strip all active effects from pile item data.
-                    // dnd5e auto-applies an item's effects[] to the owning actor when
-                    // the item is added to inventory — so a Potion of Climbing in an
-                    // unopened chest would give the pile actor "Climber", Poison would
-                    // apply its secondary damage effect, etc.
-                    // Effects must be absent from the pile payload; they'll be present
-                    // on the compendium item and apply normally when a player uses the
-                    // item from their own inventory after looting.
-                    if (Array.isArray(data.effects) && data.effects.length > 0) {
-                        data.effects = [];
-                    }
+                    data = getQuartermasterAdapter().resolvePileItemData(data);
                 }
             }
         }
         if (!data) {
-            // Safe generic fallback (compendium resolution is preferred; see _pickContainer)
-            const w = Number(metaObj.weight);
-            data = {
-                name: metaObj.name,
-                type: metaObj.type ?? "loot",
-                img: metaObj.img,
-                system: {
-                    price: { value: metaObj.price ?? 0, denomination: "gp" },
-                    weight: { value: Number.isFinite(w) ? w : 0, units: "lb" }
-                }
-            };
-            if (metaObj.capacityLbs !== undefined) {
-                data.type = "backpack";
-                data.system.capacity = { type: "weight", value: metaObj.capacityLbs };
-            }
+            data = getQuartermasterAdapter().buildFallbackPileItem(metaObj);
         }
 
         // Vital: Stamp the mintBatch flag on all generated items so curses can be tracked
@@ -164,15 +118,17 @@ export class ItemResolutionPipeline {
 
         // Apply identification masking for magical items.
         // Infected entries are always treated as magical.
+        const adapter = getQuartermasterAdapter();
         const hasLatentMagic = !!(data.flags?.[MODULE_ID]?.latentMagic);
-        if ((metaObj._isMagical || isInfected) && !hasLatentMagic) {
-            const obscuredFallback = ItemMaskingHelper.detectMagical({
+        if (adapter.shouldApplyLatentMasking()
+                && (metaObj._isMagical || isInfected) && !hasLatentMagic) {
+            const obscuredFallback = adapter.detectMagicalForCache({
                 name: data.name,
                 rarity: data.system?.rarity ?? metaObj.rarity ?? "",
                 type: data.type ?? metaObj.type ?? "loot",
                 _baseItem: data.system?.type?.baseItem
             }).obscuredImg;
-            ItemMaskingHelper.applyMask(data, {
+            adapter.applyCacheMask(data, {
                 baseItemName: metaObj._baseItemName,
                 mundaneDesc: metaObj._mundaneDesc,
                 obscuredImg: metaObj._obscuredImg ?? obscuredFallback,

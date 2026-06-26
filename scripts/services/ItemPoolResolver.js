@@ -13,6 +13,7 @@ import { ItemClassifier } from "./ItemClassifier.js";
 import { GenericArmorBonusRegistry } from "./GenericArmorBonusRegistry.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
 import { isSrdCursedLootName } from "./SrdCurseCatalog.js";
+import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -775,10 +776,11 @@ export class ItemPoolResolver {
             try { return game.settings.get("ionrift-quartermaster", "compiledLootPoolHash"); }
             catch { return ""; }
         })();
-        if (compiledPack && compiledHash) {
+        if (compiledPack && compiledHash && getQuartermasterAdapter().canCompileLootPool()) {
             sourceIds = ["world.quartermaster-compiled-pool", ...sourceIds];
         }
         const allowedRarities = this._raritiesUpTo(rarityMax);
+        const adapter = getQuartermasterAdapter();
 
         for (const packId of sourceIds) {
             const cacheKey = `${packId}:${slotType}:${rarityMax}`;
@@ -795,10 +797,7 @@ export class ItemPoolResolver {
 
             try {
                 // Use getIndex for lightweight query
-                const index = await pack.getIndex({ fields: [
-                    "name", "type", "img", "flags", "system.price", "system.rarity",
-                    "system.type", "system.weight", "system.description", "system.magicalBonus"
-                ]});
+                const index = await pack.getIndex({ fields: adapter.getCompendiumIndexFields() });
 
                 const filtered = [];
                 for (const entry of index) {
@@ -806,25 +805,7 @@ export class ItemPoolResolver {
                     if (!this._matchesRarity(entry, allowedRarities)) continue;
                     if (this._isExcluded(entry)) continue;
 
-                    filtered.push({
-                        name: entry.name,
-                        type: entry.type,
-                        img: entry.img,
-                        flags: entry.flags ?? {},
-                        price: this._extractPrice(entry),
-                        rarity: entry.system?.rarity ?? "common",
-                        weight: this._extractWeight(entry),
-                        _baseItem: entry.system?.type?.baseItem ?? "",
-                        subtype: (entry.system?.type?.value ?? "").toString().toLowerCase(),
-                        system: {
-                            rarity: entry.system?.rarity,
-                            type: entry.system?.type,
-                            weight: entry.system?.weight,
-                            magicalBonus: entry.system?.magicalBonus
-                        },
-                        sourceCompendium: packId,
-                        _compendiumId: entry._id
-                    });
+                    filtered.push(adapter.normalizePoolEntry(entry, packId));
                 }
 
                 this._cache.set(cacheKey, filtered);
@@ -1008,6 +989,11 @@ export class ItemPoolResolver {
      * Map slotType to Foundry item type filters.
      */
     static _matchesSlotType(entry, slotType) {
+        const adapter = getQuartermasterAdapter();
+        if (adapter.id !== "dnd5e") {
+            return adapter.matchesSlotType(entry, slotType);
+        }
+
         const type = entry.type;
         const subtype = (entry.system?.type?.value ?? "").toLowerCase();
 
@@ -1065,8 +1051,8 @@ export class ItemPoolResolver {
      * Check if item rarity is within allowed range.
      */
     static _matchesRarity(entry, allowedRarities) {
-        const rarity = (entry.system?.rarity ?? "").toLowerCase().trim();
-        // No rarity field: treat as common, still subject to the tier ceiling
+        const adapter = getQuartermasterAdapter();
+        const rarity = adapter.normalizeRarityForTier(adapter.getRarityFromEntry(entry));
         const effective = rarity || "common";
         return allowedRarities.has(effective);
     }
@@ -1075,6 +1061,11 @@ export class ItemPoolResolver {
      * Exclude problematic items (cursed, artifacts, class-specific features).
      */
     static _isExcluded(entry) {
+        const adapter = getQuartermasterAdapter();
+        if (adapter.id !== "dnd5e") {
+            return adapter.isExcludedFromPool(entry);
+        }
+
         const name = entry.name?.trim() ?? "";
         const nameLower = name.toLowerCase();
         // Skip class features, spells, feats masquerading as items
@@ -1325,31 +1316,14 @@ export class ItemPoolResolver {
      * New dnd5e (v4+): system.weight is { value, units }.
      */
     static _extractWeight(entry) {
-        const w = entry.system?.weight;
-        if (w === null || w === undefined) return 0;
-        if (typeof w === "number") return w;
-        if (typeof w === "object") return Number(w.value ?? 0) || 0;
-        return Number(w) || 0;
+        return getQuartermasterAdapter().extractWeight(entry);
     }
 
     /**
      * Extract gold price from various system formats.
      */
     static _extractPrice(entry) {
-        const price = entry.system?.price;
-        if (!price) return 0;
-        if (typeof price === "number") return price;
-        if (typeof price === "object") {
-            const val = price.value ?? 0;
-            const denom = price.denomination ?? "gp";
-            // Convert to gp
-            if (denom === "sp") return val / 10;
-            if (denom === "cp") return val / 100;
-            if (denom === "ep") return val / 2;
-            if (denom === "pp") return val * 10;
-            return val;
-        }
-        return 0;
+        return getQuartermasterAdapter().extractPrice(entry);
     }
 
     /**

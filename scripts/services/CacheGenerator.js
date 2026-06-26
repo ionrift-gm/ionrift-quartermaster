@@ -14,6 +14,7 @@ import { TerrainDataRegistry } from "./TerrainDataRegistry.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "./CoinFormat.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
+import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -1142,11 +1143,14 @@ export class CacheGenerator {
 
             if (item) {
                 if (effectiveSlotType === "mastercraft" && item._isMagical === undefined) {
-                    const mask = ItemMaskingHelper.detectMagical(item, { terrainTag: theme });
-                    if (mask.isMagical) {
-                        item._isMagical = true;
-                        item._baseItemName = mask.baseItemName;
-                        item._mundaneDesc = mask.mundaneDesc;
+                    const adapter = getQuartermasterAdapter();
+                    if (adapter.shouldApplyLatentMasking()) {
+                        const mask = adapter.detectMagicalForCache(item, { terrainTag: theme });
+                        if (mask.isMagical) {
+                            item._isMagical = true;
+                            item._baseItemName = mask.baseItemName;
+                            item._mundaneDesc = mask.mundaneDesc;
+                        }
                     }
                 }
                 // Quantity heuristic is capacity-aware: a single stack should
@@ -1592,15 +1596,18 @@ export class CacheGenerator {
 
         // Enrich with magical identification masking metadata
         if (item) {
-            const mask = ItemMaskingHelper.detectMagical(item, { terrainTag: theme });
-            if (mask.isMagical) {
-                item._isMagical    = true;
-                item._baseItemName = mask.baseItemName;
-                item._mundaneDesc  = mask.mundaneDesc;
-                if (mask.obscuredImg) {
-                    item._maskSourceImg = item.img;
-                    item._obscuredImg = mask.obscuredImg;
-                    item.img          = mask.obscuredImg;
+            const adapter = getQuartermasterAdapter();
+            if (adapter.shouldApplyLatentMasking()) {
+                const mask = adapter.detectMagicalForCache(item, { terrainTag: theme });
+                if (mask.isMagical) {
+                    item._isMagical    = true;
+                    item._baseItemName = mask.baseItemName;
+                    item._mundaneDesc  = mask.mundaneDesc;
+                    if (mask.obscuredImg) {
+                        item._maskSourceImg = item.img;
+                        item._obscuredImg = mask.obscuredImg;
+                        item.img          = mask.obscuredImg;
+                    }
                 }
             }
         }
@@ -3473,7 +3480,7 @@ export class CacheGenerator {
             };
 
             if (item._isMagical) {
-                ItemMaskingHelper.applyMask(base, {
+                getQuartermasterAdapter().applyCacheMask(base, {
                     baseItemName: item._baseItemName,
                     mundaneDesc: item._mundaneDesc,
                     obscuredImg: item._obscuredImg,
@@ -3663,7 +3670,7 @@ export class CacheGenerator {
 
             // Apply identification masking for magical items
             if (item._isMagical) {
-                ItemMaskingHelper.applyMask(data, {
+                getQuartermasterAdapter().applyCacheMask(data, {
                     baseItemName: item._baseItemName,
                     mundaneDesc: item._mundaneDesc,
                     obscuredImg: item._obscuredImg,

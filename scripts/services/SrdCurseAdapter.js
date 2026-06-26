@@ -16,6 +16,7 @@ import {
     SRD_CURSE_ITEM_FALLBACKS as SRD_ITEM_FALLBACKS
 } from "./SrdCurseCatalog.js";
 import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta } from "./CompendiumConfigHelper.js";
+import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -40,7 +41,7 @@ export class SrdCurseAdapter {
      */
     static async compile({ forceRecompile = false } = {}) {
         if (!game.user.isGM) return;
-        if (game.system?.id !== "dnd5e") return;
+        if (!game.ionrift?.quartermaster?.adapter?.supports(QM_FEATURES.SRD_CURSES)) return;
 
         const itemPacks = this._discoverItemPacks();
         if (!itemPacks.length) {

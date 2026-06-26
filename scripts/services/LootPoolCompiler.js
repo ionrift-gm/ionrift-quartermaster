@@ -18,6 +18,7 @@ import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
 import { isSrdCursedLootName, isSrdCursedTemplateName } from "./SrdCurseCatalog.js";
 import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
+import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -491,7 +492,7 @@ export class LootPoolCompiler {
      */
     static async compile({ forceRecompile = false, onProgress = null } = {}) {
         if (!game.user.isGM) return;
-        if (game.system?.id !== "dnd5e") return;
+        if (!game.ionrift?.quartermaster?.adapter?.supports(QM_FEATURES.LOOT_POOL_COMPILE)) return;
 
         const emit = (phase, current, total, label = "") => {
             if (typeof onProgress === "function") onProgress({ phase, current, total, label });

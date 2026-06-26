@@ -1,3 +1,5 @@
+import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
+
 export class WorkshopItemFactory {
 
     /**
@@ -6,7 +8,9 @@ export class WorkshopItemFactory {
      * @returns {Object} Normalized item data ready for creation
      */
     static normalize(itemData) {
-        const data = foundry.utils.deepClone(itemData);
+        const data = foundry.utils.deepClone(
+            getQuartermasterAdapter().normalizeItemData(itemData)
+        );
         data.system = data.system || {};
 
         // Price normalization
@@ -17,15 +21,6 @@ export class WorkshopItemFactory {
         // Weight normalization
         if (data.system.weight === undefined || data.system.weight === null) {
             data.system.weight = this._inferWeight(data.type);
-        }
-
-        // Description normalization
-        if (!data.system.description || !data.system.description.value) {
-            if (game.system.id === "daggerheart") {
-                data.system.description = data.system.description || `A generic ${data.type}.`;
-            } else {
-                data.system.description = { value: `<p>A generic ${data.type}.</p>`, chat: "", unidentified: "" };
-            }
         }
 
         // Economy adjustment (optional integration)

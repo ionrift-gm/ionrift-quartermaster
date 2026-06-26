@@ -6,6 +6,7 @@
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta } from "./CompendiumConfigHelper.js";
+import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 const FORGED_FLAG = "ionrift-quartermaster";
@@ -49,7 +50,7 @@ export class ScrollForge {
      */
     static async runAfterReady() {
         if (!game.user.isGM) return;
-        if (game.system?.id !== "dnd5e") return;
+        if (!game.ionrift?.quartermaster?.adapter?.supports(QM_FEATURES.SCROLL_FORGE)) return;
         if (!game.settings.get(MODULE_ID, "scrollForgeEnabled")) return;
 
         const candidates = await this.discoverSpellCompendiums();
@@ -160,7 +161,7 @@ export class ScrollForge {
 
     static async compile({ forceRecompile = false } = {}) {
         if (!game.user.isGM) return;
-        if (game.system?.id !== "dnd5e") return;
+        if (!game.ionrift?.quartermaster?.adapter?.supports(QM_FEATURES.SCROLL_FORGE)) return;
 
         let enabledIds = [];
         try {

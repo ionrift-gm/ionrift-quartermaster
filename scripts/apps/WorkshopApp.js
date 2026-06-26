@@ -1,4 +1,5 @@
 import { SoundPickerApp } from "./SoundPickerApp.js";
+import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
 
 export class WorkshopApp extends Application {
     static get defaultOptions() {
@@ -42,11 +43,7 @@ export class WorkshopApp extends Application {
 
     /** Returns system-appropriate item types */
     _getItemTypes() {
-        if (game.system.id === "daggerheart") {
-            return ["weapon", "armor", "equipment", "consumable", "loot"];
-        }
-        // DnD5e and generic
-        return ["weapon", "equipment", "consumable", "loot", "tool", "backpack", "spell", "feat"];
+        return [...getQuartermasterAdapter().getWorkshopItemTypes()];
     }
 
     /** Extracts description as plain text from system-specific formats */
