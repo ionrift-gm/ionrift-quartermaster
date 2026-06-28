@@ -62,6 +62,7 @@ export const __testables__ = {
     isQmPackRole,
     resolveScrollLevel: (e) => CacheGenerator._resolveScrollLevel(e),
     weightedScrollLevel: (max, min, tier) => CacheGenerator._weightedScrollLevel(max, min, tier),
+    resolveScrollPrice: (e, lvl) => CacheGenerator._resolveScrollPrice(e, lvl),
     tierScrollMinLevel: (tier) => CacheGenerator._tierScrollMinLevel(tier),
     pickScrollFromEligible: (eligible, target, min) =>
         CacheGenerator._pickScrollFromEligible(eligible, target, min),
@@ -2258,8 +2259,12 @@ export class CacheGenerator {
      */
     static _recalcScrollLinePrice(scroll) {
         const qty = Math.max(1, scroll.quantity ?? 1);
-        const unit = SCROLL_PRICES_BY_LEVEL[scroll.spellLevel]
-            ?? Math.round((scroll.price ?? 60) / qty);
+        const currentUnit = Number(scroll.unitPrice) > 0
+            ? Number(scroll.unitPrice)
+            : null;
+        const unit = currentUnit
+            ?? SCROLL_PRICES_BY_LEVEL[scroll.spellLevel]
+            ?? (Number(scroll.price) > 0 ? Number(scroll.price) / qty : 60);
         scroll.quantity = qty;
         scroll.price = Math.round(unit * qty * 100) / 100;
         return scroll;
@@ -2344,6 +2349,39 @@ export class CacheGenerator {
     }
 
     /**
+     * Scroll price in gp, preferring the forged item's system data when present.
+     *
+     * D&D scrolls fall back to Quartermaster's SRD table; PF2e forged scrolls
+     * carry PF2e treasure-table prices in system.price.
+     *
+     * @param {object} entry
+     * @param {number} spellLevel
+     * @returns {number}
+     */
+    static _resolveScrollPrice(entry, spellLevel) {
+        const price = entry?.system?.price;
+        const raw = price?.value ?? price;
+
+        if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
+            return raw;
+        }
+
+        if (raw && typeof raw === "object") {
+            const gp = Number(raw.gp ?? 0);
+            const sp = Number(raw.sp ?? 0);
+            const cp = Number(raw.cp ?? 0);
+            const pp = Number(raw.pp ?? 0);
+            const total = (Number.isFinite(pp) ? pp * 10 : 0)
+                + (Number.isFinite(gp) ? gp : 0)
+                + (Number.isFinite(sp) ? sp / 10 : 0)
+                + (Number.isFinite(cp) ? cp / 100 : 0);
+            if (total > 0) return total;
+        }
+
+        return SCROLL_PRICES_BY_LEVEL[spellLevel] ?? 60;
+    }
+
+    /**
      * Effective gp ceiling for one scroll slot. Uses scroll-slot budget share and
      * aims at the upper mid-band of the tier, not only the tier floor price.
      *
@@ -2403,7 +2441,7 @@ export class CacheGenerator {
         const withinBudget = (e) => {
             const spellLevel = this._resolveScrollLevel(e);
             if (!spellLevel) return false;
-            return (SCROLL_PRICES_BY_LEVEL[spellLevel] ?? 60) <= effectiveCeiling;
+            return this._resolveScrollPrice(e, spellLevel) <= effectiveCeiling;
         };
 
         const bandFilter = (e, targetLevel) => {
@@ -2445,14 +2483,16 @@ export class CacheGenerator {
 
         const scrollMeta = pick.flags?.["ionrift-quartermaster"]?.scrollMeta ?? {};
         const pickedLevel = this._resolveScrollLevel(pick) ?? minLevel;
+        const pickedPrice = this._resolveScrollPrice(pick, pickedLevel);
         return {
             name: pick.name,
             type: "consumable",
             img: pick.img ?? ItemMaskingHelper._genericIconFor("scroll"),
-            price: SCROLL_PRICES_BY_LEVEL[pickedLevel] ?? 60,
+            price: pickedPrice,
             weight: 0.1,
             rarity: pickedLevel <= 2 ? "common" : pickedLevel <= 4 ? "uncommon" : "rare",
             quantity: 1,
+            unitPrice: pickedPrice,
             spellLevel: pickedLevel,
             spellName: scrollMeta.spellName,
             _compendiumId: pick._id,

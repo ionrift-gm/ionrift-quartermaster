@@ -276,17 +276,17 @@ export class PotionEnrichment {
      * Safe to call on non-potions - returns early with no-op.
      *
      * @param {Item} item  Live Foundry Item document (actor-owned).
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>} True when enrichment did not fail.
      */
     static async enrichIdentifiedItem(item) {
-        if (!item) return;
+        if (!item) return true;
 
         // Resolve name from the promoted document - use _source.name to
         // bypass dnd5e's unidentified getter (item should be identified by
         // now, but belt-and-suspenders).
         const resolvedName = item._source?.name ?? item.name ?? "";
         const tier = PotionEnrichment.getTierData(resolvedName);
-        if (!tier) return;  // Not a healing potion - nothing to do.
+        if (!tier) return true;  // Not a healing potion - nothing to do.
 
         const patch = {};
 
@@ -376,7 +376,7 @@ export class PotionEnrichment {
             activityPatch[`system.activities.${activityData._id}`] = activityData;
         }
 
-        if (Object.keys(patch).length === 0 && Object.keys(activityPatch).length === 0) return;
+        if (Object.keys(patch).length === 0 && Object.keys(activityPatch).length === 0) return true;
 
         const parent = item.parent ?? item.actor ?? null;
         const itemId = item.id;
@@ -394,6 +394,8 @@ export class PotionEnrichment {
                 "PotionEnrichment.enrichIdentifiedItem: update failed for",
                 resolvedName, ":", err.message
             );
+            return false;
         }
+        return true;
     }
 }

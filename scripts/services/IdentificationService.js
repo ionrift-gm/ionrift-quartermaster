@@ -159,7 +159,11 @@ export class IdentificationService {
         // unconditionally - these values are not stashed in latentMagic
         // and may be absent or incorrect from the original compendium entry.
         // enrichIdentifiedItem is a no-op for non-healing-potion items.
-        await PotionEnrichment.enrichIdentifiedItem(item);
+        const enriched = await PotionEnrichment.enrichIdentifiedItem(item);
+        if (enriched === false) {
+            traceIdentify("identify:abort", { reason: "enrichment-failed", ...traceItemFlags(item) });
+            return { identified: false, kind, reason: "enrichment-failed" };
+        }
 
         if (latent) {
             try {
@@ -210,7 +214,7 @@ export class IdentificationService {
             // §5b: After clearing canStack, attempt to merge this newly-
             // identified item into any existing same-named stack in the
             // actor's inventory (scrolls, potions, anything with latentMagic).
-            await IdentificationService._tryMergeIdentifiedStack(item);
+            item = await IdentificationService._tryMergeIdentifiedStack(item);
         }
 
         // For CurseForge lures (latentMagic + forgedFrom + cursedMeta), the
@@ -400,24 +404,33 @@ export class IdentificationService {
      * Only runs on actor-owned items; pile items are left alone.
      *
      * @param {Item} item  The freshly-identified item.
-     * @returns {Promise<void>}
+     * @returns {Promise<Item>} The document that should be treated as identified.
      */
     static async _tryMergeIdentifiedStack(item) {
         const actor = item.parent;
-        if (!actor || actor.documentName !== "Actor") return;
+        if (!actor || actor.documentName !== "Actor") return item;
         const resolvedName = item._source?.name ?? item.name;
         const siblings = actor.items.filter(
             (i) =>
                 i.id !== item.id &&
                 (i._source?.name ?? i.name) === resolvedName
         );
-        if (!siblings.length) return;
+        if (!siblings.length) return item;
         const target = siblings[0];
         const myQty       = item.system?.quantity ?? 1;
         const tgtQty      = target.system?.quantity ?? 1;
         const myInfected  = Number(item.getFlag?.(MODULE_ID, "infectedCount") ?? 0) || 0;
         const tgtInfected = Number(target.getFlag?.(MODULE_ID, "infectedCount") ?? 0) || 0;
         const sumInfected = myInfected + tgtInfected;
+
+        const targetEnriched = await PotionEnrichment.enrichIdentifiedItem(target);
+        if (targetEnriched === false) {
+            Logger.warn(
+                "Quartermaster",
+                `IdentificationService: skipped stack merge for "${resolvedName}" because the target stack could not be enriched.`
+            );
+            return item;
+        }
 
         const updates = { "system.quantity": tgtQty + myQty };
         if (sumInfected > 0) {
@@ -431,6 +444,7 @@ export class IdentificationService {
                 "Quartermaster",
                 `IdentificationService: merged "${resolvedName}" (qty +${myQty}, infected +${myInfected} → ${sumInfected}) into existing stack.`
             );
+            return target;
         } catch (err) {
             Logger.warn(
                 "Quartermaster",
@@ -438,6 +452,7 @@ export class IdentificationService {
                 err.message
             );
         }
+        return item;
     }
 
     /**
