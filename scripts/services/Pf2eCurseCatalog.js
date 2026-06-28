@@ -250,11 +250,6 @@ export function lookupPf2eCurseCatalogEntry(name, itemLevel = null) {
         if (normalizePf2eCurseName(entry.match) === normalized) return entry;
     }
 
-    for (const entry of PF2E_GMG_CURSE_MANIFEST) {
-        const prefix = normalizePf2eCurseName(entry.match).replace(/\s*\(type\s+[ivx\d]+\)$/i, "");
-        if (prefix && normalized.startsWith(prefix)) return entry;
-    }
-
     if (itemLevel != null) {
         for (const entry of PF2E_GMG_CURSE_MANIFEST) {
             if (entry.itemLevel === itemLevel && normalized.startsWith(
@@ -264,6 +259,12 @@ export function lookupPf2eCurseCatalogEntry(name, itemLevel = null) {
             }
         }
     }
+
+    const prefixMatches = PF2E_GMG_CURSE_MANIFEST.filter((entry) => {
+        const prefix = normalizePf2eCurseName(entry.match).replace(/\s*\(type\s+[ivx\d]+\)$/i, "");
+        return prefix && normalized.startsWith(prefix);
+    });
+    if (prefixMatches.length === 1) return prefixMatches[0];
 
     return null;
 }
@@ -289,7 +290,8 @@ export function normalizePf2eCurseName(name) {
 export function inferPf2eCurseMeta(sourceItem) {
     const name = sourceItem?.name ?? "";
     const levelRaw = sourceItem?.system?.level?.value ?? sourceItem?.system?.level;
-    const itemLevel = Number.isFinite(levelRaw) ? levelRaw : null;
+    const numericLevel = Number(levelRaw);
+    const itemLevel = Number.isFinite(numericLevel) ? numericLevel : null;
 
     const catalog = lookupPf2eCurseCatalogEntry(name, itemLevel);
     if (catalog) {

@@ -2,6 +2,8 @@
  * PF2e compendium pool matching and exclusion rules for ItemPoolResolver.
  */
 
+import { isPf2eCursedLootEntry } from "../services/Pf2eCurseCatalog.js";
+
 const PF2E_CONSUMABLE_CATEGORIES = new Set(["potion", "poison", "drug", "oil", "other", ""]);
 
 /**
@@ -112,8 +114,7 @@ export function isPf2eExcludedFromPool(entry) {
     if (type === "background" || type === "ancestry" || type === "heritage") return true;
     if (!entry.name?.trim()) return true;
 
-    const traits = entry.system?.traits?.value ?? [];
-    if (traits.includes("cursed")) return true;
+    if (isPf2eCursedLootEntry(entry)) return true;
 
     const level = entry.system?.level?.value;
     if (typeof level === "number" && level > 20) return true;
