@@ -500,7 +500,7 @@ export class SignatureLedgerApp extends Application {
             if (!actor) continue;
 
             const level      = (game.ionrift?.library?.system?.getLevel(actor)) || 1;
-            const classes    = Object.values(actor.classes || {}).map(c => c.name).join("/") || "Unknown";
+            const classes    = (game.ionrift?.library?.system?.getClassNames(actor) ?? Object.values(actor.classes || {}).map(c => c.name)).join("/") || "Unknown";
             const powerScore = SignatureLedger.computePowerScore(actor);
             totalRvp        += data.rvp;
 

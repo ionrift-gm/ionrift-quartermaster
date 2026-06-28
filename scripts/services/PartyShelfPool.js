@@ -1,5 +1,6 @@
 import { SignatureLedger } from "./SignatureLedger.js";
 import { Logger, MODULE_LABEL } from "../_logger.js";
+import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -46,13 +47,15 @@ export class PartyShelfPool {
                 const pack = game.packs.get(packId);
                 if (!pack || pack.documentName !== "Item") continue;
 
+                const adapter = getQuartermasterAdapter();
                 const index = await pack.getIndex({
-                    fields: ["system.rarity", "type", "img", "system.attunement", "system.uses", "system.price"]
+                    fields: adapter.getCompendiumIndexFields()
                 });
 
                 for (const entry of index) {
-                    if (!entry.system?.rarity) continue;
-                    const rarity = this._normaliseRarity(entry.system.rarity);
+                    const rawRarity = adapter.getRarityFromEntry(entry);
+                    if (!rawRarity || rawRarity === "common") continue;
+                    const rarity = this._normaliseRarity(adapter.normalizeRarityForTier(rawRarity));
                     if (!allowed.has(rarity)) continue;
                     if (entry.type !== "equipment") continue;
 
@@ -68,10 +71,10 @@ export class PartyShelfPool {
                         name:               entry.name,
                         img:                entry.img || "icons/svg/item-bag.svg",
                         rarity,
-                        requiresAttunement: !!entry.system.attunement,
+                        requiresAttunement: !!entry.system?.attunement,
                         _compendiumId:      docId,
                         sourceCompendium:   packId,
-                        _hasCharges:        (entry.system.uses?.max ?? 0) > 0
+                        _hasCharges:        (entry.system?.uses?.max ?? 0) > 0
                     });
                 }
             }
@@ -136,7 +139,9 @@ export class PartyShelfPool {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed) && parsed.length) return parsed;
         } catch { /* fall through */ }
-        return ["dnd5e.items"];
+        const adapter = getQuartermasterAdapter();
+        const defaults = adapter.getDefaultLootPoolSources();
+        return defaults.length ? defaults : ["dnd5e.items"];
     }
 
     /**
