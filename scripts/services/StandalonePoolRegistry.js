@@ -10,10 +10,6 @@ const MODULE_ID = "ionrift-quartermaster";
  */
 export class StandalonePoolRegistry {
 
-    static _indexDocId(entry) {
-        return entry?._id ?? entry?.id ?? "";
-    }
-
     /**
      * Map a compendium document (or index entry) to a slim pool row.
      * Requires cursedMeta on the document flags.
