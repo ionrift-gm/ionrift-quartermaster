@@ -291,26 +291,6 @@ export class SignatureLedger {
         return out;
     }
 
-    // ── Cursed Plan Stubs (moved to ionrift-cursewright) ──────────────────────
-    // These stubs prevent crashes in SignatureLedgerApp which still renders
-    // the curse UI. They return empty data so the curse panels show "no curses".
-    // Full surgery of SignatureLedgerApp is deferred to a future session.
-
-    /** @deprecated Moved to ionrift-cursewright. Returns empty array. */
-    static async getCursedPlanned() { return []; }
-    /** @deprecated Moved to ionrift-cursewright. No-op. */
-    static async setCursedPlanned(_data) {}
-    /** @deprecated Moved to ionrift-cursewright. Returns empty array. */
-    static async getCursedPool() { return []; }
-    /** @deprecated Moved to ionrift-cursewright. No-op. */
-    static async setCursedPool(_data) {}
-    /** @deprecated Moved to ionrift-cursewright. Returns false. */
-    static async ensureDefaultCursedPoolIfEmpty() { return false; }
-    /** @deprecated Moved to ionrift-cursewright. Returns input unchanged. */
-    static sanitizeCursedPlanned(planned) { return planned ?? []; }
-    /** @deprecated Moved to ionrift-cursewright. Returns empty string. */
-    static _cursedPlannedProjectionKey(_planned) { return ""; }
-
     // ── Ban List ──────────────────────────────────────────────────────────────
 
     static async getBanList() {
