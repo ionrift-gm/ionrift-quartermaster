@@ -1766,11 +1766,7 @@ export class LootPoolCompiler {
     // ── Weight / Price Helpers ────────────────────────────────────────────
 
     static _extractWeight(system) {
-        const w = system?.weight;
-        if (w === null || w === undefined) return 0;
-        if (typeof w === "number") return w;
-        if (typeof w === "object") return Number(w.value ?? 0) || 0;
-        return Number(w) || 0;
+        return ItemPoolResolver._extractWeight({ system });
     }
 
     // ── Source Helpers ────────────────────────────────────────────────────
