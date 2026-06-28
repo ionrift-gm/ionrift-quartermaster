@@ -816,10 +816,10 @@ export class LootPoolCompiler {
         system.magicalBonus = `+${tier}`;
 
         // Flags: mint batch for reconcile tracking
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-${templateName.toLowerCase().replace(/\s+/g, "-")}-${baseName.toLowerCase().replace(/\s+/g, "-")}-${tier}`;
-        data.flags[MODULE_ID].compiledFrom = { template: templateName, base: baseName, tier };
+        this._stampCompiledFlags(data,
+            `compiled-pool-${templateName.toLowerCase().replace(/\s+/g, "-")}-${baseName.toLowerCase().replace(/\s+/g, "-")}-${tier}`,
+            { template: templateName, base: baseName, tier }
+        );
 
         // Strip enchantment-type effects from the template. Weapon templates
         // carry enchantment shells (for the GM drag-to-apply workflow) that
@@ -850,10 +850,10 @@ export class LootPoolCompiler {
         system.rarity = TIER_RARITY[tier] ?? "uncommon";
         system.magicalBonus = `+${tier}`;
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-ammo-${base.toLowerCase().replace(/\s+/g, "-")}-${tier}`;
-        data.flags[MODULE_ID].compiledFrom = { template: "ammo-stub", base, tier };
+        this._stampCompiledFlags(data,
+            `compiled-pool-ammo-${base.toLowerCase().replace(/\s+/g, "-")}-${tier}`,
+            { template: "ammo-stub", base, tier }
+        );
 
         // Defensive: strip any enchantment shells from the base ammo item.
         // Mundane ammo shouldn't have enchantments, but guard against future
@@ -885,14 +885,10 @@ export class LootPoolCompiler {
             system.price = { value: basePrice, denomination: "gp" };
         }
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-weapon-${baseName.toLowerCase().replace(/\s+/g, "-")}-${tier}`;
-        data.flags[MODULE_ID].compiledFrom = {
-            template: "Weapon, +1, +2, or +3",
-            base: baseName,
-            tier
-        };
+        this._stampCompiledFlags(data,
+            `compiled-pool-weapon-${baseName.toLowerCase().replace(/\s+/g, "-")}-${tier}`,
+            { template: "Weapon, +1, +2, or +3", base: baseName, tier }
+        );
 
         this._stripEnchantmentShells(data);
         return data;
@@ -1042,16 +1038,16 @@ export class LootPoolCompiler {
             delete system.magicalBonus;
         }
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
         const slugBase = baseName.toLowerCase().replace(/\s+/g, "-");
         const slugName = (opts.name || "").toLowerCase().replace(/\s+/g, "-");
-        data.flags[MODULE_ID].mintBatch = opts.bonusTier !== undefined
-            ? `compiled-pool-armor-${slugBase}-${opts.bonusTier}`
-            : `compiled-pool-armor-${slugName}`;
-        data.flags[MODULE_ID].compiledFrom = opts.bonusTier !== undefined
-            ? { template: templateName, base: baseName, tier: opts.bonusTier }
-            : { template: templateName, base: baseName };
+        this._stampCompiledFlags(data,
+            opts.bonusTier !== undefined
+                ? `compiled-pool-armor-${slugBase}-${opts.bonusTier}`
+                : `compiled-pool-armor-${slugName}`,
+            opts.bonusTier !== undefined
+                ? { template: templateName, base: baseName, tier: opts.bonusTier }
+                : { template: templateName, base: baseName }
+        );
 
         if (!opts.keepActivities) this._clearArmorActivities(data);
 
@@ -1492,11 +1488,11 @@ export class LootPoolCompiler {
         const weight = variant.weight ?? 1;
         this._assignWeight(system, weight);
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
         const slug = variant.name.toLowerCase().replace(/\s+/g, "-");
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-wondrous-${slug}`;
-        data.flags[MODULE_ID].compiledFrom = { template: templateName, variant: variant.name };
+        this._stampCompiledFlags(data,
+            `compiled-pool-wondrous-${slug}`,
+            { template: templateName, variant: variant.name }
+        );
 
         this._stripEnchantmentShells(data);
         this._cleanCompiledDescription(data);
@@ -1521,11 +1517,11 @@ export class LootPoolCompiler {
         }
         this._assignWeight(system, spec.weight);
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
         const slug = itemName.toLowerCase().replace(/\s+/g, "-");
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-enriched-${slug}`;
-        data.flags[MODULE_ID].compiledFrom = { source: itemName, enrichment: true };
+        this._stampCompiledFlags(data,
+            `compiled-pool-enriched-${slug}`,
+            { source: itemName, enrichment: true }
+        );
 
         this._stripEnchantmentShells(data);
         this._cleanCompiledDescription(data);
@@ -1620,15 +1616,11 @@ export class LootPoolCompiler {
 
         this._filterSlayingForCreatureType(data, creatureType, riderEffectDoc, itemName);
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
         const slug = itemName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-slaying-${slug}`;
-        data.flags[MODULE_ID].compiledFrom = {
-            template: SLAYING_AMMO_TEMPLATE,
-            base: shortName,
-            creatureType
-        };
+        this._stampCompiledFlags(data,
+            `compiled-pool-slaying-${slug}`,
+            { template: SLAYING_AMMO_TEMPLATE, base: shortName, creatureType }
+        );
 
         this._cleanCompiledDescription(data);
         return data;
@@ -1758,6 +1750,19 @@ export class LootPoolCompiler {
         } else {
             system.weight = { value, units };
         }
+    }
+
+    /**
+     * Stamp compiled-pool tracking flags onto an item data object.
+     * @param {object} data          Plain item data (mutated in place)
+     * @param {string} mintBatch     Unique slug for reconcile/dedup
+     * @param {object} compiledFrom  Provenance metadata
+     */
+    static _stampCompiledFlags(data, mintBatch, compiledFrom) {
+        data.flags ??= {};
+        data.flags[MODULE_ID] ??= {};
+        data.flags[MODULE_ID].mintBatch = mintBatch;
+        data.flags[MODULE_ID].compiledFrom = compiledFrom;
     }
 
     // ── Source Helpers ────────────────────────────────────────────────────
