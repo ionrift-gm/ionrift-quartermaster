@@ -239,11 +239,7 @@ export class SoundPickerApp extends Application {
 
         try {
             ui.notifications.info("Ionrift: Syncing Global One-Shots...");
-            const results = await manager.provider.cacheLibrary({
-                onProgress: (count) => {
-                    // console.log(`Fetched ${count} items...`);
-                }
-            });
+            const results = await manager.provider.cacheLibrary({});
             ui.notifications.info(`Ionrift: Sync Complete (${results.length} Global One-Shots).`);
 
             // Override cache count for this session to ensure UI updates immediately

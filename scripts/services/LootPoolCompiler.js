@@ -799,11 +799,7 @@ export class LootPoolCompiler {
         if (templateWeight === 0) {
             const baseWeight = this._extractWeight(base.system ?? {});
             if (baseWeight > 0) {
-                if (system.weight !== null && typeof system.weight === "object") {
-                    system.weight = { ...system.weight, value: baseWeight };
-                } else {
-                    system.weight = { value: baseWeight, units: "lb" };
-                }
+                this._assignWeight(system, baseWeight);
             }
         }
 
@@ -820,10 +816,10 @@ export class LootPoolCompiler {
         system.magicalBonus = `+${tier}`;
 
         // Flags: mint batch for reconcile tracking
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-${templateName.toLowerCase().replace(/\s+/g, "-")}-${baseName.toLowerCase().replace(/\s+/g, "-")}-${tier}`;
-        data.flags[MODULE_ID].compiledFrom = { template: templateName, base: baseName, tier };
+        this._stampCompiledFlags(data,
+            `compiled-pool-${templateName.toLowerCase().replace(/\s+/g, "-")}-${baseName.toLowerCase().replace(/\s+/g, "-")}-${tier}`,
+            { template: templateName, base: baseName, tier }
+        );
 
         // Strip enchantment-type effects from the template. Weapon templates
         // carry enchantment shells (for the GM drag-to-apply workflow) that
@@ -854,10 +850,10 @@ export class LootPoolCompiler {
         system.rarity = TIER_RARITY[tier] ?? "uncommon";
         system.magicalBonus = `+${tier}`;
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-ammo-${base.toLowerCase().replace(/\s+/g, "-")}-${tier}`;
-        data.flags[MODULE_ID].compiledFrom = { template: "ammo-stub", base, tier };
+        this._stampCompiledFlags(data,
+            `compiled-pool-ammo-${base.toLowerCase().replace(/\s+/g, "-")}-${tier}`,
+            { template: "ammo-stub", base, tier }
+        );
 
         // Defensive: strip any enchantment shells from the base ammo item.
         // Mundane ammo shouldn't have enchantments, but guard against future
@@ -889,14 +885,10 @@ export class LootPoolCompiler {
             system.price = { value: basePrice, denomination: "gp" };
         }
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-weapon-${baseName.toLowerCase().replace(/\s+/g, "-")}-${tier}`;
-        data.flags[MODULE_ID].compiledFrom = {
-            template: "Weapon, +1, +2, or +3",
-            base: baseName,
-            tier
-        };
+        this._stampCompiledFlags(data,
+            `compiled-pool-weapon-${baseName.toLowerCase().replace(/\s+/g, "-")}-${tier}`,
+            { template: "Weapon, +1, +2, or +3", base: baseName, tier }
+        );
 
         this._stripEnchantmentShells(data);
         return data;
@@ -1038,11 +1030,7 @@ export class LootPoolCompiler {
         system.type.baseItem = baseName.toLowerCase();
 
         const weight = opts.weight ?? baseData.weight ?? 0;
-        if (system.weight !== null && typeof system.weight === "object") {
-            system.weight = { ...system.weight, value: weight };
-        } else {
-            system.weight = { value: weight, units: "lb" };
-        }
+        this._assignWeight(system, weight);
 
         if (opts.bonusTier !== undefined) {
             system.magicalBonus = `+${opts.bonusTier}`;
@@ -1050,16 +1038,16 @@ export class LootPoolCompiler {
             delete system.magicalBonus;
         }
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
         const slugBase = baseName.toLowerCase().replace(/\s+/g, "-");
         const slugName = (opts.name || "").toLowerCase().replace(/\s+/g, "-");
-        data.flags[MODULE_ID].mintBatch = opts.bonusTier !== undefined
-            ? `compiled-pool-armor-${slugBase}-${opts.bonusTier}`
-            : `compiled-pool-armor-${slugName}`;
-        data.flags[MODULE_ID].compiledFrom = opts.bonusTier !== undefined
-            ? { template: templateName, base: baseName, tier: opts.bonusTier }
-            : { template: templateName, base: baseName };
+        this._stampCompiledFlags(data,
+            opts.bonusTier !== undefined
+                ? `compiled-pool-armor-${slugBase}-${opts.bonusTier}`
+                : `compiled-pool-armor-${slugName}`,
+            opts.bonusTier !== undefined
+                ? { template: templateName, base: baseName, tier: opts.bonusTier }
+                : { template: templateName, base: baseName }
+        );
 
         if (!opts.keepActivities) this._clearArmorActivities(data);
 
@@ -1498,17 +1486,13 @@ export class LootPoolCompiler {
         }
 
         const weight = variant.weight ?? 1;
-        if (system.weight !== null && typeof system.weight === "object") {
-            system.weight = { ...system.weight, value: weight, units: "lb" };
-        } else {
-            system.weight = { value: weight, units: "lb" };
-        }
+        this._assignWeight(system, weight);
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
         const slug = variant.name.toLowerCase().replace(/\s+/g, "-");
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-wondrous-${slug}`;
-        data.flags[MODULE_ID].compiledFrom = { template: templateName, variant: variant.name };
+        this._stampCompiledFlags(data,
+            `compiled-pool-wondrous-${slug}`,
+            { template: templateName, variant: variant.name }
+        );
 
         this._stripEnchantmentShells(data);
         this._cleanCompiledDescription(data);
@@ -1531,17 +1515,13 @@ export class LootPoolCompiler {
             system.type ??= {};
             system.type.value = spec.subtype;
         }
-        if (system.weight !== null && typeof system.weight === "object") {
-            system.weight = { ...system.weight, value: spec.weight, units: "lb" };
-        } else {
-            system.weight = { value: spec.weight, units: "lb" };
-        }
+        this._assignWeight(system, spec.weight);
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
         const slug = itemName.toLowerCase().replace(/\s+/g, "-");
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-enriched-${slug}`;
-        data.flags[MODULE_ID].compiledFrom = { source: itemName, enrichment: true };
+        this._stampCompiledFlags(data,
+            `compiled-pool-enriched-${slug}`,
+            { source: itemName, enrichment: true }
+        );
 
         this._stripEnchantmentShells(data);
         this._cleanCompiledDescription(data);
@@ -1628,11 +1608,7 @@ export class LootPoolCompiler {
 
         const baseWeight = this._extractWeight(base.system ?? {});
         if (baseWeight > 0) {
-            if (system.weight !== null && typeof system.weight === "object") {
-                system.weight = { ...system.weight, value: baseWeight, units: "lb" };
-            } else {
-                system.weight = { value: baseWeight, units: "lb" };
-            }
+            this._assignWeight(system, baseWeight);
         }
         if (base.img && (!data.img || data.img === "icons/svg/item-bag.svg")) {
             data.img = base.img;
@@ -1640,15 +1616,11 @@ export class LootPoolCompiler {
 
         this._filterSlayingForCreatureType(data, creatureType, riderEffectDoc, itemName);
 
-        data.flags ??= {};
-        data.flags[MODULE_ID] ??= {};
         const slug = itemName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-        data.flags[MODULE_ID].mintBatch = `compiled-pool-slaying-${slug}`;
-        data.flags[MODULE_ID].compiledFrom = {
-            template: SLAYING_AMMO_TEMPLATE,
-            base: shortName,
-            creatureType
-        };
+        this._stampCompiledFlags(data,
+            `compiled-pool-slaying-${slug}`,
+            { template: SLAYING_AMMO_TEMPLATE, base: shortName, creatureType }
+        );
 
         this._cleanCompiledDescription(data);
         return data;
@@ -1745,11 +1717,7 @@ export class LootPoolCompiler {
                     const legacyWeight = this._extractWeight(legacy.item.system ?? {});
                     if (legacyWeight > 0) {
                         const sys = data.system ??= {};
-                        if (sys.weight !== null && typeof sys.weight === "object") {
-                            sys.weight = { ...sys.weight, value: legacyWeight };
-                        } else {
-                            sys.weight = { value: legacyWeight, units: "lb" };
-                        }
+                        this._assignWeight(sys, legacyWeight);
                     }
                 }
             } catch (err) {
@@ -1766,11 +1734,35 @@ export class LootPoolCompiler {
     // ── Weight / Price Helpers ────────────────────────────────────────────
 
     static _extractWeight(system) {
-        const w = system?.weight;
-        if (w === null || w === undefined) return 0;
-        if (typeof w === "number") return w;
-        if (typeof w === "object") return Number(w.value ?? 0) || 0;
-        return Number(w) || 0;
+        return ItemPoolResolver._extractWeight({ system });
+    }
+
+    /**
+     * Assign a resolved weight value to a system object, handling the
+     * dnd5e object-vs-scalar weight shape.
+     * @param {object} system  The item's system data (mutated in place)
+     * @param {number} value   Weight value to assign
+     * @param {string} [units="lb"]
+     */
+    static _assignWeight(system, value, units = "lb") {
+        if (system.weight !== null && typeof system.weight === "object") {
+            system.weight = { ...system.weight, value, units };
+        } else {
+            system.weight = { value, units };
+        }
+    }
+
+    /**
+     * Stamp compiled-pool tracking flags onto an item data object.
+     * @param {object} data          Plain item data (mutated in place)
+     * @param {string} mintBatch     Unique slug for reconcile/dedup
+     * @param {object} compiledFrom  Provenance metadata
+     */
+    static _stampCompiledFlags(data, mintBatch, compiledFrom) {
+        data.flags ??= {};
+        data.flags[MODULE_ID] ??= {};
+        data.flags[MODULE_ID].mintBatch = mintBatch;
+        data.flags[MODULE_ID].compiledFrom = compiledFrom;
     }
 
     // ── Source Helpers ────────────────────────────────────────────────────

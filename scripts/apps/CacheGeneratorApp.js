@@ -299,15 +299,7 @@ export class CacheGeneratorApp extends Application {
 
             // Live-resolve display names from the forged pack via shared service.
             // Pool entries store names at load-time and go stale after a recompile.
-            try {
-                const _nm = await CursedItemResolver.buildForgedNameMap();
-                if (_nm.size && this._cursedPool.length) {
-                    this._cursedPool = this._cursedPool.map(entry => ({
-                        ...entry,
-                        name: CursedItemResolver.resolveFromMap(_nm, entry.uuid) ?? entry.name
-                    }));
-                }
-            } catch { /* unreadable pack - stored names are used as-is */ }
+            this._cursedPool = await CursedItemResolver.resolvePoolDisplayNames(this._cursedPool);
 
         } catch (err) {
             Logger.warn(MODULE_LABEL, "Cursed pool refresh failed:", err.message);

@@ -166,4 +166,26 @@ export class CursedItemResolver {
         }
         return data;
     }
+
+    /**
+     * Resolve stale display names in a pool entry array by cross-referencing
+     * the forged pack documents.  Returns a new array with updated names.
+     *
+     * @param {object[]} pool - Array of pool row objects with `uuid` and `name`.
+     * @returns {Promise<object[]>} New array with names resolved from the forged pack.
+     */
+    static async resolvePoolDisplayNames(pool) {
+        if (!pool?.length) return pool ?? [];
+        let nameMap;
+        try {
+            nameMap = await CursedItemResolver.buildForgedNameMap();
+        } catch {
+            return pool;
+        }
+        if (!nameMap.size) return pool;
+        return pool.map(entry => ({
+            ...entry,
+            name: CursedItemResolver.resolveFromMap(nameMap, entry.uuid) ?? entry.name
+        }));
+    }
 }
