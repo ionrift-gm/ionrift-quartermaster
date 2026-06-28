@@ -324,15 +324,7 @@ export class SignatureLedgerApp extends Application {
             const cursedPoolRaw = await reg.getCursedPool();
 
             // Resolve display names live (pool entries go stale after pack recompile)
-            let _forgedNameMap = new Map();
-            try {
-                _forgedNameMap = await CursedItemResolver.buildForgedNameMap();
-            } catch { /* unreadable pack - fall through to stored names */ }
-
-            const cursedPoolResolved = cursedPoolRaw.map(entry => ({
-                ...entry,
-                name: CursedItemResolver.resolveFromMap(_forgedNameMap, entry.uuid) ?? entry.name
-            }));
+            const cursedPoolResolved = await CursedItemResolver.resolvePoolDisplayNames(cursedPoolRaw);
 
             // Per-source counts for footer
             const cwPoolCount  = cursedPoolResolved.filter(p => (p.uuid || "").includes("ionrift-cursewright-forged")).length;
