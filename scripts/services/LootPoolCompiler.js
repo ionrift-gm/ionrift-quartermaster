@@ -799,11 +799,7 @@ export class LootPoolCompiler {
         if (templateWeight === 0) {
             const baseWeight = this._extractWeight(base.system ?? {});
             if (baseWeight > 0) {
-                if (system.weight !== null && typeof system.weight === "object") {
-                    system.weight = { ...system.weight, value: baseWeight };
-                } else {
-                    system.weight = { value: baseWeight, units: "lb" };
-                }
+                this._assignWeight(system, baseWeight);
             }
         }
 
@@ -1038,11 +1034,7 @@ export class LootPoolCompiler {
         system.type.baseItem = baseName.toLowerCase();
 
         const weight = opts.weight ?? baseData.weight ?? 0;
-        if (system.weight !== null && typeof system.weight === "object") {
-            system.weight = { ...system.weight, value: weight };
-        } else {
-            system.weight = { value: weight, units: "lb" };
-        }
+        this._assignWeight(system, weight);
 
         if (opts.bonusTier !== undefined) {
             system.magicalBonus = `+${opts.bonusTier}`;
@@ -1498,11 +1490,7 @@ export class LootPoolCompiler {
         }
 
         const weight = variant.weight ?? 1;
-        if (system.weight !== null && typeof system.weight === "object") {
-            system.weight = { ...system.weight, value: weight, units: "lb" };
-        } else {
-            system.weight = { value: weight, units: "lb" };
-        }
+        this._assignWeight(system, weight);
 
         data.flags ??= {};
         data.flags[MODULE_ID] ??= {};
@@ -1531,11 +1519,7 @@ export class LootPoolCompiler {
             system.type ??= {};
             system.type.value = spec.subtype;
         }
-        if (system.weight !== null && typeof system.weight === "object") {
-            system.weight = { ...system.weight, value: spec.weight, units: "lb" };
-        } else {
-            system.weight = { value: spec.weight, units: "lb" };
-        }
+        this._assignWeight(system, spec.weight);
 
         data.flags ??= {};
         data.flags[MODULE_ID] ??= {};
@@ -1628,11 +1612,7 @@ export class LootPoolCompiler {
 
         const baseWeight = this._extractWeight(base.system ?? {});
         if (baseWeight > 0) {
-            if (system.weight !== null && typeof system.weight === "object") {
-                system.weight = { ...system.weight, value: baseWeight, units: "lb" };
-            } else {
-                system.weight = { value: baseWeight, units: "lb" };
-            }
+            this._assignWeight(system, baseWeight);
         }
         if (base.img && (!data.img || data.img === "icons/svg/item-bag.svg")) {
             data.img = base.img;
@@ -1745,11 +1725,7 @@ export class LootPoolCompiler {
                     const legacyWeight = this._extractWeight(legacy.item.system ?? {});
                     if (legacyWeight > 0) {
                         const sys = data.system ??= {};
-                        if (sys.weight !== null && typeof sys.weight === "object") {
-                            sys.weight = { ...sys.weight, value: legacyWeight };
-                        } else {
-                            sys.weight = { value: legacyWeight, units: "lb" };
-                        }
+                        this._assignWeight(sys, legacyWeight);
                     }
                 }
             } catch (err) {
@@ -1767,6 +1743,21 @@ export class LootPoolCompiler {
 
     static _extractWeight(system) {
         return ItemPoolResolver._extractWeight({ system });
+    }
+
+    /**
+     * Assign a resolved weight value to a system object, handling the
+     * dnd5e object-vs-scalar weight shape.
+     * @param {object} system  The item's system data (mutated in place)
+     * @param {number} value   Weight value to assign
+     * @param {string} [units="lb"]
+     */
+    static _assignWeight(system, value, units = "lb") {
+        if (system.weight !== null && typeof system.weight === "object") {
+            system.weight = { ...system.weight, value, units };
+        } else {
+            system.weight = { value, units };
+        }
     }
 
     // ── Source Helpers ────────────────────────────────────────────────────
