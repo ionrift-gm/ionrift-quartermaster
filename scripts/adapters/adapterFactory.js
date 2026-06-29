@@ -12,6 +12,7 @@ export function createQuartermasterAdapter() {
         case "dnd5e":
             return new DnD5eItemAdapter();
         case "pf2e":
+        case "sf2e":
             return new PF2eItemAdapter();
         default:
             Logger.warn(
