@@ -1,0 +1,42 @@
+{
+    "armaments": {
+        "2": {
+            "iterations": 400,
+            "cacheHasMagicalWeaponOrArmor": { "min": 0.55 },
+            "mastercraftPickMagicalRate": { "min": 0.45 },
+            "mastercraftPickNullRate": { "max": 0.05 },
+            "cacheHasMagicalArmor": { "min": 0.12 },
+            "mastercraftPickMagicalArmorRate": { "min": 0.12 }
+        },
+        "3": {
+            "iterations": 400,
+            "cacheHasMagicalWeaponOrArmor": { "min": 0.70 },
+            "mastercraftPickMagicalRate": { "min": 0.60 },
+            "mastercraftPickNullRate": { "max": 0.05 },
+            "mastercraftPickGenericPlus1Share": { "min": 0.35 },
+            "mastercraftPickGenericPlus2Share": { "min": 0.06 },
+            "mastercraftPickMagicalArmorRate": { "min": 0.15 },
+            "cacheHasMagicalArmor": { "min": 0.18 },
+            "cacheGenericPlus2Share": { "min": 0.06 }
+        },
+        "4": {
+            "iterations": 500,
+            "cacheHasMagicalWeaponOrArmor": { "min": 0.80 },
+            "mastercraftPickMagicalRate": { "min": 0.70 },
+            "mastercraftPickNullRate": { "max": 0.05 },
+            "genericBonusMinObserved": 2,
+            "mastercraftPickGenericPlus3Share": { "max": 0.28 },
+            "mastercraftPickMagicalArmorRate": { "min": 0.15 },
+            "cacheHasMagicalArmor": { "min": 0.20 },
+            "cacheGenericPlus3Share": { "max": 0.22 }
+        }
+    },
+    "unspecified": {
+        "4": {
+            "iterations": 300,
+            "cacheHasMagicalWeaponOrArmor": { "min": 0.35 },
+            "mastercraftPickMagicalRate": { "min": 0.25 },
+            "mastercraftPickNullRate": { "max": 0.08 }
+        }
+    }
+}

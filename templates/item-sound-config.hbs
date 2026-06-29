@@ -1,0 +1,47 @@
+<div class="item-sound-config">
+    <div class="header" style="margin-bottom: 15px; text-align: center;">
+        <img src="{{itemImg}}"
+            style="width: 48px; height: 48px; border: 1px solid #a78bfa; border-radius: 4px; margin-bottom: 8px;" />
+        <h2 style="border: none; margin: 0;">{{itemName}}</h2>
+        <p class="notes" style="margin-top: 5px;">Configure sonic identity.</p>
+    </div>
+
+    <div class="slots-list" style="display: flex; flex-direction: column; gap: 10px;">
+        {{#each slots}}
+        <div class="sound-slot"
+            style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between;">
+
+            <div class="slot-info" style="flex: 1;">
+                <div class="slot-label" style="font-weight: 700; color: #a78bfa; margin-bottom: 4px;">
+                    <i class="{{this.icon}}"></i> {{this.label}}
+                </div>
+                <div class="slot-value"
+                    style="font-family: monospace; font-size: 0.85em; color: {{#if this.hasValue}}#fff{{else}}#666{{/if}};">
+                    {{#if this.hasValue}}
+                    <div class="current-sound">
+                        <i class="{{this.icon}}"></i>
+                        <div class="info-col">
+                            <span class="sound-id">{{this.displayValue}}</span>
+                            {{#if this.meta}}<span class="sound-meta">{{this.meta}}</span>{{/if}}
+                        </div>
+                    </div>
+                    {{else}}No binding{{/if}}
+                </div>
+            </div>
+
+            <div class="slot-actions" style="display: flex; gap: 5px;">
+                {{#if this.hasValue}}
+                <button type="button" class="action-play" data-key="{{this.key}}" title="Test Play"
+                    style="width: 30px; padding: 0;"><i class="fas fa-play"></i></button>
+                <button type="button" class="action-clear" data-key="{{this.key}}" title="Clear"
+                    style="width: 30px; padding: 0; background: #3f1919; border-color: #7f1d1d;"><i
+                        class="fas fa-trash"></i></button>
+                {{/if}}
+                <button type="button" class="action-search" data-key="{{this.key}}" title="Search"
+                    style="width: 30px; padding: 0;"><i class="fas fa-search"></i></button>
+            </div>
+
+        </div>
+        {{/each}}
+    </div>
+</div>

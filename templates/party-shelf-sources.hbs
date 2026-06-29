@@ -1,0 +1,39 @@
+<form class="ionrift-loot-pool-config ionrift-party-shelf-sources">
+    <p class="pool-instructions">
+        Select which item compendiums the Party Shelf randomiser considers.
+        Only compendiums containing equipment are listed. Within those, only
+        uncommon through very rare items are drawn.
+    </p>
+
+    <div class="scroll-forge-toolbar">
+        <button type="button" class="cache-btn-accent party-shelf-select-all">
+            <i class="fas fa-check-double"></i> Select all
+        </button>
+        <button type="button" class="cache-btn-accent party-shelf-select-none">
+            <i class="fas fa-times"></i> Select none
+        </button>
+    </div>
+
+    <div class="party-shelf-sources-scroll">
+        {{#each groups}}
+        <div class="pool-group">
+            <div class="pool-group-header">
+                <i class="fas fa-box-archive"></i> {{this.label}}
+            </div>
+            {{#each this.packs}}
+            <label class="pool-pack-row">
+                <input type="checkbox" name="pack-{{this.id}}" {{#if this.enabled}}checked{{/if}} />
+                <span class="pool-pack-label">{{this.label}}</span>
+                <span class="pool-pack-id">{{this.id}}{{#if this.count}} ({{this.count}} items){{/if}}</span>
+            </label>
+            {{/each}}
+        </div>
+        {{/each}}
+    </div>
+
+    <footer class="pool-footer">
+        <button type="submit" class="cache-btn-accent">
+            <i class="fas fa-save"></i> Save sources
+        </button>
+    </footer>
+</form>

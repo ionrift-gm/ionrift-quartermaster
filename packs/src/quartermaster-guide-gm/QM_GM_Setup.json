@@ -1,0 +1,20 @@
+{
+    "_id": "qmGuideJournal01",
+    "_key": "!journal!qmGuideJournal01",
+    "name": "Quartermaster GM Setup",
+    "ownership": { "default": 0 },
+    "flags": {},
+    "pages": [],
+    "sort": 0,
+    "folder": null,
+    "_stats": {
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "coreVersion": "12.331",
+        "systemId": null,
+        "systemVersion": null,
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null
+    }
+}

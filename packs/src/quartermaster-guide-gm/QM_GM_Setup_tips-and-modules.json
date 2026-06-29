@@ -1,0 +1,29 @@
+{
+    "_id": "qmTipsGuide005",
+    "_key": "!journal.pages!qmGuideJournal01.qmTipsGuide005",
+    "name": "Tips and Modules",
+    "type": "text",
+    "title": { "show": true, "level": 1 },
+    "image": {},
+    "video": { "controls": true, "volume": 0.5 },
+    "src": null,
+    "system": {},
+    "text": {
+        "content": "<h2>Recommended companions</h2><table><thead><tr><th>Module</th><th>What it adds</th></tr></thead><tbody><tr><td><strong>Item Piles</strong></td><td>Drag-to-canvas cache deployment. Containers land as interactive tokens players can loot. Without it, caches go to the Items sidebar.</td></tr><tr><td><strong>Ionrift Cursewright</strong></td><td>Full cursed item lifecycle: forging custom curses, concealed lure properties, attunement triggers, curse activation, sticky removal, and disguised Potions of Poison.</td></tr><tr><td><strong>Ionrift Resonance</strong></td><td>Sound effects bound to items via the item sheet.</td></tr><tr><td><strong>Ionrift Respite</strong></td><td>Long rest integration. Players can pick <em>Identify</em> as a camp activity to reveal masked loot during downtime.</td></tr></tbody></table><h2>Content packs</h2><p>Content packs plug into Quartermaster as overlays. They add new terrains, items, containers, and discovery narrations. Installed packs are materialised into world compendiums automatically and appear in the terrain and loot pools without further configuration.</p><h2>Troubleshooting</h2><ul><li><strong>\"No items in pool\"</strong> on generate - open the Compendium Forge and compile the loot pool.</li><li><strong>Amber badge on Forge button</strong> - a compiled pool is stale or missing. Open Forge and recompile.</li><li><strong>Scrolls missing</strong> - check that Scroll Forge is enabled and has spell sources configured in the Compendium Forge.</li><li><strong>Items not masking</strong> - check the three obscure toggles in Configure Identification. Quick Setup profiles set these for you.</li></ul>",
+        "format": 1,
+        "markdown": ""
+    },
+    "sort": 500000,
+    "ownership": { "default": 0 },
+    "flags": {},
+    "_stats": {
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "coreVersion": "12.331",
+        "systemId": null,
+        "systemVersion": null,
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null
+    }
+}

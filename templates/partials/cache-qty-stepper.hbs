@@ -1,0 +1,16 @@
+<div class="cache-qty-stepper" data-uid="{{_uid}}" data-index="{{_origIdx}}" data-qty="{{quantity}}" data-stack-name="{{name}}" data-stack-count="{{quantity}}">
+    <button type="button" class="action-qty-down cache-qty-btn" data-uid="{{_uid}}" data-index="{{_origIdx}}" title="Decrease quantity" aria-label="Decrease quantity">
+        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+    </button>
+    <input type="number" class="cache-qty-input" min="1" max="99" step="1"
+        value="{{quantity}}"
+        data-uid="{{_uid}}"
+        data-index="{{_origIdx}}"
+        data-stack-name="{{name}}"
+        data-stack-count="{{quantity}}"
+        title="Quantity"
+        aria-label="Quantity" />
+    <button type="button" class="action-qty-up cache-qty-btn" data-uid="{{_uid}}" data-index="{{_origIdx}}" title="Increase quantity" aria-label="Increase quantity">
+        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+    </button>
+</div>

@@ -1,0 +1,34 @@
+<form class="ionrift-loot-pool-config ionrift-cursed-sources">
+    <p class="pool-instructions">
+        Select which compendiums the cursed pool draws from. Only Item compendiums that contain gear, consumables, loot, or similar appear here (pure spell or background packs are hidden). Only items stamped with Quartermaster cursedMeta will appear in the Add from Compendium picker.
+    </p>
+
+    <div class="scroll-forge-toolbar">
+        <button type="button" class="cache-btn-accent cursed-sources-toggle-selection" title="Select all compendiums, or clear if already all selected">
+            <i class="fas fa-right-left"></i> Toggle all
+        </button>
+    </div>
+
+    <div class="cursed-sources-scroll">
+        {{#each groups}}
+        <div class="pool-group">
+            <div class="pool-group-header">
+                <i class="fas fa-box-archive"></i> {{this.label}}
+            </div>
+            {{#each this.packs}}
+            <label class="pool-pack-row">
+                <input type="checkbox" name="cpack-{{this.id}}" {{#if this.enabled}}checked{{/if}} />
+                <span class="pool-pack-label">{{this.label}}</span>
+                <span class="pool-pack-id">{{this.id}}{{#if this.count}} ({{this.count}} items){{/if}}</span>
+            </label>
+            {{/each}}
+        </div>
+        {{/each}}
+    </div>
+
+    <footer class="pool-footer">
+        <button type="submit" class="cache-btn-accent">
+            <i class="fas fa-save"></i> Save sources
+        </button>
+    </footer>
+</form>

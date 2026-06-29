@@ -1,0 +1,197 @@
+<form autocomplete="off">
+    <style>
+        .ionrift-actor-sound-config .sound-slot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+
+        .ionrift-actor-sound-config .slot-header {
+            flex: 0 0 180px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: help;
+        }
+
+        .ionrift-actor-sound-config .slot-controls {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .ionrift-actor-sound-config .value-display {
+            font-family: monospace;
+            font-size: 0.9em;
+            text-align: right;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #ddd;
+        }
+
+        .ionrift-actor-sound-config .value-display .placeholder {
+            color: #666;
+            font-style: italic;
+        }
+
+        .ionrift-actor-sound-config .actions {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 5px;
+        }
+
+        .ionrift-actor-sound-config .actions a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            color: #bbb;
+        }
+
+        .ionrift-actor-sound-config .actions a:hover {
+            color: #fff;
+            text-shadow: 0 0 8px #a78bfa;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ddd;
+            border-radius: 4px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-color: #a78bfa;
+        }
+
+        .action-search {
+            width: 26px;
+            height: 26px;
+            font-size: 0.85em;
+            /* Slightly smaller icon */
+        }
+
+        /* Fix Select Drift */
+        .voice-config select {
+            line-height: 1.2;
+            padding-top: 2px;
+        }
+
+        .form-footer {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .save-btn {
+            background: rgba(139, 92, 246, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.6);
+            color: #fff;
+            padding: 6px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 0.95em;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
+        }
+
+        .save-btn:hover {
+            background: rgba(139, 92, 246, 0.5);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+        }
+    </style>
+
+    <header class="sheet-header"
+        style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        <img src="{{actorImg}}" data-edit="img" title="{{actorName}}" height="64" width="64"
+            style="object-fit: cover; border: 1px solid #444; border-radius: 4px;" />
+        <div style="flex: 1;">
+            <h1 style="border: none; margin: 0; padding: 0 0 5px 0; line-height: 1;"><input type="text"
+                    value="{{actorName}}" disabled placeholder="Actor Name"
+                    style="background: transparent; border: none; font-weight: bold; font-size: 1.2em; color: #fff; width: 100%; padding: 0;" />
+            </h1>
+
+            <!-- Voice Selection -->
+            <div class="voice-config"
+                style="display: flex; align-items: center; gap: 10px; font-size: 0.9em; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
+                <label style="white-space: nowrap; color: #bbb;"><i class="fas fa-volume-up"></i> Voice Tone:</label>
+                <select name="identity"
+                    style="height: 24px; font-size: 0.9em; flex: 1; background: transparent; color: #fff; border: none; padding: 0;">
+                    {{selectOptions voiceOptions selected=voice}}
+                </select>
+            </div>
+
+            <p class="notes" style="margin: 5px 0 0 0; font-style: italic; opacity: 0.6; font-size: 0.8em;">
+                Optional Overrides (Defaults to Voice Tone)
+            </p>
+        </div>
+    </header>
+
+    <div class="content ionrift-actor-sound-config">
+        <p class="notes">Configure specific sound overrides for this Actor. These will travel with the Actor if
+            exported.</p>
+
+        <section class="slots">
+            {{#each slots as |slot|}}
+            <div class="sound-slot">
+                <div class="slot-header" {{#if slot.hint}}title="{{slot.hint}}" {{/if}}>
+                    <i class="{{slot.icon}}"></i>
+                    <label>{{slot.label}}</label>
+                </div>
+                <div class="slot-controls">
+                    <div class="value-display {{#unless slot.hasValue}}empty{{/unless}}">
+                        {{#if slot.hasValue}}
+                        <span class="sound-name">{{slot.displayValue}}</span>
+                        {{else}}
+                        <span class="placeholder">{{slot.displayValue}}</span>
+                        {{/if}}
+                    </div>
+
+                    <div class="actions">
+                        {{#if slot.hasValue}}
+                        <a class="action-btn action-play" data-key="{{slot.key}}" title="Preview"><i
+                                class="fas fa-play"></i></a>
+                        <a class="action-btn action-clear" data-key="{{slot.key}}" title="Clear"><i
+                                class="fas fa-times"></i></a>
+                        {{/if}}
+                        <a class="action-btn action-search" data-key="{{slot.key}}" title="Search Sounds"><i
+                                class="fas fa-search"></i></a>
+                    </div>
+                </div>
+            </div>
+            {{/each}}
+        </section>
+
+        <div class="form-footer">
+            <button type="button" class="save-btn action-save">
+                <i class="fas fa-check"></i> Save & Close
+            </button>
+        </div>
+    </div>
+</form>

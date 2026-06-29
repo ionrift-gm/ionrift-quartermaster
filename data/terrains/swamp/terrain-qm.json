@@ -1,0 +1,13 @@
+{
+    "id": "swamp",
+    "flavorPhrases": [
+        "Tangled in the root system of a half-drowned cypress, just above the waterline -- {container}.",
+        "A hollow log, bobbing at the edge of the reed bed. Clay-sealed at both ends. Still dry.",
+        "Buried in the silt at the bank's edge, the oilskin wrapping intact despite everything.",
+        "Lashed to a submerged stake with rotting cord. The water kept it cool. The seal held.",
+        "Wedged in the fork of a long-dead tree, rotted hollow above the mud line.",
+        "The mud here has a different texture -- packed, not settled. Whatever is beneath it was placed deliberately."
+    ],
+    "materials": ["Ironwood", "Mastercraft"],
+    "itemDescriptions": {}
+}

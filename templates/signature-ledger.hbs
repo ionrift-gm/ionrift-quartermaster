@@ -1,0 +1,661 @@
+<form class="ionrift-progression-registry">
+
+    {{!-- ══ TAB BAR ══════════════════════════════════════════════ --}}
+    <div class="registry-tabs">
+        <div class="registry-tabs-primary">
+            <button type="button" class="registry-tab {{#if (eq activeTab 'signatures')}}active{{/if}}" data-tab="signatures">
+                <i class="fas fa-book-sparkles"></i> Signatures
+            </button>
+            <button type="button" class="registry-tab {{#if (eq activeTab 'scrolls')}}active{{/if}}" data-tab="scrolls">
+                <i class="fas fa-scroll"></i> Scroll Plan
+            </button>
+            <button type="button" class="registry-tab {{#if (eq activeTab 'party')}}active{{/if}}" data-tab="party">
+                <i class="fas fa-users"></i> Party Shelf
+            </button>
+            <button type="button" class="registry-tab {{#if (eq activeTab 'cursed')}}active{{/if}}" data-tab="cursed">
+                <i class="fas fa-skull"></i> Cursed Pool
+            </button>
+        </div>
+        <button type="button" class="registry-tab {{#if (eq activeTab 'banlist')}}active{{/if}}" data-tab="banlist">
+            <i class="fas fa-ban"></i> Ban List
+            {{#if banCount}}<span class="tab-badge">{{banCount}}</span>{{/if}}
+        </button>
+    </div>
+
+    {{!-- ══ SIGNATURES ══════════════════════════════════════════ --}}
+    {{#if (eq activeTab 'signatures')}}
+    <div class="registry-panel panel-signatures">
+        <p class="tab-desc"><i class="fas fa-book-sparkles"></i> Plan milestone items per character. The generator prioritises these when filling signature loot slots near the relevant level. These are intentions, not guarantees: the GM <span class="desc-highlight">places</span> items in the world, but the party <span class="desc-highlight">decides</span> who claims them.</p>
+        <p class="tab-desc tab-desc-philosophy"><strong>Why only 4 per character?</strong> Signature items are campaign-defining moments, not routine drops. The budget keeps each one meaningful. Stagger deliveries across sessions - when characters find their signature at different times, each moment carries weight. Not everyone needs to be rewarded at once.</p>
+        <div class="ledger-scroll-area">
+
+            <div class="ledger-grid-header sig-header">
+                <div class="grid-corner grid-corner-sig">
+                    <span>Character</span>
+                    <button type="button" class="btn-manage-party" title="Choose which characters appear in the Ledger">
+                        <i class="fas fa-user-gear"></i>
+                    </button>
+                </div>
+                {{#each milestones}}<div class="grid-col-header">Lv {{this}}</div>{{/each}}
+            </div>
+
+            {{#each actors}}
+            <div class="ledger-grid-row sig-row {{#if this.isBehind}}row-behind{{/if}}">
+
+                <div class="grid-actor-cell">
+                    <img src="{{this.img}}" class="actor-img" alt="{{this.name}}" />
+                    <div class="actor-info">
+                        <span class="actor-name" title="{{this.name}}">{{this.name}}</span>
+                        <div class="actor-sub-row">
+                            <span class="actor-sub">{{this.classes}} (Lv {{this.level}})</span>
+                            <div class="actor-toolbar">
+                                <span class="sig-budget-pips" title="Signature budget  - intentional scarcity keeps each item a campaign moment.">
+                                    {{#each this.budgetPips}}<span class="budget-pip {{#if this.filled}}pip-filled{{else}}pip-empty{{/if}}"></span>{{/each}}
+                                    <span class="budget-count">{{this.budgetUsed}}/{{this.budgetTotal}}</span>
+                                </span>
+                                {{#if this.hasEmptySlots}}
+                                <button type="button" class="btn-seed-inline action-seed-signatures"
+                                        data-actor-id="{{this.id}}"
+                                        title="Fill empty slots with suggestions"
+                                        aria-label="Fill empty signature slots with suggestions">
+                                    <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i>
+                                </button>
+                                {{/if}}
+                            </div>
+                        </div>
+                        {{#if this.showStat}}
+                        <div class="sig-actor-stat {{this.powerTier}}" title="Raw power score: {{this.powerScore}} | Party avg: {{../avgPower}}. Centre = party average. Bar grows right for over-equipped, left for under-equipped.">
+                            <div class="power-bar-track sig-actor-stat-bar power-bar-centered" data-sign="{{this.powerSign}}">
+                                <span class="power-bar-centerline" aria-hidden="true"></span>
+                                <div class="power-bar-fill" style="width:{{this.powerBarHalfPct}}%;"></div>
+                            </div>
+                            <span class="stat-deviation sig-actor-stat-label">{{this.powerLabel}}</span>
+                        </div>
+                        {{/if}}
+                    </div>
+                </div>
+
+                <div class="sig-slots-strip">
+                    <div class="sig-row-level-range" aria-hidden="true">
+                        <div class="sig-row-level-range-fill" style="width: {{this.levelRangeBarPct}}%;"></div>
+                    </div>
+                {{#each this.slots}}
+                {{> "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs" this variant=""}}
+                {{/each}}
+                </div>
+
+            </div>
+
+            {{#if this.isBehind}}
+            <div class="row-warning-banner">
+                <i class="fas fa-exclamation-triangle"></i> {{this.name}} is under-equipped relative to the party ({{this.powerLabel}}).
+            </div>
+            {{/if}}
+
+            {{else}}
+            <div class="empty-state">
+                <i class="fas fa-users-slash"></i>
+                <p>No player characters found.</p>
+            </div>
+            {{/each}}
+        </div>
+        <div class="ledger-footer ledger-footer-sig">
+            <span class="footer-hint">Avg power: {{avgPower}}</span>
+            <span class="footer-hint footer-hint-philosophy"><em>Variation between characters is by design - staggered signatures create anticipation, not imbalance.</em></span>
+        </div>
+    </div>
+    {{/if}}
+
+    {{!-- ══ SCROLL PLAN ══════════════════════════════════════════ --}}
+    {{#if (eq activeTab 'scrolls')}}
+    <div class="registry-panel panel-scrolls">
+        <div class="ledger-scroll-area cursed-scroll-area">
+
+            {{#with scrollPinnedRow}}
+            {{!-- ── Scroll Policy Dashboard (always visible) ─────────── --}}
+            <div class="qm-policy-dashboard scroll-policy-dashboard">
+                <div class="policy-hero-badge">
+                    <span class="policy-hero-label">Party Level</span>
+                    <span class="policy-hero-value">{{../scrollPolicyData.partyLevel}}</span>
+                </div>
+
+                <div class="policy-bar-chart">
+                    {{#each ../scrollPolicyData.distribution}}
+                    <div class="policy-bar-col {{#if this.isOptimal}}policy-bar-optimal{{/if}}">
+                        <div class="policy-bar" style="height: {{this.barHeight}}%;"></div>
+                        <span class="policy-bar-pct">{{this.percent}}%</span>
+                        <span class="policy-bar-label">Lv {{this.level}}</span>
+                    </div>
+                    {{/each}}
+                </div>
+
+                <div class="policy-sliders-row">
+                    <div class="policy-slider-group" title="Floor: The lowest spell level scrolls can drop at. The distribution stretches down to this level as the party levels up.">
+                        <label class="policy-slider-label">Floor <span class="policy-slider-value">{{../scrollFloor}}</span></label>
+                        <input type="range" class="policy-slider action-update-scroll-floor" min="1" max="9" step="1" value="{{../scrollFloor}}">
+                    </div>
+                    <div class="policy-slider-group" title="Concentration: Controls how tightly the distribution clusters around the optimal level. 1 = flat spread, 5 = sharply peaked at optimal.">
+                        <label class="policy-slider-label">Concentration <span class="policy-slider-value">{{../scrollConcentration}}</span></label>
+                        <input type="range" class="policy-slider action-update-scroll-concentration" min="1" max="5" step="1" value="{{../scrollConcentration}}">
+                    </div>
+                    <div class="policy-slider-group" title="Optimal Offset: Offsets the party's assumed optimal scroll level to favor pulling lower or higher level scrolls.">
+                        <label class="policy-slider-label">Optimal Offset <span class="policy-slider-value">{{../scrollPolicyData.offsetLabel}}</span></label>
+                        <input type="range" class="policy-slider action-update-scroll-offset" min="-4" max="4" step="1" value="{{../scrollOffset}}">
+                    </div>
+                    <div class="policy-slider-group" title="Upper Reach: The maximum spell levels above optimal that randomisation can push. 0 = scrolls never exceed optimal.">
+                        <label class="policy-slider-label">Upper Reach <span class="policy-slider-value">+{{../scrollUpperReach}}</span></label>
+                        <input type="range" class="policy-slider action-update-scroll-upper-reach" min="0" max="4" step="1" value="{{../scrollUpperReach}}">
+                    </div>
+                </div>
+
+                <div class="dashboard-footer-actions">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
+                        <a role="button" class="btn-qm-reset action-reset-scroll-defaults" title="Reset all scroll distribution settings to defaults">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    </div>
+                    <button type="button" class="btn-qm-override action-toggle-scroll-tracker {{#if ../scrollTrackerExpanded}}is-expanded{{/if}}">
+                        <i class="fas {{#if ../scrollTrackerExpanded}}fa-chevron-up{{else}}fa-chevron-down{{/if}}"></i>
+                        {{#if ../scrollTrackerExpanded}}Collapse Scroll Overrides{{else}}Override on Specific Scrolls{{/if}}
+                    </button>
+                </div>
+            </div>
+
+            {{!-- ── Accordion: tracker grid expands below dashboard ─── --}}
+            <div class="qm-tracker-accordion {{#if ../scrollTrackerExpanded}}qm-tracker-accordion-open{{/if}}">
+                
+                <div class="qm-tracker-accordion-scrollable">
+                    {{!-- ── Pinned Scrolls Section ─────────────────────────── --}}
+                    <div class="scroll-section-header scroll-pinned-header">
+                        <div class="scroll-section-header-row">
+                            <span class="scroll-section-title"><i class="fas fa-thumbtack"></i> Pinned Scrolls</span>
+                        </div>
+                    </div>
+        
+                    {{#unless ../hasParty}}
+                    <div class="no-party-notice">
+                        <i class="fas fa-users-slash"></i> No player characters found. The reach band defaults to level 1.
+                    </div>
+                    {{/unless}}
+
+                    <span class="scroll-section-hint qm-accordion-hint">This board is <strong class="hint-highlight">optional</strong>. The loot generator delivers spell scrolls automatically. Pin a scroll to manually place it at a specific milestone.</span>
+                    
+                    <div class="cursed-planned-strip-wrap scroll-planned-strip-wrap">
+                    <div class="cursed-planned-col-labels scroll-planned-col-labels">
+                        <div class="cursed-planned-col-labels-grid">
+                            {{#each milestoneLabels}}
+                            <div class="cursed-planned-col-label scroll-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</div>
+                            {{/each}}
+                        </div>
+                        <div class="cursed-planned-median-overlay">
+                            <div class="cursed-planned-median-track" style="width: {{levelRangeBarPct}}%;">
+                                <span class="cursed-band-level-tip scroll-band-level-tip">{{partyLevelLabel}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cursed-planned-band-row scroll-planned-band-row">
+                        <div class="sig-row-level-range cursed-row-level-range scroll-row-level-range" aria-hidden="true">
+                            <div class="sig-row-level-range-fill cursed-level-range-fill scroll-level-range-fill" style="width: {{levelRangeBarPct}}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="sig-slots-strip cursed-slots-strip scroll-slots-strip">
+                        {{#each columns}}
+                        <div class="cursed-milestone-stack scroll-milestone-stack">
+                            {{#each this.slots}}
+                            <div class="grid-slot scroll-slot {{#if this.filled}}slot-filled rarity-{{this.rarity}}{{else}}slot-empty{{/if}} {{#if this.delivered}}slot-delivered{{/if}} {{#if this.isPast}}slot-past{{/if}} {{#if this.isFuture}}slot-future{{/if}} {{#if this.isCurrent}}slot-current{{/if}} {{#if this.isNext}}slot-next{{/if}} {{#if this.isOverdue}}slot-overdue{{/if}} {{#if this.reachGlowActive}}slot-reach-glow{{/if}} {{#if this.locked}}slot-locked{{/if}}"
+                                 data-level="{{this.level}}"
+                                 data-slot-idx="{{this.slotIdx}}"
+                                 {{#if this.uuid}}data-uuid="{{this.uuid}}"{{/if}}
+                                 {{#if this.name}}data-name="{{this.name}}"{{/if}}
+                                 draggable="{{#if this.filled}}true{{else}}false{{/if}}"
+                                 style="--ir-reach-blend: {{this.reachBlend}}; --ir-reach-glow: {{this.reachGlow}};">
+                                {{#if this.filled}}
+                                    <img src="{{this.img}}" class="slot-item-img" alt="{{this.name}}" draggable="false" />
+                                    {{!-- Spell level badge --}}
+                                    {{#if this.spellLevel}}<span class="scroll-slot-level-badge">Lv {{this.spellLevel}}</span>{{/if}}
+                                    {{!-- Lock --}}
+                                    <button type="button" class="slot-btn slot-btn-lock action-toggle-lock {{#if this.locked}}is-locked{{/if}}"
+                                            data-level="{{this.level}}" data-uuid="{{this.uuid}}" data-variant="scroll"
+                                            title="{{#if this.locked}}Unlock{{else}}Lock{{/if}}">
+                                        <i class="fas {{#if this.locked}}fa-lock{{else}}fa-lock-open{{/if}}"></i>
+                                    </button>
+                                    {{!-- Remove --}}
+                                    <button type="button" class="slot-btn slot-btn-remove action-remove-scroll-pin"
+                                            data-level="{{this.level}}" data-uuid="{{this.uuid}}" title="Remove pinned scroll">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    {{!-- Delivered toggle --}}
+                                    <button type="button" class="slot-btn slot-btn-bl action-toggle-scroll-delivered"
+                                            data-level="{{this.level}}" data-uuid="{{this.uuid}}"
+                                            title="{{#if this.delivered}}Mark undelivered{{else}}Mark delivered{{/if}}">
+                                        <i class="fas {{#if this.delivered}}fa-rotate-left{{else}}fa-check{{/if}}"></i>
+                                    </button>
+                                {{else}}
+                                    <i class="fas fa-scroll slot-drop-icon"></i>
+                                {{/if}}
+                            </div>
+                            {{/each}}
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                </div>{{!-- /qm-tracker-accordion-scrollable --}}
+
+                {{!-- ── Scroll actions (inside override accordion) ── --}}
+                <div class="scroll-compendium-info tracker-accordion-actions">
+                    <div class="scroll-compendium-buttons">
+                        <button type="button" class="scroll-open-compendium action-open-forged-scrolls" title="Open the forged spell scroll compendium">
+                            <i class="fas fa-book-open"></i> Open Quartermaster: Spell Scrolls
+                        </button>
+                        <a role="button" class="qm-secondary-link action-compile-scroll-forge" title="Choose spell sources and recompile the scroll compendium">
+                            <i class="fas fa-hammer"></i> Item Compiler
+                        </a>
+                    </div>
+                    <p class="scroll-jitter-note">
+                        Drag scrolls from the compendium into slots. <strong>Pinned</strong> scrolls bypass randomisation and land at their milestone.
+                    </p>
+                </div>
+
+            </div>{{!-- /qm-tracker-accordion --}}
+
+            {{/with}}
+
+            <div style="height: 24px; flex-shrink: 0; width: 100%;"></div>
+        </div>
+    </div>
+    {{/if}}
+
+
+    {{!-- ══ PARTY SHELF ══════════════════════════════════════════ --}}
+    {{#if (eq activeTab 'party')}}
+    <div class="registry-panel panel-party">
+        <div class="ledger-scroll-area cursed-scroll-area party-panel-layout">
+
+            {{#with partyShelfRow}}
+            <div class="party-panel-scroll">
+            {{!-- ── Party Shelf Policy Dashboard (always visible) ──────── --}}
+            <div class="qm-policy-dashboard party-policy-dashboard">
+                <div class="party-policy-columns">
+
+                    {{!-- ── Left Column: Rarity Distribution ────── --}}
+                    <div class="party-policy-left">
+                        <div class="policy-hero-badge">
+                            <span class="policy-hero-label">Party Level</span>
+                            <span class="policy-hero-value">{{../shelfPolicyData.partyLevel}}</span>
+                        </div>
+
+                        <div class="policy-bar-chart">
+                            {{#each ../shelfPolicyData.distribution}}
+                            <div class="policy-bar-col {{this.cssClass}} {{#if this.isOptimal}}policy-bar-optimal{{/if}}">
+                                <div class="policy-bar" style="height: {{this.barHeight}}%;"></div>
+                                <span class="policy-bar-pct">{{this.percent}}%</span>
+                                <span class="policy-bar-label">{{this.label}}</span>
+                            </div>
+                            {{/each}}
+                        </div>
+
+                        <div class="policy-sliders-row">
+                            <div class="policy-slider-group" title="Concentration: Controls how tightly the rarity distribution clusters around Uncommon. 1 = flat spread across rarities, 5 = heavily Uncommon.">
+                                <label class="policy-slider-label">Concentration <span class="policy-slider-value">{{../shelfConcentration}}</span></label>
+                                <input type="range" class="policy-slider action-update-shelf-concentration" min="1" max="5" step="1" value="{{../shelfConcentration}}">
+                            </div>
+                            <div class="policy-slider-group" title="Attunement Bias: Controls the ratio of items that require attunement versus those that do not. Low = fewer attuned items, High = more attuned items.">
+                                <label class="policy-slider-label">Attunement Bias <span class="policy-slider-value">{{../shelfPolicyData.attunementLabel}}</span></label>
+                                <input type="range" class="policy-slider action-update-shelf-attunement" min="0" max="2" step="1" value="{{../shelfAttunementBias}}">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{!-- ── Vertical Divider ────────────────────── --}}
+                    <div class="party-policy-divider"></div>
+
+                    {{!-- ── Right Column: Category Mix ──────────── --}}
+                    <div class="party-policy-right">
+                        <span class="party-category-header">Category Mix</span>
+
+                        {{#each ../shelfPolicyData.categoryMix}}
+                        <div class="party-category-row {{#unless this.enabled}}is-disabled{{/unless}}">
+                            <input type="checkbox" class="party-category-checkbox action-toggle-category"
+                                   data-category="{{this.category}}" {{#if this.enabled}}checked{{/if}}>
+                            <span class="party-category-dot {{this.cssClass}}"></span>
+                            <span class="party-category-name">{{this.label}}</span>
+                            <input type="range" class="party-category-slider action-update-category-weight"
+                                   data-category="{{this.category}}"
+                                   min="0" max="100" step="5"
+                                   value="{{this.weight}}"
+                                   {{#unless this.enabled}}disabled{{/unless}}>
+                            <span class="party-category-weight {{#unless this.enabled}}is-off{{/unless}}">{{#if this.enabled}}{{this.percent}}%{{else}}&mdash;{{/if}}</span>
+                        </div>
+                        {{/each}}
+
+                        <span class="party-category-note">Weights auto-normalise among enabled categories.</span>
+
+                        <div class="party-shelf-loot-config-note">
+                            <i class="fas fa-circle-info"></i>
+                            <span>These filters control what appears in the advisory panel. Armour and weapon drops in generated caches are controlled separately in Loot Generation settings.</span>
+                            <a role="button" class="party-shelf-loot-config-link action-open-loot-generation-config">Open Config &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-footer-actions">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
+                        <a role="button" class="btn-qm-reset action-reset-party-defaults" title="Reset all party shelf settings to defaults">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    </div>
+                    <button type="button" class="btn-qm-override action-toggle-party-tracker {{#if ../partyTrackerExpanded}}is-expanded{{/if}}">
+                        <i class="fas {{#if ../partyTrackerExpanded}}fa-chevron-up{{else}}fa-chevron-down{{/if}}"></i>
+                        {{#if ../partyTrackerExpanded}}Collapse Tracker{{else}}Override on Specific Items{{/if}}
+                    </button>
+                </div>
+            </div>
+
+            {{!-- ── Accordion: tracker grid expands below dashboard ─── --}}
+            <div class="qm-tracker-accordion {{#if ../partyTrackerExpanded}}qm-tracker-accordion-open{{/if}}">
+
+                <div class="qm-tracker-accordion-scrollable">
+                    {{!-- ── Party Shelf Section Header ───────────────────────── --}}
+                    <div class="scroll-section-header party-shelf-header">
+                        <div class="scroll-section-header-row">
+                            <span class="scroll-section-title"><i class="fas fa-users"></i> Party Items</span>
+                        </div>
+                    </div>
+
+                    <span class="scroll-section-hint qm-accordion-hint">Plan milestone-level party items. <strong class="hint-highlight">Planned</strong> items surface automatically at their assigned level. Empty slots show unsaved, randomised suggestions that cycle on each reroll.</span>
+
+                    {{#unless ../hasParty}}
+                    <div class="no-party-notice">
+                        <i class="fas fa-users-slash"></i> No player characters found. The reach band defaults to level 1.
+                    </div>
+                    {{/unless}}
+
+                    <div class="cursed-planned-strip-wrap party-planned-strip-wrap">
+                        <div class="cursed-planned-col-labels party-planned-col-labels">
+                            <div class="cursed-planned-col-labels-grid">
+                                {{#each milestoneLabels}}
+                                <div class="cursed-planned-col-label party-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</div>
+                                {{/each}}
+                            </div>
+                            <div class="cursed-planned-median-overlay">
+                                <div class="cursed-planned-median-track" style="width: {{levelRangeBarPct}}%;">
+                                    <span class="cursed-band-level-tip party-band-level-tip">{{partyLevelLabel}}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="cursed-planned-band-row party-planned-band-row">
+                            <div class="sig-row-level-range cursed-row-level-range party-row-level-range" aria-hidden="true">
+                                <div class="sig-row-level-range-fill cursed-level-range-fill party-level-range-fill" style="width: {{levelRangeBarPct}}%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="sig-slots-strip cursed-slots-strip party-slots-strip">
+                            {{#each columns}}
+                            <div class="cursed-milestone-stack party-milestone-stack">
+                                {{#each this.slots}}
+                                {{> "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs" this variant="party"}}
+                                {{/each}}
+                            </div>
+                            {{/each}}
+                        </div>
+                    </div>
+                </div>{{!-- /qm-tracker-accordion-scrollable --}}
+
+                {{!-- ── Party Shelf actions (inside override accordion) ── --}}
+                <div class="scroll-compendium-info party-compendium-info tracker-accordion-actions">
+                    <div class="scroll-compendium-buttons party-compendium-buttons">
+                        <button type="button" class="scroll-open-compendium action-seed-shelf" title="Randomise party items from the configured compendiums by rarity">
+                            <i class="fas fa-wand-magic-sparkles"></i> Randomise
+                        </button>
+                        <a role="button" class="qm-secondary-link action-curate-shelf" title="Choose which item compendiums the randomiser draws from and compile the loot pool">
+                            <i class="fas fa-hammer"></i> Item Compiler
+                        </a>
+                    </div>
+                    <p class="scroll-jitter-note party-jitter-note">
+                        Drop items from compendiums into slots to plan them. <strong>Planned</strong> items bypass randomisation and land at their milestone.
+                    </p>
+                </div>
+
+            </div>{{!-- /qm-tracker-accordion --}}
+
+            </div>{{!-- /party-panel-scroll --}}
+
+            {{/with}}
+        </div>
+    </div>
+    {{/if}}
+
+
+    {{!-- ══ BAN LIST ═════════════════════════════════════════════ --}}
+    {{#if (eq activeTab 'banlist')}}
+    <div class="registry-panel panel-banlist">
+        <p class="tab-desc"><i class="fas fa-ban"></i> Items on this list are excluded from all cache generation. Manual loot placement is always allowed regardless of bans.</p>
+
+        <div class="ban-drop-zone" data-drop-target="banlist">
+            <i class="fas fa-arrow-down-to-bracket ban-drop-icon"></i>
+            <span class="ban-drop-label">Drop items here to ban them</span>
+            <span class="ban-drop-hint">Drag from a compendium or the item sidebar</span>
+        </div>
+
+        <div class="banlist-toolbar">
+            <div class="ban-search-wrapper">
+                <i class="fas fa-search ban-search-icon"></i>
+                <input type="text" class="ban-search-input" placeholder="Filter banned items..." />
+            </div>
+            {{#if banCount}}<span class="ban-count-badge">{{banCount}} banned</span>{{/if}}
+        </div>
+
+        <div class="banlist-scroll-area">
+            <div class="ban-card-grid">
+                {{#each banList}}
+                <div class="ban-card" data-index="{{@index}}" data-name="{{this.name}}">
+                    <button type="button" class="ban-card-remove action-remove-ban" data-index="{{@index}}" title="Remove from ban list">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="ban-card-icon">
+                        {{#if this.img}}
+                        <img src="{{this.img}}" class="ban-card-img" alt="{{this.name}}" />
+                        {{else}}
+                        <i class="fas fa-ban ban-card-placeholder"></i>
+                        {{/if}}
+                    </div>
+                    <span class="ban-card-name" title="{{this.name}}">{{this.name}}</span>
+                </div>
+                {{/each}}
+            </div>
+
+            {{#unless banCount}}
+            <div class="empty-state ban-empty-state">
+                <i class="fas fa-thumbs-up"></i>
+                <p>No items banned. All loot is fair game.</p>
+            </div>
+            {{/unless}}
+
+            <div class="ban-no-matches" style="display:none;">
+                <i class="fas fa-search"></i>
+                <p>No banned items match your filter.</p>
+            </div>
+        </div>
+
+    </div>
+    {{/if}}
+
+{{#if (eq activeTab 'cursed')}}
+<div class="registry-panel panel-cursed">
+    <div class="ledger-scroll-area cursed-scroll-area cursed-priority-layout">
+
+        {{!-- ── Compact header bar ────────────────────────────────────────── --}}
+        <div class="curse-header-bar">
+            <div class="curse-header-left">
+                <i class="fas fa-flask-vial"></i>
+                <span class="curse-header-title">Cursed Pool</span>
+                <span class="curse-header-sub">Priority shapes drop probability within each tier.</span>
+            </div>
+            <div class="curse-header-right">
+                {{#unless cwPresent}}
+                <span class="curse-cw-signal" title="Install Cursewright for extended curse content, tier-tagged recipes, and the full curse engine.">
+                    <span class="curse-cw-dot">◦</span> Cursewright not loaded
+                </span>
+                {{/unless}}
+                {{#if cwPresent}}
+                <button type="button" class="btn-cursed-tracker-launch action-open-curse-registry"
+                        title="View active cursed items tracked by the Curse Engine">
+                    <i class="fas fa-eye"></i> Curse Tracker
+                </button>
+                {{/if}}
+                <span class="curse-header-level">Lv {{partyLevel}}</span>
+            </div>
+        </div>
+
+        {{!-- ── Tier distribution chart ────────────────────────────────────── --}}
+        <div class="curse-tier-dist-panel">
+            <span class="curse-dist-label">Drop probability at Lv {{partyLevel}}</span>
+            <div class="curse-dist-chart-group">
+                <div class="curse-dist-bars">
+                    {{#each cursedTierDistribution}}
+                    <div class="curse-dist-col {{#if this.isDisabled}}curse-dist-col--off{{/if}}">
+                        <div class="curse-dist-bar" style="height: {{this.barHeight}}px;"></div>
+                        <span class="curse-dist-pct">{{#if this.isDisabled}}-{{else}}{{this.percent}}%{{/if}}</span>
+                        <span class="curse-dist-tier-label">{{this.label}}</span>
+                    </div>
+                    {{/each}}
+                </div>
+                <div class="curse-dist-vert-divider"></div>
+                <div class="curse-tier-toggles">
+                    <label class="curse-tier-toggle-row {{#unless t3Enabled}}curse-toggle-off{{/unless}}" title="T3 cursed items are documented as high-lethality - capable of killing players. Enable when your campaign is ready for that.">
+                        <input type="checkbox" class="curse-tier-toggle-check action-toggle-t3" {{#if t3Enabled}}checked{{/if}}>
+                        <span class="curse-toggle-tier">T3</span>
+                        <span class="curse-toggle-hint">Dangerous - high lethality</span>
+                    </label>
+                    <label class="curse-tier-toggle-row {{#unless t4Enabled}}curse-toggle-off{{/unless}}" title="T4 cursed items are campaign-altering - expect side quests, major distractions, and long-term consequences.">
+                        <input type="checkbox" class="curse-tier-toggle-check action-toggle-t4" {{#if t4Enabled}}checked{{/if}}>
+                        <span class="curse-toggle-tier">T4</span>
+                        <span class="curse-toggle-hint">Campaign-altering</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        {{!-- ── Priority columns ────────────────────────────────────────────── --}}
+        <div class="curse-priority-grid">
+            {{#each priorityColumns}}
+            <div class="curse-priority-col {{#unless this.enabled}}curse-priority-col--disabled{{/unless}}"
+                 data-tier="{{this.tier}}">
+
+                <div class="curse-priority-col-head">
+                    <span class="curse-col-label">{{this.laneHead}}</span>
+                    <span class="curse-col-count {{#if this.isFull}}curse-col-count--full{{/if}}">{{this.count}}/{{../priorityColCap}}</span>
+                </div>
+
+                {{#unless this.enabled}}
+                <div class="curse-col-disabled-notice">
+                    <i class="fas fa-lock"></i>
+                    <span>Tier disabled - items held in reserve</span>
+                </div>
+                {{/unless}}
+
+                {{#if this.enabled}}
+                    {{#each this.items}}
+                    <div class="curse-priority-card"
+                         data-uuid="{{this.uuid}}"
+                         data-tier="{{../tier}}"
+                         data-pos-in-col="{{this.posInCol}}"
+                         draggable="true"
+                         title="{{this.weightLabel}}{{#if this.curseTypeDesc}} · {{this.curseTypeDesc}}{{/if}}">
+                        <span class="curse-card-weight-badge" title="{{this.weightTooltip}}">{{this.weightPct}}%</span>
+                        <div class="curse-card-icon">
+                            {{#if this.img}}
+                            <img src="{{this.img}}" class="curse-card-img" alt="{{this.name}}" draggable="false" />
+                            {{else}}
+                            <i class="fas fa-flask-vial curse-card-placeholder"></i>
+                            {{/if}}
+                        </div>
+                        <div class="curse-card-body">
+                            <span class="curse-card-name" title="{{this.name}}">{{this.name}}</span>
+                            {{#if this.curseType}}<span class="curse-card-type" title="{{this.curseTypeDesc}}">{{this.curseType}}</span>{{/if}}
+                        </div>
+                        <button type="button" class="curse-priority-card-remove action-remove-pool-item"
+                                data-index="{{this.posInCol}}"
+                                data-uuid="{{this.uuid}}"
+                                title="Remove from pool">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    {{/each}}
+
+                    {{#unless this.isFull}}
+                    <div class="curse-col-drop-hint">
+                        <i class="fas fa-arrow-down-to-bracket"></i>
+                        <span>Drop item here</span>
+                    </div>
+                    {{/unless}}
+
+                    {{#if this.isFull}}
+                    <div class="curse-col-full-notice">
+                        <i class="fas fa-circle-info"></i>
+                        <span>Column full - remove to add</span>
+                    </div>
+                    {{/if}}
+                {{/if}}
+
+            </div>
+            {{/each}}
+        </div>
+
+        {{!-- ── Source footer ─────────────────────────────────────────────── --}}
+        <div class="curse-source-footer">
+            <div class="curse-source-footer-left">
+                {{#unless cwPresent}}
+                {{#if srdPoolCount}}
+                <span class="curse-source-pill curse-source-pill--active">
+                    <i class="fas fa-circle-check"></i> SRD · {{srdPoolCount}} item{{#if (gt srdPoolCount 1)}}s{{/if}}
+                </span>
+                {{else}}
+                <span class="curse-source-pill">
+                    <i class="fas fa-flask-vial"></i> SRD not loaded
+                </span>
+                {{/if}}
+                {{/unless}}
+                {{#if cwPresent}}
+                    {{#if cwPoolCount}}
+                    <span class="curse-source-pill curse-source-pill--active">
+                        <i class="fas fa-circle-check"></i> Cursewright · {{cwPoolCount}} item{{#if (gt cwPoolCount 1)}}s{{/if}}
+                    </span>
+                    {{else}}
+                    <span class="curse-source-pill">
+                        <i class="fas fa-skull-crossbones"></i> Cursewright not compiled
+                    </span>
+                    {{/if}}
+                {{/if}}
+            </div>
+            <div class="curse-source-footer-right">
+                {{#unless cwPresent}}
+                {{#if hasSrdPack}}
+                <a role="button" class="curse-footer-link action-compile-srd-cursed"
+                   data-action="compile-srd-cursed"
+                   title="{{#if srdPoolCount}}Refresh SRD cursed items{{else}}Load SRD cursed items{{/if}}">
+                    <i class="fas {{#if srdPoolCount}}fa-rotate{{else}}fa-plus{{/if}}"></i>
+                    {{#if srdPoolCount}}Refresh SRD{{else}}Load SRD{{/if}}
+                </a>
+                {{/if}}
+                {{/unless}}
+                {{#if cwPresent}}
+                <a role="button" class="curse-footer-link action-compile-curse-forge"
+                   data-action="compile-curse-forge"
+                   title="{{#if cwPoolCount}}Refresh Cursewright items{{else}}Compile Cursewright curse recipes{{/if}}">
+                    <i class="fas {{#if cwPoolCount}}fa-rotate{{else}}fa-hammer{{/if}}"></i>
+                    {{#if cwPoolCount}}Refresh CW{{else}}Compile CW{{/if}}
+                </a>
+                {{/if}}
+            </div>
+        </div>
+
+    </div>
+</div>
+{{/if}}
+
+</form>
+

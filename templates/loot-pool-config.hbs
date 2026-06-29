@@ -1,0 +1,26 @@
+<form class="ionrift-loot-pool-config">
+    <p class="pool-instructions">Select which compendiums contribute items to the loot cache generator. Checked packs are queried at generation time.</p>
+
+    <div class="loot-pool-sources-scroll">
+        {{#each groups}}
+        <div class="pool-group">
+            <div class="pool-group-header">
+                <i class="fas fa-box-archive"></i> {{this.label}}
+            </div>
+            {{#each this.packs}}
+            <label class="pool-pack-row">
+                <input type="checkbox" name="pack-{{this.id}}" {{#if this.enabled}}checked{{/if}} />
+                <span class="pool-pack-label">{{this.label}}</span>
+                <span class="pool-pack-id">{{this.id}}</span>
+            </label>
+            {{/each}}
+        </div>
+        {{/each}}
+    </div>
+
+    <footer class="pool-footer">
+        <button type="submit" class="cache-btn-accent">
+            <i class="fas fa-save"></i> Save Sources
+        </button>
+    </footer>
+</form>

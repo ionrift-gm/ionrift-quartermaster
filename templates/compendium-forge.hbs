@@ -1,0 +1,14 @@
+<form class="compendium-forge-shell">
+    <aside class="forge-sidebar">
+        {{#each tabs}}
+        <div class="forge-tab {{#if this.active}}active{{/if}}" data-tab="{{this.id}}" title="{{this.label}}">
+            <i class="{{this.icon}}"></i>
+            <span class="forge-tab-label">{{this.label}}</span>
+            <span class="forge-status-dot status-{{this.status}}" title="{{this.statusLabel}}"></span>
+        </div>
+        {{/each}}
+    </aside>
+    <section class="forge-pane">
+        {{> (lookup . "activePartial") }}
+    </section>
+</form>

@@ -1,0 +1,92 @@
+{
+    "tiers": {
+        "1": { "label": "Tier 1 (Level 1-4)",   "levelRange": [1, 4],   "rarityMax": "uncommon", "goldDice": "2d6",      "scrollLevelMax": 2, "signatureChance": 0.05, "budgetCap": 150  },
+        "2": { "label": "Tier 2 (Level 5-10)",   "levelRange": [5, 10],  "rarityMax": "rare",     "goldDice": "4d6*5",    "scrollLevelMax": 4, "signatureChance": 0.10, "budgetCap": 600  },
+        "3": { "label": "Tier 3 (Level 11-16)",  "levelRange": [11, 16], "rarityMax": "veryRare", "goldDice": "4d6*50",   "scrollLevelMax": 7, "signatureChance": 0.15, "budgetCap": 2500 },
+        "4": { "label": "Tier 4 (Level 17-20)",  "levelRange": [17, 20], "rarityMax": "legendary","goldDice": "4d6*500",  "scrollLevelMax": 9, "signatureChance": 0.20, "budgetCap": 10000}
+    },
+
+    "ownerThemes": {
+        "unspecified": {
+            "label": "Unspecified",
+            "desc": "A general cache. Balanced distribution.",
+            "budgetMultiplier": 1.0,
+            "totalSlots": { "min": 5, "max": 8 },
+            "slotPool": {
+                "mundane": 2, "consumable": 2, "scroll": 1.5,
+                "mastercraft": 1.5, "gemstone": 1.5, "treasure": 1.5, "trinket": 1,
+                "ammo": 0.5
+            },
+            "guaranteed": []
+        },
+        "arcana": {
+            "label": "Arcana",
+            "desc": "A spellcaster's reserves. Scrolls, reagents, and arcane curiosities.",
+            "budgetMultiplier": 1.0,
+            "totalSlots": { "min": 5, "max": 7 },
+            "slotPool": {
+                "scroll": 4, "consumable": 3, "trinket": 2,
+                "mundane": 1.5, "gemstone": 1, "mastercraft": 0.5, "treasure": 1
+            },
+            "guaranteed": [{ "type": "scroll", "min": 2, "max": 3 }]
+        },
+        "apothecary": {
+            "label": "Apothecary",
+            "desc": "A healer's stock or alchemist's shelf. Potions, elixirs, and medicinal supplies.",
+            "budgetMultiplier": 0.9,
+            "totalSlots": { "min": 5, "max": 7 },
+            "slotPool": {
+                "consumable": 6, "scroll": 2, "trinket": 1.5,
+                "mundane": 1, "gemstone": 0.5, "mastercraft": 0, "treasure": 0.5
+            },
+            "guaranteed": [{ "type": "consumable", "min": 2, "max": 3 }]
+        },
+        "armaments": {
+            "label": "Armaments",
+            "desc": "Military surplus or a warrior's stash.",
+            "budgetMultiplier": 1.0,
+            "totalSlots": { "min": 6, "max": 8 },
+            "slotPool": {
+                "mastercraft": 5, "mundane": 3, "consumable": 2,
+                "ammo": 2, "treasure": 1, "gemstone": 1, "scroll": 0.5, "trinket": 0.5
+            },
+            "guaranteed": [{ "type": "mastercraft", "min": 1, "max": 2 }]
+        },
+        "implements": {
+            "label": "Implements",
+            "desc": "A crafter's workshop or cult supplies.",
+            "budgetMultiplier": 0.6,
+            "totalSlots": { "min": 5, "max": 7 },
+            "slotPool": {
+                "mundane": 4, "consumable": 3, "treasure": 2,
+                "trinket": 2, "scroll": 1, "mastercraft": 1, "gemstone": 0.5,
+                "ammo": 0.5
+            },
+            "guaranteed": [{ "type": "mundane", "min": 2, "max": 3 }, "consumable"]
+        },
+        "relics": {
+            "label": "Relics",
+            "desc": "Remnants of the dead or divine.",
+            "budgetMultiplier": 0.9,
+            "totalSlots": { "min": 5, "max": 7 },
+            "slotPool": {
+                "gemstone": 3, "treasure": 3, "trinket": 2,
+                "consumable": 1.5, "scroll": 1, "mundane": 1, "mastercraft": 0.5,
+                "ammo": 0.3
+            },
+            "guaranteed": [{ "type": "treasure", "min": 1, "max": 2 }],
+            "curseMultiplier": 2.0
+        },
+        "abandoned": {
+            "label": "Abandoned",
+            "desc": "Forgotten junk. Mostly worthless, occasionally surprising.",
+            "budgetMultiplier": 0.15,
+            "totalSlots": { "min": 4, "max": 6 },
+            "slotPool": {
+                "mundane": 5, "trinket": 4, "consumable": 1.5,
+                "ammo": 1, "treasure": 1, "gemstone": 0.5, "scroll": 0.3, "mastercraft": 0
+            },
+            "guaranteed": ["mundane"]
+        }
+    }
+}

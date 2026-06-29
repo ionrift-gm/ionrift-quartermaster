@@ -1,0 +1,13 @@
+{
+    "id": "desert",
+    "flavorPhrases": [
+        "Beneath an overturned stone, shaded from the sun -- {container}.",
+        "The cairn was built to mark something. Beneath the lowest stone, wrapped in cloth, this.",
+        "A scraped furrow in the sand, half-filled by the wind. Whatever buried this wasn't expecting to leave it long.",
+        "Behind a wind-carved pillar of sandstone, in the cool shadow -- {container}.",
+        "The dry riverbed has a false bottom here. An old trader's trick.",
+        "Tucked under the lip of a rock shelf, just out of the sun. Easy to miss against the stone."
+    ],
+    "materials": ["Mastercraft", "Obsidian"],
+    "itemDescriptions": {}
+}
