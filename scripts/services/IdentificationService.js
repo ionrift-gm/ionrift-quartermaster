@@ -142,6 +142,27 @@ export class IdentificationService {
         // Consumables carry a "NaN" string in system.attunement from legacy cache placement
         // (StringField coerces numeric NaN → "NaN"). Include the clear in the SAME atomic
         // update as identified=true so there is no render gap where the attunement icon flashes.
+
+        // ── PF2e-specific promotion ──────────────────────────────────
+        // PF2e items are masked via system.identification.status = "unidentified".
+        // On identify, flip it back and restore traits/rarity that QM stashed
+        // in latentMagic (PF2e doesn't mask these natively).
+        if (game.system?.id === "pf2e" && latent) {
+            updates["system.identification.status"] = "identified";
+
+            if (latent.originalRarity) {
+                updates["system.traits.rarity"] = latent.originalRarity;
+            }
+            if (Array.isArray(latent.originalTraits) && latent.originalTraits.length) {
+                const currentTraits = item.system?.traits?.value ?? [];
+                const asArray = Array.isArray(currentTraits) ? currentTraits : [...currentTraits];
+                const restored = [...new Set([...asArray, ...latent.originalTraits])];
+                updates["system.traits.value"] = restored;
+            }
+            if (latent.originalPrice) {
+                updates["system.price"] = foundry.utils.deepClone(latent.originalPrice);
+            }
+        }
         if (item.type === "consumable") {
             updates["system.attunement"] = "";
         }

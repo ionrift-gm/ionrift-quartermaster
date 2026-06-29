@@ -10,6 +10,7 @@ import {
     normalizePf2eRarityForTier
 } from "./PF2ePoolRules.js";
 import { PF2eScrollForge } from "./scroll/PF2eScrollForge.js";
+import { detectPf2eMagical, applyPf2eMask } from "./masking/Pf2eMaskingRules.js";
 
 const PF2E_SOURCE_CANDIDATES = [
     "pf2e.equipment-srd",
@@ -22,6 +23,7 @@ const PF2E_SUPPORTED = new Set([
     QM_FEATURES.LOOT_CACHE,
     QM_FEATURES.SIGNATURE_LEDGER,
     QM_FEATURES.WORKSHOP,
+    QM_FEATURES.LATENT_MASKING,
 ]);
 
 const PF2E_LIB_FEATURES = new Set([
@@ -108,7 +110,15 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
         };
     }
 
-    shouldApplyLatentMasking() { return false; }
+    shouldApplyLatentMasking() { return true; }
+
+    detectMagicalForCache(item, ctx = {}) {
+        return detectPf2eMagical(item, ctx);
+    }
+
+    applyCacheMask(itemData, ctx) {
+        applyPf2eMask(itemData, ctx);
+    }
 
     getPowerScoreItemTypes() {
         return new Set(["weapon", "armor", "shield", "equipment"]);

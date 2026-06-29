@@ -44,7 +44,32 @@ export class IdentificationGuard {
      * @returns {boolean|void} Return false to cancel the update.
      */
     static guardIdentify(item, change, options /*, userId */) {
-        if (!foundry.utils.hasProperty(change, "system.identified")) return;
+        const hasDnd5eIdentified = foundry.utils.hasProperty(change, "system.identified");
+        const hasPf2eStatus = foundry.utils.hasProperty(change, "system.identification.status");
+
+        if (!hasDnd5eIdentified && !hasPf2eStatus) return;
+
+        // PF2e: intercept status → "identified" when QM latentMagic is present.
+        // Route through IdentificationService to promote stashed price/rarity/traits.
+        if (hasPf2eStatus && !hasDnd5eIdentified) {
+            const newStatus = change.system?.identification?.status;
+            if (newStatus !== "identified") return; // only intercept identify, not mystify
+            if (options?.curseBypass) return;
+
+            const latent = item.getFlag?.(MODULE_ID, "latentMagic");
+            if (!latent || latent.promoted) return; // no QM payload → pass through
+
+            if (game.user.isGM) {
+                traceIdentify("preUpdateItem:route-pf2e-identify", traceItemFlags(item));
+                Promise.resolve().then(() =>
+                    game.ionrift?.quartermaster?.identificationService?.identify(item)
+                );
+                return false;
+            }
+            // Non-GM: block if masked
+            traceIdentify("preUpdateItem:block-pf2e", { reason: "non-gm-pf2e-masked" });
+            return false;
+        }
 
         traceIdentify("preUpdateItem", {
             ...traceItemFlags(item),
