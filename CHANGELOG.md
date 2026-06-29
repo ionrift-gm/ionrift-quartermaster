@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.9.0] - 2026-06-29
+
+### Added
+- **Pathfinder 2e and Starfinder 2e support.** Cache generation, latent-magic masking, scroll forging, and item identification now work natively in PF2e and SF2e worlds. Rune names, property enchantments, and material prefixes are stripped to mundane base names; rarity, traits, and price are stashed and restored on identify.
+- **PF2e curse catalog.** Cursewright's curse definitions compile against PF2e item schemas, so cursed loot generates correctly in Pathfinder worlds.
+
+### Fixed
+- Scroll Forge no longer hangs when opened directly from the compendium sidebar.
+- Rarity colour badges now use the active system's rarity scale instead of assuming DnD5e tiers.
+
 ## [1.8.5] - 2026-06-24
 
 ### Fixed
