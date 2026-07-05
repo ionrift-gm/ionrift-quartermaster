@@ -48,23 +48,6 @@ export class SignatureLedger {
         return game.actors.filter(a => a.hasPlayerOwner && a.type === "character");
     }
 
-    /**
-     * @deprecated Superseded by library PartyRoster. Returns empty set.
-     * Kept for backward compatibility with any external references.
-     * @returns {Set<string>}
-     */
-    static getLedgerHiddenActors() {
-        return new Set();
-    }
-
-    /**
-     * @deprecated Superseded by library PartyRoster. No-op.
-     * Use game.ionrift.library.party.setRoster() instead.
-     */
-    static async setLedgerHiddenActors(_idSet) {
-        // No-op - party membership is managed by the library kernel.
-    }
-
     // ── Journal Entry Access ──────────────────────────────────────────────────
 
     static async getOrCreateLedger() {
