@@ -207,7 +207,7 @@ export class SignatureLedgerApp extends Application {
             scrollY:  [".ledger-scroll-area", ".party-panel-scroll", ".banlist-scroll-area"],
             dragDrop: [{
                 dropSelector:
-                    ".grid-slot, .sig-slots-strip, .party-slots-strip, .ban-drop-zone, .cursed-pool-drop-zone, .cursed-pool-receive, .cursed-pool-tier-lane"
+                    ".grid-slot, .sig-slots-strip, .party-slots-strip, .ban-drop-zone"
             }]
         });
     }
@@ -632,7 +632,7 @@ export class SignatureLedgerApp extends Application {
     }
 
     /**
-     * Merge a drop onto a pinned scroll slot. Mirrors _mergeCursedPlannedSlot.
+     * Merge a drop onto a pinned scroll slot.
      */
     static _mergeScrollPinnedSlot(pinned, level, slotIdx, newEntry) {
         const CAP = 3;
@@ -1150,7 +1150,6 @@ export class SignatureLedgerApp extends Application {
                 ev.preventDefault();
                 ev.stopPropagation();
                 ev.stopImmediatePropagation();
-                el.classList.remove("cursed-pool-drop-active");
                 await rec.onDrop(payload);
             });
         }
@@ -2719,7 +2718,6 @@ export class SignatureLedgerApp extends Application {
             if (raw) {
                 const peek = JSON.parse(raw);
                 if (peek?.type === "sig-slot-move") return;
-                if (peek?.type === "cursed-planned-move" || peek?.type === "cursed-pool-move") return;
                 if (peek?.type === "scroll-pinned-move") return;
                 if (peek?.type === "party-slot-move") return;
             }
@@ -2743,61 +2741,6 @@ export class SignatureLedgerApp extends Application {
             list.push({ name: item.name, img: item.img || null, uuid: data.uuid, reason: "" });
             await SignatureLedger.setBanList(list);
             ui.notifications.info(`"${item.name}" added to the ban list.`);
-            this.render();
-            return;
-        }
-
-        // ── Cursed pool receive (drop zone + card grid) ─────────
-        const cursedPoolZone = event.target.closest(
-            ".cursed-pool-drop-zone, .cursed-pool-receive, .cursed-pool-tier-lane"
-        );
-        if (cursedPoolZone) {
-            const item = await fromUuid(data.uuid);
-            if (!item) return;
-            const pool = await getActiveCursedRegistry().getCursedPool();
-            const key = data.uuid.toLowerCase();
-            if (pool.some(p => (p.uuid || "").toLowerCase() === key)) {
-                ui.notifications.warn(`"${item.name}" is already in the cursed pool.`);
-                return;
-            }
-
-            const existingMeta = item.flags?.["ionrift-quartermaster"]?.cursedMeta;
-            const hasCursedMetaStamp = existingMeta !== undefined && existingMeta !== null
-                && typeof existingMeta === "object";
-            let curseMeta;
-
-            if (hasCursedMetaStamp) {
-                curseMeta = existingMeta;
-            } else {
-                const cwForDialog = game.ionrift?.cursewright;
-                if (!cwForDialog) {
-                    ui.notifications.warn(
-                        "Only items stamped with Quartermaster cursed metadata can be added. Use Add from Compendium or the SRD cursed pack."
-                    );
-                    return;
-                }
-                const { CursedMetaDialog } = await import(`/modules/ionrift-cursewright/scripts/apps/CursedMetaDialog.js`);
-                curseMeta = await CursedMetaDialog.prompt({
-                    name: item.name,
-                    img:  item.img || "icons/svg/item-bag.svg",
-                    type: item.type,
-                    uuid: data.uuid
-                });
-                if (!curseMeta) return;
-            }
-
-            pool.push({
-                uuid:            data.uuid,
-                name:            item.name,
-                img:             item.img || null,
-                curseType:       curseMeta.curseType       ?? "unknown",
-                decoyAppearance: curseMeta.decoyAppearance ?? "",
-                trueNature:      curseMeta.trueNature      ?? "",
-                tier:            curseMeta.tier ?? 1
-            });
-            await getActiveCursedRegistry().setCursedPool(pool);
-            Hooks.callAll(CURSED_POOL_DATA_HOOK);
-            ui.notifications.info(`"${item.name}" added to the cursed pool.`);
             this.render();
             return;
         }
@@ -2874,49 +2817,6 @@ export class SignatureLedgerApp extends Application {
             };
             const merged = SignatureLedgerApp._mergeScrollPinnedSlot(pinned, level, slotIdx, newEntry);
             await SignatureLedger.setScrollPinned(merged);
-        } else if (slotEl.classList.contains("cursed-slot")) {
-            if (slotEl.classList.contains("slot-locked")) return;
-
-            const existingSlotMeta = item.flags?.["ionrift-quartermaster"]?.cursedMeta;
-            const hasCursedMetaStamp = existingSlotMeta !== undefined && existingSlotMeta !== null
-                && typeof existingSlotMeta === "object";
-            let curseMeta;
-            if (hasCursedMetaStamp) {
-                curseMeta = existingSlotMeta;
-            } else {
-                const cwForSlot = game.ionrift?.cursewright;
-                if (!cwForSlot) {
-                    ui.notifications.warn(
-                        "Only items stamped with Quartermaster cursed metadata can be pinned here. Use Add from Compendium or the SRD cursed pack."
-                    );
-                    return;
-                }
-                const { CursedMetaDialog: CMD } = await import(`/modules/ionrift-cursewright/scripts/apps/CursedMetaDialog.js`);
-                curseMeta = await CMD.prompt({
-                    name: item.name,
-                    img:  item.img || "icons/svg/item-bag.svg",
-                    type: item.type,
-                    uuid: data.uuid
-                });
-                if (!curseMeta) return;
-            }
-
-            const planned = await getActiveCursedRegistry().getCursedPlanned();
-            const slotIdx   = Math.min(1, Math.max(0, parseInt(slotEl.dataset.slotIdx || "0", 10)));
-            const newEntry  = {
-                uuid:            data.uuid,
-                name:            item.name,
-                img:             item.img,
-                curseType:       curseMeta.curseType       ?? "unknown",
-                decoyAppearance: curseMeta.decoyAppearance ?? "",
-                trueNature:      curseMeta.trueNature      ?? "",
-                tier:            curseMeta.tier ?? 1,
-                level,
-                slotOrder:       slotIdx,
-                used:            false
-            };
-            const merged = SignatureLedgerApp._mergeCursedPlannedSlot(planned, level, slotIdx, newEntry);
-            await getActiveCursedRegistry().setCursedPlanned(merged);
         } else if (actorId) {
             await this._assignSignature(actorId, level, base);
             return; // _assignSignature calls render()
@@ -2936,8 +2836,7 @@ const LEDGER_ITEM_TOOLTIP_DELAY_MS = 220;
 SignatureLedgerApp.prototype._queueLedgerItemTooltip = function(anchorEl) {
     if (!anchorEl?.dataset?.uuid) return;
     if (anchorEl.classList.contains("grid-slot") && this._sigDragActorId) return;
-    if (anchorEl.classList.contains("cursed-slot") && this._cursedDragType) return;
-    if (anchorEl.classList.contains("cursed-pool-card") && this._cursedDragType) return;
+    if (anchorEl.classList.contains("curse-priority-card") && this._cursedDragType) return;
 
     clearTimeout(this._tooltipTimer);
     this._tooltipTimer = setTimeout(async () => {
@@ -2950,8 +2849,8 @@ SignatureLedgerApp.prototype._queueLedgerItemTooltip = function(anchorEl) {
             if (item) this._tooltipCache.set(uuid, item);
         }
 
-        if (!item && (anchorEl.classList.contains("cursed-slot") || anchorEl.classList.contains("cursed-pool-card"))) {
-            const imgEl = anchorEl.querySelector(".slot-item-img, .cursed-pool-card-img");
+        if (!item && anchorEl.classList.contains("curse-priority-card")) {
+            const imgEl = anchorEl.querySelector(".slot-item-img, .curse-priority-card-img");
             item = {
                 name:   anchorEl.dataset.name || "Cursed Item",
                 img:    imgEl?.src || "",
@@ -3005,7 +2904,7 @@ SignatureLedgerApp.prototype._initTooltipListeners = function(html) {
     const otherHover = [
         ".party-item-row[title]",
         ".scroll-drag-item[data-uuid]",
-        ".cursed-pool-card[data-uuid]"
+        ".curse-priority-card[data-uuid]"
     ].join(", ");
 
     html.find(otherHover).each((_, el) => {
@@ -3048,7 +2947,7 @@ SignatureLedgerApp.prototype._showItemTooltip = function(item, anchorEl) {
 
     const rarityLabel = rarity === "veryRare" ? "Very Rare" : (rarity.charAt(0).toUpperCase() + rarity.slice(1));
 
-    const isCursed   = anchorEl?.classList?.contains("cursed-slot") || anchorEl?.classList?.contains("cursed-pool-card");
+    const isCursed   = anchorEl?.classList?.contains("curse-priority-card");
     const curseType  = anchorEl?.dataset?.curseType || "";
     const curseLabel = curseType && curseType !== "unknown"
         ? curseType.charAt(0).toUpperCase() + curseType.slice(1) : "";
