@@ -13,7 +13,7 @@
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ContentPackLoader } from "./ContentPackLoader.js";
-import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
+import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "./CompendiumConfigHelper.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 
@@ -298,15 +298,7 @@ export class ContentPackCompiler {
         for (const c of compendiums) {
             parts.push(`${c.name}:${c.items?.length ?? 0}`);
         }
-        return this._stableHash(parts.join("|"));
-    }
-
-    static _stableHash(str) {
-        let h = 5381;
-        for (let i = 0; i < str.length; i++) {
-            h = ((h << 5) + h) ^ str.charCodeAt(i);
-        }
-        return (h >>> 0).toString(16);
+        return stableHash(parts.join("|"));
     }
 
     /** @returns {Object} */

@@ -65,6 +65,21 @@ export async function assignPackToCompiledFolder(pack) {
  * @param {string} metaSetting   Settings key for the compile metadata
  * @param {string} callerLabel   Label for warning messages (e.g. "ScrollForge")
  */
+/**
+ * Deterministic djb2 hash returning a hex string.
+ * Shared by LootPoolCompiler, ScrollForge, SrdCurseAdapter, and
+ * ContentPackCompiler for source-change detection.
+ * @param {string} str
+ * @returns {string}
+ */
+export function stableHash(str) {
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) {
+        h = ((h << 5) + h) ^ str.charCodeAt(i);
+    }
+    return (h >>> 0).toString(16);
+}
+
 export async function clearPackAndResetMeta(collectionId, hashSetting, metaSetting, callerLabel) {
     const pack = game.packs.get(collectionId);
     if (pack) {
