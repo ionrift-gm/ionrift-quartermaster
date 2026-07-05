@@ -56,17 +56,20 @@ describe("IdentificationService", () => {
                 deepClone: value => JSON.parse(JSON.stringify(value))
             }
         };
+        globalThis.Hooks = { callAll: vi.fn() };
         ({ IdentificationService } = await import("../services/IdentificationService.js"));
     });
 
     beforeEach(() => {
         globalThis.game.system.id = "sf2e";
         globalThis.game.user.isGM = true;
+        globalThis.Hooks.callAll.mockClear();
     });
 
     afterAll(() => {
         delete globalThis.game;
         delete globalThis.foundry;
+        delete globalThis.Hooks;
     });
 
     it("restores PF2e-family identification fields for SF2e latent magic", async () => {
