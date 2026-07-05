@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-
-import { IdentificationService } from "../services/IdentificationService.js";
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 
 const MODULE_ID = "ionrift-quartermaster";
+let IdentificationService;
 
 function makeSf2eMaskedItem(latent) {
     let lastUpdate = null;
@@ -40,7 +39,7 @@ function makeSf2eMaskedItem(latent) {
 }
 
 describe("IdentificationService", () => {
-    beforeEach(() => {
+    beforeAll(async () => {
         globalThis.game = {
             system: { id: "sf2e" },
             user: { isGM: true },
@@ -51,9 +50,15 @@ describe("IdentificationService", () => {
                 deepClone: value => JSON.parse(JSON.stringify(value))
             }
         };
+        ({ IdentificationService } = await import("../services/IdentificationService.js"));
     });
 
-    afterEach(() => {
+    beforeEach(() => {
+        globalThis.game.system.id = "sf2e";
+        globalThis.game.user.isGM = true;
+    });
+
+    afterAll(() => {
         delete globalThis.game;
         delete globalThis.foundry;
     });
