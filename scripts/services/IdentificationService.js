@@ -143,11 +143,12 @@ export class IdentificationService {
         // (StringField coerces numeric NaN → "NaN"). Include the clear in the SAME atomic
         // update as identified=true so there is no render gap where the attunement icon flashes.
 
-        // ── PF2e-specific promotion ──────────────────────────────────
-        // PF2e items are masked via system.identification.status = "unidentified".
+        // ── PF2e/SF2e-specific promotion ─────────────────────────────
+        // PF2e-family items are masked via system.identification.status = "unidentified".
         // On identify, flip it back and restore traits/rarity that QM stashed
-        // in latentMagic (PF2e doesn't mask these natively).
-        if (game.system?.id === "pf2e" && latent) {
+        // in latentMagic (PF2e/SF2e don't mask these natively).
+        const isPf2eFamily = game.system?.id === "pf2e" || game.system?.id === "sf2e";
+        if (isPf2eFamily && latent) {
             updates["system.identification.status"] = "identified";
 
             if (latent.originalRarity) {

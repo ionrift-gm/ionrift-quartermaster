@@ -65,10 +65,12 @@ describe("Pf2eCurseCatalog", () => {
 
 describe("Pf2eCurseAdapter", () => {
     let Pf2eCurseAdapter;
+    let getCurseAdapter;
 
     beforeAll(async () => {
-        globalThis.game = { ionrift: {} };
+        globalThis.game = { ionrift: {}, system: { id: "pf2e" } };
         ({ Pf2eCurseAdapter } = await import("../services/Pf2eCurseAdapter.js"));
+        ({ getCurseAdapter } = await import("../services/getCurseAdapter.js"));
     });
 
     afterAll(() => {
@@ -104,5 +106,29 @@ describe("Pf2eCurseAdapter", () => {
             catalogMatch: "Bag of Devouring (Type II)"
         });
         expect(stamped.flags["ionrift-quartermaster"].mintBatch).toBe("pf2e-curse-bag-of-devouring-type-ii");
+    });
+
+    it("routes SF2e curse compilation through the PF2e-family adapter", () => {
+        globalThis.game.system.id = "sf2e";
+
+        expect(getCurseAdapter()).toBe(Pf2eCurseAdapter);
+    });
+
+    it("discovers SF2e item packs for PF2e-family curse compilation", () => {
+        const sf2ePack = {
+            documentName: "Item",
+            collection: "sf2e.equipment",
+            metadata: { packageName: "sf2e" }
+        };
+        const dndPack = {
+            documentName: "Item",
+            collection: "dnd5e.items",
+            metadata: { packageName: "dnd5e" }
+        };
+        const packs = [sf2ePack, dndPack];
+        packs.get = () => null;
+        globalThis.game.packs = packs;
+
+        expect(Pf2eCurseAdapter._discoverItemPacks()).toEqual([sf2ePack]);
     });
 });
