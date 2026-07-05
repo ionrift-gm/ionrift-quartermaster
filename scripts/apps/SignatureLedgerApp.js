@@ -1651,7 +1651,6 @@ export class SignatureLedgerApp extends Application {
         // Source footer actions
         html.find(".action-compile-curse-forge").click(this._onRebuildCursedPool.bind(this));
         html.find(".action-compile-srd-cursed").click(this._onLoadSrdCursedItems.bind(this));
-        html.find(".action-open-cursed-compendium").click(this._onOpenCursedCompendium.bind(this));
         // Delegated handler for source footer inline buttons
         html.find(".curse-source-footer").on("click", "[data-action]", (ev) => {
             ev.preventDefault();
@@ -1659,8 +1658,6 @@ export class SignatureLedgerApp extends Application {
             const action = ev.currentTarget.dataset.action;
             if (action === "compile-srd-cursed")  this._onLoadSrdCursedItems(ev);
             if (action === "compile-curse-forge") this._onRebuildCursedPool(ev);
-            if (action === "remove-srd-cursed")   this._onRemoveSrdCursedFromPool(ev);
-            if (action === "remove-curse-forge")  this._onRemoveCursewrightFromPool(ev);
         });
 
         if (this._activeTab === "cursed") this._initCursedDragDrop(html);
@@ -2338,46 +2335,6 @@ export class SignatureLedgerApp extends Application {
 
     // ── Cursed: Pool Management ─────────────────────────────────────────
 
-    /**
-     * "Load SRD Cursed Items" button - always available regardless of CW.
-     * Force-recompiles the 12 SRD stubs from dnd5e packs and seeds the pool.
-     * Idempotent: items already in pool are skipped by UUID.
-     */
-    async _onRemoveSrdCursedFromPool(event) {
-        event.preventDefault();
-        await this._removeCursedPoolBySource("ionrift-srd-cursed", "SRD cursed");
-    }
-
-    async _onRemoveCursewrightFromPool(event) {
-        event.preventDefault();
-        await this._removeCursedPoolBySource("ionrift-cursewright-forged", "Cursewright");
-    }
-
-    /**
-     * Drop every pool row whose uuid contains the given source fragment.
-     * @param {string} uuidFragment - e.g. ionrift-srd-cursed
-     * @param {string} label - short name for notifications
-     */
-    async _removeCursedPoolBySource(uuidFragment, label) {
-        if (!game.user.isGM) return;
-
-        let pool = await getActiveCursedRegistry().getCursedPool();
-        const before = pool.length;
-        pool = pool.filter(p => !(p.uuid || "").includes(uuidFragment));
-        const removed = before - pool.length;
-        if (removed === 0) {
-            this.render();
-            return;
-        }
-
-        await getActiveCursedRegistry().setCursedPool(pool);
-        Hooks.callAll(CURSED_POOL_DATA_HOOK);
-        ui.notifications.info(
-            `Quartermaster: removed ${removed} ${label} item${removed !== 1 ? "s" : ""} from the pool.`
-        );
-        this.render();
-    }
-
     async _onLoadSrdCursedItems(event) {
         event.preventDefault();
         if (!game.user.isGM) return;
@@ -2510,30 +2467,6 @@ export class SignatureLedgerApp extends Application {
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
         ui.notifications.info(`Cursewright: ${docs.length} item${docs.length !== 1 ? "s" : ""} in pool.`);
     }
-
-    async _onOpenCursedCompendium(event) {
-        event.preventDefault();
-        const cw = game.ionrift?.cursewright;
-        if (cw) {
-            const forgedPack = cw.forge?.getForgedPack?.();
-            const shippedPack = game.packs.get(getCursedItemsPackId());
-            const pack = forgedPack ?? shippedPack;
-            if (!pack) {
-                ui.notifications.warn("No cursed items compendium found. Compile D&D Curses first.");
-                return;
-            }
-            if (typeof pack.render === "function") await pack.render(true);
-            return;
-        }
-        const srdPack = game.packs.get("world.ionrift-srd-cursed");
-        if (srdPack && typeof srdPack.render === "function") {
-            await srdPack.render(true);
-            return;
-        }
-        ui.notifications.warn("No SRD cursed items compendium found. Run Rebuild Cursed Pool first.");
-    }
-
-    // ── Cursed: Pool Actions ──────────────────────────────────────────────
 
     // ── Cursed: Pool Actions ──────────────────────────────────────────────
 
