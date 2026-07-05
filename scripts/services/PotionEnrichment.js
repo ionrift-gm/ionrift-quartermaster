@@ -62,10 +62,6 @@ export class PotionEnrichment {
         description: "<p>A clear red liquid swirls inside this small vial. It catches the light with a faint rosy shimmer and smells lightly of berries.</p>"
     };
 
-    // Keep legacy alias so CacheGeneratorApp call-sites don't break.
-    /** @deprecated Use _TIERS - kept for CacheGeneratorApp callers. */
-    static _HEAL_TIERS = PotionEnrichment._TIERS;
-
     /** PHB-standard weight for all healing potion tiers (lb). */
     static _BASE_WEIGHT = 0.5;
 
