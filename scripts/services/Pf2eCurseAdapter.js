@@ -1,6 +1,6 @@
 /**
  * Pathfinder 2e cursed item compiler (Phase 1: compendium-faithful).
- * Scans pf2e equipment packs for the `cursed` trait, stamps minimal
+ * Scans PF2e-family equipment packs for the `cursed` trait, stamps minimal
  * cursedMeta, and writes to the shared GM-only world compendium.
  */
 
@@ -142,7 +142,7 @@ export class Pf2eCurseAdapter {
             if (pack.collection === ownId) continue;
             if (packs.includes(pack)) continue;
             const pkg = pack.metadata?.packageName ?? pack.metadata?.package ?? "";
-            if (pkg === "pf2e") packs.push(pack);
+            if (pkg === "pf2e" || pkg === "sf2e") packs.push(pack);
         }
 
         return packs;
