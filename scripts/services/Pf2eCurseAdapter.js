@@ -12,7 +12,7 @@ import {
     itemHasPf2eCursedTrait,
     isPf2eCursedLootEntry
 } from "./Pf2eCurseCatalog.js";
-import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
+import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "./CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -32,7 +32,7 @@ export class Pf2eCurseAdapter {
     static _reconcilePack = SrdCurseAdapter._reconcilePack;
     static _createWorldPack = SrdCurseAdapter._createWorldPack;
     static _writeMeta = SrdCurseAdapter._writeMeta;
-    static _stableHash = SrdCurseAdapter._stableHash;
+    static _stableHash = stableHash;
 
     static async compile({ forceRecompile = false } = {}) {
         if (!game.user.isGM) return;
