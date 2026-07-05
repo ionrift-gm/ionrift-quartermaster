@@ -17,8 +17,3 @@ export function getQuartermasterAdapter() {
     }
     return _cached;
 }
-
-/** @internal Test hook */
-export function resetQuartermasterAdapterCache() {
-    _cached = null;
-}
