@@ -15,7 +15,7 @@ import {
     SRD_CURSE_MANIFEST,
     SRD_CURSE_ITEM_FALLBACKS as SRD_ITEM_FALLBACKS
 } from "./SrdCurseCatalog.js";
-import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta } from "./CompendiumConfigHelper.js";
+import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta, stableHash } from "./CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -258,15 +258,7 @@ export class SrdCurseAdapter {
                 parts.push(`${p.collection}:err`);
             }
         }
-        return this._stableHash(parts.join("|"));
-    }
-
-    static _stableHash(str) {
-        let h = 5381;
-        for (let i = 0; i < str.length; i++) {
-            h = ((h << 5) + h) ^ str.charCodeAt(i);
-        }
-        return (h >>> 0).toString(16);
+        return stableHash(parts.join("|"));
     }
 
     // ── World Pack Management ─────────────────────────────────────────────

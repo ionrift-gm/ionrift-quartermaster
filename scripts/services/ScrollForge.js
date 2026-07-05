@@ -4,7 +4,7 @@
  */
 
 import { Logger, MODULE_LABEL } from "../_logger.js";
-import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta } from "./CompendiumConfigHelper.js";
+import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta, stableHash } from "./CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -189,15 +189,7 @@ export class ScrollForge {
 
     static _candidateSnapshot(candidates) {
         const ids = candidates.map(c => c.id).sort();
-        return this._stableHash(ids.join("\n"));
-    }
-
-    static _stableHash(str) {
-        let h = 5381;
-        for (let i = 0; i < str.length; i++) {
-            h = ((h << 5) + h) ^ str.charCodeAt(i);
-        }
-        return (h >>> 0).toString(16);
+        return stableHash(ids.join("\n"));
     }
 
     static async compile({ forceRecompile = false } = {}) {
@@ -471,7 +463,7 @@ export class ScrollForge {
             const n = [...index.values()].filter(e => e.type === "spell").length;
             parts.push(`${p.collection}:${n}`);
         }
-        return this._stableHash(parts.join("|"));
+        return stableHash(parts.join("|"));
     }
 
     static async _destroyWorldPack(pack) {

@@ -1,6 +1,6 @@
 /**
  * Pathfinder 2e cursed item compiler (Phase 1: compendium-faithful).
- * Scans PF2e-family equipment packs for the `cursed` trait, stamps minimal
+ * Scans pf2e equipment packs for the `cursed` trait, stamps minimal
  * cursedMeta, and writes to the shared GM-only world compendium.
  */
 
@@ -12,7 +12,7 @@ import {
     itemHasPf2eCursedTrait,
     isPf2eCursedLootEntry
 } from "./Pf2eCurseCatalog.js";
-import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
+import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "./CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -32,7 +32,7 @@ export class Pf2eCurseAdapter {
     static _reconcilePack = SrdCurseAdapter._reconcilePack;
     static _createWorldPack = SrdCurseAdapter._createWorldPack;
     static _writeMeta = SrdCurseAdapter._writeMeta;
-    static _stableHash = SrdCurseAdapter._stableHash;
+    static _stableHash = stableHash;
 
     static async compile({ forceRecompile = false } = {}) {
         if (!game.user.isGM) return;
@@ -142,7 +142,7 @@ export class Pf2eCurseAdapter {
             if (pack.collection === ownId) continue;
             if (packs.includes(pack)) continue;
             const pkg = pack.metadata?.packageName ?? pack.metadata?.package ?? "";
-            if (pkg === "pf2e" || pkg === "sf2e") packs.push(pack);
+            if (pkg === "pf2e") packs.push(pack);
         }
 
         return packs;

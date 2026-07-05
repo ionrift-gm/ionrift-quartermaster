@@ -17,7 +17,7 @@
 import { Logger, MODULE_LABEL } from "../_logger.js";
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
 import { isSrdCursedLootName, isSrdCursedTemplateName } from "./SrdCurseCatalog.js";
-import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
+import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "./CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../constants/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
@@ -479,7 +479,7 @@ export class LootPoolCompiler {
                 parts.push(`${id}:err`);
             }
         }
-        return this._stableHash(parts.join("|"));
+        return stableHash(parts.join("|"));
     }
 
     /**
@@ -1797,16 +1797,6 @@ export class LootPoolCompiler {
     static _getCompileTrackedSources(sourceIds = null) {
         const base = sourceIds ?? this._getEnabledSources();
         return base.filter(id => this._isCompileTrackedSource(id));
-    }
-
-    // ── Hashing ───────────────────────────────────────────────────────────
-
-    static _stableHash(str) {
-        let h = 5381;
-        for (let i = 0; i < str.length; i++) {
-            h = ((h << 5) + h) ^ str.charCodeAt(i);
-        }
-        return (h >>> 0).toString(16);
     }
 
     // ── World Pack Management ─────────────────────────────────────────────
