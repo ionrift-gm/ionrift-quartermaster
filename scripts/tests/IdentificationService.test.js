@@ -1,7 +1,13 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from "vitest";
 
 const MODULE_ID = "ionrift-quartermaster";
 let IdentificationService;
+
+vi.mock("../services/TerrainDataRegistry.js", () => ({
+    TerrainDataRegistry: {
+        getItemDescriptions: () => []
+    }
+}));
 
 function makeSf2eMaskedItem(latent) {
     let lastUpdate = null;
