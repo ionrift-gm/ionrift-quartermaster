@@ -221,21 +221,6 @@ export const PF2E_GMG_CURSE_MANIFEST = [
  *
  * @type {{ match: string, cursewrightRecipe: string|null, archetypeTarget: Pf2eArchetypeTarget, notes: string }[]}
  */
-export const DND5E_ONLY_SRD_CURSES = [
-    { match: "Berserker Axe", cursewrightRecipe: "oathcleaver", archetypeTarget: "combat-trigger", notes: "No PF2e GMG row." },
-    { match: "Dust of Sneezing and Choking", cursewrightRecipe: "apothecary-folly", archetypeTarget: "deceptive-consumable", notes: "No PF2e equivalent." },
-    { match: "Potion of Poison", cursewrightRecipe: "poison-potion", archetypeTarget: "deceptive-consumable", notes: "PF2e may use cursed healing potion entries instead." },
-    { match: "Sword of Vengeance", cursewrightRecipe: null, archetypeTarget: "combat-trigger", notes: "No PF2e GMG row." },
-    { match: "Armor of Vulnerability", cursewrightRecipe: "vigil-robe", archetypeTarget: "threshold-reversal", notes: "Recipe withheld; no PF2e GMG row." },
-    { match: "Crown of Madness", cursewrightRecipe: null, archetypeTarget: "combat-trigger", notes: "No PF2e GMG row." },
-    { match: "Shield of Missile Attraction", cursewrightRecipe: "lodestone-aegis", archetypeTarget: "slow-burn-equipment", notes: "No PF2e GMG row." },
-    { match: "Demon Armor", cursewrightRecipe: "hellforged-plate", archetypeTarget: "combat-trigger", notes: "Medusa Armor is the closest PF2e armor curse, different mechanics." },
-    { match: "Scarab of Death", cursewrightRecipe: null, archetypeTarget: "physical", notes: "No PF2e GMG row." }
-];
-
-/** @type {Pf2eArchetypeTarget} */
-export const PF2E_V1_COMPILER_MODE = "compendium-faithful";
-
 /**
  * Resolve catalog metadata for a PF2e compendium cursed item.
  * @param {string} name
@@ -359,24 +344,3 @@ export function isPf2eCursedLootEntry(entry) {
     return isPf2eGmgCursedName(entry?.name);
 }
 
-/**
- * Group manifest rows by recommended implementation phase.
- * @returns {Record<string, Pf2eCurseCatalogEntry[]>}
- */
-export function groupPf2eCursesByPhase() {
-    /** @type {Record<string, Pf2eCurseCatalogEntry[]>} */
-    const out = {};
-    for (const row of PF2E_GMG_CURSE_MANIFEST) {
-        const phase = row.implementation ?? "backlog";
-        (out[phase] ??= []).push(row);
-    }
-    return out;
-}
-
-/**
- * Rows that can reuse an existing Cursewright recipe with only a match-string / PF2e skin pass.
- * @returns {Pf2eCurseCatalogEntry[]}
- */
-export function getPf2eCursePhase1Candidates() {
-    return PF2E_GMG_CURSE_MANIFEST.filter(r => r.implementation === "phase-1");
-}
