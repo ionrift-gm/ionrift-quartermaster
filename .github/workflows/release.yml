@@ -196,18 +196,19 @@ jobs:
             const fs = require('fs');
             const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
 
-            // Extract version from first ## heading
-            const versionMatch = changelog.match(/^## \[([^\]]+)\]/m);
+            // Extract version from first versioned ## heading (skip [Unreleased])
+            const versionMatch = changelog.match(/^## \[(?!Unreleased\])([^\]]+)\]/m);
             const version = versionMatch ? versionMatch[1] : 'unknown';
 
-            // Extract body between first and second ## headings
+            // Extract body between the matched heading and the next ## heading
             const lines = changelog.split('\n');
             let body = [];
             let found = false;
+            const versionHeader = `## [${version}]`;
             for (const line of lines) {
               if (line.startsWith('## ')) {
                 if (found) break;
-                found = true;
+                if (line.startsWith(versionHeader)) { found = true; }
                 continue;
               }
               if (found) {
