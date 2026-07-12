@@ -28,7 +28,6 @@ export class Pf2eCurseAdapter {
     static getStatus = SrdCurseAdapter.getStatus;
     static getCompiledMeta = SrdCurseAdapter.getCompiledMeta;
     static clearCompiledPack = SrdCurseAdapter.clearCompiledPack;
-    static getSrdPack = SrdCurseAdapter.getSrdPack;
     static _reconcilePack = SrdCurseAdapter._reconcilePack;
     static _createWorldPack = SrdCurseAdapter._createWorldPack;
     static _writeMeta = SrdCurseAdapter._writeMeta;
