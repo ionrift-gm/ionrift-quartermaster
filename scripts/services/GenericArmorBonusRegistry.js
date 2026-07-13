@@ -3,8 +3,6 @@
  * Independent of magic frequency and weapon +N curves.
  */
 
-import { ItemClassifier } from "./ItemClassifier.js";
-
 const MODULE_ID = "ionrift-quartermaster";
 
 /** @type {{ cap: number, maxByTier: Record<number, number>, pickWeightsByTier: Record<number, Record<number, number>> }} */
@@ -169,18 +167,6 @@ export class GenericArmorBonusRegistry {
         const b = Number(bonus) || 0;
         if (b <= 0) return false;
         return b <= this.getMaxBonus(tier);
-    }
-
-    /**
-     * @param {object} item - Resolved pool row
-     * @param {number} tier
-     * @returns {boolean}
-     */
-    static allowsItem(item, tier) {
-        if (!item) return false;
-        if (!ItemClassifier.isGenericMagic(item)) return true;
-        const bonus = ItemClassifier.detectBonusTier(item);
-        return this.allowsBonus(bonus, tier);
     }
 
     /** @returns {string} */

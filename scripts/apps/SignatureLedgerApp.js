@@ -1165,7 +1165,6 @@ export class SignatureLedgerApp extends Application {
     _initCursedDragDrop(html) {
         const form = html[0];
         const CAP = 5;
-        const MODULE_ID = "ionrift-quartermaster";
 
         /** Resolve a Foundry drag-event data object from text/plain or standard Foundry DragData. */
         const parseDragPayload = (ev) => {

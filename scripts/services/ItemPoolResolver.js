@@ -630,27 +630,6 @@ export class ItemPoolResolver {
     }
 
     /**
-     * Imputed price floor for armaments mastercraft when the slot budget fits.
-     * @param {number} tier
-     * @param {number} priceCeiling
-     * @param {string} [ownerTheme]
-     * @returns {number}
-     */
-    static armamentsMastercraftPriceMin(tier, priceCeiling, ownerTheme) {
-        const tableMin = [0, 5, 30, 200, 800][tier] ?? 0;
-        if (ownerTheme !== "armaments") return tableMin;
-
-        const aspireBonus = this.ASPIRATIONAL_GENERIC_BONUS_BY_TIER[tier] ?? 0;
-        if (aspireBonus <= 0) return tableMin;
-
-        const aspireMin = this.GENERIC_BONUS_VALUE_FLOOR[aspireBonus] ?? 0;
-        if (aspireMin > 0 && priceCeiling >= aspireMin) {
-            return Math.max(tableMin, aspireMin);
-        }
-        return tableMin;
-    }
-
-    /**
      * Tier floor and aspire filtering for mastercraft generic +N picks.
      * Runs after magicFrequency tuning so low-magic profiles can stay mundane.
      *

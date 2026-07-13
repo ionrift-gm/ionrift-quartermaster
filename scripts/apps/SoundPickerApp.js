@@ -130,7 +130,6 @@ export class SoundPickerApp extends Application {
     activateListeners(html) {
         super.activateListeners(html);
 
-        // Search Input
         // Search Input - Change to 'keypress' (Enter) and 'blur'/focusout to prevent re-render on every keystroke
         const searchInput = html.find("input[name='search']");
         searchInput.on("keypress", (ev) => {
@@ -141,10 +140,6 @@ export class SoundPickerApp extends Application {
         });
         searchInput.on("focusout", this._onSearch.bind(this));
 
-        // Add Binding
-        html.find(".sound-row").click(this._onAddSound.bind(this));
-
-        // Delay Inputs Validation
         // Delay Inputs Validation
         html.find("input[name='delayMin'], input[name='delayMax']").change(ev => {
             const $row = $(ev.currentTarget).closest(".binding-row");
@@ -157,8 +152,8 @@ export class SoundPickerApp extends Application {
             this._onSearch(ev);
         });
 
-        // Play Preview (Library) - Support both old and new class
-        html.find(".action-play-sample, .preview-icon").click(ev => {
+        // Play Preview (Library)
+        html.find(".preview-icon").click(ev => {
             ev.stopPropagation();
             this._onPlayPreview(ev);
         });
