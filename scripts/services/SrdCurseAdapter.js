@@ -263,10 +263,6 @@ export class SrdCurseAdapter {
 
     // ── World Pack Management ─────────────────────────────────────────────
 
-    static getSrdPack() {
-        return game.packs.get(this.worldCollectionId) ?? null;
-    }
-
     /**
      * Reconcile the world pack's contents with the pending items list.
      * Instead of clearing and re-inserting (which fails on phantom entries),

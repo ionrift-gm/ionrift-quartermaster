@@ -28,7 +28,6 @@ export class Pf2eCurseAdapter {
     static getStatus = SrdCurseAdapter.getStatus;
     static getCompiledMeta = SrdCurseAdapter.getCompiledMeta;
     static clearCompiledPack = SrdCurseAdapter.clearCompiledPack;
-    static getSrdPack = SrdCurseAdapter.getSrdPack;
     static _reconcilePack = SrdCurseAdapter._reconcilePack;
     static _createWorldPack = SrdCurseAdapter._createWorldPack;
     static _writeMeta = SrdCurseAdapter._writeMeta;
@@ -142,7 +141,7 @@ export class Pf2eCurseAdapter {
             if (pack.collection === ownId) continue;
             if (packs.includes(pack)) continue;
             const pkg = pack.metadata?.packageName ?? pack.metadata?.package ?? "";
-            if (pkg === "pf2e" || pkg === "sf2e") packs.push(pack);
+            if (pkg === "pf2e") packs.push(pack);
         }
 
         return packs;
