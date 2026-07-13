@@ -142,7 +142,7 @@ export class Pf2eCurseAdapter {
             if (pack.collection === ownId) continue;
             if (packs.includes(pack)) continue;
             const pkg = pack.metadata?.packageName ?? pack.metadata?.package ?? "";
-            if (pkg === "pf2e") packs.push(pack);
+            if (pkg === "pf2e" || pkg === "sf2e") packs.push(pack);
         }
 
         return packs;
