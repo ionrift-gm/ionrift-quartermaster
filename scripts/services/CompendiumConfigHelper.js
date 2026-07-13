@@ -22,8 +22,8 @@ export function enforcePackOwnership(pack) {
     const cfg   = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
     const entry = cfg[pack.collection] ??= {};
 
-    // Foundry ownership role keys (string split kept for signal_check.js compatibility).
-    const roles = ["PLAYER", "TRUSTED", "ASSI" + "STANT", "GAMEMASTER"];
+    // Foundry ownership role keys.
+    const roles = ["PLAYER", "TRUSTED", "ASSISTANT", "GAMEMASTER"];
     const wanted = {};
     for (const r of roles) wanted[r] = r === "GAMEMASTER" ? "OWNER" : "NONE";
 

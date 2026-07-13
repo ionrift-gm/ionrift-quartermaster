@@ -22,10 +22,8 @@ jobs:
       # Workshop uses ESLint v9 and has lower warning budget than Respite.
       eslint_version: '9'
       eslint_max_warnings: 50
-      # signal_check.js lives in ionrift-devtools, not shipped with the module.
-      signal_check_required: false
       # ScrollForge and other services use dynamic compendium imports that the
-      # static checker flags as broken — they are correct runtime patterns.
+      # static checker flags as broken; they are correct runtime patterns.
       skip_import_integrity: true
 
   hygiene:
