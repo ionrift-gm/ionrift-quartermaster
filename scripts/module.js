@@ -218,7 +218,6 @@ Hooks.once('init', async () => {
             "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs",
             "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs",
             "modules/ionrift-quartermaster/templates/partials/cache-chat-card.hbs",
-            "modules/ionrift-quartermaster/templates/scroll-forge-sources.hbs",
             "modules/ionrift-quartermaster/templates/compendium-forge-pick.hbs",
             "modules/ionrift-quartermaster/templates/compendium-forge-compile.hbs",
             "modules/ionrift-quartermaster/templates/compendium-forge-done.hbs"

@@ -130,17 +130,6 @@ export class SignatureLedger {
     // Format: [{ spellName, spellLevel, img, uuid, source, school }]
     // Semantics: soft suggestions the engine can draw from. Not milestone-bound.
 
-    static async getScrollPool() {
-        const entry = await this.getOrCreateLedger();
-        await this._migrateScrollData(entry);
-        return entry.getFlag("ionrift-quartermaster", "scrollPool") || [];
-    }
-
-    static async setScrollPool(data) {
-        const entry = await this.getOrCreateLedger();
-        await entry.setFlag("ionrift-quartermaster", "scrollPool", data);
-    }
-
     /**
      * One-time migration: if the ledger has a flat `scrollPlan` array but no
      * `scrollPinned` flag, move those entries into scrollPinned with slotOrder
@@ -221,8 +210,8 @@ export class SignatureLedger {
     }
 
     /**
-     * @deprecated Use getScrollPinned/getScrollPool instead.
-     * Kept for backward compat with cache generator references.
+     * @deprecated Use getScrollPinned instead.
+     * Kept for backward compat with ProgressionAdvisor.
      */
     static async getScrollPlan() {
         return this.getScrollPinned();
