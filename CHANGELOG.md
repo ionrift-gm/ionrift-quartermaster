@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.1] - 2026-07-14
+
+### Changed
+- Package listing uses Foundry's default module icon.
+
 ## [1.9.0] - 2026-06-29
 
 ### Added
