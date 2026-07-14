@@ -14,12 +14,6 @@
 
 > Documentation, setup guides, and troubleshooting: **[Ionrift Wiki](https://github.com/ionrift-gm/ionrift-library/wiki)**
 
-### Demo
-
-[![Watch the trailer](https://img.youtube.com/vi/DBLM4srxaGE/maxresdefault.jpg)](https://youtu.be/DBLM4srxaGE)
-
-*Cache generation, drag-to-canvas deployment, masked item identification, and campaign-wide loot planning.*
-
 ## Features
 
 - **The Compiler:** Procedurally generate complete loot tables by "exploding" base templates into hundreds of variants with a single click.  
