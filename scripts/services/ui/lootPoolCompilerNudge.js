@@ -32,7 +32,7 @@ export function registerLootPoolCompilerNudge() {
             return status === "fresh";
         },
         openInstaller: async () => {
-            const { CompendiumForgeApp } = await import("./apps/CompendiumForgeApp.js");
+            const { CompendiumForgeApp } = await import("../../apps/forge/CompendiumForgeApp.js");
             new CompendiumForgeApp({}, { activeTab: "lootPool" }).render(true);
         },
         title:        "Loot pool needs compilation.",

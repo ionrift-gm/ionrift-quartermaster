@@ -139,7 +139,7 @@ async function openCorePackInstaller() {
         await lib.openPatreonLibrary?.({ moduleId: MODULE_ID });
         return;
     }
-    const { WorkshopPackRegistryApp } = await import("./apps/WorkshopPackRegistryApp.js");
+    const { WorkshopPackRegistryApp } = await import("../../apps/workshop/WorkshopPackRegistryApp.js");
     new WorkshopPackRegistryApp().render(true);
 }
 

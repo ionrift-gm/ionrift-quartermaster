@@ -2,9 +2,9 @@
  * DnD5e compendium pool matching and exclusion rules for ItemPoolResolver.
  */
 
-import { ItemClassifier } from "../../services/ItemClassifier.js";
-import { PotionEnrichment } from "../../services/PotionEnrichment.js";
-import { isSrdCursedLootName } from "../../services/SrdCurseCatalog.js";
+import { ItemClassifier } from "../../services/workshop/ItemClassifier.js";
+import { PotionEnrichment } from "../../services/scroll/PotionEnrichment.js";
+import { isSrdCursedLootName } from "../../services/curse/SrdCurseCatalog.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 

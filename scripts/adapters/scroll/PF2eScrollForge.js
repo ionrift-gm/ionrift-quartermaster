@@ -3,7 +3,7 @@
  * Uses the system API when present; otherwise builds a compendium-faithful scroll stub.
  */
 
-import { ItemMaskingHelper } from "../../services/ItemMaskingHelper.js";
+import { ItemMaskingHelper } from "../../services/identify/ItemMaskingHelper.js";
 
 const FORGED_FLAG = "ionrift-quartermaster";
 
