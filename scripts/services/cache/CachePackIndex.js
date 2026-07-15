@@ -127,13 +127,13 @@ function parseDiscoveryPhrases(html) {
  * @param {string} theme
  */
 function containerMatchesTerrain(entry, theme) {
-    const terrains = entry.flags?.["ionrift-quartermaster"]?.containerMeta?.terrains ?? ["any"];
+    const terrains = entry.flags?.[MODULE_ID]?.containerMeta?.terrains ?? ["any"];
     return terrains.includes(theme) || terrains.includes("any");
 }
 
 /** True when tagged for this terrain and not a generic any-only entry. */
 function containerIsTerrainSpecific(entry, theme) {
-    const terrains = entry.flags?.["ionrift-quartermaster"]?.containerMeta?.terrains ?? ["any"];
+    const terrains = entry.flags?.[MODULE_ID]?.containerMeta?.terrains ?? ["any"];
     return terrains.includes(theme) && !(terrains.length === 1 && terrains[0] === "any");
 }
 
@@ -161,7 +161,7 @@ function isBundledContainerEntry(entry) {
  * overlay-matched subset and never fall through.
  */
 function containerOwnerThemeMatches(entry, ownerTheme) {
-    const themes = entry.flags?.["ionrift-quartermaster"]?.containerMeta?.ownerThemes;
+    const themes = entry.flags?.[MODULE_ID]?.containerMeta?.ownerThemes;
     if (!Array.isArray(themes) || themes.length === 0) return true;
     return themes.includes(ownerTheme);
 }
@@ -194,7 +194,7 @@ const FLAVOR_TERRAIN_SPECIFIC_BIAS = 0.7;
 
 /** @param {object} entry */
 function flavorTerrainTags(entry) {
-    return entry.flags?.["ionrift-quartermaster"]?.terrain ?? [];
+    return entry.flags?.[MODULE_ID]?.terrain ?? [];
 }
 
 /** True when the item declares at least one terrain (not universal). */
@@ -285,14 +285,14 @@ async function loadFilteredPoolIndex(packs, kindFilter, label) {
 /** Treasure entries: loot type tagged as Treasure category. */
 function isTreasureEntry(entry) {
     if (entry.type !== "loot") return false;
-    const cat = entry.flags?.["ionrift-quartermaster"]?.coreMeta?.category;
+    const cat = entry.flags?.[MODULE_ID]?.coreMeta?.category;
     return cat === "Treasure";
 }
 
 /** Trinket entries: loot type tagged as Trinkets category. */
 function isTrinketEntry(entry) {
     if (entry.type !== "loot") return false;
-    const cat = entry.flags?.["ionrift-quartermaster"]?.coreMeta?.category;
+    const cat = entry.flags?.[MODULE_ID]?.coreMeta?.category;
     return cat === "Trinkets";
 }
 
@@ -301,7 +301,7 @@ function isGemEntry(entry) {
     if (entry.type !== "loot") return false;
     const sub = entry.system?.type?.value;
     if (sub === "gem") return true;
-    const tier = entry.flags?.["ionrift-quartermaster"]?.gemMeta?.tier
+    const tier = entry.flags?.[MODULE_ID]?.gemMeta?.tier
         ?? entry.flags?.["ionrift-workshop"]?.gemMeta?.tier;
     return !!tier;
 }

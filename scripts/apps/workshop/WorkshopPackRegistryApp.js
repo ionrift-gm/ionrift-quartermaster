@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * WorkshopPackRegistryApp
  *
@@ -32,7 +33,7 @@ export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
     // ═══════════════════════════════════════════════════════════════
 
     _getModuleId() {
-        return "ionrift-quartermaster";
+        return MODULE_ID;
     }
 
     _getTabDefinitions() {
@@ -43,9 +44,9 @@ export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
     }
 
     async _preparePackData() {
-        const enabledPacks = game.settings.get("ionrift-quartermaster", "workshopEnabledPacks") ?? {};
+        const enabledPacks = game.settings.get(MODULE_ID, "workshopEnabledPacks") ?? {};
         const installedPacks = game.settings.get("ionrift-library", "installedPacks") ?? {};
-        const importedPacks = game.settings.get("ionrift-quartermaster", "workshopImportedPacks") ?? {};
+        const importedPacks = game.settings.get(MODULE_ID, "workshopImportedPacks") ?? {};
 
         const packs = [];
 
@@ -183,7 +184,7 @@ export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
             updated[cb.dataset.packId] = cb.checked;
         });
 
-        await game.settings.set("ionrift-quartermaster", "workshopEnabledPacks", updated);
+        await game.settings.set(MODULE_ID, "workshopEnabledPacks", updated);
         ui.notifications.info("Item packs updated. Changes apply to the next cache generation.");
         this.close();
     }
@@ -303,7 +304,7 @@ export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
                 return { valid: true, errors: [] };
             },
             onImport: async (data) => {
-                const importedPacks = game.settings.get("ionrift-quartermaster", "workshopImportedPacks") ?? {};
+                const importedPacks = game.settings.get(MODULE_ID, "workshopImportedPacks") ?? {};
                 importedPacks[data.id] = {
                     name: data.name ?? data.id,
                     description: data.description ?? "",
@@ -313,11 +314,11 @@ export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
                     version: data.version ?? "1.0.0",
                     importedAt: new Date().toISOString()
                 };
-                await game.settings.set("ionrift-quartermaster", "workshopImportedPacks", importedPacks);
+                await game.settings.set(MODULE_ID, "workshopImportedPacks", importedPacks);
 
-                const enabledPacks = game.settings.get("ionrift-quartermaster", "workshopEnabledPacks") ?? {};
+                const enabledPacks = game.settings.get(MODULE_ID, "workshopEnabledPacks") ?? {};
                 enabledPacks[data.id] = true;
-                await game.settings.set("ionrift-quartermaster", "workshopEnabledPacks", enabledPacks);
+                await game.settings.set(MODULE_ID, "workshopEnabledPacks", enabledPacks);
 
                 return { packId: data.id, name: data.name ?? data.id };
             }

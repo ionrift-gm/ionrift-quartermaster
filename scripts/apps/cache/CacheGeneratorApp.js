@@ -1427,7 +1427,7 @@ export class CacheGeneratorApp extends Application {
         // Resolve the GM-facing display name from flags and flip identified:true on
         // the preview data so the cache UI shows the real lure/item name.
         if (markCursed) {
-            const qmFlags = resolvedDoc?.flags?.["ionrift-quartermaster"] ?? {};
+            const qmFlags = resolvedDoc?.flags?.[MODULE_ID] ?? {};
 
             if (itemData.system?.identified === false) {
                 // Stash the original document name (the lure surface name, e.g.
@@ -1505,7 +1505,7 @@ export class CacheGeneratorApp extends Application {
                 // Duplicate it to a plain object just like stash items
                 itemData = item.toObject();
                 itemData.flags = itemData.flags || {};
-                itemData.flags["ionrift-quartermaster"] = { isSignature: true };
+                itemData.flags[MODULE_ID] = { isSignature: true };
             }
         }
 
@@ -1963,7 +1963,7 @@ export class CacheGeneratorApp extends Application {
             // will see, the underlying lure (if any), infected count, and the
             // canStack flag - the three things that decide whether IP merges
             // identical-looking masked rows on pile creation or actor takes.
-            const QM_FLAG = "ionrift-quartermaster";
+            const QM_FLAG = MODULE_ID;
             const pileAudit = pileItems.map((it) => ({
                 name:         it.name,
                 type:         it.type,

@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * ContentPackLoader
  *
@@ -142,7 +143,7 @@ export class ContentPackLoader {
         }
 
         // Validate this is a Quartermaster pack
-        if (manifest.moduleId && manifest.moduleId !== "ionrift-quartermaster") {
+        if (manifest.moduleId && manifest.moduleId !== MODULE_ID) {
             throw new Error(
                 `Pack "${manifest.id}" targets module "${manifest.moduleId}", not ionrift-quartermaster`
             );

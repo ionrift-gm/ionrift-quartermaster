@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * ItemMaskingHelper
  *
@@ -183,9 +184,9 @@ export class ItemMaskingHelper {
         const rarity = (itemMeta.rarity || "").toLowerCase().replace(/\s+/g, "");
         const nameLower = (itemMeta.name || "").toLowerCase();
 
-        const obscureConsumables = game?.settings?.get("ionrift-quartermaster", "obscureConsumables") ?? true;
-        const obscureScrolls = game?.settings?.get("ionrift-quartermaster", "obscureScrolls") ?? true;
-        const obscureMagicalItems = game?.settings?.get("ionrift-quartermaster", "obscureMagicalItems") ?? true;
+        const obscureConsumables = game?.settings?.get(MODULE_ID, "obscureConsumables") ?? true;
+        const obscureScrolls = game?.settings?.get(MODULE_ID, "obscureScrolls") ?? true;
+        const obscureMagicalItems = game?.settings?.get(MODULE_ID, "obscureMagicalItems") ?? true;
         const isScroll = /scroll/i.test(nameLower);
         const obscurableConsumable = this._isObscurableConsumable(itemMeta);
 
@@ -287,7 +288,7 @@ export class ItemMaskingHelper {
 
         itemData.system ??= {};
 
-        const qmFlags = itemData.flags?.["ionrift-quartermaster"] ?? {};
+        const qmFlags = itemData.flags?.[MODULE_ID] ?? {};
         if (qmFlags.cursedMeta?.lure) {
             itemData.system.identified = true;
             return;
@@ -304,8 +305,8 @@ export class ItemMaskingHelper {
         const latent = this._stripToLatent(itemData, enrichedMask);
         if (latent) {
             itemData.flags ??= {};
-            itemData.flags["ionrift-quartermaster"] ??= {};
-            itemData.flags["ionrift-quartermaster"].latentMagic = latent;
+            itemData.flags[MODULE_ID] ??= {};
+            itemData.flags[MODULE_ID].latentMagic = latent;
         }
 
         itemData.system.identified = true;
@@ -500,7 +501,7 @@ export class ItemMaskingHelper {
         const minting = game.ionrift?.library?.minting;
         if (!minting?.guardPatch) return;
         minting.guardPatch(patch, {
-            moduleId: "ionrift-quartermaster",
+            moduleId: MODULE_ID,
             recipeKey: recipeKey || undefined,
             mode: "update"
         });
@@ -568,7 +569,7 @@ export class ItemMaskingHelper {
         }
 
         const desc = latent?.originalDescription
-            ?? liveItem?.flags?.["ionrift-quartermaster"]?.cursedMeta?.decoyAppearance
+            ?? liveItem?.flags?.[MODULE_ID]?.cursedMeta?.decoyAppearance
             ?? tSystem.description?.value;
         if (desc !== undefined) {
             // Preserve any curse-reveal block already appended to the live
@@ -879,7 +880,7 @@ export class ItemMaskingHelper {
         if (consumableMask) return consumableMask;
 
         // 3. Wand/rod/staff masking (type or name-based)
-        const obscureMagicalItems = game?.settings?.get("ionrift-quartermaster", "obscureMagicalItems") ?? true;
+        const obscureMagicalItems = game?.settings?.get(MODULE_ID, "obscureMagicalItems") ?? true;
         if (obscureMagicalItems) {
             const focusMask = this._maskFocusName(nameLower, type);
             if (focusMask) return focusMask;
@@ -932,8 +933,8 @@ export class ItemMaskingHelper {
      * @param {string} [subtype=""]  from `_consumableSubtype`
      */
     static _maskConsumableName(nameLower, type, subtype = "") {
-        const obscureConsumables = game?.settings?.get("ionrift-quartermaster", "obscureConsumables") ?? true;
-        const obscureScrolls = game?.settings?.get("ionrift-quartermaster", "obscureScrolls") ?? true;
+        const obscureConsumables = game?.settings?.get(MODULE_ID, "obscureConsumables") ?? true;
+        const obscureScrolls = game?.settings?.get(MODULE_ID, "obscureScrolls") ?? true;
 
         if (/scroll/i.test(nameLower)) {
             return obscureScrolls ? "Unidentified Scroll" : null;
@@ -1150,8 +1151,8 @@ export class ItemMaskingHelper {
      * @param {string} [subtype=""]
      */
     static _consumableDescription(nameLower, type, subtype = "") {
-        const obscureScrolls = game?.settings?.get("ionrift-quartermaster", "obscureScrolls") ?? true;
-        const obscureConsumables = game?.settings?.get("ionrift-quartermaster", "obscureConsumables") ?? true;
+        const obscureScrolls = game?.settings?.get(MODULE_ID, "obscureScrolls") ?? true;
+        const obscureConsumables = game?.settings?.get(MODULE_ID, "obscureConsumables") ?? true;
         const st = (subtype || "").toLowerCase();
 
         if (/potion|elixir|philter|draught/i.test(nameLower)) {

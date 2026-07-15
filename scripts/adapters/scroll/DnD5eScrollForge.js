@@ -4,7 +4,7 @@
 
 import { ItemMaskingHelper } from "../../services/identify/ItemMaskingHelper.js";
 
-const FORGED_FLAG = "ionrift-quartermaster";
+import { MODULE_ID as FORGED_FLAG } from "../../data/moduleId.js";
 
 const SCROLL_IMG_BY_SCHOOL = {
     abj: "icons/sundries/scrolls/scroll-bound-blue-white.webp",

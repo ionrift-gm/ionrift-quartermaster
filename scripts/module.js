@@ -441,7 +441,7 @@ Hooks.on("createItem", async (item, options, userId) => {
     if (actor.type !== "character" || !actor.hasPlayerOwner) return;
 
     // Check if it's an Ionrift signature stub
-    const flags = item.flags?.["ionrift-quartermaster"] || {};
+    const flags = item.flags?.[MODULE_ID] || {};
     if (flags.isSignature) {
         // Did we suggest someone for this? Check if it matched. 
         // Either way, log it to the actor who ACTUALLY received it.

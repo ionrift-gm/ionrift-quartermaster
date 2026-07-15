@@ -46,7 +46,7 @@ export function entryDescriptionText(entry) {
 }
 
 export function isQmDedicatedPickerItem(entry) {
-    const qm = entry.flags?.["ionrift-quartermaster"];
+    const qm = entry.flags?.[MODULE_ID];
     if (!qm) return false;
     if (qm.gemMeta?.tier) return true;
     const cat = qm.coreMeta?.category;

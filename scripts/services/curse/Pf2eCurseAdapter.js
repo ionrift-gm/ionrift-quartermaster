@@ -120,9 +120,9 @@ export class Pf2eCurseAdapter {
 
         const slug = (sourceItem.name || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
         data.flags ??= {};
-        data.flags["ionrift-quartermaster"] ??= {};
-        data.flags["ionrift-quartermaster"].cursedMeta = cursedMeta;
-        data.flags["ionrift-quartermaster"].mintBatch = `pf2e-curse-${slug}`;
+        data.flags[MODULE_ID] ??= {};
+        data.flags[MODULE_ID].cursedMeta = cursedMeta;
+        data.flags[MODULE_ID].mintBatch = `pf2e-curse-${slug}`;
 
         return data;
     }
