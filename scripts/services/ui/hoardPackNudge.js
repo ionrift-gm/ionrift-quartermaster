@@ -7,13 +7,14 @@
  */
 
 import { MODULE_ID } from "../../data/moduleId.js";
+import { getWorldSetting } from "../../../../ionrift-library/scripts/services/platform/connectOwnedSettings.js";
 const CORE_PACK_URL = "https://www.patreon.com/posts/quartermaster-159373428";
 const MATERIALISED_STATE_KEY = "materialisedOverlayPacks";
 
 /** @returns {object|null} Cached registry entry for the core overlay. */
 function getCoreOverlayRegistryEntry() {
     try {
-        const cache = game.settings.get("ionrift-library", "registryLastCheck") ?? {};
+        const cache = getWorldSetting("registryLastCheck") ?? {};
         const entry = cache.data?.overlays?.[CORE_OVERLAY_ID];
         if (!entry || entry.moduleId !== MODULE_ID) return null;
         return entry;
@@ -33,14 +34,14 @@ export function isCoreOverlayOffered() {
 
     const entry = getCoreOverlayRegistryEntry();
     if (entry) {
-        if (entry.preview && !game.settings.get("ionrift-library", "showPreviewContent")) {
+        if (entry.preview && !getWorldSetting("showPreviewContent")) {
             return false;
         }
         return true;
     }
 
     // Registry not cached yet (first load). Preview testers still see the nudge.
-    return !!game.settings.get("ionrift-library", "showPreviewContent");
+    return !!getWorldSetting("showPreviewContent");
 }
 
 /**
