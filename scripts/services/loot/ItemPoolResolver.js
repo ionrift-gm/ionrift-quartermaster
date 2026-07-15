@@ -744,7 +744,7 @@ export class ItemPoolResolver {
         // shadow any raw SRD entries of the same name.
         const compiledPack = game.packs.get("world.quartermaster-compiled-pool");
         const compiledHash = (() => {
-            try { return game.settings.get("ionrift-quartermaster", "compiledLootPoolHash"); }
+            try { return game.settings.get(MODULE_ID, "compiledLootPoolHash"); }
             catch { return ""; }
         })();
         if (compiledPack && compiledHash && getQuartermasterAdapter().canCompileLootPool()) {
@@ -794,7 +794,7 @@ export class ItemPoolResolver {
 
     /** @param {object} entry */
     static _terrainTags(entry) {
-        return entry.flags?.["ionrift-quartermaster"]?.terrain ?? [];
+        return entry.flags?.[MODULE_ID]?.terrain ?? [];
     }
 
     /** @param {object} entry */

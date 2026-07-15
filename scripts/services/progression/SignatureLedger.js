@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 
 export class SignatureLedger {
@@ -15,7 +16,7 @@ export class SignatureLedger {
     }
 
     static get MILESTONES() {
-        const key = game.settings?.get?.("ionrift-quartermaster", "milestoneProfile") ?? "full";
+        const key = game.settings?.get?.(MODULE_ID, "milestoneProfile") ?? "full";
         return (this.PROFILES[key] ?? this.PROFILES.full).milestones;
     }
 
@@ -51,13 +52,13 @@ export class SignatureLedger {
     // ── Journal Entry Access ──────────────────────────────────────────────────
 
     static async getOrCreateLedger() {
-        let entry = game.journal.find(j => j.getFlag("ionrift-quartermaster", "isLedger"));
+        let entry = game.journal.find(j => j.getFlag(MODULE_ID, "isLedger"));
         if (!entry) {
             entry = await JournalEntry.create({
                 name: this.LEDGER_NAME,
                 ownership: { default: 0 },
                 flags: {
-                    "ionrift-quartermaster": {
+                    [MODULE_ID]: {
                         isLedger: true,
                         characters:  {},
                         scrollPlan:  {},
@@ -80,7 +81,7 @@ export class SignatureLedger {
 
     static async getLedgerData() {
         const entry = await this.getOrCreateLedger();
-        return entry.getFlag("ionrift-quartermaster", "characters") || {};
+        return entry.getFlag(MODULE_ID, "characters") || {};
     }
 
     static async setLedgerData(data) {
@@ -90,7 +91,7 @@ export class SignatureLedger {
             }
         }
         const entry = await this.getOrCreateLedger();
-        await entry.setFlag("ionrift-quartermaster", "characters", data);
+        await entry.setFlag(MODULE_ID, "characters", data);
     }
 
     /** Sync character rows with current party. Adds new, preserves existing. */
@@ -117,12 +118,12 @@ export class SignatureLedger {
     static async getScrollPinned() {
         const entry = await this.getOrCreateLedger();
         await this._migrateScrollData(entry);
-        return entry.getFlag("ionrift-quartermaster", "scrollPinned") || [];
+        return entry.getFlag(MODULE_ID, "scrollPinned") || [];
     }
 
     static async setScrollPinned(data) {
         const entry = await this.getOrCreateLedger();
-        await entry.setFlag("ionrift-quartermaster", "scrollPinned", data);
+        await entry.setFlag(MODULE_ID, "scrollPinned", data);
     }
 
     // ── Scroll Plan: Pool (spell-level classified reservoir) ──────────────────
@@ -139,10 +140,10 @@ export class SignatureLedger {
         if (entry._scrollMigrated) return;
         entry._scrollMigrated = true;
 
-        const hasNew = entry.getFlag("ionrift-quartermaster", "scrollPinned");
+        const hasNew = entry.getFlag(MODULE_ID, "scrollPinned");
         if (hasNew !== undefined) return;
 
-        const oldPlan = entry.getFlag("ionrift-quartermaster", "scrollPlan") || [];
+        const oldPlan = entry.getFlag(MODULE_ID, "scrollPlan") || [];
         let flat = oldPlan;
         if (!Array.isArray(flat)) {
             flat = Object.values(flat).flatMap(v => v.scrolls ?? []);
@@ -166,12 +167,12 @@ export class SignatureLedger {
                 });
                 counts[lv]++;
             }
-            await entry.setFlag("ionrift-quartermaster", "scrollPinned", pinned);
-            await entry.setFlag("ionrift-quartermaster", "scrollPool", []);
+            await entry.setFlag(MODULE_ID, "scrollPinned", pinned);
+            await entry.setFlag(MODULE_ID, "scrollPool", []);
             Logger.log(MODULE_LABEL, `Migrated ${pinned.length} scroll entries from scrollPlan to scrollPinned.`);
         } else {
-            await entry.setFlag("ionrift-quartermaster", "scrollPinned", []);
-            await entry.setFlag("ionrift-quartermaster", "scrollPool", []);
+            await entry.setFlag(MODULE_ID, "scrollPinned", []);
+            await entry.setFlag(MODULE_ID, "scrollPool", []);
         }
     }
 
@@ -231,12 +232,12 @@ export class SignatureLedger {
 
     static async getPartyShelf() {
         const entry = await this.getOrCreateLedger();
-        return entry.getFlag("ionrift-quartermaster", "partyShelf") || [];
+        return entry.getFlag(MODULE_ID, "partyShelf") || [];
     }
 
     static async setPartyShelf(data) {
         const entry = await this.getOrCreateLedger();
-        await entry.setFlag("ionrift-quartermaster", "partyShelf", data);
+        await entry.setFlag(MODULE_ID, "partyShelf", data);
     }
 
     /**
@@ -277,12 +278,12 @@ export class SignatureLedger {
 
     static async getBanList() {
         const entry = await this.getOrCreateLedger();
-        return entry.getFlag("ionrift-quartermaster", "banList") || [];
+        return entry.getFlag(MODULE_ID, "banList") || [];
     }
 
     static async setBanList(data) {
         const entry = await this.getOrCreateLedger();
-        await entry.setFlag("ionrift-quartermaster", "banList", data);
+        await entry.setFlag(MODULE_ID, "banList", data);
     }
 
     /**
@@ -346,7 +347,7 @@ export class SignatureLedger {
         if (game.ionrift?.library?.sessions) {
             const ST = game.ionrift.library.sessions;
             const entry = await this.getOrCreateLedger();
-            const lastTimestamp = entry.getFlag("ionrift-quartermaster", "lastSignatureTimestamp") || 0;
+            const lastTimestamp = entry.getFlag(MODULE_ID, "lastSignatureTimestamp") || 0;
             const sessionsSince = ST.getSessionsSince(lastTimestamp);
             const baseCadence   = 12;
             const targetCadence = Math.round(baseCadence * (tracked.length / 4));
@@ -377,7 +378,7 @@ export class SignatureLedger {
         if (!data[actorId]) return false;
         data[actorId].lastSignatureLevel = level;
         const entry = await this.getOrCreateLedger();
-        await entry.setFlag("ionrift-quartermaster", "lastSignatureTimestamp", Date.now());
+        await entry.setFlag(MODULE_ID, "lastSignatureTimestamp", Date.now());
         await this.setLedgerData(data);
         return true;
     }

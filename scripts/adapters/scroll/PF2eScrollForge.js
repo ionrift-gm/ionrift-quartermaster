@@ -5,7 +5,7 @@
 
 import { ItemMaskingHelper } from "../../services/identify/ItemMaskingHelper.js";
 
-const FORGED_FLAG = "ionrift-quartermaster";
+import { MODULE_ID as FORGED_FLAG } from "../../data/moduleId.js";
 
 const PACK_PRIORITY = ["pf2e.spells-srd", "pf2e.spells"];
 const DEFAULT_PACK_IDS = ["pf2e.spells-srd"];

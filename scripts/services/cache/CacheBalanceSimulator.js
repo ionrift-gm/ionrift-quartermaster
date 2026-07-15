@@ -340,7 +340,7 @@ export function buildSyntheticMastercraftPool(opts = {}) {
             weight: 3,
             system: { type: { value: "martialM" }, rarity: "common" },
             flags: {
-                "ionrift-quartermaster": {
+                [MODULE_ID]: {
                     coreMeta: { category: "Mastercraft" }
                 }
             }
@@ -394,7 +394,7 @@ export function buildSyntheticFillerPool() {
             price: 25,
             rarity: "common",
             weight: 1,
-            flags: { "ionrift-quartermaster": { coreMeta: { category: "Treasure" } } },
+            flags: { [MODULE_ID]: { coreMeta: { category: "Treasure" } } },
             system: { rarity: "common" }
         },
         {
@@ -405,7 +405,7 @@ export function buildSyntheticFillerPool() {
             weight: 0.01,
             system: { type: { value: "scroll" }, rarity: "common" },
             flags: {
-                "ionrift-quartermaster": {
+                [MODULE_ID]: {
                     scrollMeta: { spellLevel: 1, spellName: "Synthetic Cantrip" }
                 }
             }

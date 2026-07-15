@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * ItemClassifier
  *
@@ -68,7 +69,7 @@ export class ItemClassifier {
             return this.CATEGORY.GENERIC_MAGIC;
         }
 
-        const compiledTier = item.flags?.["ionrift-quartermaster"]?.compiledFrom?.tier;
+        const compiledTier = item.flags?.[MODULE_ID]?.compiledFrom?.tier;
         const magBonus = item.system?.magicalBonus ?? item.magicalBonus;
         if (compiledTier >= 1 && compiledTier <= 3) {
             return this.CATEGORY.GENERIC_MAGIC;
@@ -136,7 +137,7 @@ export class ItemClassifier {
             if (magMatch) return parseInt(magMatch[1], 10);
         }
 
-        const compiledTier = item?.flags?.["ionrift-quartermaster"]?.compiledFrom?.tier;
+        const compiledTier = item?.flags?.[MODULE_ID]?.compiledFrom?.tier;
         if (compiledTier >= 1 && compiledTier <= 3) return compiledTier;
 
         return 0;

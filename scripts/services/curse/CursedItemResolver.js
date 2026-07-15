@@ -14,7 +14,7 @@
  * @module CursedItemResolver
  */
 
-const QM_ID = "ionrift-quartermaster";
+import { MODULE_ID as QM_ID } from "../../data/moduleId.js";
 
 export class CursedItemResolver {
 

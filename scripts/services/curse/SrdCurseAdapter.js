@@ -190,8 +190,8 @@ export class SrdCurseAdapter {
         if (entry.masking) {
             // Store the masked presentation for QM to use at distribution time.
             data.flags                                      ??= {};
-            data.flags["ionrift-quartermaster"]             ??= {};
-            data.flags["ionrift-quartermaster"].latentMagic = {
+            data.flags[MODULE_ID]             ??= {};
+            data.flags[MODULE_ID].latentMagic = {
                 originalName:        entry.masking.originalName,
                 originalRarity:      entry.masking.originalRarity ?? "common",
                 magicalBonus:        "",
@@ -215,9 +215,9 @@ export class SrdCurseAdapter {
         };
 
         data.flags                                  ??= {};
-        data.flags["ionrift-quartermaster"]         ??= {};
-        data.flags["ionrift-quartermaster"].cursedMeta  = cursedMeta;
-        data.flags["ionrift-quartermaster"].mintBatch   = `srd-curse-${entry.match.toLowerCase().replace(/\s+/g, "-")}`;
+        data.flags[MODULE_ID]         ??= {};
+        data.flags[MODULE_ID].cursedMeta  = cursedMeta;
+        data.flags[MODULE_ID].mintBatch   = `srd-curse-${entry.match.toLowerCase().replace(/\s+/g, "-")}`;
 
         return data;
     }

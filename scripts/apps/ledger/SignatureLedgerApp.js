@@ -376,14 +376,14 @@ export class SignatureLedgerApp extends Application {
         // Auto-detect delivered items by scanning party inventories
         const syncedShelf = await this._syncDeliveryStatus(partyShelf, partyActors);
 
-        const shelfConcentration   = game.settings?.get("ionrift-quartermaster", "shelfConcentration") ?? 3;
-        const shelfAttunementBias  = game.settings?.get("ionrift-quartermaster", "shelfAttunementBias") ?? 1;
-        const shelfCategoryWeights = game.settings?.get("ionrift-quartermaster", "shelfCategoryWeights")
+        const shelfConcentration   = game.settings?.get(MODULE_ID, "shelfConcentration") ?? 3;
+        const shelfAttunementBias  = game.settings?.get(MODULE_ID, "shelfAttunementBias") ?? 1;
+        const shelfCategoryWeights = game.settings?.get(MODULE_ID, "shelfCategoryWeights")
             ?? '{"wondrous":{"w":70,"on":true},"focus":{"w":15,"on":true},"armor":{"w":10,"on":true},"weapon":{"w":5,"on":true}}';
-        const scrollFloor      = game.settings?.get("ionrift-quartermaster", "scrollFloor") ?? 1;
-        const scrollUpperReach = game.settings?.get("ionrift-quartermaster", "scrollUpperReach") ?? 2;
-        const scrollConcentration = game.settings?.get("ionrift-quartermaster", "scrollConcentration") ?? 2;
-        const scrollOffset     = game.settings?.get("ionrift-quartermaster", "scrollOffset") ?? -1;
+        const scrollFloor      = game.settings?.get(MODULE_ID, "scrollFloor") ?? 1;
+        const scrollUpperReach = game.settings?.get(MODULE_ID, "scrollUpperReach") ?? 2;
+        const scrollConcentration = game.settings?.get(MODULE_ID, "scrollConcentration") ?? 2;
+        const scrollOffset     = game.settings?.get(MODULE_ID, "scrollOffset") ?? -1;
 
         const hasParty = partyActors.length > 0;
 
@@ -1457,7 +1457,7 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-update-scroll-floor").change(async ev => {
             const val = parseInt(ev.currentTarget.value, 10);
             if (!Number.isNaN(val)) {
-                await game.settings.set("ionrift-quartermaster", "scrollFloor", val);
+                await game.settings.set(MODULE_ID, "scrollFloor", val);
                 this.render(false);
             }
         });
@@ -1465,7 +1465,7 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-update-scroll-upper-reach").change(async ev => {
             const val = parseInt(ev.currentTarget.value, 10);
             if (!Number.isNaN(val)) {
-                await game.settings.set("ionrift-quartermaster", "scrollUpperReach", val);
+                await game.settings.set(MODULE_ID, "scrollUpperReach", val);
                 this.render(false);
             }
         });
@@ -1473,7 +1473,7 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-update-scroll-concentration").change(async ev => {
             const val = parseInt(ev.currentTarget.value, 10);
             if (!Number.isNaN(val)) {
-                await game.settings.set("ionrift-quartermaster", "scrollConcentration", val);
+                await game.settings.set(MODULE_ID, "scrollConcentration", val);
                 this.render(false);
             }
         });
@@ -1481,16 +1481,16 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-update-scroll-offset").change(async ev => {
             const val = parseInt(ev.currentTarget.value, 10);
             if (!Number.isNaN(val)) {
-                await game.settings.set("ionrift-quartermaster", "scrollOffset", val);
+                await game.settings.set(MODULE_ID, "scrollOffset", val);
                 this.render(false);
             }
         });
         html.find(".action-reset-scroll-defaults").click(async ev => {
             ev.preventDefault();
-            await game.settings.set("ionrift-quartermaster", "scrollFloor", 1);
-            await game.settings.set("ionrift-quartermaster", "scrollUpperReach", 2);
-            await game.settings.set("ionrift-quartermaster", "scrollConcentration", 2);
-            await game.settings.set("ionrift-quartermaster", "scrollOffset", -1);
+            await game.settings.set(MODULE_ID, "scrollFloor", 1);
+            await game.settings.set(MODULE_ID, "scrollUpperReach", 2);
+            await game.settings.set(MODULE_ID, "scrollConcentration", 2);
+            await game.settings.set(MODULE_ID, "scrollOffset", -1);
             ui.notifications.info("Scroll distribution settings reset to defaults.");
             this.render(false);
         });
@@ -1539,7 +1539,7 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-update-shelf-concentration").change(async ev => {
             const val = parseInt(ev.currentTarget.value, 10);
             if (!Number.isNaN(val)) {
-                await game.settings.set("ionrift-quartermaster", "shelfConcentration", val);
+                await game.settings.set(MODULE_ID, "shelfConcentration", val);
                 this.render(false);
             }
         });
@@ -1547,7 +1547,7 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-update-shelf-attunement").change(async ev => {
             const val = parseInt(ev.currentTarget.value, 10);
             if (!Number.isNaN(val)) {
-                await game.settings.set("ionrift-quartermaster", "shelfAttunementBias", val);
+                await game.settings.set(MODULE_ID, "shelfAttunementBias", val);
                 this.render(false);
             }
         });
@@ -1556,12 +1556,12 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-toggle-category").change(async ev => {
             const cat = ev.currentTarget.dataset.category;
             if (!cat) return;
-            const raw = game.settings?.get("ionrift-quartermaster", "shelfCategoryWeights")
+            const raw = game.settings?.get(MODULE_ID, "shelfCategoryWeights")
                 ?? '{"wondrous":{"w":70,"on":true},"focus":{"w":15,"on":true},"armor":{"w":10,"on":true},"weapon":{"w":5,"on":true}}';
             let parsed;
             try { parsed = JSON.parse(raw); } catch { parsed = {}; }
             if (parsed[cat]) parsed[cat].on = ev.currentTarget.checked;
-            await game.settings.set("ionrift-quartermaster", "shelfCategoryWeights", JSON.stringify(parsed));
+            await game.settings.set(MODULE_ID, "shelfCategoryWeights", JSON.stringify(parsed));
             this.render(false);
         });
         html.find(".action-update-category-weight").on("input", ev => {
@@ -1573,12 +1573,12 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-update-category-weight").change(async ev => {
             const cat = ev.currentTarget.dataset.category;
             if (!cat) return;
-            const raw = game.settings?.get("ionrift-quartermaster", "shelfCategoryWeights")
+            const raw = game.settings?.get(MODULE_ID, "shelfCategoryWeights")
                 ?? '{"wondrous":{"w":70,"on":true},"focus":{"w":15,"on":true},"armor":{"w":10,"on":true},"weapon":{"w":5,"on":true}}';
             let parsed;
             try { parsed = JSON.parse(raw); } catch { parsed = {}; }
             if (parsed[cat]) parsed[cat].w = parseInt(ev.currentTarget.value, 10) || 0;
-            await game.settings.set("ionrift-quartermaster", "shelfCategoryWeights", JSON.stringify(parsed));
+            await game.settings.set(MODULE_ID, "shelfCategoryWeights", JSON.stringify(parsed));
             this.render(false);
         });
         html.find(".action-open-loot-generation-config").click(ev => {
@@ -1587,9 +1587,9 @@ export class SignatureLedgerApp extends Application {
         });
         html.find(".action-reset-party-defaults").click(async ev => {
             ev.preventDefault();
-            await game.settings.set("ionrift-quartermaster", "shelfConcentration", 3);
-            await game.settings.set("ionrift-quartermaster", "shelfAttunementBias", 1);
-            await game.settings.set("ionrift-quartermaster", "shelfCategoryWeights", JSON.stringify({
+            await game.settings.set(MODULE_ID, "shelfConcentration", 3);
+            await game.settings.set(MODULE_ID, "shelfAttunementBias", 1);
+            await game.settings.set(MODULE_ID, "shelfCategoryWeights", JSON.stringify({
                 wondrous: { w: 70, on: true },
                 focus:    { w: 15, on: true },
                 armor:    { w: 10, on: true },
@@ -2365,7 +2365,7 @@ export class SignatureLedgerApp extends Application {
         const before = pool.length;
 
         for (const item of docs) {
-            const meta = item.flags?.["ionrift-quartermaster"]?.cursedMeta ?? {};
+            const meta = item.flags?.[MODULE_ID]?.cursedMeta ?? {};
             pool.push({
                 uuid:      item.uuid,
                 name:      item.name,
@@ -2447,7 +2447,7 @@ export class SignatureLedgerApp extends Application {
         pool = pool.filter(p => !(p.uuid || "").includes("ionrift-cursewright-forged"));
 
         for (const item of docs) {
-            const meta = item.flags?.["ionrift-quartermaster"]?.cursedMeta ?? {};
+            const meta = item.flags?.[MODULE_ID]?.cursedMeta ?? {};
             pool.push({
                 uuid:            item.uuid,
                 name:            item.name,
@@ -2888,7 +2888,7 @@ SignatureLedgerApp.prototype._showItemTooltip = function(item, anchorEl) {
     // Enriched cursed context: tier badge + type description + detection hints
     let cursedEnrichment = "";
     if (isCursed) {
-        const cursedMeta = item.flags?.["ionrift-quartermaster"]?.cursedMeta || item.flags?.cursedMeta || null;
+        const cursedMeta = item.flags?.[MODULE_ID]?.cursedMeta || item.flags?.cursedMeta || null;
         const tier = cursedMeta?.tier ?? (anchorEl?.dataset?.tier ? Number(anchorEl.dataset.tier) : null);
         const ctKey = (curseType || "").toLowerCase();
         const typeDesc = CURSE_TYPE_DESCRIPTIONS[ctKey] || "";

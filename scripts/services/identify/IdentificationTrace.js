@@ -4,7 +4,7 @@ import { MODULE_ID } from "../../data/moduleId.js";
 
 /**
  * Client-side trace for GM identification routing. Enable in module settings
- * or from the console: game.settings.set("ionrift-quartermaster", "identifyTrace", true)
+ * or from the console: game.settings.set(MODULE_ID, "identifyTrace", true)
  *
  * @param {string} step
  * @param {object} [detail]

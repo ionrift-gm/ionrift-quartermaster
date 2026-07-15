@@ -1,9 +1,4 @@
 import { MODULE_ID } from "../../data/moduleId.js";
-/**
- * CacheGenerator
- * Generates level-tuned, terrain-themed loot caches for placement on enemies,
- * in treasure rooms, or directly onto scenes.
- */
 
 import { ItemPoolResolver } from "../loot/ItemPoolResolver.js";
 import { ItemMaskingHelper } from "../identify/ItemMaskingHelper.js";
@@ -16,6 +11,16 @@ import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../workshop/CoinFormat.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import {
+    CacheScrollLogic,
+    SCROLL_PRICES_BY_LEVEL,
+    TIER_SCROLL_MIN_LEVEL,
+    TIER_SCROLL_MAX_UNIQUES
+} from "./CacheScrollLogic.js";
+import { CacheAmmoLogic } from "./CacheAmmoLogic.js";
+import { CacheHealingLogic } from "./CacheHealingLogic.js";
+import { CacheQuantityLogic } from "./CacheQuantityLogic.js";
+import { CacheCoinageLogic } from "./CacheCoinageLogic.js";
 import {
     PACK_SUFFIX,
     isQmPackRole,
@@ -44,23 +49,6 @@ import {
 } from "./CachePackIndex.js";
 
 
-/** SRD scroll price by spell level (gp). */
-const SCROLL_PRICES_BY_LEVEL = {
-    1: 60, 2: 120, 3: 200, 4: 320, 5: 640, 6: 1280, 7: 2560, 8: 5120, 9: 10240
-};
-
-/** Minimum spell level for cache scroll slots by party tier. */
-const TIER_SCROLL_MIN_LEVEL = [0, 1, 2, 3, 5];
-
-/** Max distinct scroll lines after consolidation, by tier. */
-const TIER_SCROLL_MAX_UNIQUES = [0, 2, 4, 5, 6];
-
-/** Max scroll slots in one cache (arcana / apothecary / default), by tier. */
-const SCROLL_SLOT_CAP = {
-    arcana:      [0, 3, 5, 6, 7],
-    apothecary:  [0, 2, 4, 5, 5],
-    default:     [0, 2, 3, 4, 5]
-};
 
 export const __testables__ = {
     MODULE_ID,
@@ -508,16 +496,16 @@ export class CacheGenerator {
      * @returns {Object} { gold, items: [{ name, type, img, price, rarity, quantity }] }
      */
     static async generate(options = {}) {
-        const defaultTier = game.settings?.get("ionrift-quartermaster", "defaultCacheTier") ?? 1;
-        const defaultTheme = game.settings?.get("ionrift-quartermaster", "defaultCacheTheme") ?? "dungeon";
+        const defaultTier = game.settings?.get(MODULE_ID, "defaultCacheTier") ?? 1;
+        const defaultTheme = game.settings?.get(MODULE_ID, "defaultCacheTheme") ?? "dungeon";
 
         const tier = Math.clamp(options.tier ?? defaultTier, 1, 4);
         const theme = options.theme ?? defaultTheme;
         const ownerTheme = options.ownerTheme ?? "unspecified";
 
         // Economy multiplier (GM configurable, default 1.0)
-        const economy = game.settings?.get("ionrift-quartermaster", "lootEconomy") ?? 1.0;
-        const magicMult = game.settings?.get("ionrift-quartermaster", "magicFrequency") ?? 1.0;
+        const economy = game.settings?.get(MODULE_ID, "lootEconomy") ?? 1.0;
+        const magicMult = game.settings?.get(MODULE_ID, "magicFrequency") ?? 1.0;
 
         const tables = await this._loadTables();
         if (tables.tiers) {
@@ -1150,59 +1138,11 @@ export class CacheGenerator {
         return false;
     }
 
-    /** Remove all coinage from a cache preview without touching items. */
-    static clearCacheGold(cacheResult) {
-        if (!cacheResult) return;
-        cacheResult.gold = 0;
-        if (cacheResult.meta) cacheResult.meta.preFloorGold = 0;
-        delete cacheResult.coinage;
-    }
-
-    /**
-     * Reconcile rolled coin with the cache budget floor after the GM changes
-     * the budget bracket. Uses {@link meta.preFloorGold} so floor padding can
-     * be added or removed without a full regen.
-     *
-     * @param {Object} cacheResult
-     * @param {number} [budgetMin=0]
-     * @param {number|null} [budgetMax]
-     * @returns {Object}
-     */
+    static clearCacheGold(cacheResult) { return CacheCoinageLogic.clearCacheGold(cacheResult); }
     static applyBudgetFloor(cacheResult, budgetMin = 0, budgetMax = null) {
-        if (!cacheResult) return cacheResult;
-
-        const floor = Math.max(0, Number(budgetMin) || 0);
-        const preFloor = cacheResult.meta?.preFloorGold ?? cacheResult.gold ?? 0;
-        const itemValue = (cacheResult.items ?? []).reduce(
-            (sum, item) => sum + (item.price ?? 0),
-            0
-        );
-
-        let gold = preFloor;
-        if (floor > 0 && preFloor + itemValue < floor) {
-            gold = floor - itemValue;
-        }
-
-        cacheResult.gold = Math.max(0, Math.round(gold));
-        if (cacheResult.meta) {
-            cacheResult.meta.budgetMin = floor;
-            if (budgetMax !== null && budgetMax !== undefined) {
-                cacheResult.meta.budgetMax = budgetMax;
-            }
-        }
-        this._syncCacheCoinage(cacheResult);
-        return cacheResult;
+        return CacheCoinageLogic.applyBudgetFloor(cacheResult, budgetMin, budgetMax);
     }
-
-    /** Refresh or clear distributed coin breakdown for a cache preview. */
-    static _syncCacheCoinage(cacheResult) {
-        if (!cacheResult) return;
-        if (cacheResult.gold > 0 && game.settings.get("ionrift-quartermaster", "distributeCoins") !== false) {
-            cacheResult.coinage = this._distributeCoinage(cacheResult.gold);
-        } else {
-            delete cacheResult.coinage;
-        }
-    }
+    static _syncCacheCoinage(cacheResult) { return CacheCoinageLogic._syncCacheCoinage(cacheResult); }
 
     /**
      * Roll a fresh base gold total for the cache tier and owner theme.
@@ -1218,7 +1158,7 @@ export class CacheGenerator {
         const ownerDef = tables.ownerThemes?.[ownerTheme] ?? tables.ownerThemes?.unspecified;
         if (!tierData) return cacheResult;
 
-        const economy = game.settings.get("ionrift-quartermaster", "lootEconomy") ?? 1.0;
+        const economy = game.settings.get(MODULE_ID, "lootEconomy") ?? 1.0;
         const rawGold = await this._rollGold(tierData.goldDice);
         cacheResult.gold = Math.max(
             0,
@@ -1401,7 +1341,7 @@ export class CacheGenerator {
             const packs = resolveQmCorePacks();
             if (packs.length === 0) return null;
             const kindFilter = (e) => {
-                const cat = e.flags?.['ionrift-quartermaster']?.coreMeta?.category;
+                const cat = e.flags?.[MODULE_ID]?.coreMeta?.category;
                 return ['Cultural Weapons', 'Cultural Armor', 'Mastercraft'].includes(cat);
             };
             const pool = await loadFilteredPoolIndex(packs, kindFilter, "Mastercraft");
@@ -1413,7 +1353,7 @@ export class CacheGenerator {
             if (eligible.length === 0) return null;
 
             const themed = eligible.filter(e => {
-                const mat = e.flags?.['ionrift-quartermaster']?.coreMeta?.material ?? '';
+                const mat = e.flags?.[MODULE_ID]?.coreMeta?.material ?? '';
                 return preferredMaterials.includes(mat);
             });
             const finalPool = themed.length > 0 ? themed : eligible;
@@ -1439,267 +1379,25 @@ export class CacheGenerator {
 
     // ── Ammunition Picker ─────────────────────────────────────────
 
-    /**
-     * Probability of a magical ammo pick per cache tier.
-     * Scaled by the GM's `magicAmmoFrequency` setting.
-     */
-    static MAGIC_AMMO_CHANCE = { 1: 0.05, 2: 0.25, 3: 0.50, 4: 0.70 };
-
-    /**
-     * Within magical ammo, weight distribution across +1/+2/+3 per tier.
-     * Higher weight = more likely to be drawn.
-     */
-    static MAGIC_AMMO_BONUS_WEIGHTS = {
-        1: { 1: 1, 2: 0, 3: 0 },       // T1: +1 only
-        2: { 1: 6, 2: 1, 3: 0 },       // T2: mostly +1, rare +2
-        3: { 1: 3, 2: 3, 3: 1 },       // T3: +1/+2 common, occasional +3
-        4: { 1: 2, 2: 3, 3: 2 }        // T4: balanced, solid +3
-    };
-
-    /**
-     * Quantity dice [count, sides] for magical ammo, by [tier][bonus].
-     */
-    static MAGIC_AMMO_QTY_DICE = {
-        1: { 1: [1, 4] },                                     // +1: 1d4
-        2: { 1: [2, 6], 2: [1, 4], 3: [1, 4] },              // +1: 2d6, +2: 1d4, +3: 1d4
-        3: { 1: [3, 6], 2: [2, 6], 3: [1, 4] },              // +1: 3d6, +2: 2d6, +3: 1d4
-        4: { 1: [4, 6], 2: [4, 6], 3: [2, 6] }               // +1: 4d6, +2: 4d6, +3: 2d6
-    };
+    static MAGIC_AMMO_CHANCE = CacheAmmoLogic.MAGIC_AMMO_CHANCE;
+    static MAGIC_AMMO_BONUS_WEIGHTS = CacheAmmoLogic.MAGIC_AMMO_BONUS_WEIGHTS;
+    static MAGIC_AMMO_QTY_DICE = CacheAmmoLogic.MAGIC_AMMO_QTY_DICE;
 
 
-    /**
-     * Pick ammunition for a cache slot. Separates mundane from magical ammo
-     * and applies a tier-respecting curve for +N magical ammunition.
-     *
-     * Named magical ammo (e.g. Walloping Ammunition) follows the same
-     * Stance B throttle as named magical weapons.
-     *
-     * @param {string} theme
-     * @param {Object} tierData
-     * @param {Object} tables
-     * @param {number} priceCeiling
-     * @param {Object} pickOpts
-     */
     static async _pickAmmo(theme, tierData, tables, priceCeiling = Infinity, pickOpts = {}) {
-        const tier = tierData._tier ?? 1;
-        const magicAmmoFreq = game.settings?.get(MODULE_ID, "magicAmmoFrequency") ?? 1.0;
-        const ammoConfig = AmmoTypeRegistry.load();
-
-        // Resolve the full ammo pool from enabled compendiums
-        let pool = [];
-        try {
-            pool = await ItemPoolResolver.resolve({
-                slotType: "ammo",
-                tier,
-                theme,
-                fallbackTables: tables,
-                rarityMax: tierData.rarityMax ?? "uncommon"
-            });
-        } catch (e) {
-            Logger.warn(MODULE_LABEL, "ItemPoolResolver failed for ammo:", e.message);
-        }
-
-        if (!pool.length) return null;
-
-        // Price ceiling
-        const affordable = pool.filter(p => (p.price ?? 0) <= priceCeiling);
-        const finalPool = affordable.length > 0 ? affordable : pool;
-
-        // Split mundane vs magical
-        const mundane = finalPool.filter(i => {
-            const r = (i.rarity || "").toLowerCase();
-            return !r || r === "common" || r === "none";
-        });
-        const magical = finalPool.filter(i => {
-            const r = (i.rarity || "").toLowerCase();
-            return r && r !== "common" && r !== "none";
-        });
-
-        // If the consumable ammo pool has no magical entries, try picking
-        // magical ammo from the mastercraft (weapon) pool - dnd5e 5e24
-        // compendiums type "Arrows +1" as weapon, not consumable/ammo.
-        let magicalPool = magical;
-        if (magical.length === 0) {
-            try {
-                const weaponPool = await ItemPoolResolver.resolve({
-                    slotType: "mastercraft",
-                    tier,
-                    theme,
-                    fallbackTables: tables,
-                    rarityMax: tierData.rarityMax ?? "uncommon"
-                });
-                // Filter to weapon-type items that dnd5e compendiums sometimes
-                // type as weapon instead of consumable/ammo (e.g. Arrows +1).
-                // ItemClassifier name rules exclude the sling weapon ("Sling +1").
-                magicalPool = weaponPool.filter(i => {
-                    const rarity = (i.rarity || "").toLowerCase();
-                    const isMagical = rarity && rarity !== "common" && rarity !== "none";
-                    return isMagical && ItemClassifier.isAmmo(i);
-                });
-            } catch (e) {
-                Logger.warn(MODULE_LABEL, "Magical ammo weapon pool fallback failed:", e.message);
-            }
-        }
-
-        // Decide: mundane or magical?
-        const baseChance = this.MAGIC_AMMO_CHANCE[tier] ?? 0.05;
-        const scaledChance = Math.min(1.0, baseChance * magicAmmoFreq);
-
-        let pick;
-        let isMagicalPick = false;
-
-        if (magicalPool.length > 0 && magicAmmoFreq > 0 && Math.random() < scaledChance) {
-            // Magical ammo pick - tier-respecting +N distribution
-            pick = this._pickMagicalAmmo(magicalPool, tier, pickOpts);
-            isMagicalPick = !!pick;
-        }
-
-        // Fallback to mundane if magical pick failed or wasn't attempted
-        if (!pick) {
-            const mundanePool = mundane.length > 0 ? mundane : finalPool;
-            pick = this._tiltedAmmoPick(mundanePool, ammoConfig);
-        }
-
-        if (!pick) return null;
-
-        // Quantity: magical uses tier-respecting dice, mundane uses bulk stacking
-        let qty;
-        if (isMagicalPick) {
-            qty = this._magicalAmmoQuantity(pick, tier);
-        } else {
-            // Mundane bulk: 10-50 units
-            qty = 10 + Math.floor(Math.random() * 41);
-        }
-
-        const unitPrice = pick.price ?? 0;
-        const unitWeight = pick.weight ?? 0.02;
-        return {
-            name: pick.name,
-            type: "consumable",
-            subtype: pick.subtype ?? "ammo",
-            img: pick.img ?? "icons/weapons/ammunition/arrows-bundle-brown.webp",
-            price: unitPrice,
-            weight: unitWeight,
-            rarity: pick.rarity ?? "common",
-            quantity: qty,
-            sourceCompendium: pick.sourceCompendium,
-            _compendiumId: pick._compendiumId,
-            _qmKind: "ammo"
-        };
+        return CacheAmmoLogic._pickAmmo(theme, tierData, tables, priceCeiling, pickOpts);
     }
 
-    /**
-     * Select a magical ammo item from the pool, respecting tier-appropriate
-     * bonus weights. Named magical ammo follows Stance B throttle.
-     *
-     * @param {Object[]} magicalPool
-     * @param {number} tier
-     * @param {Object} pickOpts
-     * @returns {Object|null}
-     */
     static _pickMagicalAmmo(magicalPool, tier, pickOpts = {}) {
-        const weights = this.MAGIC_AMMO_BONUS_WEIGHTS[tier] ?? this.MAGIC_AMMO_BONUS_WEIGHTS[1];
-
-        // Classify magical ammo by bonus tier
-        const byBonus = { 1: [], 2: [], 3: [], named: [] };
-        for (const item of magicalPool) {
-            if (ItemClassifier.isSlayingAmmo(item)) continue;
-            const bonus = ItemClassifier.detectBonusTier(item.name);
-            if (bonus >= 1 && bonus <= 3) {
-                byBonus[bonus].push(item);
-            } else {
-                byBonus.named.push(item);
-            }
-        }
-
-        const tierBag = [];
-        for (const bonusStr of ["1", "2", "3"]) {
-            const bonus = parseInt(bonusStr, 10);
-            const w = weights[bonus] ?? 0;
-            if (w === 0 || !byBonus[bonus].length) continue;
-            const tickets = Math.max(1, Math.round(w));
-            for (let i = 0; i < tickets; i++) tierBag.push(bonus);
-        }
-
-        if (tierBag.length) {
-            const chosenBonus = tierBag[Math.floor(Math.random() * tierBag.length)];
-            const picked = ItemPoolResolver._pickUniformByClass(byBonus[chosenBonus]);
-            if (picked) return picked;
-        }
-
-        if (!pickOpts.rejectNamedMagical && byBonus.named.length > 0) {
-            return ItemPoolResolver._pickUniformByClass(byBonus.named);
-        }
-
-        return null;
+        return CacheAmmoLogic._pickMagicalAmmo(magicalPool, tier, pickOpts);
     }
 
-    /**
-     * Resolve quantity for a magical ammo pick using tier-respecting dice.
-     *
-     * @param {Object} pick
-     * @param {number} tier
-     * @returns {number}
-     */
     static _magicalAmmoQuantity(pick, tier) {
-        const bonus = ItemClassifier.detectBonusTier(pick.name);
-        const table = this.MAGIC_AMMO_QTY_DICE[tier] ?? this.MAGIC_AMMO_QTY_DICE[1];
-        const dice = table[bonus] ?? table[1] ?? [1, 4];
-
-        // Roll NdS
-        let total = 0;
-        for (let i = 0; i < dice[0]; i++) {
-            total += 1 + Math.floor(Math.random() * dice[1]);
-        }
-        return Math.max(1, total);
+        return CacheAmmoLogic._magicalAmmoQuantity(pick, tier);
     }
 
-    /**
-     * Pick an ammo item from the pool, applying the GM's ammo type curve.
-     *
-     * Uses TYPE-FIRST selection: picks which ammo category to draw from
-     * using configured weights, then selects one random item within that
-     * category. This prevents pool-composition bias where one type dominates
-     * simply by having more compendium entries.
-     *
-     * @param {Object[]} pool
-     * @param {{ types: object[] }} ammoConfig
-     * @returns {Object|null}
-     */
     static _tiltedAmmoPick(pool, ammoConfig) {
-        if (!pool.length) return null;
-
-        const config = ammoConfig ?? AmmoTypeRegistry.load();
-        const weightMap = AmmoTypeRegistry.getWeightMap(config);
-
-        /** @type {Record<string, object[]>} */
-        const byType = {};
-        for (const typeEntry of config.types) byType[typeEntry.id] = [];
-
-        for (const item of pool) {
-            const typeId = AmmoTypeRegistry.detectType(item, config);
-            (byType[typeId] ??= []).push(item);
-        }
-
-        const availableTypes = Object.entries(byType).filter(([, items]) => items.length > 0);
-        if (!availableTypes.length) return null;
-
-        const typeBag = [];
-        for (const [typeName, items] of availableTypes) {
-            const rawWeight = weightMap[typeName] ?? 1;
-            if (rawWeight <= 0) continue;
-            const w = Math.max(1, Math.round(rawWeight * 3));
-            for (let i = 0; i < w; i++) typeBag.push(typeName);
-        }
-
-        if (!typeBag.length) {
-            const [typeName, items] = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-            return items[Math.floor(Math.random() * items.length)];
-        }
-
-        const chosenType = typeBag[Math.floor(Math.random() * typeBag.length)];
-        const chosenPool = byType[chosenType];
-        return chosenPool[Math.floor(Math.random() * chosenPool.length)];
+        return CacheAmmoLogic._tiltedAmmoPick(pool, ammoConfig);
     }
 
     /**
@@ -1735,7 +1433,7 @@ export class CacheGenerator {
             if (packs.length === 0) return null;
             const pool = await loadFilteredPoolIndex(packs, isGemEntry, "Gemstone");
             const eligible = pool.filter(e => {
-                const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier
+                const gemTier = e.flags?.[MODULE_ID]?.gemMeta?.tier
                     ?? e.flags?.['ionrift-workshop']?.gemMeta?.tier;
                 if (!eligibleTiers.includes(gemTier)) return false;
                 const price = ItemPoolResolver._extractPrice(e);
@@ -1745,7 +1443,7 @@ export class CacheGenerator {
 
             const weighted = [];
             for (const e of eligible) {
-                const gemTier = e.flags?.['ionrift-quartermaster']?.gemMeta?.tier
+                const gemTier = e.flags?.[MODULE_ID]?.gemMeta?.tier
                     ?? e.flags?.['ionrift-workshop']?.gemMeta?.tier
                     ?? 'Polished Common';
                 const w = tierWeights[gemTier] ?? 1;
@@ -1755,7 +1453,7 @@ export class CacheGenerator {
             const pick = this._terrainWeightedPick(weighted, theme);
             if (!pick) return null;
 
-            const pickedTier = pick.flags?.['ionrift-quartermaster']?.gemMeta?.tier
+            const pickedTier = pick.flags?.[MODULE_ID]?.gemMeta?.tier
                 ?? pick.flags?.['ionrift-workshop']?.gemMeta?.tier
                 ?? 'Polished Common';
             const pickPrice = ItemPoolResolver._extractPrice(pick);
@@ -1878,165 +1576,18 @@ export class CacheGenerator {
         return null;
     }
 
-    /**
-     * Pick a scroll from the forged world scroll compendium at the appropriate level.
-     * Falls back to the stub list if the compendium is unavailable.
-     */
-    static _tierScrollMinLevel(tier) {
-        return TIER_SCROLL_MIN_LEVEL[tier] ?? 1;
-    }
-
-    static _maxScrollUniques(tier) {
-        return TIER_SCROLL_MAX_UNIQUES[tier] ?? 4;
-    }
-
-    /**
-     * @param {number} tier
-     * @param {string} ownerTheme
-     * @returns {number}
-     */
-    static _scrollSlotCap(tier, ownerTheme) {
-        const table = SCROLL_SLOT_CAP[ownerTheme] ?? SCROLL_SLOT_CAP.default;
-        return table[tier] ?? table[1] ?? 3;
-    }
-
-    /**
-     * Max stack size for one scroll line at a given spell level.
-     *
-     * @param {number} spellLevel
-     * @param {object} tierData
-     * @returns {number}
-     */
-    static _scrollStackCap(spellLevel, tierData) {
-        const tier = tierData._tier ?? 1;
-        const minLevel = this._tierScrollMinLevel(tier);
-        const maxLevel = tierData.scrollLevelMax ?? 2;
-        const lvl = spellLevel ?? minLevel;
-        if (lvl >= maxLevel - 1) return 2;
-        const mid = minLevel + Math.max(1, Math.floor((maxLevel - minLevel) / 2));
-        if (lvl >= mid) return 4;
-        return 5;
-    }
-
-    /**
-     * Replace excess scroll slots with other pool types so Arcana caches
-     * do not ship a dozen unique one-offs.
-     *
-     * @param {string[]} drawnSlots
-     * @param {number} tier
-     * @param {string} ownerTheme
-     * @param {Object} pool
-     */
+    static _tierScrollMinLevel(tier) { return CacheScrollLogic._tierScrollMinLevel(tier); }
+    static _maxScrollUniques(tier) { return CacheScrollLogic._maxScrollUniques(tier); }
+    static _scrollSlotCap(tier, ownerTheme) { return CacheScrollLogic._scrollSlotCap(tier, ownerTheme); }
+    static _scrollStackCap(spellLevel, tierData) { return CacheScrollLogic._scrollStackCap(spellLevel, tierData); }
     static _trimExcessScrollSlots(drawnSlots, tier, ownerTheme, pool) {
-        const cap = this._scrollSlotCap(tier, ownerTheme);
-        let scrollCount = drawnSlots.filter(s => s === "scroll").length;
-        if (scrollCount <= cap) return;
-
-        const altPool = { ...pool };
-        delete altPool.scroll;
-        if (!Object.keys(altPool).length) altPool.consumable = 1;
-
-        while (scrollCount > cap) {
-            let replaced = false;
-            for (let i = drawnSlots.length - 1; i >= 0; i--) {
-                if (drawnSlots[i] !== "scroll") continue;
-                drawnSlots[i] = this._weightedPoolDraw(altPool);
-                scrollCount--;
-                replaced = true;
-                break;
-            }
-            if (!replaced) break;
-        }
+        return CacheScrollLogic._trimExcessScrollSlots(drawnSlots, tier, ownerTheme, pool, this);
     }
-
-    /**
-     * Quantity for a newly picked scroll (stacks lower circles more often).
-     *
-     * @param {number} spellLevel
-     * @param {object} tierData
-     * @param {number} priceCeiling
-     * @returns {number}
-     */
     static _resolveScrollQuantity(spellLevel, tierData, priceCeiling = Infinity) {
-        const stackCap = this._scrollStackCap(spellLevel, tierData);
-        const unit = SCROLL_PRICES_BY_LEVEL[spellLevel] ?? 60;
-        const maxByBudget = unit > 0 ? Math.max(1, Math.floor(priceCeiling / unit)) : 1;
-        const maxLevel = tierData.scrollLevelMax ?? 2;
-        const minLevel = this._tierScrollMinLevel(tierData._tier ?? 1);
-
-        if (spellLevel >= maxLevel - 1) {
-            const roll = 1 + Math.floor(Math.random() * 2);
-            return Math.max(1, Math.min(roll, maxByBudget, stackCap));
-        }
-
-        const lowInCohort = spellLevel <= minLevel + 1;
-        const minQty = lowInCohort ? 2 : 1;
-        const roll = minQty + Math.floor(Math.random() * (stackCap - minQty + 1));
-        return Math.max(1, Math.min(stackCap, maxByBudget, roll));
+        return CacheScrollLogic._resolveScrollQuantity(spellLevel, tierData, priceCeiling);
     }
-
-    /**
-     * @param {object} scroll
-     */
-    static _recalcScrollLinePrice(scroll) {
-        const qty = Math.max(1, scroll.quantity ?? 1);
-        const currentUnit = Number(scroll.unitPrice) > 0
-            ? Number(scroll.unitPrice)
-            : null;
-        const unit = currentUnit
-            ?? SCROLL_PRICES_BY_LEVEL[scroll.spellLevel]
-            ?? (Number(scroll.price) > 0 ? Number(scroll.price) / qty : 60);
-        scroll.quantity = qty;
-        scroll.price = Math.round(unit * qty * 100) / 100;
-        return scroll;
-    }
-
-    /**
-     * Merge duplicate scrolls and cap how many unique lines remain.
-     *
-     * @param {object[]} items
-     * @param {object} tierData
-     * @returns {object[]}
-     */
-    static _consolidateScrollStacks(items, tierData) {
-        if (!items?.length) return items;
-
-        const scrolls = [];
-        const other = [];
-        for (const it of items) {
-            if (it.spellName) {
-                scrolls.push({ ...it, quantity: it.quantity ?? 1 });
-            } else {
-                other.push(it);
-            }
-        }
-        if (scrolls.length <= 1) return items;
-
-        const byKey = new Map();
-        for (const s of scrolls) {
-            const key = (s.spellName || s.name || "").toLowerCase().trim();
-            if (!key) continue;
-            if (byKey.has(key)) {
-                const ex = byKey.get(key);
-                ex.quantity += s.quantity ?? 1;
-            } else {
-                byKey.set(key, { ...s });
-            }
-        }
-
-        const pool = [...byKey.values()].map(s => this._recalcScrollLinePrice(s));
-
-        for (const s of pool) {
-            const cap = this._scrollStackCap(s.spellLevel, tierData);
-            if ((s.quantity ?? 1) > cap) {
-                s.quantity = cap;
-                this._recalcScrollLinePrice(s);
-            }
-        }
-
-        pool.sort((a, b) => (b.spellLevel ?? 0) - (a.spellLevel ?? 0));
-        return [...other, ...pool];
-    }
+    static _recalcScrollLinePrice(scroll) { return CacheScrollLogic._recalcScrollLinePrice(scroll); }
+    static _consolidateScrollStacks(items, tierData) { return CacheScrollLogic._consolidateScrollStacks(items, tierData); }
 
     /** @param {...*} args */
     static _cacheDebug(...args) {
@@ -2045,303 +1596,24 @@ export class CacheGenerator {
         }
     }
 
-    /**
-     * Spell level for a Scroll Forge / compendium index entry.
-     * Forged dnd5e scrolls often keep template system.level at 1; scrollMeta
-     * and dnd5e.spellLevel carry the real circle.
-     *
-     * @param {object} entry
-     * @returns {number|null}
-     */
-    static _resolveScrollLevel(entry) {
-        const qm = entry.flags?.["ionrift-quartermaster"]?.scrollMeta?.spellLevel;
-        if (Number.isFinite(qm) && qm >= 1) return qm;
-
-        const dnd = entry.flags?.dnd5e?.spellLevel?.value;
-        if (Number.isFinite(dnd) && dnd >= 1) return dnd;
-
-        const pf2eLvl = entry.system?.level?.value;
-        if (Number.isFinite(pf2eLvl) && pf2eLvl >= 1) return pf2eLvl;
-
-        const sys = entry.system?.level;
-        if (typeof sys === "number" && sys >= 1) return sys;
-
-        return null;
-    }
-
-    /**
-     * Scroll price in gp, preferring the forged item's system data when present.
-     *
-     * D&D scrolls fall back to Quartermaster's SRD table; PF2e forged scrolls
-     * carry PF2e treasure-table prices in system.price.
-     *
-     * @param {object} entry
-     * @param {number} spellLevel
-     * @returns {number}
-     */
-    static _resolveScrollPrice(entry, spellLevel) {
-        const price = entry?.system?.price;
-        const raw = price?.value ?? price;
-
-        if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
-            return raw;
-        }
-
-        if (raw && typeof raw === "object") {
-            const gp = Number(raw.gp ?? 0);
-            const sp = Number(raw.sp ?? 0);
-            const cp = Number(raw.cp ?? 0);
-            const pp = Number(raw.pp ?? 0);
-            const total = (Number.isFinite(pp) ? pp * 10 : 0)
-                + (Number.isFinite(gp) ? gp : 0)
-                + (Number.isFinite(sp) ? sp / 10 : 0)
-                + (Number.isFinite(cp) ? cp / 100 : 0);
-            if (total > 0) return total;
-        }
-
-        return SCROLL_PRICES_BY_LEVEL[spellLevel] ?? 60;
-    }
-
-    /**
-     * Effective gp ceiling for one scroll slot. Uses scroll-slot budget share and
-     * aims at the upper mid-band of the tier, not only the tier floor price.
-     *
-     * @param {object} tierData
-     * @param {number} slotPriceCeiling
-     * @param {object} [opts]
-     * @param {number} [opts.scrollSlotsRemaining]
-     * @param {number} [opts.remainingBudget]
-     * @returns {number}
-     */
+    static _resolveScrollLevel(entry) { return CacheScrollLogic._resolveScrollLevel(entry); }
+    static _resolveScrollPrice(entry, spellLevel) { return CacheScrollLogic._resolveScrollPrice(entry, spellLevel); }
     static _scrollPriceCeiling(tierData, slotPriceCeiling, opts = {}) {
-        const minLevel = this._tierScrollMinLevel(tierData._tier ?? 1);
-        const maxLevel = tierData.scrollLevelMax ?? 2;
-        const minPrice = SCROLL_PRICES_BY_LEVEL[minLevel] ?? 60;
-        const aspireLevel = Math.min(
-            maxLevel,
-            minLevel + Math.max(1, Math.floor((maxLevel - minLevel) * 0.55))
-        );
-        const aspirePrice = SCROLL_PRICES_BY_LEVEL[aspireLevel] ?? minPrice;
-
-        if (!Number.isFinite(slotPriceCeiling)) {
-            return aspirePrice;
-        }
-
-        const scrollShare = Number.isFinite(opts.remainingBudget)
-            ? opts.remainingBudget / Math.max(1, opts.scrollSlotsRemaining ?? 1)
-            : slotPriceCeiling;
-
-        const band = Math.min(aspirePrice, scrollShare);
-        return Math.max(minPrice, band);
+        return CacheScrollLogic._scrollPriceCeiling(tierData, slotPriceCeiling, opts);
     }
-
-    /**
-     * Pick a scroll from a compendium index (testable without Foundry packs).
-     *
-     * @param {object[]|Collection} index
-     * @param {object} tierData
-     * @param {number} [priceCeiling]
-     * @param {object} [opts]
-     * @param {number} [opts.scrollSlotsRemaining]
-     * @param {number} [opts.remainingBudget]
-     * @returns {object|null}
-     */
     static _pickScrollFromIndex(index, tierData, priceCeiling = Infinity, opts = {}) {
-        const tier = tierData._tier ?? 1;
-        const minLevel = this._tierScrollMinLevel(tier);
-        let maxLevel = tierData.scrollLevelMax ?? 2;
-        maxLevel = Math.max(minLevel, maxLevel);
-
-        const effectiveCeiling = this._scrollPriceCeiling(tierData, priceCeiling, opts);
-
-
-
-        const level = this._weightedScrollLevel(maxLevel, minLevel, tier);
-        const entries = index?.contents ?? (Array.isArray(index) ? index : Array.from(index ?? []));
-
-        const withinBudget = (e) => {
-            const spellLevel = this._resolveScrollLevel(e);
-            if (!spellLevel) return false;
-            return this._resolveScrollPrice(e, spellLevel) <= effectiveCeiling;
-        };
-
-        const bandFilter = (e, targetLevel) => {
-            const spellLevel = this._resolveScrollLevel(e);
-            return spellLevel
-                && spellLevel >= minLevel
-                && spellLevel <= targetLevel
-                && withinBudget(e);
-        };
-
-        let eligible = entries.filter(e => {
-            const spellLevel = this._resolveScrollLevel(e);
-            return spellLevel === level && spellLevel >= minLevel && withinBudget(e);
-        });
-        for (let tryLevel = level - 1; eligible.length === 0 && tryLevel >= minLevel; tryLevel--) {
-            eligible = entries.filter(e => this._resolveScrollLevel(e) === tryLevel && withinBudget(e));
-        }
-        if (eligible.length === 0) {
-            eligible = entries.filter(e => bandFilter(e, level));
-        }
-
-        if (eligible.length === 0) {
-            this._cacheDebug("scroll pick failed", {
-                tier, minLevel, maxLevel, rolledLevel: level,
-                priceCeiling, effectiveCeiling, poolSize: entries.length
-            });
-            return null;
-        }
-
-        const partySpells = this._getPartyKnownSpells();
-        const novel = eligible.filter(e => {
-            const spellName = e.flags?.["ionrift-quartermaster"]?.scrollMeta?.spellName;
-            return spellName && !partySpells.has(spellName.toLowerCase());
-        });
-        const finalPool = novel.length > 0 ? novel : eligible;
-
-        const pick = this._pickScrollFromEligible(finalPool, level, minLevel);
-        if (!pick) return null;
-
-        const scrollMeta = pick.flags?.["ionrift-quartermaster"]?.scrollMeta ?? {};
-        const pickedLevel = this._resolveScrollLevel(pick) ?? minLevel;
-        const pickedPrice = this._resolveScrollPrice(pick, pickedLevel);
-        return {
-            name: pick.name,
-            type: "consumable",
-            img: pick.img ?? ItemMaskingHelper._genericIconFor("scroll"),
-            price: pickedPrice,
-            weight: 0.1,
-            rarity: pickedLevel <= 2 ? "common" : pickedLevel <= 4 ? "uncommon" : "rare",
-            quantity: 1,
-            unitPrice: pickedPrice,
-            spellLevel: pickedLevel,
-            spellName: scrollMeta.spellName,
-            _compendiumId: pick._id,
-            sourceCompendium: pick.sourceCompendium ?? `world.${ScrollForge.WORLD_PACK_NAME}`
-        };
+        return CacheScrollLogic._pickScrollFromIndex(index, tierData, priceCeiling, opts);
     }
-
     static async _pickScroll(tierData, priceCeiling = Infinity, opts = {}) {
-        const tier = tierData._tier ?? 1;
-        const minLevel = this._tierScrollMinLevel(tier);
-
-        try {
-            const forgedId = `world.${ScrollForge.WORLD_PACK_NAME}`;
-            const pack = game.packs.get(forgedId);
-            if (pack) {
-                const index = await pack.getIndex({
-                    fields: ["name", "img", "system.price", "system.level", "flags"]
-                });
-                const item = this._pickScrollFromIndex(index, tierData, priceCeiling, opts);
-                if (item) {
-                    item.sourceCompendium = forgedId;
-                    return item;
-                }
-            }
-        } catch (e) {
-            Logger.warn(MODULE_LABEL, "Scroll compendium query failed:", e.message);
-        }
-
-        Logger.warn(MODULE_LABEL,
-            `No scroll available (tier ${tier}, min ${minLevel}) - ` +
-            `ensure Scroll Forge is compiled with spell sources enabled.`
-        );
-        return null;
+        return CacheScrollLogic._pickScroll(tierData, priceCeiling, opts);
     }
-
-    /**
-     * Pick one scroll from a filtered pool, favoring the target level and
-     * higher circles when falling back.
-     *
-     * @param {object[]} eligible
-     * @param {number} targetLevel
-     * @param {number} [minLevel=1]
-     * @returns {object|undefined}
-     */
     static _pickScrollFromEligible(eligible, targetLevel, minLevel = 1) {
-        if (!eligible.length) return undefined;
-
-        const pool = eligible.filter(e => {
-            const lvl = this._resolveScrollLevel(e);
-            return lvl && lvl >= minLevel;
-        });
-        if (!pool.length) return undefined;
-
-        const atTarget = pool.filter(e => this._resolveScrollLevel(e) === targetLevel);
-        if (atTarget.length > 0) {
-            return atTarget[Math.floor(Math.random() * atTarget.length)];
-        }
-
-        const withLevel = pool
-            .map(e => ({ entry: e, lvl: this._resolveScrollLevel(e) }))
-            .filter(x => x.lvl);
-        if (!withLevel.length) return undefined;
-
-        const maxLvl = Math.max(...withLevel.map(x => x.lvl));
-        const topTier = withLevel.filter(x => x.lvl === maxLvl);
-        if (topTier.length > 0 && Math.random() < 0.7) {
-            return topTier[Math.floor(Math.random() * topTier.length)].entry;
-        }
-
-        const tickets = [];
-        for (const { entry, lvl } of withLevel) {
-            const w = Math.max(1, lvl);
-            for (let i = 0; i < w; i++) tickets.push(entry);
-        }
-        return tickets[Math.floor(Math.random() * tickets.length)];
+        return CacheScrollLogic._pickScrollFromEligible(eligible, targetLevel, minLevel);
     }
-
-    /**
-     * Weighted scroll level selection. Mid-tier scrolls are favored over
-     * edge levels (min and max) to produce a more balanced distribution.
-     *
-     * @param {number} maxLevel
-     * @param {number} [minLevel=1]
-     * @param {number} [tier=1]
-     * @returns {number}
-     */
     static _weightedScrollLevel(maxLevel, minLevel = 1, tier = 1) {
-        if (maxLevel < 1) return 1;
-        minLevel = Math.max(1, Math.min(minLevel, maxLevel));
-        if (maxLevel <= minLevel) return maxLevel;
-
-        const upperHalf = minLevel + Math.ceil((maxLevel - minLevel + 1) / 2);
-        const weights = {};
-        for (let i = minLevel; i <= maxLevel; i++) {
-            let w = Math.min(i - minLevel + 1, maxLevel - i + 1);
-            if (tier >= 2 && i >= upperHalf) w *= 2;
-            if (tier >= 3 && i === maxLevel) w = Math.max(w, 3);
-            weights[i] = w;
-        }
-        const total = Object.values(weights).reduce((a, b) => a + b, 0);
-        let roll = Math.random() * total;
-        for (const [lvl, w] of Object.entries(weights)) {
-            roll -= w;
-            if (roll <= 0) return parseInt(lvl, 10);
-        }
-        return maxLevel;
+        return CacheScrollLogic._weightedScrollLevel(maxLevel, minLevel, tier);
     }
-
-    /**
-     * Collects all known spell names from party characters.
-     * Uses SystemAdapter when ionrift-lib is available, with DnD5e fallback.
-     */
-    static _getPartyKnownSpells() {
-        const SA = game.ionrift?.library?.system;
-        const known = new Set();
-        const actors = game.ionrift?.library?.party?.getMembers()
-            ?? game.actors.filter(a => a.hasPlayerOwner && a.type === "character");
-        for (const actor of actors) {
-            if (SA) {
-                for (const spell of SA.getKnownSpells(actor)) known.add(spell);
-            } else {
-                for (const item of actor.items) {
-                    if (item.type === "spell") known.add(item.name.toLowerCase());
-                }
-            }
-        }
-        return known;
-    }
+    static _getPartyKnownSpells() { return CacheScrollLogic._getPartyKnownSpells(); }
 
     /**
      * Terrain-weighted random pick from a pool of compendium index entries.
@@ -2514,318 +1786,26 @@ export class CacheGenerator {
         return _toConsumablePick(pick);
     }
 
-    /**
-     * Boost consumable slot weight in the owner theme pool as healing frequency rises.
-     *
-     * @param {Record<string, number>} basePool
-     * @param {number} healFreq
-     * @returns {Record<string, number>}
-     */
-    static _scaleOwnerSlotPool(basePool, healFreq) {
-        const pool = { ...basePool };
-        const f = Math.max(0, Number(healFreq) || 0);
-        if (f > 0 && pool.consumable) {
-            pool.consumable = pool.consumable * (1 + 0.15 * f);
-        }
-        return pool;
-    }
-
-    /**
-     * Extra healing potion lines added after the main slot loop.
-     *
-     * @param {number} freq
-     * @returns {number}
-     */
-    static _healingBonusRollCount(freq) {
-        const f = Math.max(0, Number(freq) || 0);
-        if (f <= 0) return 0;
-        if (f <= 1) return Math.random() < f * 0.5 ? 1 : 0;
-        const target = f * 0.75;
-        return Math.min(4, Math.floor(target) + (Math.random() < (target % 1) ? 1 : 0));
-    }
-
-    /**
-     * @param {string} theme
-     * @param {Object} tierData
-     * @param {Object} tables
-     * @param {number} [priceCeiling]
-     * @returns {Promise<Object[]>}
-     */
+    static _scaleOwnerSlotPool(basePool, healFreq) { return CacheHealingLogic._scaleOwnerSlotPool(basePool, healFreq); }
+    static _healingBonusRollCount(freq) { return CacheHealingLogic._healingBonusRollCount(freq); }
     static async _resolveHealingPotionPool(theme, tierData, tables, priceCeiling = Infinity) {
-        let pool = [];
-        try {
-            pool = await ItemPoolResolver.resolve({
-                slotType: "consumable",
-                tier: tierData._tier ?? 1,
-                theme,
-                fallbackTables: tables
-            });
-        } catch (e) {
-            Logger.warn(MODULE_LABEL, "ItemPoolResolver failed for healing pool:", e.message);
-        }
-        if (!pool.length) return [];
-
-        const affordable = pool.filter(p => (p.price ?? 0) <= priceCeiling);
-        const finalPool = affordable.length > 0 ? affordable : pool;
-        return finalPool.filter(p => PotionEnrichment.isHealingPotion(p.name));
+        return CacheHealingLogic._resolveHealingPotionPool(theme, tierData, tables, priceCeiling);
     }
-
-    /**
-     * Pick one healing potion row, tier-weighted.
-     *
-     * @param {string} theme
-     * @param {Object} tierData
-     * @param {Object} tables
-     * @param {number} [priceCeiling]
-     * @param {number} [healFreq]
-     * @param {Object[]|null} [prefetchedPool]
-     * @returns {Promise<Object|null>}
-     */
-    static async _pickHealingPotionOnly(
-        theme, tierData, tables, priceCeiling = Infinity, healFreq, prefetchedPool = null
-    ) {
-        const healing = prefetchedPool
-            ?? await CacheGenerator._resolveHealingPotionPool(theme, tierData, tables, priceCeiling);
-        if (!healing.length) return null;
-
-        const cacheTier = tierData._tier ?? 1;
-        const freq = healFreq ?? game.settings?.get(MODULE_ID, "healingPotionFrequency") ?? 1.0;
-        const SA = game.ionrift?.library?.system;
-        const situational = SA?.getSituationalConsumables?.() ?? new Set();
-
-        const pick = CacheGenerator._weightedHealingPick(healing, cacheTier, freq, situational);
-        if (!pick) return null;
-
-        return {
-            name: pick.name,
-            type: "consumable",
-            subtype: pick.subtype ?? "potion",
-            img: pick.img ?? "icons/consumables/potions/potion-bottle-corked-red.webp",
-            price: pick.price ?? 0,
-            weight: pick.weight || 0.1,
-            rarity: pick.rarity ?? "common",
-            quantity: 1,
-            sourceCompendium: pick.sourceCompendium,
-            _compendiumId: pick._compendiumId
-        };
+    static async _pickHealingPotionOnly(theme, tierData, tables, priceCeiling = Infinity, healFreq, prefetchedPool = null) {
+        return CacheHealingLogic._pickHealingPotionOnly(theme, tierData, tables, priceCeiling, healFreq, prefetchedPool);
     }
-
-    /**
-     * @param {Object[]} healingRows
-     * @param {number} cacheTier
-     * @param {number} healFreq
-     * @param {Set<string>} situational
-     * @returns {Object|null}
-     */
     static _weightedHealingPick(healingRows, cacheTier, healFreq, situational = new Set()) {
-        if (!healingRows.length) return null;
-        const tickets = [];
-        for (const item of healingRows) {
-            let count = situational.has((item.name ?? "").toLowerCase()) ? 1 : 3;
-            const tierWeight = CacheGenerator._healingPotionTierWeight(
-                item.name, cacheTier, healFreq
-            );
-            count = Math.max(1, Math.round(count * tierWeight));
-            for (let i = 0; i < count; i++) tickets.push(item);
-        }
-        return tickets[Math.floor(Math.random() * tickets.length)];
+        return CacheHealingLogic._weightedHealingPick(healingRows, cacheTier, healFreq, situational);
     }
+    static _healingPotionDirectShare(freq) { return CacheHealingLogic._healingPotionDirectShare(freq); }
+    static _healingPotionShare(freq) { return CacheHealingLogic._healingPotionShare(freq); }
+    static _healingPotionTierWeight(name, cacheTier, freq) { return CacheHealingLogic._healingPotionTierWeight(name, cacheTier, freq); }
 
-    /**
-     * Chance a consumable slot resolves to a healing potion when any are in the pool.
-     *
-     * @param {number} freq
-     * @returns {number} 0–1
-     */
-    static _healingPotionDirectShare(freq) {
-        const f = Math.max(0, Number(freq) || 0);
-        if (f <= 0) return 0;
-        if (f >= 3) return 1;
-        return Math.min(1, 0.25 + 0.25 * f);
-    }
-
-    /**
-     * Share of potion-like picks that go to the healing branch (vs oils,
-     * antitoxin, and other elixirs). Scaled by `healingPotionFrequency`.
-     *
-     * @param {number} freq
-     * @returns {number} 0–0.95
-     */
-    static _healingPotionShare(freq) {
-        const f = Math.max(0, Number(freq) || 0);
-        if (f <= 0) return 0.25;
-        return Math.min(0.98, 0.50 + 0.12 * f);
-    }
-
-    /**
-     * Ticket multiplier for which healing tier wins inside the healing branch.
-     * Higher cache tiers favour stronger healing tiers.
-     *
-     * @param {string} name
-     * @param {number} cacheTier
-     * @param {number} [freq]
-     * @returns {number}
-     */
-    static _healingPotionTierWeight(name, cacheTier, freq) {
-        const tierData = PotionEnrichment.getTierData(name);
-        if (!tierData) return 1;
-
-        const f = Math.max(0, freq ?? game.settings?.get(MODULE_ID, "healingPotionFrequency") ?? 1.0);
-        if (f <= 0) return 1;
-
-        const price = tierData.price ?? 50;
-        const weightsByCacheTier = {
-            1: { 50: 8, 100: 3, 250: 1, 500: 0.5 },
-            2: { 50: 3, 100: 6, 250: 3, 500: 1.5 },
-            3: { 50: 1.5, 100: 3, 250: 6, 500: 4 },
-            4: { 50: 1, 100: 2, 250: 5, 500: 8 }
-        };
-        const table = weightsByCacheTier[cacheTier] ?? weightsByCacheTier[1];
-        const tierWeight = table[price] ?? 1;
-
-        if (f <= 1) return 1 + (tierWeight - 1) * f;
-        return tierWeight * f;
-    }
-
-    /**
-     * Rations and water: modest stacks (not ammo-scale bulk).
-     *
-     * @param {object} item
-     * @returns {boolean}
-     */
-    static _isRationOrWaterItem(item) {
-        const type = item.type ?? "";
-        if (type !== "consumable") return false;
-
-        const subtype = (item.subtype ?? "").toLowerCase();
-        const name = (item.name ?? "").toLowerCase().trim();
-        if (subtype === "potion" || subtype === "poison" || subtype === "scroll") return false;
-
-        if (/\brations?\b/.test(name)) return true;
-        if (/\b(waters?|waterskin)\b/.test(name)) return true;
-        if (subtype === "drink" && /\bwater\b/.test(name)) return true;
-        return false;
-    }
-
-    /**
-     * Cheap bulk goods (feed, ammo) that should appear as large stacks.
-     * Rations and water use {@link _resolveRationWaterQuantity} instead.
-     *
-     * @param {object} item
-     * @returns {boolean}
-     */
-    static _isBulkFillerItem(item) {
-        if (this._isRationOrWaterItem(item)) return false;
-
-        const type = item.type ?? "";
-        const subtype = (item.subtype ?? "").toLowerCase();
-        const name = (item.name ?? "").toLowerCase().trim();
-        const unitPrice = item.price ?? 0;
-
-        if (type !== "consumable") return false;
-        if (subtype === "potion" || subtype === "poison" || subtype === "scroll") return false;
-
-        if (subtype === "ammo" || subtype === "ammunition") return unitPrice < 1;
-        if (/^(feed|arrows?|bolts?|needles?|sling bullets?)\b/.test(name)) return unitPrice < 1;
-        if (subtype === "food" || subtype === "drink") return unitPrice < 1;
-        return unitPrice > 0 && unitPrice < 0.1;
-    }
-
-    /**
-     * Recognises thrown weapons that should arrive as a stack rather than
-     * a single item.  Detection is name-pattern first so it works against
-     * plain SRD index entries that may not expose system.properties.
-     *
-     * Covered items and their typical 5e unit prices:
-     *   dart      0.05 gp  (already stacks via price logic, but qty is too low)
-     *   javelin   0.5  gp  (would stack, but slow; we want explicit control)
-     *   handaxe   5    gp  (price gate blocks stacking entirely — needs override)
-     *
-     * @param {object} item
-     * @returns {boolean}
-     */
-    static _isThrownWeapon(item) {
-        if (item.type !== "weapon") return false;
-
-        const name = (item.name ?? "").toLowerCase().trim();
-
-        // Name-pattern match covers all SRD items regardless of system data depth
-        if (/\bdarts?\b/.test(name))     return true;
-        if (/\bjavelins?\b/.test(name))  return true;
-        if (/\bhand.?axe/.test(name))    return true;
-
-        // System-properties fallback for custom items that carry the thrown flag
-        const props = item.system?.properties;
-        if (!props) return false;
-        // dnd5e stores properties as a Set, object, or array depending on version
-        if (props instanceof Set)   return props.has("thr") || props.has("thrown");
-        if (Array.isArray(props))   return props.includes("thr") || props.includes("thrown");
-        if (typeof props === "object") return !!(props.thr || props.thrown);
-        return false;
-    }
-
-    /**
-     * Dice-based quantity for thrown weapons.
-     *
-     * Quantities are shaped around realistic battlefield loadouts:
-     *   darts    4d4  → avg 10, range 4-16  (light, cheap, pocketable by the handful)
-     *   javelins 2d4  → avg  5, range 2-8   (5e standard soldier kit)
-     *   handaxes 1d3  → avg  2, range 1-3   (valuable enough to carry 1-3)
-     *   generic  1d4  → avg  2, range 1-4   (safe default for unknown thrown)
-     *
-     * Result is always capped by the container's remaining weight budget.
-     *
-     * @param {object} item
-     * @param {Object} [opts]
-     * @param {number|null} [opts.remainingWeight]
-     * @returns {number}
-     */
-    static _resolveThrownWeaponQuantity(item, opts = {}) {
-        const name = (item.name ?? "").toLowerCase();
-
-        let qty;
-        if (/\bdarts?\b/.test(name)) {
-            // 4d4: 4 dice of d4
-            qty = [1,2,3,4].reduce((s) => s + 1 + Math.floor(Math.random() * 4), 0);
-        } else if (/\bjavelins?\b/.test(name)) {
-            // 2d4
-            qty = [1,2].reduce((s) => s + 1 + Math.floor(Math.random() * 4), 0);
-        } else if (/\bhand.?axe/.test(name)) {
-            // 1d3
-            qty = 1 + Math.floor(Math.random() * 3);
-        } else {
-            // generic thrown: 1d4
-            qty = 1 + Math.floor(Math.random() * 4);
-        }
-
-        // Weight-budget cap: never let the stack claim more than half remaining capacity
-        const unitWeight = Number(item.weight) || 0;
-        if (unitWeight > 0 && typeof opts.remainingWeight === "number" && opts.remainingWeight > 0) {
-            const weightCap = Math.max(1, Math.floor((opts.remainingWeight * 0.5) / unitWeight));
-            qty = Math.min(qty, weightCap);
-        }
-
-        return Math.max(1, qty);
-    }
-
-    /**
-     * @param {object} item
-     * @param {Object} [opts]
-     * @param {number|null} [opts.remainingWeight]
-     * @returns {number}
-     */
-    static _resolveRationWaterQuantity(item, opts = {}) {
-        const maxQty = 10;
-        let qty = 2 + Math.floor(Math.random() * (maxQty - 1));
-
-        const unitWeight = Number(item.weight) || 0;
-        if (unitWeight > 0 && typeof opts.remainingWeight === "number" && opts.remainingWeight > 0) {
-            const weightCappedQty = Math.max(1, Math.floor(opts.remainingWeight / unitWeight));
-            qty = Math.min(qty, weightCappedQty, maxQty);
-        }
-
-        return Math.max(1, qty);
-    }
+    static _isRationOrWaterItem(item) { return CacheQuantityLogic._isRationOrWaterItem(item); }
+    static _isBulkFillerItem(item) { return CacheQuantityLogic._isBulkFillerItem(item); }
+    static _isThrownWeapon(item) { return CacheQuantityLogic._isThrownWeapon(item); }
+    static _resolveThrownWeaponQuantity(item, opts = {}) { return CacheQuantityLogic._resolveThrownWeaponQuantity(item, opts); }
+    static _resolveRationWaterQuantity(item, opts = {}) { return CacheQuantityLogic._resolveRationWaterQuantity(item, opts); }
 
     /**
      * Pick a mundane/trade goods item from enabled compendiums.
@@ -2876,259 +1856,23 @@ export class CacheGenerator {
         }
     }
 
-    /**
-     * Small random stack for curated finds (treasure, tools, loose gems).
-     * Never huge; usually 1, sometimes up to {@link MODEST_STACK_MAX}.
-     *
-     * @param {Object} [opts]
-     * @param {Object} [opts.item]
-     * @param {number} [opts.min]
-     * @param {number} [opts.max]
-     * @param {number|null} [opts.remainingWeight]
-     * @returns {number}
-     */
-    static MODEST_STACK_MAX = 5;
+    static MODEST_STACK_MAX = CacheQuantityLogic.MODEST_STACK_MAX;
+    static LIVESTOCK_WEIGHT_FLOOR = CacheQuantityLogic.LIVESTOCK_WEIGHT_FLOOR;
 
-    static _resolveModestStackQuantity(opts = {}) {
-        const min = opts.min ?? 1;
-        const max = opts.max ?? this.MODEST_STACK_MAX;
-        let qty = min + Math.floor(Math.random() * (max - min + 1));
-
-        const unitWeight = Number(opts.item?.weight) || 0;
-        if (unitWeight > 0 && typeof opts.remainingWeight === "number" && opts.remainingWeight > 0) {
-            const weightCap = Math.max(1, Math.floor((opts.remainingWeight * 0.5) / unitWeight));
-            qty = Math.min(qty, weightCap);
-        }
-
-        return Math.max(min, qty);
-    }
-
-    /** Minimum unit weight (lb) treated as a single live animal, never stacked. */
-    static LIVESTOCK_WEIGHT_FLOOR = 100;
-
-    /**
-     * True when item came from the SRD trade goods compendium.
-     * @param {string|null|undefined} compendiumId
-     * @returns {boolean}
-     */
-    static _isTradeGoodsSource(compendiumId) {
-        if (!compendiumId) return false;
-        return compendiumId.endsWith(".tradegoods");
-    }
-
-    /**
-     * Livestock and draft animals ship as one head per line.
-     * @param {object} item
-     * @returns {boolean}
-     */
-    static _isLivestockUnit(item) {
-        return (Number(item.weight) || 0) >= this.LIVESTOCK_WEIGHT_FLOOR;
-    }
-
-    /**
-     * Bulk commodity loot: SRD trade goods (flour, spices, ingots) and
-     * other cheap measured loot. Excludes tools, livestock, and QM treasure.
-     *
-     * @param {object} item
-     * @returns {boolean}
-     */
-    static _isBulkCommodityLoot(item) {
-        if ((item.type ?? "").toLowerCase() !== "loot") return false;
-        if (this._isLivestockUnit(item)) return false;
-
-        if (this._isTradeGoodsSource(item.sourceCompendium)) return true;
-
-        const unitPrice = item.price ?? 0;
-        const unitWeight = Number(item.weight) || 0;
-        return unitPrice > 0 && unitPrice < 1 && unitWeight > 0 && unitWeight <= 25;
-    }
-
-    /**
-     * Target-value quantity bands for consumables and bulk commodity loot.
-     *
-     * @param {object} item
-     * @param {Object} [opts]
-     * @param {number|null} [opts.remainingWeight]
-     * @returns {number}
-     */
-    static _resolvePriceBandQuantity(item, opts = {}) {
-        const unitPrice = item.price ?? 0;
-        if (unitPrice <= 0) return 1;
-
-        let targetMin, targetMax, qtyMax;
-        if (unitPrice < 0.05) {
-            targetMin = 0.5;  targetMax = 2;   qtyMax = 50;
-        } else if (unitPrice < 0.5) {
-            targetMin = 0.5;  targetMax = 3;   qtyMax = 20;
-        } else if (unitPrice < 2) {
-            targetMin = 1;    targetMax = 4;   qtyMax = 10;
-        } else if (unitPrice < 5) {
-            targetMin = 2;    targetMax = 6;   qtyMax = 4;
-        } else {
-            return 1;
-        }
-
-        const targetValue = targetMin + Math.random() * (targetMax - targetMin);
-        let qty = Math.max(1, Math.min(qtyMax, Math.round(targetValue / unitPrice)));
-
-        const unitWeight = Number(item.weight) || 0;
-        if (unitWeight > 0) {
-            const remaining = opts.remainingWeight;
-            const stackWeightCap = (typeof remaining === "number" && remaining > 0)
-                ? Math.max(5, remaining * 0.5)
-                : 15;
-            const weightCappedQty = Math.max(1, Math.floor(stackWeightCap / unitWeight));
-            qty = Math.min(qty, weightCappedQty);
-        }
-
-        return qty;
-    }
-
-    static _resolveKindlingQuantity() {
-        let total = 0;
-        for (let i = 0; i < 3; i++) {
-            total += 1 + Math.floor(Math.random() * 4);
-        }
-        return total;
-    }
-
-    /**
-     * @param {object} item
-     * @returns {boolean}
-     */
-    static _isKindlingItem(item) {
-        if ((item.name ?? "").trim().toLowerCase() !== "kindling") return false;
-        const type = (item.type ?? "").toLowerCase();
-        return type === "loot" || type === "consumable";
-    }
-
-    /**
-     * Quantity resolver for cache line items.
-     *
-     * Kindling always stacks 3d4. Cheap consumables and SRD trade goods stack via
-     * {@link _resolvePriceBandQuantity}. Trinkets stay singular; treasure, tools,
-     * and gems use modest stacks (1-5).
-     *
-     * @param {Object} item
-     * @param {Object} [opts]
-     * @param {number|null} [opts.remainingWeight] Remaining bag capacity in lb.
-     * @returns {number}
-     */
-    static _resolveQuantity(item, opts = {}) {
-        // Never stack signatures or trinkets
-        if (item.isSignature || item.spellName) return 1;
-        if (item._qmKind === "trinkets") return 1;
-        if (isQmPackRole(item.sourceCompendium, "trinkets")) return 1;
-
-        if (this._isRationOrWaterItem(item)) {
-            return this._resolveRationWaterQuantity(item, opts);
-        }
-
-        // Thrown weapons: dice-based quantity reflecting battlefield loadouts
-        // (darts 4d4, javelins 2d4, handaxes 1d3).  Checked before the price
-        // gate so e.g. handaxes at 5 gp aren't silently capped to qty 1.
-        if (this._isThrownWeapon(item)) {
-            return this._resolveThrownWeaponQuantity(item, opts);
-        }
-
-        // Bulk ammo/feed: large stacks; ignore compendium rarity typos and weight caps.
-        if (this._isBulkFillerItem(item)) {
-            return 10 + Math.floor(Math.random() * 41);
-        }
-
-        if (this._isKindlingItem(item)) {
-            return this._resolveKindlingQuantity();
-        }
-
-        const rarity = (item.rarity ?? "common").toLowerCase();
-        if (rarity !== "common" && rarity !== "none" && rarity !== "") return 1;
-
-        const modestOpts = { item, remainingWeight: opts.remainingWeight };
-
-        if (item._qmKind === "treasure" || isQmPackRole(item.sourceCompendium, "treasure")) {
-            return this._resolveModestStackQuantity(modestOpts);
-        }
-        if (item._qmKind === "gemstones" || isQmPackRole(item.sourceCompendium, "gemstones")) {
-            return this._resolveModestStackQuantity(modestOpts);
-        }
-
-        const itemType = (item.type ?? "").toLowerCase();
-        if (itemType === "tool") {
-            return this._resolveModestStackQuantity(modestOpts);
-        }
-        if (this._isBulkCommodityLoot(item)) {
-            return this._resolvePriceBandQuantity(item, opts);
-        }
-        if (itemType !== "consumable") return 1;
-
-        return this._resolvePriceBandQuantity(item, opts);
-    }
+    static _resolveModestStackQuantity(opts = {}) { return CacheQuantityLogic._resolveModestStackQuantity(opts); }
+    static _isTradeGoodsSource(compendiumId) { return CacheQuantityLogic._isTradeGoodsSource(compendiumId); }
+    static _isLivestockUnit(item) { return CacheQuantityLogic._isLivestockUnit(item); }
+    static _isBulkCommodityLoot(item) { return CacheQuantityLogic._isBulkCommodityLoot(item); }
+    static _resolvePriceBandQuantity(item, opts = {}) { return CacheQuantityLogic._resolvePriceBandQuantity(item, opts); }
+    static _resolveKindlingQuantity() { return CacheQuantityLogic._resolveKindlingQuantity(); }
+    static _isKindlingItem(item) { return CacheQuantityLogic._isKindlingItem(item); }
+    static _resolveQuantity(item, opts = {}) { return CacheQuantityLogic._resolveQuantity(item, opts); }
 
     // ── Chat Output ───────────────────────────────────────────────
 
     /** @type {Map<string, Object>} Pending cache results awaiting user action */
     static _pendingCaches = new Map();
-    /**
-     * Splits a raw GP value into a randomized mix of standard 5e coin denominations.
-     */
-    static _distributeCoinage(totalGp) {
-        if (!totalGp || totalGp <= 0) return null;
-        
-        let remainingCp = Math.floor(totalGp * 100);
-        const coins = { pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 };
-        
-        // 1. PP alloc (only sometimes when large enough)
-        if (remainingCp >= 1000 && Math.random() < 0.6) {
-            const maxPp = Math.floor(remainingCp / 1000);
-            const ppAlloc = Math.floor(maxPp * (0.1 + Math.random() * 0.4));
-            coins.pp = ppAlloc;
-            remainingCp -= (ppAlloc * 1000);
-        }
-        
-        // 2. EP alloc (rarely, small amounts)
-        if (remainingCp >= 50 && Math.random() < 0.2) {
-            const epAlloc = Math.floor(Math.random() * 10) + 1;
-            const cost = epAlloc * 50;
-            if (cost <= remainingCp * 0.2) {
-                coins.ep = epAlloc;
-                remainingCp -= cost;
-            }
-        }
-        
-        // 3. SP and CP (small handfuls)
-        const spAlloc = Math.floor(Math.random() * 50);
-        if (spAlloc * 10 <= remainingCp * 0.2) {
-            coins.sp = spAlloc;
-            remainingCp -= spAlloc * 10;
-        }
-        
-        const cpAlloc = Math.floor(Math.random() * 100);
-        if (cpAlloc <= remainingCp * 0.1) {
-            coins.cp = cpAlloc;
-            remainingCp -= cpAlloc;
-        }
-        
-        // 4. GP takes the bulk
-        const gpAlloc = Math.floor(remainingCp / 100);
-        coins.gp = gpAlloc;
-        remainingCp -= (gpAlloc * 100);
-        
-        // Dump absolute remainder into SP/CP
-        if (remainingCp >= 10) {
-            const extraSp = Math.floor(remainingCp / 10);
-            coins.sp += extraSp;
-            remainingCp -= extraSp * 10;
-        }
-        if (remainingCp > 0) {
-            coins.cp += remainingCp;
-        }
-        
-        for (const k of Object.keys(coins)) {
-            if (coins[k] === 0) delete coins[k];
-        }
-        
-        return Object.keys(coins).length > 0 ? coins : null;
-    }
+    static _distributeCoinage(totalGp) { return CacheCoinageLogic._distributeCoinage(totalGp); }
 
     static async _postChatCard(result) {
         const cacheId = foundry.utils.randomID();
@@ -3236,8 +1980,8 @@ export class CacheGenerator {
                     description: { value: `<p>Generated from a ${cacheResult.meta?.cacheLabel ?? "loot cache"}.</p>` }
                 },
                 flags: {
-                    "ionrift-quartermaster": {
-                        ...(item.flags?.["ionrift-quartermaster"] || {}),
+                    [MODULE_ID]: {
+                        ...(item.flags?.[MODULE_ID] || {}),
                         mintBatch: cacheResult.meta?.mintBatch
                     }
                 }
@@ -3346,22 +2090,22 @@ export class CacheGenerator {
 
             // Prefer containers with sufficient capacity for tier and content weight
             const withCapacity = terrainPool.filter(e => {
-                const cap = e.flags?.['ionrift-quartermaster']?.containerMeta?.capacityLbs ?? 0;
+                const cap = e.flags?.[MODULE_ID]?.containerMeta?.capacityLbs ?? 0;
                 return cap >= requiredCap;
             });
             let pickPool = withCapacity.length > 0 ? withCapacity : terrainPool.filter(e => {
-                const cap = e.flags?.['ionrift-quartermaster']?.containerMeta?.capacityLbs ?? 0;
+                const cap = e.flags?.[MODULE_ID]?.containerMeta?.capacityLbs ?? 0;
                 return cap >= contentWeightLbs;
             });
             if (pickPool.length === 0 && terrainPool.length > 0) {
                 const ranked = [...terrainPool].sort((a, b) => {
-                    const capA = a.flags?.["ionrift-quartermaster"]?.containerMeta?.capacityLbs ?? 0;
-                    const capB = b.flags?.["ionrift-quartermaster"]?.containerMeta?.capacityLbs ?? 0;
+                    const capA = a.flags?.[MODULE_ID]?.containerMeta?.capacityLbs ?? 0;
+                    const capB = b.flags?.[MODULE_ID]?.containerMeta?.capacityLbs ?? 0;
                     return capB - capA;
                 });
-                const bestCap = ranked[0].flags?.["ionrift-quartermaster"]?.containerMeta?.capacityLbs ?? 0;
+                const bestCap = ranked[0].flags?.[MODULE_ID]?.containerMeta?.capacityLbs ?? 0;
                 pickPool = ranked.filter(e =>
-                    (e.flags?.["ionrift-quartermaster"]?.containerMeta?.capacityLbs ?? 0) >= bestCap
+                    (e.flags?.[MODULE_ID]?.containerMeta?.capacityLbs ?? 0) >= bestCap
                 );
             }
 
@@ -3369,7 +2113,7 @@ export class CacheGenerator {
 
             if (ownerTheme === "armaments") {
                 const sturdy = pickPool.filter(e => {
-                    const cap = e.flags?.["ionrift-quartermaster"]?.containerMeta?.capacityLbs ?? 0;
+                    const cap = e.flags?.[MODULE_ID]?.containerMeta?.capacityLbs ?? 0;
                     return cap >= CacheGenerator.CONTAINER_STURDY_MIN_LBS;
                 });
                 if (sturdy.length > 0) pickPool = sturdy;
@@ -3385,7 +2129,7 @@ export class CacheGenerator {
                 name: pick.name,
                 img: pick.img,
                 type: pick.type ?? "container",
-                capacityLbs: pick.flags?.['ionrift-quartermaster']?.containerMeta?.capacityLbs ?? 0,
+                capacityLbs: pick.flags?.[MODULE_ID]?.containerMeta?.capacityLbs ?? 0,
                 emptyWeightLbs,
                 _compendiumId: pick._id,
                 sourceCompendium: packId,

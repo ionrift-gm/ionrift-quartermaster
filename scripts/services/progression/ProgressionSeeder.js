@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * ProgressionSeeder.js
  *
@@ -541,7 +542,7 @@ export class ProgressionSeeder {
         const results = [];
 
         for (const entry of index) {
-            const iw = entry.flags?.["ionrift-quartermaster"] ?? {};
+            const iw = entry.flags?.[MODULE_ID] ?? {};
             const meta = iw.scrollMeta;
             if (!meta?.spellName) continue;
             const spellLevel = meta.spellLevel;
@@ -710,7 +711,7 @@ export class ProgressionSeeder {
         const sourceIds = PartyShelfSourceApp.getEnabledSources();
 
         // Read category weights
-        const catRaw = game.settings?.get("ionrift-quartermaster", "shelfCategoryWeights")
+        const catRaw = game.settings?.get(MODULE_ID, "shelfCategoryWeights")
             ?? '{"wondrous":{"w":70,"on":true},"focus":{"w":15,"on":true},"armor":{"w":10,"on":true},"weapon":{"w":5,"on":true}}';
         let catWeights;
         try { catWeights = JSON.parse(catRaw); } catch { catWeights = {}; }
@@ -722,7 +723,7 @@ export class ProgressionSeeder {
         if (!enabledCats.size) enabledCats.add("wondrous"); // fallback
 
         // Read attunement bias: 0=Low(penalize), 1=Med(neutral), 2=High(boost)
-        const attBias = game.settings?.get("ionrift-quartermaster", "shelfAttunementBias") ?? 1;
+        const attBias = game.settings?.get(MODULE_ID, "shelfAttunementBias") ?? 1;
         const attMultiplier = [0.3, 1, 3][attBias] ?? 1;
 
         const results = [];

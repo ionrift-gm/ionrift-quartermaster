@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * Empirical scroll distribution tests for cache generation balance.
  * Used by Vitest (synthetic index) and the Foundry test harness (live Scroll Forge pack).
@@ -37,7 +38,7 @@ export function buildSyntheticScrollIndex(perLevel = 12, maxLevel = 9) {
                 _id: `syn-l${level}-${n}`,
                 name: `Spell Scroll: ${spellName}`,
                 flags: {
-                    "ionrift-quartermaster": {
+                    [MODULE_ID]: {
                         scrollMeta: { spellLevel: level, spellName }
                     }
                 }
