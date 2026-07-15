@@ -1,30 +1,30 @@
-import { WorkshopApp } from "./apps/WorkshopApp.js";
-import { CacheGeneratorApp } from "./apps/CacheGeneratorApp.js";
+import { WorkshopApp } from "./apps/workshop/WorkshopApp.js";
+import { CacheGeneratorApp } from "./apps/cache/CacheGeneratorApp.js";
 import { SheetInjector } from "./services/ui/SheetInjector.js";
-import { WorkshopItemFactory } from "./services/WorkshopItemFactory.js";
-import { CacheGenerator } from "./services/CacheGenerator.js";
+import { WorkshopItemFactory } from "./services/workshop/WorkshopItemFactory.js";
+import { CacheGenerator } from "./services/cache/CacheGenerator.js";
 
-import { IdentificationService } from "./services/IdentificationService.js";
-import { IdentificationGuard } from "./services/IdentificationGuard.js";
-import { PriceMasker } from "./services/PriceMasker.js";
+import { IdentificationService } from "./services/identify/IdentificationService.js";
+import { IdentificationGuard } from "./services/identify/IdentificationGuard.js";
+import { PriceMasker } from "./services/identify/PriceMasker.js";
 import { PriceInjector } from "./services/ui/PriceInjector.js";
-import { SignatureLedger } from "./services/SignatureLedger.js";
-import { ProgressionSeeder } from "./services/ProgressionSeeder.js";
-import { ProgressionAdvisor } from "./services/ProgressionAdvisor.js";
-import { ItemPoolResolver } from "./services/ItemPoolResolver.js";
-import { LootPoolCompiler } from "./services/LootPoolCompiler.js";
-import { ScrollForge } from "./services/ScrollForge.js";
-import { SrdCurseAdapter } from "./services/SrdCurseAdapter.js";
-import { getCurseAdapter } from "./services/getCurseAdapter.js";
-import { ItemMaskingHelper } from "./services/ItemMaskingHelper.js";
-import { StandalonePoolRegistry } from "./services/StandalonePoolRegistry.js";
-import { TerrainDataRegistry } from "./services/TerrainDataRegistry.js";
-import { registerQuartermasterSettings } from "./services/SettingsRegistrar.js";
+import { SignatureLedger } from "./services/progression/SignatureLedger.js";
+import { ProgressionSeeder } from "./services/progression/ProgressionSeeder.js";
+import { ProgressionAdvisor } from "./services/progression/ProgressionAdvisor.js";
+import { ItemPoolResolver } from "./services/loot/ItemPoolResolver.js";
+import { LootPoolCompiler } from "./services/loot/LootPoolCompiler.js";
+import { ScrollForge } from "./services/scroll/ScrollForge.js";
+import { SrdCurseAdapter } from "./services/curse/SrdCurseAdapter.js";
+import { getCurseAdapter } from "./services/curse/getCurseAdapter.js";
+import { ItemMaskingHelper } from "./services/identify/ItemMaskingHelper.js";
+import { StandalonePoolRegistry } from "./services/loot/StandalonePoolRegistry.js";
+import { TerrainDataRegistry } from "./services/loot/TerrainDataRegistry.js";
+import { registerQuartermasterSettings } from "./services/settings/SettingsRegistrar.js";
 import { openSetupGuide } from "./data/SetupGuide.js";
 
-import { ContentPackLoader } from "./services/ContentPackLoader.js";
-import { ContentPackCompiler } from "./services/ContentPackCompiler.js";
-import { OverlayItemMaterialiser } from "./services/OverlayItemMaterialiser.js";
+import { ContentPackLoader } from "./services/packs/ContentPackLoader.js";
+import { ContentPackCompiler } from "./services/packs/ContentPackCompiler.js";
+import { OverlayItemMaterialiser } from "./services/packs/OverlayItemMaterialiser.js";
 import { Logger, MODULE_LABEL } from "./utils/Logger.js";
 import { MODULE_ID } from "./data/moduleId.js";
 import { QM_FEATURES } from "./data/QMFeatures.js";
@@ -90,8 +90,8 @@ async function runLootPoolCompilerBoot() {
     if (!game.user.isGM || !adapter?.supports(QM_FEATURES.LOOT_POOL_COMPILE)) return;
     try {
         await migrateLootPoolSources();
-        const { LootPoolCompiler } = await import("./services/LootPoolCompiler.js");
-        const { refreshForgeAlertBadge } = await import("./services/SettingsPanelLayout.js");
+        const { LootPoolCompiler } = await import("./services/loot/LootPoolCompiler.js");
+        const { refreshForgeAlertBadge } = await import("./services/settings/SettingsPanelLayout.js");
 
         const statusBefore = LootPoolCompiler.getStatus();
         const metaBefore   = LootPoolCompiler.getCompiledMeta();
@@ -136,7 +136,7 @@ Hooks.once('init', async () => {
         scrollForge: ctx.scrollForge,
     };
 
-    const { CompendiumForgeApp } = await import("./apps/CompendiumForgeApp.js");
+    const { CompendiumForgeApp } = await import("./apps/forge/CompendiumForgeApp.js");
     registerQuartermasterSettings({ CompendiumForgeApp });
 
     Hooks.on("ionrift.collectBugReport", (builder, { context } = {}) => {
@@ -172,7 +172,7 @@ Hooks.once('init', async () => {
 
     Hooks.on("ionrift.overlayContentChanged", async (detail) => {
         if (detail?.moduleId !== MODULE_ID) return;
-        const { ContentPackLoader } = await import("./services/ContentPackLoader.js");
+        const { ContentPackLoader } = await import("./services/packs/ContentPackLoader.js");
         await ContentPackLoader.init();
         await TerrainDataRegistry.init(true);
 
@@ -279,7 +279,7 @@ Hooks.on('ready', () => {
         queueMicrotask(async () => {
             try {
                 if (!game.ionrift?.cursewright) return; // CW not loaded - nothing to do
-                const { getActiveCursedRegistry } = await import("./services/StandalonePoolRegistry.js");
+                const { getActiveCursedRegistry } = await import("./services/loot/StandalonePoolRegistry.js");
                 const reg  = getActiveCursedRegistry();
                 const pool = await reg.getCursedPool();
                 const next = pool.filter(e => !(e.uuid || "").includes("ionrift-srd-cursed"));
@@ -423,7 +423,7 @@ Hooks.on("renderItemDirectory", (app, html, data) => {
 
     const ledgerBtn = $(`<button type="button" class="ionrift-ledger-btn"><i class="fas fa-book-sparkles"></i> Quartermaster</button>`);
     ledgerBtn.click(async () => {
-        const { SignatureLedgerApp } = await import("./apps/SignatureLedgerApp.js");
+        const { SignatureLedgerApp } = await import("./apps/ledger/SignatureLedgerApp.js");
         new SignatureLedgerApp().render(true);
     });
 

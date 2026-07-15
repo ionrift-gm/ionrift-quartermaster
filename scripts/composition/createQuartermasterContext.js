@@ -1,9 +1,9 @@
-import { WorkshopItemFactory } from "../services/WorkshopItemFactory.js";
-import { CacheGenerator } from "../services/CacheGenerator.js";
-import { SignatureLedger } from "../services/SignatureLedger.js";
-import { ProgressionSeeder } from "../services/ProgressionSeeder.js";
-import { ProgressionAdvisor } from "../services/ProgressionAdvisor.js";
-import { ScrollForge } from "../services/ScrollForge.js";
+import { WorkshopItemFactory } from "../services/workshop/WorkshopItemFactory.js";
+import { CacheGenerator } from "../services/cache/CacheGenerator.js";
+import { SignatureLedger } from "../services/progression/SignatureLedger.js";
+import { ProgressionSeeder } from "../services/progression/ProgressionSeeder.js";
+import { ProgressionAdvisor } from "../services/progression/ProgressionAdvisor.js";
+import { ScrollForge } from "../services/scroll/ScrollForge.js";
 import { createQuartermasterAdapter } from "../adapters/adapterFactory.js";
 import { QM_FEATURES } from "../data/QMFeatures.js";
 import { MODULE_ID, MODULE_LABEL } from "../data/moduleId.js";

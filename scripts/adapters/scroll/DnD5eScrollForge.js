@@ -2,7 +2,7 @@
  * DnD 5e spell-to-scroll conversion and folder labels for Scroll Forge.
  */
 
-import { ItemMaskingHelper } from "../../services/ItemMaskingHelper.js";
+import { ItemMaskingHelper } from "../../services/identify/ItemMaskingHelper.js";
 
 const FORGED_FLAG = "ionrift-quartermaster";
 

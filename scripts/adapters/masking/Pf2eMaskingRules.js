@@ -23,7 +23,7 @@
  *   - originalPrice         system.price
  */
 
-import { TerrainDataRegistry } from "../../services/TerrainDataRegistry.js";
+import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 

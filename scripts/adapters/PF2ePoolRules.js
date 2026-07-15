@@ -2,7 +2,7 @@
  * PF2e compendium pool matching and exclusion rules for ItemPoolResolver.
  */
 
-import { isPf2eCursedLootEntry } from "../services/Pf2eCurseCatalog.js";
+import { isPf2eCursedLootEntry } from "../services/curse/Pf2eCurseCatalog.js";
 
 const PF2E_CONSUMABLE_CATEGORIES = new Set(["potion", "poison", "drug", "oil", "other", ""]);
 
