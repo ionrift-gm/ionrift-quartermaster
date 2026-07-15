@@ -3,9 +3,9 @@
  * Writes to a world compendium so no spell text is shipped with the module.
  */
 
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta, stableHash } from "./CompendiumConfigHelper.js";
-import { QM_FEATURES } from "../constants/QMFeatures.js";
+import { QM_FEATURES } from "../data/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 

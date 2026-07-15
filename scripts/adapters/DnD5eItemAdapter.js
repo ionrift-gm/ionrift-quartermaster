@@ -1,5 +1,5 @@
 import { QuartermasterItemAdapter } from "./QuartermasterItemAdapter.js";
-import { QM_FEATURES } from "../constants/QMFeatures.js";
+import { QM_FEATURES } from "../data/QMFeatures.js";
 import { ItemMaskingHelper } from "../services/ItemMaskingHelper.js";
 import { PotionEnrichment } from "../services/PotionEnrichment.js";
 import * as DnD5ePool from "./pool/DnD5ePoolRules.js";

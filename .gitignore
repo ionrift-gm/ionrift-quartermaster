@@ -1,5 +1,8 @@
 # === Ionrift Quartermaster ===
 
+# Module-root Node tooling lives in private ionrift-testharness (principles §14)
+/tools/
+
 # Compiled pack build artifacts (compile step output, not committed)
 packs/proving-grounds-compiled/
 packs/proving-grounds-guide-compiled/
@@ -42,6 +45,7 @@ swap-containers.ps1
 
 # Build output (filtered manifest for release)
 .build/
+.pack-out/
 
 # Dev composition profiles (local only)
 dev-profiles.json
@@ -63,7 +67,6 @@ packs/*/*.log
 packs/*/LOG
 packs/*/LOG.old
 packs/*/lost/
-# Nested pack subdirectory structure (e.g. packs/workshop-containers-new/workshop-containers/)
 packs/*/*/LOCK
 packs/*/*/CURRENT
 packs/*/*/MANIFEST-*
@@ -77,7 +80,7 @@ packs/*/*/lost/
 audit_*.json
 audit_*.txt
 
-# Agent handoff specs (ephemeral — see DEV_PROTOCOLS.md §30)
+# Agent handoff specs (ephemeral)
 .cursor/
 CURSOR_TASK_*
 CURSOR_SPEC_*

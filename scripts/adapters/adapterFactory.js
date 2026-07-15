@@ -1,6 +1,6 @@
 import { DnD5eItemAdapter } from "./DnD5eItemAdapter.js";
 import { PF2eItemAdapter } from "./PF2eItemAdapter.js";
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 
 /**
  * @returns {import("./QuartermasterItemAdapter.js").QuartermasterItemAdapter}

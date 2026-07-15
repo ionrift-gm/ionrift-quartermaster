@@ -1,5 +1,5 @@
-import { PriceMasker } from "./services/PriceMasker.js";
-import { Logger, MODULE_LABEL } from "./_logger.js";
+import { PriceMasker } from "../PriceMasker.js";
+import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 
 /**
  * PriceInjector

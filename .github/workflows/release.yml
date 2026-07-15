@@ -24,6 +24,14 @@ jobs:
         with:
           lfs: true
 
+      - name: Checkout private tools
+        if: github.event.inputs.dry_run_discord != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ionrift-gm/ionrift-testharness
+          token: ${{ secrets.IONRIFT_CI_PAT }}
+          path: ionrift-testharness
+
       - name: Validate Release
         if: github.event.inputs.dry_run_discord != 'true'
         run: |
@@ -62,23 +70,33 @@ jobs:
 
       - name: Validate CHANGELOG
         if: github.event.inputs.dry_run_discord != 'true'
-        run: node tools/validate-changelog.mjs
+        env:
+          MODULE_ROOT: ${{ github.workspace }}
+        run: node ionrift-testharness/tools/modules/quartermaster/validate-changelog.mjs
 
       - name: Compile compendium packs
         if: github.event.inputs.dry_run_discord != 'true'
-        run: node tools/compile-packs.mjs
+        env:
+          MODULE_ROOT: ${{ github.workspace }}
+        run: node ionrift-testharness/tools/modules/quartermaster/compile-packs.mjs
 
       - name: Validate compiled packs
         if: github.event.inputs.dry_run_discord != 'true'
-        run: node tools/validate-packs-local.mjs --verify-only
+        env:
+          MODULE_ROOT: ${{ github.workspace }}
+        run: node ionrift-testharness/tools/modules/quartermaster/validate-packs-local.mjs --verify-only
 
       - name: Validate shipping manifest
         if: github.event.inputs.dry_run_discord != 'true'
-        run: node tools/validate-shipping.mjs
+        env:
+          MODULE_ROOT: ${{ github.workspace }}
+        run: node ionrift-testharness/tools/modules/quartermaster/validate-shipping.mjs
 
       - name: Build shipping manifest
         if: github.event.inputs.dry_run_discord != 'true'
-        run: node tools/filter-manifest.mjs
+        env:
+          MODULE_ROOT: ${{ github.workspace }}
+        run: node ionrift-testharness/tools/modules/quartermaster/filter-manifest.mjs
 
       - name: Stage filtered manifest for release
         if: github.event.inputs.dry_run_discord != 'true'
@@ -109,6 +127,7 @@ jobs:
             -x "BACKLOG.md" \
             -x "task.md" \
             -x "tools/*" \
+            -x "ionrift-testharness/*" \
             -x "docs/*" \
             -x "vitest*" \
             -x ".eslintrc*"

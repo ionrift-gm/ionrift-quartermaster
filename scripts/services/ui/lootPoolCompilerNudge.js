@@ -6,9 +6,8 @@
  * is absent or stale.
  */
 
-import { LootPoolCompiler } from "./services/LootPoolCompiler.js";
-
-const MODULE_ID = "ionrift-quartermaster";
+import { LootPoolCompiler } from "../LootPoolCompiler.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
 /**
  * Registers the loot pool compiler nudge with the shared library service.

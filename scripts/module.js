@@ -1,13 +1,13 @@
 import { WorkshopApp } from "./apps/WorkshopApp.js";
 import { CacheGeneratorApp } from "./apps/CacheGeneratorApp.js";
-import { SheetInjector } from "./SheetInjector.js";
+import { SheetInjector } from "./services/ui/SheetInjector.js";
 import { WorkshopItemFactory } from "./services/WorkshopItemFactory.js";
 import { CacheGenerator } from "./services/CacheGenerator.js";
 
 import { IdentificationService } from "./services/IdentificationService.js";
 import { IdentificationGuard } from "./services/IdentificationGuard.js";
 import { PriceMasker } from "./services/PriceMasker.js";
-import { PriceInjector } from "./PriceInjector.js";
+import { PriceInjector } from "./services/ui/PriceInjector.js";
 import { SignatureLedger } from "./services/SignatureLedger.js";
 import { ProgressionSeeder } from "./services/ProgressionSeeder.js";
 import { ProgressionAdvisor } from "./services/ProgressionAdvisor.js";
@@ -20,16 +20,15 @@ import { ItemMaskingHelper } from "./services/ItemMaskingHelper.js";
 import { StandalonePoolRegistry } from "./services/StandalonePoolRegistry.js";
 import { TerrainDataRegistry } from "./services/TerrainDataRegistry.js";
 import { registerQuartermasterSettings } from "./services/SettingsRegistrar.js";
-import { openSetupGuide } from "./constants/SetupGuide.js";
+import { openSetupGuide } from "./data/SetupGuide.js";
 
 import { ContentPackLoader } from "./services/ContentPackLoader.js";
 import { ContentPackCompiler } from "./services/ContentPackCompiler.js";
 import { OverlayItemMaterialiser } from "./services/OverlayItemMaterialiser.js";
-import { Logger, MODULE_LABEL } from "./_logger.js";
-import { createQuartermasterAdapter } from "./adapters/adapterFactory.js";
-import { QM_FEATURES } from "./constants/QMFeatures.js";
-
-const MODULE_ID = "ionrift-quartermaster";
+import { Logger, MODULE_LABEL } from "./utils/Logger.js";
+import { MODULE_ID } from "./data/moduleId.js";
+import { QM_FEATURES } from "./data/QMFeatures.js";
+import { createQuartermasterContext } from "./composition/createQuartermasterContext.js";
 
 function isResonanceActive() {
     return game.modules.get("ionrift-resonance")?.active ?? false;
@@ -125,27 +124,16 @@ Hooks.once('init', async () => {
     const version = game.modules.get(MODULE_ID)?.version ?? "unknown";
     Logger.info(MODULE_LABEL, `v${version} | Initializing.`);
 
-    const adapter = createQuartermasterAdapter();
-    game.ionrift = game.ionrift ?? {};
-    game.ionrift.quartermaster = game.ionrift.quartermaster ?? {};
-    game.ionrift.quartermaster.adapter = adapter;
+    const ctx = createQuartermasterContext();
+    const adapter = ctx.adapter;
 
-    if (!adapter.supports(QM_FEATURES.LOOT_CACHE)) {
-        Logger.warn(
-            MODULE_LABEL,
-            `System '${adapter.id}' has limited Quartermaster support. ` +
-            `Loot cache and compendium compile features may be unavailable.`
-        );
-    }
-
-    // Expose API
     game.modules.get(MODULE_ID).api = {
-        items:       WorkshopItemFactory,
-        cache:       CacheGenerator,
-        ledger:      SignatureLedger,
-        seeder:      ProgressionSeeder,
-        advisor:     ProgressionAdvisor,
-        scrollForge: ScrollForge,
+        items:       ctx.items,
+        cache:       ctx.cache,
+        ledger:      ctx.ledger,
+        seeder:      ctx.seeder,
+        advisor:     ctx.advisor,
+        scrollForge: ctx.scrollForge,
     };
 
     const { CompendiumForgeApp } = await import("./apps/CompendiumForgeApp.js");
@@ -167,7 +155,7 @@ Hooks.once('init', async () => {
     // Core pack nudge: shared library banner in Module Settings when the core
     // overlay is offered but not installed (see hoardPackNudge.js).
     try {
-        const { registerHoardPackNudge } = await import("./hoardPackNudge.js");
+        const { registerHoardPackNudge } = await import("./services/ui/hoardPackNudge.js");
         registerHoardPackNudge();
     } catch (e) {
         Logger.warn(MODULE_LABEL, "Core pack nudge registration failed:", e);
@@ -176,7 +164,7 @@ Hooks.once('init', async () => {
     // Loot pool compiler nudge: banner when 2024 sources are present but pool
     // is not compiled or is stale (see lootPoolCompilerNudge.js).
     try {
-        const { registerLootPoolCompilerNudge } = await import("./lootPoolCompilerNudge.js");
+        const { registerLootPoolCompilerNudge } = await import("./services/ui/lootPoolCompilerNudge.js");
         registerLootPoolCompilerNudge();
     } catch (e) {
         Logger.warn(MODULE_LABEL, "Loot pool compiler nudge registration failed:", e);
@@ -492,7 +480,7 @@ Hooks.on("getItemDirectoryEntryContext", (html, options) => {
             callback: li => {
                 const item = game.items.get(li.data("documentId"));
                 if (item) {
-                    import("./SheetInjector.js").then(({ SheetInjector }) => {
+                    import("./services/ui/SheetInjector.js").then(({ SheetInjector }) => {
                         SheetInjector.openSoundPicker(item);
                     });
                 }

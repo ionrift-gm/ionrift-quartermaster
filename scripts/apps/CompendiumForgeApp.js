@@ -18,9 +18,9 @@ import { LootPoolCompiler  } from "../services/LootPoolCompiler.js";
 import { ScrollForge       } from "../services/ScrollForge.js";
 import { getCurseAdapter   } from "../services/getCurseAdapter.js";
 import { refreshForgeAlertBadge } from "../services/SettingsPanelLayout.js";
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
-import { QM_FEATURES } from "../constants/QMFeatures.js";
+import { QM_FEATURES } from "../data/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 const QM_BUG_REPORT_CONTEXT = "quartermaster-loot-pool-compile";

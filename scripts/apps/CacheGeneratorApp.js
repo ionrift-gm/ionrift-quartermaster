@@ -11,7 +11,7 @@ import { CursedItemResolver } from "../services/CursedItemResolver.js";
 import { ItemResolutionPipeline } from "../services/ItemResolutionPipeline.js";
 import { SquashMerger } from "../services/SquashMerger.js";
 import { TerrainDataRegistry } from "../services/TerrainDataRegistry.js";
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../services/CoinFormat.js";
 
 const MODULE_ID = "ionrift-quartermaster";

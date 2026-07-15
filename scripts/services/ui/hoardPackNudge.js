@@ -6,8 +6,7 @@
  * or materialised compendiums exist yet.
  */
 
-const MODULE_ID = "ionrift-quartermaster";
-const CORE_OVERLAY_ID = "quartermaster-core-overlay";
+import { MODULE_ID } from "../../data/moduleId.js";
 const CORE_PACK_URL = "https://www.patreon.com/posts/quartermaster-159373428";
 const MATERIALISED_STATE_KEY = "materialisedOverlayPacks";
 

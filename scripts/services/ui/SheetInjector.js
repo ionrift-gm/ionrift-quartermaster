@@ -46,10 +46,10 @@ export class SheetInjector {
         if (!doc) return;
 
         if (doc.documentName === "Actor") {
-            const { ActorSoundConfig } = await import("./apps/ActorSoundConfig.js");
+            const { ActorSoundConfig } = await import("../../apps/ActorSoundConfig.js");
             new ActorSoundConfig(doc).render(true);
         } else if (doc.documentName === "Item") {
-            const { ItemSoundConfig } = await import("./apps/ItemSoundConfig.js");
+            const { ItemSoundConfig } = await import("../../apps/ItemSoundConfig.js");
             new ItemSoundConfig(doc).render(true);
         }
     }

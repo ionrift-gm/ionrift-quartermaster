@@ -14,11 +14,11 @@
  * Structural pattern mirrors SrdCurseAdapter.js.
  */
 
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
 import { isSrdCursedLootName, isSrdCursedTemplateName } from "./SrdCurseCatalog.js";
 import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "./CompendiumConfigHelper.js";
-import { QM_FEATURES } from "../constants/QMFeatures.js";
+import { QM_FEATURES } from "../data/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 

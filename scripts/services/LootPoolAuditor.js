@@ -9,7 +9,7 @@
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
 import { LootPoolCompiler } from "./LootPoolCompiler.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 

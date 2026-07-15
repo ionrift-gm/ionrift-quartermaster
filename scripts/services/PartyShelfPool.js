@@ -1,5 +1,5 @@
 import { SignatureLedger } from "./SignatureLedger.js";
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
 
 const MODULE_ID = "ionrift-quartermaster";

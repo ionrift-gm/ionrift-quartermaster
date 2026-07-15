@@ -1,6 +1,6 @@
 import { SignatureLedger } from "../services/SignatureLedger.js";
 import { ProgressionSeeder }  from "../services/ProgressionSeeder.js";
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { getCurseAdapter } from "../services/getCurseAdapter.js";
 import { StandalonePoolRegistry, getActiveCursedRegistry } from "../services/StandalonePoolRegistry.js";
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "./CursedSourcesApp.js";
