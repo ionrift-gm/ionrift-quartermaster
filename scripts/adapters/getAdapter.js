@@ -17,3 +17,8 @@ export function getQuartermasterAdapter() {
     }
     return _cached;
 }
+
+/** Test helper: drop the fallback cache between system switches. */
+export function resetQuartermasterAdapterCache() {
+    _cached = null;
+}

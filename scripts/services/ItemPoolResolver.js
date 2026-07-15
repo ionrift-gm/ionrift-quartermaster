@@ -8,7 +8,7 @@
  * Results are cached per session to avoid repeated compendium queries.
  */
 
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { ItemClassifier } from "./ItemClassifier.js";
 import { GenericArmorBonusRegistry } from "./GenericArmorBonusRegistry.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";

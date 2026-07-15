@@ -1,5 +1,5 @@
 import { QuartermasterItemAdapter } from "./QuartermasterItemAdapter.js";
-import { QM_FEATURES } from "../constants/QMFeatures.js";
+import { QM_FEATURES } from "../data/QMFeatures.js";
 import {
     extractPf2ePriceGp,
     extractPf2eWeight,

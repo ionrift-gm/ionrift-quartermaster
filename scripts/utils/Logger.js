@@ -1,9 +1,4 @@
-/**
- * Local Logger proxy for ionrift-quartermaster.
- * Routes through the kernel Logger factory when available,
- * falls back to console with the correct prefix.
- */
-const MODULE_LABEL = "Quartermaster";
+import { MODULE_LABEL } from "../data/moduleId.js";
 
 const Logger = game.ionrift?.library?.createLogger?.(MODULE_LABEL) ?? {
     log() {},

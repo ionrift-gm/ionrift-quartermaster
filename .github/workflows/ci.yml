@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - master
-    # Explicitly skip tag pushes — release.yml owns those
     tags-ignore:
       - '**'
 
-  # Allow manual trigger for diagnosis
   workflow_dispatch:
 
   repository_dispatch:
@@ -19,11 +17,8 @@ jobs:
   lint:
     uses: ionrift-gm/ionrift-ci/.github/workflows/lint.yml@main
     with:
-      # Workshop uses ESLint v9 and has lower warning budget than Respite.
       eslint_version: '9'
       eslint_max_warnings: 50
-      # ScrollForge and other services use dynamic compendium imports that the
-      # static checker flags as broken; they are correct runtime patterns.
       skip_import_integrity: true
 
   hygiene:
@@ -35,16 +30,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout private tools
+        uses: actions/checkout@v4
+        with:
+          repository: ionrift-gm/ionrift-testharness
+          token: ${{ secrets.IONRIFT_CI_PAT }}
+          path: ionrift-testharness
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Validate shipping manifest
-        run: node tools/validate-shipping.mjs
+        env:
+          MODULE_ROOT: ${{ github.workspace }}
+        run: node ionrift-testharness/tools/modules/quartermaster/validate-shipping.mjs
 
       - name: Validate string literals (no typographic dashes)
-        run: node tools/validate-strings.mjs
+        env:
+          MODULE_ROOT: ${{ github.workspace }}
+        run: node ionrift-testharness/tools/modules/quartermaster/validate-strings.mjs
 
   vitest:
     uses: ionrift-gm/ionrift-ci/.github/workflows/vitest.yml@main

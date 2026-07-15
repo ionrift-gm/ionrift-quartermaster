@@ -10,13 +10,13 @@
  * Guards: GM-only, dnd5e only.
  */
 
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import {
     SRD_CURSE_MANIFEST,
     SRD_CURSE_ITEM_FALLBACKS as SRD_ITEM_FALLBACKS
 } from "./SrdCurseCatalog.js";
 import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta, stableHash } from "./CompendiumConfigHelper.js";
-import { QM_FEATURES } from "../constants/QMFeatures.js";
+import { QM_FEATURES } from "../data/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 

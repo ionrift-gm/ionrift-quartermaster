@@ -4,7 +4,7 @@
  * cursedMeta, and writes to the shared GM-only world compendium.
  */
 
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { SrdCurseAdapter } from "./SrdCurseAdapter.js";
 import {
     PF2E_CURSE_PACK_SOURCES,
@@ -13,7 +13,7 @@ import {
     isPf2eCursedLootEntry
 } from "./Pf2eCurseCatalog.js";
 import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "./CompendiumConfigHelper.js";
-import { QM_FEATURES } from "../constants/QMFeatures.js";
+import { QM_FEATURES } from "../data/QMFeatures.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 

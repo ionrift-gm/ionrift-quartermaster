@@ -13,7 +13,7 @@ import { ScrollForge } from "./ScrollForge.js";
 import { TerrainDataRegistry } from "./TerrainDataRegistry.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "./CoinFormat.js";
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { getQuartermasterAdapter } from "../adapters/getAdapter.js";
 
 const MODULE_ID = "ionrift-quartermaster";

@@ -11,7 +11,7 @@
  *   - Hash-based idempotency (skip rebuild if unchanged)
  */
 
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { ContentPackLoader } from "./ContentPackLoader.js";
 import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "./CompendiumConfigHelper.js";
 

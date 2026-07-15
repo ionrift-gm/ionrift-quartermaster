@@ -1,4 +1,4 @@
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { getCurseAdapter } from "./getCurseAdapter.js";
 import { CursedItemResolver } from "./CursedItemResolver.js";
 

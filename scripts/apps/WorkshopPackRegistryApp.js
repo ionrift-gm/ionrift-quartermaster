@@ -12,7 +12,7 @@
 const { AbstractPackRegistryApp } = await import("../../../ionrift-library/scripts/apps/AbstractPackRegistryApp.js");
 import { ContentPackLoader } from "../services/ContentPackLoader.js";
 import { ContentPackCompiler } from "../services/ContentPackCompiler.js";
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 
 export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
 

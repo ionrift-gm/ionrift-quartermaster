@@ -14,7 +14,7 @@
  * alignment in the picker dropdown.
  */
 
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 import { normalizeTerrainCategory } from "../../../ionrift-library/scripts/services/TerrainRegistry.js";
 
 const MODULE_ID = "ionrift-quartermaster";

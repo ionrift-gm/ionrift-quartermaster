@@ -119,8 +119,8 @@ export class ActorSoundConfig extends FormApplication {
         let defaultSoundId = null;
         let defaultSoundName = "System Default";
 
-        if (game.ionrift?.handler) {
-            const h = game.ionrift.handler;
+        if (game.ionrift?.resonance?.handler ?? game.ionrift?.handler) {
+            const h = game.ionrift?.resonance?.handler ?? game.ionrift?.handler;
             if (key === "sound_pain") {
                 const keyId = h.getPCSound(this.actor, "PAIN");
                 defaultSoundId = h.resolveSound(keyId);
@@ -184,8 +184,9 @@ export class ActorSoundConfig extends FormApplication {
             const manager = game.ionrift?.sounds?.manager;
             if (manager) {
                 // Try to use the handler if available for smarter playback, or direct provider
-                if (game.ionrift.handler) {
-                    game.ionrift.handler.play(val);
+                const handler = game.ionrift?.resonance?.handler ?? game.ionrift?.handler;
+                if (handler) {
+                    handler.play(val);
                 } else {
                     manager.provider.playSound(val);
                 }

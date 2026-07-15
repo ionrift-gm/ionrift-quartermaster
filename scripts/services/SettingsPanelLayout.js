@@ -3,7 +3,7 @@
  * @description Registers Quartermaster Quick Setup via ionrift-library.
  */
 
-import { openSetupGuide } from "../constants/SetupGuide.js";
+import { openSetupGuide } from "../data/SetupGuide.js";
 import { refreshOpenQuartermasterConfigApps } from "../apps/QuartermasterSubmenuConfigApp.js";
 import { LootPoolCompiler } from "./LootPoolCompiler.js";
 import { ScrollForge      } from "./ScrollForge.js";

@@ -1,8 +1,10 @@
 {
   "scripts": {
     "test": "vitest run",
-    "build:packs": "node tools/compile-packs.mjs",
-    "validate:packs": "node tools/validate-packs-local.mjs"
+    "build:packs": "node ../ionrift-testharness/tools/modules/quartermaster/compile-packs.mjs",
+    "validate:packs": "node ../ionrift-testharness/tools/modules/quartermaster/validate-packs-local.mjs",
+    "validate:shipping": "node ../ionrift-testharness/tools/modules/quartermaster/validate-shipping.mjs",
+    "validate:strings": "node ../ionrift-testharness/tools/modules/quartermaster/validate-strings.mjs"
   },
   "dependencies": {
     "classic-level": "^3.0.0",

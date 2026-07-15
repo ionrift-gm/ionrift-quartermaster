@@ -9,7 +9,7 @@ import { CacheGenerator } from "./CacheGenerator.js";
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
 import { ItemClassifier } from "./ItemClassifier.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
-import { Logger, MODULE_LABEL } from "../_logger.js";
+import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 
 const MODULE_ID = "ionrift-quartermaster";
 

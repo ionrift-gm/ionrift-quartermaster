@@ -1,4 +1,4 @@
-import { Logger } from "../_logger.js";
+import { Logger } from "../utils/Logger.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { PotionEnrichment } from "./PotionEnrichment.js";
 import { traceIdentify, traceItemFlags } from "./IdentificationTrace.js";
