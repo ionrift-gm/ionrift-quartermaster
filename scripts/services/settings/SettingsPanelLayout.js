@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * @module SettingsPanelLayout
  * @description Registers Quartermaster Quick Setup via ionrift-library.
@@ -9,7 +10,6 @@ import { LootPoolCompiler } from "../loot/LootPoolCompiler.js";
 import { ScrollForge      } from "../scroll/ScrollForge.js";
 import { getCurseAdapter } from "../curse/getCurseAdapter.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 const PROFILE_KEYS = [
     "lootEconomy",

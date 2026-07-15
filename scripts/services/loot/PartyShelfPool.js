@@ -1,8 +1,8 @@
 import { SignatureLedger } from "../progression/SignatureLedger.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 const RARITY_ORDER = ["uncommon", "rare", "veryRare", "legendary"];
 

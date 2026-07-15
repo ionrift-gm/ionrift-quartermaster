@@ -1,9 +1,9 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * Tier caps and pick weights for generic +N body armor and shields in mastercraft caches.
  * Independent of magic frequency and weapon +N curves.
  */
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /** @type {{ cap: number, maxByTier: Record<number, number>, pickWeightsByTier: Record<number, Record<number, number>> }} */
 export const DEFAULT_GENERIC_ARMOR_BONUS = {

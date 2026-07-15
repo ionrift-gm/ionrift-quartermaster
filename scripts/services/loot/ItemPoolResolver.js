@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * ItemPoolResolver
  *
@@ -16,7 +17,6 @@ import { isSrdCursedLootName } from "../curse/SrdCurseCatalog.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 import * as DnD5ePool from "../../adapters/pool/DnD5ePoolRules.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 export class ItemPoolResolver {
     // Session cache: compendiumId -> filtered items[]

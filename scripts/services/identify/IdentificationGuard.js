@@ -1,7 +1,7 @@
 import { IdentificationService } from "./IdentificationService.js";
 import { traceIdentify, traceItemFlags } from "./IdentificationTrace.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /** dnd5e 5.x frame header toggle for system.identified */
 const DND5E_IDENTIFY_SELECTOR = '[data-action="toggleState"][data-property="system.identified"], .toggle-identified';

@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * Shared compendium configuration helpers.
  *
@@ -9,7 +10,6 @@
 
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /**
  * Lock a world compendium to GM-only visibility.

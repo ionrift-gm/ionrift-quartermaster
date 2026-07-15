@@ -1,6 +1,6 @@
 import { AMMO_TILT_PRESETS, AmmoTypeRegistry } from "../../services/workshop/AmmoTypeRegistry.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 // ── Per-type colour palette ────────────────────────────────────────────────
 // Distinct muted hues that read clearly on dark glass, sourced from the

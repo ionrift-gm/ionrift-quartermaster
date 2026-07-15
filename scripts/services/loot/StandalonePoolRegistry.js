@@ -1,8 +1,8 @@
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { getCurseAdapter } from "../curse/getCurseAdapter.js";
 import { CursedItemResolver } from "../curse/CursedItemResolver.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /**
  * World-settings backing store for cursed planned + pool when Cursewright is absent.
@@ -10,12 +10,18 @@ const MODULE_ID = "ionrift-quartermaster";
  */
 export class StandalonePoolRegistry {
 
+    /** Doc id for index rows (_id preferred). */
+    static _indexDocId(doc) {
+        if (!doc) return "";
+        return doc._id ?? doc.id ?? "";
+    }
+
     /**
      * Map a compendium document (or index entry) to a slim pool row.
      * Requires cursedMeta on the document flags.
      */
     static _mapDocRow(doc, packId) {
-        const docId = doc?.id ?? doc?._id ?? "";
+        const docId = this._indexDocId(doc);
         if (!docId) return null;
         const meta = doc.flags?.[MODULE_ID]?.cursedMeta;
         if (!meta || typeof meta !== "object") return null;

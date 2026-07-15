@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * Pathfinder 2e cursed item compiler (Phase 1: compendium-faithful).
  * Scans pf2e equipment packs for the `cursed` trait, stamps minimal
@@ -15,7 +16,6 @@ import {
 import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "../packs/CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 export class Pf2eCurseAdapter {
 
@@ -39,7 +39,7 @@ export class Pf2eCurseAdapter {
 
         const itemPacks = this._discoverItemPacks();
         if (!itemPacks.length) {
-            Logger.warn(MODULE_LABEL, "Pf2eCurseAdapter: no pf2e item compendiums found.");
+            Logger.warn(MODULE_LABEL, "Pf2eCurseAdapter: no pf2e/sf2e item compendiums found.");
             return;
         }
 
@@ -141,7 +141,7 @@ export class Pf2eCurseAdapter {
             if (pack.collection === ownId) continue;
             if (packs.includes(pack)) continue;
             const pkg = pack.metadata?.packageName ?? pack.metadata?.package ?? "";
-            if (pkg === "pf2e") packs.push(pack);
+            if (pkg === "pf2e" || pkg === "sf2e") packs.push(pack);
         }
 
         return packs;

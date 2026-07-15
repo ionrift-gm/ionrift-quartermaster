@@ -13,8 +13,8 @@ import { SquashMerger } from "../../services/packs/SquashMerger.js";
 import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../../services/workshop/CoinFormat.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /** Foundry compendium / sidebar item drags (v12 and v13). */
 function getFoundryDragData(event) {

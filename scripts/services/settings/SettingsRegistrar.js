@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * @module SettingsRegistrar
  * @description Registers Quartermaster settings, menus, and layout footer.
@@ -12,7 +13,6 @@ import { registerQuartermasterSettingsPanel } from "./SettingsPanelLayout.js";
 import { AmmoTypeRegistry } from "../workshop/AmmoTypeRegistry.js";
 import { GenericArmorBonusRegistry, DEFAULT_GENERIC_ARMOR_BONUS } from "../workshop/GenericArmorBonusRegistry.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /**
  * @param {object} opts

@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * LootPoolAuditor
  *
@@ -11,7 +12,6 @@ import { LootPoolCompiler } from "./LootPoolCompiler.js";
 import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /** @typedef {"A_template"|"B_economy_pending"|"C_loot_ready"|"excluded"|"other"} LootBucket */
 

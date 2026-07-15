@@ -1,6 +1,6 @@
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 const FORGED_PACK_IDS = new Set([
     "world.ionrift-cursewright-forged",

@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * ContentPackCompiler
  *
@@ -15,7 +16,6 @@ import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { ContentPackLoader } from "./ContentPackLoader.js";
 import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "./CompendiumConfigHelper.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 export class ContentPackCompiler {
 

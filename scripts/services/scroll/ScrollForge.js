@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * ScrollForge - runtime spell scroll compendium built from GM-selected spell sources.
  * Writes to a world compendium so no spell text is shipped with the module.
@@ -7,13 +8,14 @@ import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta, stableHash } from "../packs/CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /** Per-pack index load timeout (ms). Prevents one bad compendium from stalling discovery. */
 const PACK_INDEX_TIMEOUT_MS = 12_000;
 
 export class ScrollForge {
     static WORLD_PACK_NAME = "ionrift-forged-scrolls";
+    /** @deprecated test alias for shared stableHash */
+    static _stableHash = stableHash;
 
     /** Display name in the Compendium sidebar (matches other Quartermaster packs). */
     static PACK_LABEL = "Quartermaster: Spell Scrolls";

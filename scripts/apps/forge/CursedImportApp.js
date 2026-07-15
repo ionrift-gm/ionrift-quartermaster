@@ -1,8 +1,8 @@
 import { getActiveCursedRegistry } from "../../services/loot/StandalonePoolRegistry.js";
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "./CursedSourcesApp.js";
 import { CursedItemResolver } from "../../services/curse/CursedItemResolver.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /**
  * GM picker: add or remove cursedMeta-stamped items from registered compendiums

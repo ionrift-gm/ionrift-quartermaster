@@ -1,6 +1,6 @@
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /**
  * Client-side trace for GM identification routing. Enable in module settings

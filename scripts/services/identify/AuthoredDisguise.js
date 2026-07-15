@@ -1,4 +1,4 @@
-const MODULE_ID = "ionrift-quartermaster";
+import { MODULE_ID } from "../../data/moduleId.js";
 
 /**
  * Apply a pre-authored SRD cursed item disguise at pile hand-off.
