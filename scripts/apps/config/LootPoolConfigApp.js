@@ -1,6 +1,6 @@
 import { ItemPoolResolver } from "../../services/loot/ItemPoolResolver.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /**
  * Configuration form for selecting which compendiums contribute to loot pools.

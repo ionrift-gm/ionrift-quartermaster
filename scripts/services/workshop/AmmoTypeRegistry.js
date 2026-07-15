@@ -1,8 +1,8 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * Ammunition type categories, curve weights, and name matching for cache generation.
  */
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /** @type {Record<string, Record<string, number>|null>} */
 export const AMMO_TILT_PRESETS = {

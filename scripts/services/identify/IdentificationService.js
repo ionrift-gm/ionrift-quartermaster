@@ -2,8 +2,8 @@ import { Logger } from "../../utils/Logger.js";
 import { ItemMaskingHelper } from "./ItemMaskingHelper.js";
 import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
 import { traceIdentify, traceItemFlags } from "./IdentificationTrace.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 const FLAG_LATENT_MAGIC = "latentMagic";
 const FLAG_CURSED_META = "cursedMeta";
 

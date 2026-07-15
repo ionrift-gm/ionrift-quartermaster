@@ -1,9 +1,9 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * GM dialog: choose which item compendiums the Party Shelf randomiser draws from.
  * Launched from the Signature Ledger's Party Shelf tab.
  */
 
-const MODULE_ID = "ionrift-quartermaster";
 export const SETTING_PARTY_SHELF_SOURCES = "partyShelfSources";
 
 const EQUIPMENT_TYPES = new Set(["equipment", "weapon", "armor"]);

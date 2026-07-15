@@ -1,6 +1,6 @@
 import { IdentificationService } from "./IdentificationService.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /**
  * PriceMasker

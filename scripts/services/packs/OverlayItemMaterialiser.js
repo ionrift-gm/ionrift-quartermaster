@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * OverlayItemMaterialiser
  *
@@ -40,7 +41,6 @@
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 const OVERLAY_ROOT = "ionrift-data/overlays";
 const FOLDERS_FILE = "_folders.json";
 const STATE_KEY = "materialisedOverlayPacks";

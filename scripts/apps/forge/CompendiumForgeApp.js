@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * CompendiumForgeApp
  *
@@ -22,7 +23,6 @@ import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 const QM_BUG_REPORT_CONTEXT = "quartermaster-loot-pool-compile";
 
 const LOOT_PHASE_LABELS = {

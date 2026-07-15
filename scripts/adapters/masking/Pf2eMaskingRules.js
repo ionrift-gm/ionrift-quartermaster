@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * Pf2eMaskingRules
  *
@@ -25,7 +26,6 @@
 
 import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 // ── PF2e Unidentified Item Icons ─────────────────────────────────────────
 // Shipped with the PF2e system at systems/pf2e/icons/unidentified_item_icons/

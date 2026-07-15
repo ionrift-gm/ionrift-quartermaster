@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * Empirical loot cache distribution tests for cache generation balance.
  * Used by Vitest (synthetic pool) and the Foundry test harness (live compendiums).
@@ -11,7 +12,6 @@ import { ItemClassifier } from "../workshop/ItemClassifier.js";
 import { ItemMaskingHelper } from "../identify/ItemMaskingHelper.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /** Per-cache named-magic eligibility (matches CacheGenerator.generate). */
 const NAMED_MAGIC_PER_CACHE = { 1: 0, 2: 0.10, 3: 0.20, 4: 0.35 };

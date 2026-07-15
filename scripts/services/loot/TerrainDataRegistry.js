@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * TerrainDataRegistry
  * Data-driven terrain configuration for Quartermaster.
@@ -17,7 +18,6 @@
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { normalizeTerrainCategory } from "../../../../ionrift-library/scripts/services/TerrainRegistry.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 export class TerrainDataRegistry {
 

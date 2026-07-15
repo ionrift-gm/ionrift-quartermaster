@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * LootPoolCompiler
  *
@@ -20,7 +21,6 @@ import { isSrdCursedLootName, isSrdCursedTemplateName } from "../curse/SrdCurseC
 import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "../packs/CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 // ── Weapon Template Manifest ──────────────────────────────────────────────
 //
@@ -226,6 +226,7 @@ export class LootPoolCompiler {
     static PACK_LABEL      = "Quartermaster: Compiled Loot Pool";
     static SETTING_HASH    = "compiledLootPoolHash";
     static SETTING_META    = "compiledLootPoolMeta";
+    static _stableHash = stableHash;
 
     static get worldCollectionId() {
         return `world.${this.WORLD_PACK_NAME}`;

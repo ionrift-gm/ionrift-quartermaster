@@ -1,10 +1,10 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * GM dialog: choose which spell compendiums Scroll Forge may read.
  */
 
 import { ScrollForge } from "../../services/scroll/ScrollForge.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 export class ScrollForgeSourceApp extends FormApplication {
     /**

@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * SrdCurseAdapter: seeds the Quartermaster cursed pool with the 12 canonical
  * SRD cursed items. Real names, minimal metadata, no Ionrift IP.
@@ -18,7 +19,6 @@ import {
 import { enforcePackOwnership, assignPackToCompiledFolder, clearPackAndResetMeta, stableHash } from "../packs/CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 
-const MODULE_ID = "ionrift-quartermaster";
 
 // ── SrdCurseAdapter ─────────────────────────────────────────────────────
 
@@ -27,6 +27,7 @@ export class SrdCurseAdapter {
     static PACK_LABEL      = "Quartermaster: SRD Cursed Items";
     static SETTING_HASH = "srdCurseHash";
     static SETTING_META = "srdCurseMeta";
+    static _stableHash = stableHash;
 
     static get worldCollectionId() {
         return `world.${this.WORLD_PACK_NAME}`;

@@ -1,9 +1,9 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * GM dialog: choose which Item compendiums the cursed pool may draw from.
  * Launched from the Signature Ledger (standalone) or via Add from Compendium.
  */
 
-const MODULE_ID = "ionrift-quartermaster";
 export const SETTING_CURSED_ITEM_SOURCES = "cursedItemSources";
 
 /** Ledger / import UIs listen to refresh after pool or source list changes. */

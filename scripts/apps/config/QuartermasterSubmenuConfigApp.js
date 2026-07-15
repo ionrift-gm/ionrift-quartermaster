@@ -1,8 +1,8 @@
+import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * GM settings submenu base for Quartermaster (Ionrift glass).
  */
 
-const MODULE_ID = "ionrift-quartermaster";
 
 /** @type {Set<string>} */
 const CONFIG_APP_IDS = new Set();
