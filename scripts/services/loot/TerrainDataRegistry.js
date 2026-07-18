@@ -16,7 +16,7 @@ import { MODULE_ID } from "../../data/moduleId.js";
  */
 
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { normalizeTerrainCategory } from "../../../../ionrift-library/scripts/services/TerrainRegistry.js";
+import { normalizeTerrainCategory } from "../../../../ionrift-library/scripts/services/terrain/TerrainRegistry.js";
 
 
 export class TerrainDataRegistry {
