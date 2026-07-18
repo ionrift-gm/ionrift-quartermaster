@@ -1,4 +1,4 @@
-import { PriceMasker } from "../PriceMasker.js";
+import { PriceMasker } from "../identify/PriceMasker.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 
 /**

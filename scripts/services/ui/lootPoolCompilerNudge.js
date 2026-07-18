@@ -6,7 +6,7 @@
  * is absent or stale.
  */
 
-import { LootPoolCompiler } from "../LootPoolCompiler.js";
+import { LootPoolCompiler } from "../loot/LootPoolCompiler.js";
 import { MODULE_ID } from "../../data/moduleId.js";
 
 /**
