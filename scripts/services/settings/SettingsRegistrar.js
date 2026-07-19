@@ -7,7 +7,6 @@ import { MODULE_ID } from "../../data/moduleId.js";
 import { LootGenerationConfigApp } from "../../apps/config/LootGenerationConfigApp.js";
 import { IdentificationConfigApp } from "../../apps/config/IdentificationConfigApp.js";
 
-import { WorkshopPackRegistryApp } from "../../apps/workshop/WorkshopPackRegistryApp.js";
 import { SignatureLedger } from "../progression/SignatureLedger.js";
 import { registerQuartermasterSettingsPanel } from "./SettingsPanelLayout.js";
 import { AmmoTypeRegistry } from "../workshop/AmmoTypeRegistry.js";
@@ -554,13 +553,6 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         type: CompendiumForgeApp,
         restricted: true
     });
-
-    if (!game.ionrift?.library?.isOverlayDistributionActive?.()) {
-        const SettingsLayoutForPack = game.ionrift?.library?.SettingsLayout;
-        SettingsLayoutForPack?.registerPackButton(MODULE_ID, WorkshopPackRegistryApp, {
-            hint: "Import and manage item packs, loot tables, and artwork."
-        });
-    }
 
     const SettingsLayout = game.ionrift?.library?.SettingsLayout;
     SettingsLayout?.registerFooter(MODULE_ID);
