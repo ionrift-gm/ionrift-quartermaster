@@ -152,24 +152,6 @@ Hooks.once('init', async () => {
         });
     });
 
-    // Core pack nudge: shared library banner in Module Settings when the core
-    // overlay is offered but not installed (see hoardPackNudge.js).
-    try {
-        const { registerHoardPackNudge } = await import("./services/ui/hoardPackNudge.js");
-        registerHoardPackNudge();
-    } catch (e) {
-        Logger.warn(MODULE_LABEL, "Core pack nudge registration failed:", e);
-    }
-
-    // Loot pool compiler nudge: banner when 2024 sources are present but pool
-    // is not compiled or is stale (see lootPoolCompilerNudge.js).
-    try {
-        const { registerLootPoolCompilerNudge } = await import("./services/ui/lootPoolCompilerNudge.js");
-        registerLootPoolCompilerNudge();
-    } catch (e) {
-        Logger.warn(MODULE_LABEL, "Loot pool compiler nudge registration failed:", e);
-    }
-
     Hooks.on("ionrift.overlayContentChanged", async (detail) => {
         if (detail?.moduleId !== MODULE_ID) return;
         const { ContentPackLoader } = await import("./services/packs/ContentPackLoader.js");

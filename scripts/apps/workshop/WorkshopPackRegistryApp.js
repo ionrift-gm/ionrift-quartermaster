@@ -128,7 +128,6 @@ export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
 
         // Footer links
         html += this._renderFooterLinks([
-            { href: "https://www.patreon.com/ionrift", icon: "fas fa-download", label: "Get packs" },
             { href: "https://github.com/ionrift-gm/ionrift-library/wiki", icon: "fas fa-book", label: "Documentation" }
         ]);
 
@@ -235,7 +234,6 @@ export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
 
         // Footer links
         html += this._renderFooterLinks([
-            { href: "https://www.patreon.com/ionrift", icon: "fas fa-download", label: "Get content packs" },
             { href: "https://github.com/ionrift-gm/ionrift-library/wiki", icon: "fas fa-book", label: "Install guide" }
         ]);
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.9.2] - 2026-07-19
+
+### Changed
+- Signature Ledger cursed pool no longer prompts to install Cursewright. SRD cursed compile and Compile CW (when Cursewright is loaded) are unchanged.
+- Content pack prompts moved out of Quartermaster settings.
+
 ## [1.9.1] - 2026-07-14
 
 ### Changed

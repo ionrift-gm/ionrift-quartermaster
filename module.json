@@ -2,7 +2,7 @@
     "id":  "ionrift-quartermaster",
     "title":  "Ionrift Quartermaster",
     "description":  "The GM\u0027s loot engine for Foundry VTT. Terrain-aware cache generation with latent-magic masking, scroll management, and campaign item planning. Supports D\u0026D 5e, Pathfinder 2e, and Starfinder 2e.",
-    "version": "1.9.1",
+    "version": "1.9.2",
     "compatibility":  {
                           "minimum":  "12",
                           "verified":  "14"
