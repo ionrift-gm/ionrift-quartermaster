@@ -116,7 +116,8 @@ export class ItemPoolResolver {
             if (!Array.isArray(raw)) return [];
             return raw.filter(id => !this.LOOT_POOL_EXCLUDED_PACKS.has(id));
         } catch {
-            return ["dnd5e.items", "dnd5e.tradegoods"]
+            const defaults = getQuartermasterAdapter().getDefaultLootPoolSources();
+            return (defaults.length ? defaults : ["dnd5e.items", "dnd5e.tradegoods"])
                 .filter(id => !this.LOOT_POOL_EXCLUDED_PACKS.has(id));
         }
     }

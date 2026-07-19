@@ -1,7 +1,7 @@
 import { SignatureLedger } from "../progression/SignatureLedger.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 
 const RARITY_ORDER = ["uncommon", "rare", "veryRare", "legendary"];
@@ -69,7 +69,7 @@ export class PartyShelfPool {
                     candidates.push({
                         uuid:               `Compendium.${packId}.Item.${docId}`,
                         name:               entry.name,
-                        img:                entry.img || "icons/svg/item-bag.svg",
+                        img:                entry.img || DEFAULT_ITEM_ICON,
                         rarity,
                         requiresAttunement: !!entry.system?.attunement,
                         _compendiumId:      docId,

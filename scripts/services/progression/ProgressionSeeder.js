@@ -1,4 +1,4 @@
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 /**
  * ProgressionSeeder.js
  *
@@ -513,7 +513,7 @@ export class ProgressionSeeder {
             results.push({
                 uuid:                 `Compendium.dnd5e.items.Item.${entry._id}`,
                 name:                 entry.name,
-                img:                  entry.img || "icons/svg/item-bag.svg",
+                img:                  entry.img || DEFAULT_ITEM_ICON,
                 rarity:               normalRarity,
                 itemType:             entry.type,
                 subtype:              subtype,
@@ -786,7 +786,7 @@ export class ProgressionSeeder {
                 results.push({
                     uuid:               `Compendium.${packId}.Item.${entry._id}`,
                     name:               entry.name,
-                    img:                entry.img || "icons/svg/item-bag.svg",
+                    img:                entry.img || DEFAULT_ITEM_ICON,
                     rarity:             normalRarity,
                     requiresAttunement: attuned,
                     _score:             score,

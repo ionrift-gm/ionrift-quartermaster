@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../../data/moduleId.js";
+import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 /**
  * GM dialog: choose which item compendiums the Party Shelf randomiser draws from.
  * Launched from the Signature Ledger's Party Shelf tab.
@@ -107,6 +108,7 @@ export class PartyShelfSourceApp extends FormApplication {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed) && parsed.length) return parsed;
         } catch { /* fall through */ }
-        return ["dnd5e.items"];
+        const defaults = getQuartermasterAdapter().getDefaultLootPoolSources();
+        return defaults.length ? defaults : ["dnd5e.items"];
     }
 }

@@ -169,26 +169,6 @@ export class ScrollForge {
         }
     }
 
-    /**
-     * @param {{ id: string }[]} candidates
-     */
-    static _shouldPromptSourceDialog(candidates) {
-        const currentSnap = this._candidateSnapshot(candidates);
-        const lastSnap = game.settings.get(MODULE_ID, this.SETTING_SNAPSHOT) || "";
-
-        let enabled = [];
-        try {
-            enabled = JSON.parse(game.settings.get(MODULE_ID, this.SETTING_SOURCES) || "[]");
-        } catch {
-            enabled = [];
-        }
-
-        const hadSavedSources = Array.isArray(enabled) && enabled.length > 0;
-        if (!hadSavedSources) return false;
-        if (currentSnap !== lastSnap) return true;
-        return false;
-    }
-
     static _candidateSnapshot(candidates) {
         const ids = candidates.map(c => c.id).sort();
         return stableHash(ids.join("\n"));

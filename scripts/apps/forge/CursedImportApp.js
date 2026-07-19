@@ -1,7 +1,7 @@
 import { getActiveCursedRegistry } from "../../services/loot/StandalonePoolRegistry.js";
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "./CursedSourcesApp.js";
 import { CursedItemResolver } from "../../services/curse/CursedItemResolver.js";
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 
 /**
@@ -42,7 +42,7 @@ export class CursedImportApp extends FormApplication {
                 id:               item.id,
                 uuid:             item.uuid,
                 name:             displayName,
-                img:              item.img ?? "icons/svg/item-bag.svg",
+                img:              item.img ?? DEFAULT_ITEM_ICON,
                 curseType:        meta.curseType ?? "unknown",
                 tier:             meta.tier ?? 1,
                 decoyAppearance:  meta.decoyAppearance ?? "",
@@ -170,7 +170,7 @@ export class CursedImportApp extends FormApplication {
             pool.push({
                 uuid,
                 name:            displayName,
-                img:             item.img || "icons/svg/item-bag.svg",
+                img:             item.img || DEFAULT_ITEM_ICON,
                 curseType:       meta.curseType ?? "unknown",
                 decoyAppearance: meta.decoyAppearance ?? "",
                 trueNature:      meta.trueNature ?? "",

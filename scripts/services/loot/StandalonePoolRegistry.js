@@ -1,7 +1,7 @@
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { getCurseAdapter } from "../curse/getCurseAdapter.js";
 import { CursedItemResolver } from "../curse/CursedItemResolver.js";
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 
 /**
@@ -30,7 +30,7 @@ export class StandalonePoolRegistry {
         return {
             uuid:            `Compendium.${packId}.Item.${docId}`,
             name:            displayName,
-            img:             doc.img ?? "icons/svg/item-bag.svg",
+            img:             doc.img ?? DEFAULT_ITEM_ICON,
             curseType:       meta.curseType ?? "unknown",
             decoyAppearance: meta.decoyAppearance ?? "",
             trueNature:      meta.trueNature ?? "",

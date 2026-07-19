@@ -215,11 +215,6 @@ export class SignatureLedger {
         return planned ?? [];
     }
 
-    /** Stub: projection key unused while Cursewright owns cursed plan. */
-    static _cursedPlannedProjectionKey(_planned) {
-        return "";
-    }
-
     /**
      * @deprecated Use getScrollPinned instead.
      * Kept for backward compat with ProgressionAdvisor.

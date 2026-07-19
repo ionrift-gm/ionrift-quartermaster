@@ -13,7 +13,7 @@ import { SquashMerger } from "../../services/packs/SquashMerger.js";
 import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../../services/workshop/CoinFormat.js";
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 
 /** Foundry compendium / sidebar item drags (v12 and v13). */
@@ -127,7 +127,6 @@ export class CacheGeneratorApp extends Application {
         // Bound reference so we can remove it after use
         this._boundCanvasDrop = this._onCanvasDrop.bind(this);
         this._cursedPoolLoaded = false; // [EA] guards against re-fetch loop
-        this._advisoryRerollState = new Map();
         // Tracks pools manually rerolled via dice button: suppresses isPlanned (recipe) items.
         // Reset on _onGenerate so fresh generation restores milestone priority.
         this._poolRerollMode = new Set();
@@ -464,7 +463,7 @@ export class CacheGeneratorApp extends Application {
             .filter(c => !(c.used || c.delivered))
             .map(c => ({
                 name:             c.name,
-                img:              c.img ?? "icons/svg/item-bag.svg",
+                img:              c.img ?? DEFAULT_ITEM_ICON,
                 uuid:             c.uuid ?? "",
                 _compendiumId:    c._compendiumId ?? "",
                 sourceCompendium: c.sourceCompendium ?? "",
@@ -481,7 +480,7 @@ export class CacheGeneratorApp extends Application {
         );
         const poolCursed = (this._cursedPool ?? []).map(entry => ({
             name:             entry.name,
-            img:              entry.img ?? "icons/svg/item-bag.svg",
+            img:              entry.img ?? DEFAULT_ITEM_ICON,
             uuid:             entry.uuid ?? "",
             _compendiumId:    entry._compendiumId ?? "",
             sourceCompendium: entry.sourceCompendium ?? "",
@@ -1201,16 +1200,6 @@ export class CacheGeneratorApp extends Application {
         btn.querySelector("i")?.classList.toggle("fa-chevron-up", !isCollapsed);
     }
 
-    /** Generic reroll handler - advance the index for the row key in reroll state. */
-    _onRerollAdvisoryRow(event) {
-        event.preventDefault();
-        const key = event.currentTarget.dataset.rerollKey;
-        if (!key) return;
-        const current = this._advisoryRerollState.get(key) ?? 0;
-        this._advisoryRerollState.set(key, current + 1);
-        this.render();
-    }
-
     /**
      * Reroll a specific advisory pool section (scroll plan, party shelf, or cursed pool).
      * Ignores "ripe" gating - pulls a fresh random slice from the full pool.
@@ -1258,31 +1247,6 @@ export class CacheGeneratorApp extends Application {
         this.render();
     }
 
-    async _onInjectPowerItem(event) {
-        event.preventDefault();
-        const actorId = event.currentTarget.dataset.actorId;
-        const row     = this._advisory?.powerBalance?.find(r => r.actorId === actorId);
-        if (!row) return;
-
-        const key    = `powerBalance|${actorId}`;
-        const raw    = this._advisoryRerollState.get(key) ?? 0;
-        const idx    = raw % row.alternatives.length;
-        const planned = row.alternatives[idx];
-        if (!planned) return;
-
-        await this._injectItem(planned, { badge: "Power Balance", treatAsSignature: true });
-    }
-
-    async _onInjectShelfItem(event) {
-        event.preventDefault();
-        const alts  = this._advisory?.partyShelf ?? [];
-        const raw   = this._advisoryRerollState.get("partyShelf") ?? 0;
-        const idx   = raw % (alts.length || 1);
-        const entry = alts[idx];
-        if (!entry) return;
-
-        await this._injectItem(entry, { badge: "Party Shelf", markDelivered: true });
-    }
 
     /**
      * Push a scroll-plan pin into the current cache, then refresh advisory from
@@ -1530,105 +1494,6 @@ export class CacheGeneratorApp extends Application {
         this.render();
     }
 
-    // ── Enrich Hoard ─────────────────────────────────────────────────────────
-
-    /**
-     * Inject a significant wondrous item from party actor inventories.
-     * "Party shelf" = items on player characters that look notable (uncommon+,
-     * equipment type, not already in the cache). GM picks which one lands.
-     */
-    async _onEnrichHoard(event) {
-        event.preventDefault();
-        if (!this._currentResult) return;
-
-        // Gather notable items from all player-owned actors
-        const playerActors = game.ionrift?.library?.party?.getMembers()
-            ?? game.actors.filter(a => a.hasPlayerOwner && a.type === "character");
-        const shelf = [];
-        for (const actor of playerActors) {
-            for (const item of actor.items) {
-                const rarity = (item.system?.rarity ?? "").toLowerCase();
-                if (!["uncommon","rare","veryrare","legendary"].includes(rarity)) continue;
-                if (!["equipment","weapon","consumable","loot"].includes(item.type)) continue;
-                shelf.push({
-                    name:            item.name,
-                    img:             item.img,
-                    type:            item.type,
-                    price:           item.system?.price?.value ?? 0,
-                    rarity,
-                    sourceCompendium: item.sourceId?.split(".Item.")[0]?.replace("Compendium.","") ?? "",
-                    _compendiumId:   item.sourceId?.split(".Item.")[1] ?? "",
-                    uuid:            item.uuid,
-                    ownerName:       actor.name,
-                });
-            }
-        }
-
-        if (shelf.length === 0) {
-            ui.notifications.info("No notable items found on party members. Add some magic gear first.");
-            return;
-        }
-
-        // Build a simple dialog for the GM to pick one
-        const options = shelf.map((item, i) =>
-            `<option value="${i}">[${item.ownerName}] ${item.name} (${item.rarity})</option>`
-        ).join("");
-
-        const content = `
-            <div style="padding: 4px 0;">
-                <p style="margin:0 0 8px; opacity:0.8; font-size:0.9em;">Select an item to inject as a significant find in this cache.</p>
-                <select id="enrich-item-pick" style="width:100%">${options}</select>
-            </div>`;
-
-        new Dialog({
-            title: "Enrich Hoard",
-            content,
-            buttons: {
-                inject: {
-                    icon: "<i class='fas fa-star'></i>",
-                    label: "Inject",
-                    callback: async (html) => {
-                        const idx = parseInt(html.find("#enrich-item-pick").val());
-                        const entry = shelf[idx];
-                        if (!entry) return;
-                        await this._injectItem(entry, { badge: "Enriched" });
-                    }
-                },
-                cancel: { label: "Cancel" }
-            },
-            default: "inject"
-        }).render(true);
-    }
-
-    // ── Curse Cache ─────────────────────────────────────────────────────────
-
-    /**
-     * Run the curse injection pipeline over the current result and re-render.
-     * Equivalent to what generate() does automatically when forceCurse is set,
-     * but applied to an already-generated cache on demand.
-     */
-    async _onCurseCache(event) {
-        event.preventDefault();
-        if (!this._currentResult) return;
-
-        const btn = $(event.currentTarget);
-        btn.prop("disabled", true).html("<i class='fas fa-spinner fa-spin'></i> Cursing...");
-
-        try {
-            const didCurse = await CacheGenerator.applyCacheCurses(this._currentResult, { forceCurse: true });
-            this.render();
-            if (didCurse) {
-                ui.notifications.info("A curse has been woven into the cache.");
-            } else {
-                ui.notifications.warn("No suitable items to curse. Add a Potion of Healing first.");
-            }
-        } catch (e) {
-            Logger.error(MODULE_LABEL, "Curse injection failed:", e);
-            ui.notifications.warn("Curse injection failed. Check console.");
-        } finally {
-            btn.prop("disabled", false).html("<i class='fas fa-skull'></i> Curse Cache");
-        }
-    }
 
     // ── Reroll individual slot ────────────────────────────────────────────────
 

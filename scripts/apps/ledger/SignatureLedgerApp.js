@@ -6,7 +6,7 @@ import { StandalonePoolRegistry, getActiveCursedRegistry } from "../../services/
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "../forge/CursedSourcesApp.js";
 import { CursedItemResolver } from "../../services/curse/CursedItemResolver.js";
 import { LootGenerationConfigApp } from "../config/LootGenerationConfigApp.js";
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 
 /** Always read fresh so profile changes take effect without reload. */
@@ -30,17 +30,7 @@ const CURSE_TYPE_DESCRIPTIONS = {
 };
 
 /** @returns {string|undefined} Pack ID for the cursed items compendium (CW or fallback). */
-function getCursedItemsPackId() {
-    return game.ionrift?.cursewright?.CURSED_ITEMS_PACK_ID
-        ?? "ionrift-cursewright.cursewright-items";
-}
-
 /** Active pool registry: CurseRegistry when Cursewright is installed, else QM settings. */
-
-/** @param {number} tier @returns {{ curseTier: number }} */
-function cursePoolTierViewFields(tier) {
-    return { curseTier: Math.max(1, Math.min(4, Number(tier) || 1)) };
-}
 
 
 /**
@@ -300,7 +290,7 @@ export class SignatureLedgerApp extends Application {
                             .map(p => ({
                                 uuid:            p.uuid,
                                 name:            p.name || "",
-                                img:             p.img || "icons/svg/item-bag.svg",
+                                img:             p.img || DEFAULT_ITEM_ICON,
                                 curseType:       p.curseType ?? "unknown",
                                 decoyAppearance: p.decoyAppearance ?? "",
                                 trueNature:      p.trueNature ?? "",
@@ -650,21 +640,6 @@ export class SignatureLedgerApp extends Application {
         slots[slotIdx] = { ...newEntry, level, slotOrder: slotIdx };
         const merged = slots.filter(Boolean);
         return [...others, ...merged];
-    }
-
-    static _scrollPinnedOccupantAtSlot(pinned, level, slotIdx) {
-        const CAP = 3;
-        const pins = pinned.filter(p => p.level === level).slice(0, CAP);
-        const slots = Array.from({ length: CAP }, () => null);
-        for (const p of pins) {
-            const idx = Math.min(CAP - 1, Math.max(0, Number(p.slotOrder) || 0));
-            if (!slots[idx]) slots[idx] = p;
-            else {
-                const free = slots.findIndex(s => s === null);
-                if (free >= 0) slots[free] = p;
-            }
-        }
-        return slots[slotIdx] ?? undefined;
     }
 
     static _removeScrollPin(pinned, level, uuid) {
@@ -1314,7 +1289,7 @@ export class SignatureLedgerApp extends Application {
                 const newEntry = {
                     uuid,
                     name:            doc.name ?? "Unknown",
-                    img:             doc.img ?? "icons/svg/item-bag.svg",
+                    img:             doc.img ?? DEFAULT_ITEM_ICON,
                     curseType:       meta.curseType ?? "unknown",
                     decoyAppearance: meta.decoyAppearance ?? "",
                     trueNature:      meta.trueNature ?? "",
@@ -2252,18 +2227,6 @@ export class SignatureLedgerApp extends Application {
 
     // ── Party Shelf Actions ───────────────────────────────────────────────────
 
-    async _onClickAddPartyItem(event) {
-        event.preventDefault();
-        const level  = parseInt(event.currentTarget.dataset.level);
-        const chosen = await this._searchAndPick(`Plan Party Item for Level ${level}`);
-        if (!chosen) return;
-
-        const shelf = await SignatureLedger.getPartyShelf();
-        shelf.push({ uuid: chosen.uuid, name: chosen.name, img: chosen.img, rarity: chosen.rarity || "uncommon", level, delivered: false });
-        await SignatureLedger.setPartyShelf(shelf);
-        this.render();
-    }
-
     async _onRemovePartyItem(event) {
         event.preventDefault();
         event.stopPropagation();
@@ -2369,7 +2332,7 @@ export class SignatureLedgerApp extends Application {
             pool.push({
                 uuid:      item.uuid,
                 name:      item.name,
-                img:       item.img || "icons/svg/item-bag.svg",
+                img:       item.img || DEFAULT_ITEM_ICON,
                 curseType: meta.curseType || "",
                 tier:      meta.tier ?? 1
             });
@@ -2451,7 +2414,7 @@ export class SignatureLedgerApp extends Application {
             pool.push({
                 uuid:            item.uuid,
                 name:            item.name,
-                img:             item.img || "icons/svg/item-bag.svg",
+                img:             item.img || DEFAULT_ITEM_ICON,
                 curseType:       meta.curseType       || "",
                 decoyAppearance: meta.decoyAppearance || "",
                 trueNature:      meta.trueNature      || "",
@@ -2546,97 +2509,6 @@ export class SignatureLedgerApp extends Application {
         });
         zone.addEventListener("drop", () => {
             zone.classList.remove("ban-drop-active");
-        });
-    }
-
-    // ── Shared: Search Compendiums ────────────────────────────────────────────
-
-    async _searchAndPick(title, typeFilter = null) {
-        const query = await new Promise(resolve => {
-            new Dialog({
-                title,
-                content: `
-                    <div style="margin-bottom:12px;">
-                        <input type="text" id="sig-item-search" placeholder="Search items…"
-                               style="width:100%;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);color:#eee;border-radius:4px;" />
-                    </div>
-                `,
-                buttons: {
-                    search: { icon: '<i class="fas fa-search"></i>', label: "Search", callback: html => resolve(html.find("#sig-item-search").val()) },
-                    cancel: { icon: '<i class="fas fa-times"></i>',  label: "Cancel", callback: () => resolve(null) }
-                },
-                default: "search",
-                render: html => setTimeout(() => html.find("#sig-item-search").focus(), 50)
-            }, { classes: ["ionrift-window", "glass-ui"], width: 400 }).render(true);
-        });
-
-        if (!query?.trim()) return null;
-        const results = await this._searchCompendiums(query.trim(), typeFilter);
-        if (!results.length) { ui.notifications.warn(`No items found matching "${query}".`); return null; }
-        return this._showResultsPicker(results, title);
-    }
-
-    async _searchCompendiums(query, typeFilter = null) {
-        const results   = [];
-        const lowerQ    = query.toLowerCase();
-
-        for (const pack of game.packs) {
-            if (pack.documentName !== "Item") continue;
-            const index = await pack.getIndex({ fields: ["system.rarity", "system.level", "type", "img"] });
-            for (const entry of index) {
-                if (!entry.name.toLowerCase().includes(lowerQ)) continue;
-                if (typeFilter && entry.type !== typeFilter) continue;
-                results.push({
-                    uuid:       `Compendium.${pack.collection}.Item.${entry._id}`,
-                    name:       entry.name,
-                    img:        entry.img || "icons/svg/item-bag.svg",
-                    rarity:     entry.system?.rarity || "common",
-                    spellLevel: entry.system?.level  || null,
-                    pack:       pack.metadata.label,
-                    type:       entry.type
-                });
-                if (results.length >= 20) break;
-            }
-            if (results.length >= 20) break;
-        }
-
-        // World items
-        for (const item of game.items) {
-            if (!item.name.toLowerCase().includes(lowerQ)) continue;
-            if (typeFilter && item.type !== typeFilter) continue;
-            results.push({ uuid: item.uuid, name: item.name, img: item.img, rarity: item.system?.rarity || "common", pack: "World Items", type: item.type });
-        }
-
-        return results.slice(0, 20);
-    }
-
-    async _showResultsPicker(results, title) {
-        return new Promise(resolve => {
-            const listHtml = results.map((r, i) => `
-                <div class="sig-result-row" data-index="${i}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.15s;">
-                    <img src="${r.img}" style="width:28px;height:28px;border-radius:3px;border:1px solid rgba(255,255,255,0.15);" />
-                    <div style="flex:1;overflow:hidden;">
-                        <div style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.name}</div>
-                        <div style="font-size:0.8em;color:rgba(255,255,255,0.4);">${r.pack} &middot; ${r.type}${r.spellLevel ? ` &middot; Lv${r.spellLevel}` : ""}</div>
-                    </div>
-                </div>
-            `).join("");
-
-            new Dialog({
-                title,
-                content: `<div style="max-height:350px;overflow-y:auto;margin-bottom:10px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:rgba(0,0,0,0.2);">${listHtml}</div>`,
-                buttons: { cancel: { icon: '<i class="fas fa-times"></i>', label: "Cancel", callback: () => resolve(null) } },
-                default: "cancel",
-                render: html => {
-                    html.find(".sig-result-row")
-                        .hover(function() { $(this).css("background", "rgba(255,255,255,0.08)"); },
-                               function() { $(this).css("background", "transparent"); })
-                        .on("click", function() {
-                            resolve(results[parseInt(this.dataset.index)]);
-                            html.closest(".app").find(".header-button.close").click();
-                        });
-                }
-            }, { classes: ["ionrift-window", "glass-ui"], width: 420, height: "auto" }).render(true);
         });
     }
 
