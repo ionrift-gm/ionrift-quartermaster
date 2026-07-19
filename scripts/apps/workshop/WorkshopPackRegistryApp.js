@@ -10,11 +10,10 @@ import { MODULE_ID } from "../../data/moduleId.js";
  * Extends AbstractPackRegistryApp from ionrift-library.
  */
 
-const { AbstractPackRegistryApp } = await import("../../../../ionrift-library/scripts/apps/packs/AbstractPackRegistryApp.js");
+const { AbstractPackRegistryApp } = await import("../../../../ionrift-library/scripts/apps/AbstractPackRegistryApp.js");
 import { ContentPackLoader } from "../../services/packs/ContentPackLoader.js";
 import { ContentPackCompiler } from "../../services/packs/ContentPackCompiler.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { getWorldSetting } from "../../../../ionrift-library/scripts/services/platform/connectOwnedSettings.js";
 
 export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
 
@@ -46,7 +45,7 @@ export class WorkshopPackRegistryApp extends AbstractPackRegistryApp {
 
     async _preparePackData() {
         const enabledPacks = game.settings.get(MODULE_ID, "workshopEnabledPacks") ?? {};
-        const installedPacks = getWorldSetting("installedPacks") ?? {};
+        const installedPacks = game.settings.get("ionrift-library", "installedPacks") ?? {};
         const importedPacks = game.settings.get(MODULE_ID, "workshopImportedPacks") ?? {};
 
         const packs = [];
