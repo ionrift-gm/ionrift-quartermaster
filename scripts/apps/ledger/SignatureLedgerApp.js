@@ -2360,17 +2360,20 @@ export class SignatureLedgerApp extends Application {
             return this._onLoadSrdCursedItems(event);
         }
 
-        // Silent compile - no dialog, auto-detected packs
-        const { CurseForge } = await import(`/modules/ionrift-cursewright/scripts/services/CurseForge.js`);
+        const CurseForge = cw.forge;
+        if (!CurseForge?.compile) {
+            Logger.warn(MODULE_LABEL, "_onRebuildCursedPool: Cursewright forge API is unavailable.");
+            return;
+        }
 
-        // If the world pack was deleted manually the CW hash setting is stale -
+        // If the world pack was deleted manually, the CW hash setting is stale.
         // compile() will see "hash unchanged" and no-op, leaving the pack missing.
         // Detect this and clear the hash so compile() runs in full.
         const cwPackId = CurseForge.worldCollectionId;
         if (!game.packs.get(cwPackId)) {
-            Logger.warn(MODULE_LABEL, "_onRebuildCursedPool: world pack missing - clearing hash to force recompile.");
+            Logger.warn(MODULE_LABEL, "_onRebuildCursedPool: world pack missing; clearing hash to force recompile.");
             try { await game.settings.set("ionrift-cursewright", CurseForge.SETTING_HASH, ""); }
-            catch (e) { /* setting may not exist yet - that's fine */ }
+            catch (e) { /* The setting may not exist yet. */ }
         }
 
         ui.notifications.info("Cursewright: compiling cursed items from D&D 5e sources...");
