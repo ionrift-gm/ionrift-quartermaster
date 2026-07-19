@@ -6,7 +6,7 @@ import { StandalonePoolRegistry, getActiveCursedRegistry } from "../../services/
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "../forge/CursedSourcesApp.js";
 import { CursedItemResolver } from "../../services/curse/CursedItemResolver.js";
 import { LootGenerationConfigApp } from "../config/LootGenerationConfigApp.js";
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 
 /** Always read fresh so profile changes take effect without reload. */
@@ -300,7 +300,7 @@ export class SignatureLedgerApp extends Application {
                             .map(p => ({
                                 uuid:            p.uuid,
                                 name:            p.name || "",
-                                img:             p.img || "icons/svg/item-bag.svg",
+                                img:             p.img || DEFAULT_ITEM_ICON,
                                 curseType:       p.curseType ?? "unknown",
                                 decoyAppearance: p.decoyAppearance ?? "",
                                 trueNature:      p.trueNature ?? "",
@@ -1314,7 +1314,7 @@ export class SignatureLedgerApp extends Application {
                 const newEntry = {
                     uuid,
                     name:            doc.name ?? "Unknown",
-                    img:             doc.img ?? "icons/svg/item-bag.svg",
+                    img:             doc.img ?? DEFAULT_ITEM_ICON,
                     curseType:       meta.curseType ?? "unknown",
                     decoyAppearance: meta.decoyAppearance ?? "",
                     trueNature:      meta.trueNature ?? "",
@@ -2369,7 +2369,7 @@ export class SignatureLedgerApp extends Application {
             pool.push({
                 uuid:      item.uuid,
                 name:      item.name,
-                img:       item.img || "icons/svg/item-bag.svg",
+                img:       item.img || DEFAULT_ITEM_ICON,
                 curseType: meta.curseType || "",
                 tier:      meta.tier ?? 1
             });
@@ -2451,7 +2451,7 @@ export class SignatureLedgerApp extends Application {
             pool.push({
                 uuid:            item.uuid,
                 name:            item.name,
-                img:             item.img || "icons/svg/item-bag.svg",
+                img:             item.img || DEFAULT_ITEM_ICON,
                 curseType:       meta.curseType       || "",
                 decoyAppearance: meta.decoyAppearance || "",
                 trueNature:      meta.trueNature      || "",
@@ -2589,7 +2589,7 @@ export class SignatureLedgerApp extends Application {
                 results.push({
                     uuid:       `Compendium.${pack.collection}.Item.${entry._id}`,
                     name:       entry.name,
-                    img:        entry.img || "icons/svg/item-bag.svg",
+                    img:        entry.img || DEFAULT_ITEM_ICON,
                     rarity:     entry.system?.rarity || "common",
                     spellLevel: entry.system?.level  || null,
                     pack:       pack.metadata.label,

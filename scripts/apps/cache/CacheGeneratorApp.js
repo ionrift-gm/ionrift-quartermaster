@@ -13,7 +13,7 @@ import { SquashMerger } from "../../services/packs/SquashMerger.js";
 import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../../services/workshop/CoinFormat.js";
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 
 /** Foundry compendium / sidebar item drags (v12 and v13). */
@@ -464,7 +464,7 @@ export class CacheGeneratorApp extends Application {
             .filter(c => !(c.used || c.delivered))
             .map(c => ({
                 name:             c.name,
-                img:              c.img ?? "icons/svg/item-bag.svg",
+                img:              c.img ?? DEFAULT_ITEM_ICON,
                 uuid:             c.uuid ?? "",
                 _compendiumId:    c._compendiumId ?? "",
                 sourceCompendium: c.sourceCompendium ?? "",
@@ -481,7 +481,7 @@ export class CacheGeneratorApp extends Application {
         );
         const poolCursed = (this._cursedPool ?? []).map(entry => ({
             name:             entry.name,
-            img:              entry.img ?? "icons/svg/item-bag.svg",
+            img:              entry.img ?? DEFAULT_ITEM_ICON,
             uuid:             entry.uuid ?? "",
             _compendiumId:    entry._compendiumId ?? "",
             sourceCompendium: entry.sourceCompendium ?? "",
