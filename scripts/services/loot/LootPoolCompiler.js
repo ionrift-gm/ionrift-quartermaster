@@ -1,4 +1,4 @@
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 /**
  * LootPoolCompiler
  *
@@ -787,7 +787,7 @@ export class LootPoolCompiler {
         data.name = `${templateName} ${baseName} +${tier}`;
 
         // Image: prefer template image; fall back to base weapon image
-        if (!data.img || data.img === "icons/svg/item-bag.svg") {
+        if (!data.img || data.img === DEFAULT_ITEM_ICON) {
             data.img = base.img ?? data.img;
         }
 
@@ -1611,7 +1611,7 @@ export class LootPoolCompiler {
         if (baseWeight > 0) {
             this._assignWeight(system, baseWeight);
         }
-        if (base.img && (!data.img || data.img === "icons/svg/item-bag.svg")) {
+        if (base.img && (!data.img || data.img === DEFAULT_ITEM_ICON)) {
             data.img = base.img;
         }
 

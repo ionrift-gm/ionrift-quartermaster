@@ -1,4 +1,4 @@
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 /**
  * Pf2eMaskingRules
  *
@@ -442,7 +442,7 @@ function _stripPf2eToLatent(itemData, maskInfo) {
     system.identification.unidentified.name = maskInfo.baseItemName;
     system.identification.unidentified.img = maskInfo.obscuredImg
         ?? itemData.img
-        ?? "icons/svg/item-bag.svg";
+        ?? DEFAULT_ITEM_ICON;
     system.identification.unidentified.data ??= {};
     system.identification.unidentified.data.description ??= {};
     system.identification.unidentified.data.description.value = maskInfo.mundaneDesc ?? "";

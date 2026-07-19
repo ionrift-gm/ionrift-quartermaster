@@ -1,4 +1,4 @@
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 import { ItemPoolResolver } from "../loot/ItemPoolResolver.js";
 import { ItemMaskingHelper } from "../identify/ItemMaskingHelper.js";
@@ -282,20 +282,6 @@ export class CacheGenerator {
 
     /**
      * @param {object} item
-     * @param {(w: number, type: string, system: object) => number} effectiveWeightFn
-     * @returns {boolean}
-     */
-    static _isArmorCacheItem(item, effectiveWeightFn) {
-        if (!item) return false;
-        const system = item.system ?? { type: { value: item.subtype ?? "" } };
-        return ItemPoolResolver._isArmorPoolItem({
-            type: item.type,
-            subtype: item.subtype ?? system?.type?.value ?? "",
-            system
-        });
-    }
-
-    /**
      * Price ceiling for a cache slot. Guaranteed slots no longer use Infinity.
      * @param {object} opts
      * @returns {number}
@@ -1971,7 +1957,7 @@ export class CacheGenerator {
             const base = {
                 name: item.name,
                 type: item.type ?? "loot",
-                img: item.img ?? "icons/svg/item-bag.svg",
+                img: item.img ?? DEFAULT_ITEM_ICON,
                 folder: folder.id,
                 system: {
                     quantity: item.quantity ?? 1,
@@ -2165,7 +2151,7 @@ export class CacheGenerator {
             const data = {
                 name: item.name,
                 type: item.type ?? "loot",
-                img: item.img ?? "icons/svg/item-bag.svg",
+                img: item.img ?? DEFAULT_ITEM_ICON,
                 folder: folder.id,
                 system: {
                     quantity: item.quantity ?? 1,
