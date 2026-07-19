@@ -282,20 +282,6 @@ export class CacheGenerator {
 
     /**
      * @param {object} item
-     * @param {(w: number, type: string, system: object) => number} effectiveWeightFn
-     * @returns {boolean}
-     */
-    static _isArmorCacheItem(item, effectiveWeightFn) {
-        if (!item) return false;
-        const system = item.system ?? { type: { value: item.subtype ?? "" } };
-        return ItemPoolResolver._isArmorPoolItem({
-            type: item.type,
-            subtype: item.subtype ?? system?.type?.value ?? "",
-            system
-        });
-    }
-
-    /**
      * Price ceiling for a cache slot. Guaranteed slots no longer use Infinity.
      * @param {object} opts
      * @returns {number}

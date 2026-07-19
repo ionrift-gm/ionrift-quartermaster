@@ -642,21 +642,6 @@ export class SignatureLedgerApp extends Application {
         return [...others, ...merged];
     }
 
-    static _scrollPinnedOccupantAtSlot(pinned, level, slotIdx) {
-        const CAP = 3;
-        const pins = pinned.filter(p => p.level === level).slice(0, CAP);
-        const slots = Array.from({ length: CAP }, () => null);
-        for (const p of pins) {
-            const idx = Math.min(CAP - 1, Math.max(0, Number(p.slotOrder) || 0));
-            if (!slots[idx]) slots[idx] = p;
-            else {
-                const free = slots.findIndex(s => s === null);
-                if (free >= 0) slots[free] = p;
-            }
-        }
-        return slots[slotIdx] ?? undefined;
-    }
-
     static _removeScrollPin(pinned, level, uuid) {
         return pinned.filter(p => !(p.level === level && p.uuid === uuid));
     }
