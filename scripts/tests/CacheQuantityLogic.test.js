@@ -1,8 +1,17 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { CacheQuantityLogic } from "../services/cache/CacheQuantityLogic.js";
+let CacheQuantityLogic;
 
 describe("CacheQuantityLogic", () => {
+    beforeAll(async () => {
+        globalThis.game = { ionrift: {} };
+        ({ CacheQuantityLogic } = await import("../services/cache/CacheQuantityLogic.js"));
+    });
+
+    afterAll(() => {
+        delete globalThis.game;
+    });
+
     afterEach(() => {
         vi.restoreAllMocks();
     });
