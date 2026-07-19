@@ -2,7 +2,7 @@ import { MODULE_ID } from "../../data/moduleId.js";
 /**
  * OverlayItemMaterialiser
  *
- * Reads raw item JSONs delivered by the Patreon Library overlay system
+ * Reads raw item JSONs from manually installed overlays
  * (e.g. quartermaster-core-overlay) and materialises them into world
  * compendiums at runtime so the rest of the module can find them by id.
  *
@@ -157,7 +157,7 @@ export class OverlayItemMaterialiser {
     /**
      * Toggle materialised packs in or out of the cache generator's loot
      * sources without destroying the compendiums. Used when a GM disables an
-     * overlay in the Patreon Library: the on-disk items survive (so the GM
+     * overlay for this world: the on-disk items survive (so the GM
      * does not lose customisations) but the cache generator stops drawing
      * from them on the next roll.
      *

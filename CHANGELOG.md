@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.3] - 2026-07-19
+
+### Changed
+- Content packs now load from manually unzipped overlay folders. Quartermaster no longer includes an in-app pack manager.
+
 ## [1.9.2] - 2026-07-19
 
 ### Changed
