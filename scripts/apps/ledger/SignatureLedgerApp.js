@@ -30,17 +30,7 @@ const CURSE_TYPE_DESCRIPTIONS = {
 };
 
 /** @returns {string|undefined} Pack ID for the cursed items compendium (CW or fallback). */
-function getCursedItemsPackId() {
-    return game.ionrift?.cursewright?.CURSED_ITEMS_PACK_ID
-        ?? "ionrift-cursewright.cursewright-items";
-}
-
 /** Active pool registry: CurseRegistry when Cursewright is installed, else QM settings. */
-
-/** @param {number} tier @returns {{ curseTier: number }} */
-function cursePoolTierViewFields(tier) {
-    return { curseTier: Math.max(1, Math.min(4, Number(tier) || 1)) };
-}
 
 
 /**
