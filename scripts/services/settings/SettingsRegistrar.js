@@ -567,13 +567,14 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         restricted: true
     });
 
+    // Dev-only. Enable from console: game.settings.set("ionrift-quartermaster", "identifyTrace", true)
     game.settings.register(MODULE_ID, "identifyTrace", {
         name: "Identification Trace Logging",
         hint: "Logs GM wand clicks and identification routing to the browser console (F12). Prefix: [QM Identify].",
         scope: "client",
-        config: true,
+        config: false,
         type: Boolean,
-        default: true,
+        default: false,
         restricted: true
     });
 
