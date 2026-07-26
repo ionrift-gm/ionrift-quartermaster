@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.4] - 2026-07-26
+
+### Changed
+- Identify trace logging is off by default and no longer shown in settings.
+
 ## [1.9.3] - 2026-07-19
 
 ### Changed
