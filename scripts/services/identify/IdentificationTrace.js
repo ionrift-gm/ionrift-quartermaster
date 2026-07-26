@@ -3,8 +3,8 @@ import { MODULE_ID } from "../../data/moduleId.js";
 
 
 /**
- * Client-side trace for GM identification routing. Enable in module settings
- * or from the console: game.settings.set(MODULE_ID, "identifyTrace", true)
+ * Client-side trace for GM identification routing (dev only, not in module settings).
+ * Enable from the console: game.settings.set(MODULE_ID, "identifyTrace", true)
  *
  * @param {string} step
  * @param {object} [detail]
