@@ -158,19 +158,35 @@ Hooks.once('init', async () => {
         await ContentPackLoader.init();
         await TerrainDataRegistry.init(true);
 
+        const sublayer = detail.sublayer;
+        const isArtCompanion = typeof sublayer === "string" && sublayer.endsWith("-art");
+        const dataSublayer = isArtCompanion ? sublayer.slice(0, -4) : sublayer;
+
         if (detail.installed && detail.active) {
-            try { await OverlayItemMaterialiser.materialiseSublayer(detail.sublayer); }
-            catch (err) {
+            try {
+                // Art companions rematerialise the parent data sublayer so imgs update.
+                await OverlayItemMaterialiser.materialiseSublayer(dataSublayer);
+            } catch (err) {
                 Logger.error(MODULE_LABEL, "OverlayItemMaterialiser sublayer rebuild failed:", err);
             }
         } else if (detail.installed && detail.overlayId) {
-            try { await OverlayItemMaterialiser.setOverlayActive(detail.overlayId, false); }
-            catch (err) {
+            try {
+                if (isArtCompanion) {
+                    await OverlayItemMaterialiser.materialiseSublayer(dataSublayer);
+                } else {
+                    await OverlayItemMaterialiser.setOverlayActive(detail.overlayId, false);
+                }
+            } catch (err) {
                 Logger.error(MODULE_LABEL, "OverlayItemMaterialiser deactivate failed:", err);
             }
         } else if (!detail.installed && detail.overlayId) {
-            try { await OverlayItemMaterialiser.removeForOverlay(detail.overlayId); }
-            catch (err) {
+            try {
+                if (isArtCompanion) {
+                    await OverlayItemMaterialiser.materialiseSublayer(dataSublayer);
+                } else {
+                    await OverlayItemMaterialiser.removeForOverlay(detail.overlayId);
+                }
+            } catch (err) {
                 Logger.error(MODULE_LABEL, "OverlayItemMaterialiser teardown failed:", err);
             }
         }
