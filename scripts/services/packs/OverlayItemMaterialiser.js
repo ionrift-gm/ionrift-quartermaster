@@ -79,6 +79,8 @@ export class OverlayItemMaterialiser {
     static async materialiseSublayer(sublayer) {
         if (!game.user.isGM) return;
         if (!sublayer) return;
+        // Generative companions are art-only; they never unlock loot tables.
+        if (sublayer.endsWith("-art")) return;
 
         const overlay = game.ionrift?.library?.overlay;
         const manifest = await overlay.getLocalManifest(MODULE_ID, sublayer);
@@ -226,6 +228,14 @@ export class OverlayItemMaterialiser {
             return null;
         }
 
+        const artSublayer = `${sublayer}-art`;
+        const artByStem = await this._loadCompanionArtMap(artSublayer);
+        const artManifest = artByStem.size
+            ? await overlay.getLocalManifest(MODULE_ID, artSublayer).catch(() => null)
+            : null;
+        const artVersion = artManifest?.version ?? "none";
+        const artCount = artByStem.size;
+
         const collection = `world.quartermaster-${sublayer}`;
         const label = this._labelForSublayer(sublayer);
 
@@ -256,7 +266,7 @@ export class OverlayItemMaterialiser {
             return null;
         }
 
-        const hashKey = `${overlayId}:${sublayer}:${overlayVersion}:${totalFileCount}`;
+        const hashKey = `${overlayId}:${sublayer}:${overlayVersion}:${totalFileCount}:art=${artVersion}:${artCount}`;
         const state = this._getState();
         const existingHash = state[overlayId]?.packHashes?.[sublayer];
 
@@ -315,6 +325,7 @@ export class OverlayItemMaterialiser {
                     item.folder = parentId ?? null;
                 }
                 delete item._id;
+                this._applyCompanionArt(item, artSublayer, artByStem);
                 preparedItems.push(item);
             }
         }
@@ -460,11 +471,14 @@ export class OverlayItemMaterialiser {
         const collected = [];
         for (let i = 0; i < itemPaths.length; i += CONCURRENCY) {
             const batch = itemPaths.slice(i, i + CONCURRENCY);
-            const results = await Promise.all(batch.map(relPath =>
-                overlay.readOverlayFile(moduleId, sublayer, relPath).catch(() => null)
-            ));
+            const results = await Promise.all(batch.map(async (relPath) => {
+                const data = await overlay.readOverlayFile(moduleId, sublayer, relPath).catch(() => null);
+                if (!data?.name) return null;
+                data._overlaySourcePath = relPath;
+                return data;
+            }));
             for (const data of results) {
-                if (data && data.name) collected.push(data);
+                if (data) collected.push(data);
             }
         }
         return collected;
@@ -483,8 +497,12 @@ export class OverlayItemMaterialiser {
                 f.endsWith(".json") && f !== FOLDERS_FILE
             );
             for (const file of files) {
-                const data = await overlay.readOverlayFile(moduleId, sublayer, `${path}/${file}`);
-                if (data && data.name) collected.push(data);
+                const relPath = `${path}/${file}`;
+                const data = await overlay.readOverlayFile(moduleId, sublayer, relPath);
+                if (data && data.name) {
+                    data._overlaySourcePath = relPath;
+                    collected.push(data);
+                }
             }
             const dirs = (listing?.dirs ?? []).filter(d => d && !d.startsWith("."));
             for (const dir of dirs) {
@@ -494,6 +512,59 @@ export class OverlayItemMaterialiser {
 
         await walk(itemsPath);
         return collected;
+    }
+
+    /**
+     * Map art filename stems under `{sublayer}-art` to relative art paths.
+     * @param {string} artSublayer
+     * @returns {Promise<Map<string, string>>}
+     * @private
+     */
+    static async _loadCompanionArtMap(artSublayer) {
+        const overlay = game.ionrift?.library?.overlay;
+        const map = new Map();
+        if (!overlay) return map;
+
+        let artIndex = null;
+        if (typeof overlay.readFileIndex === "function") {
+            artIndex = await overlay.readFileIndex(MODULE_ID, artSublayer).catch(() => null);
+        }
+        if (!artIndex?.length) return map;
+
+        for (const rel of artIndex) {
+            if (!/^art\//.test(rel)) continue;
+            if (!/\.(webp|png|jpe?g)$/i.test(rel)) continue;
+            const stem = rel.split("/").pop().replace(/\.[^.]+$/, "").toLowerCase();
+            if (!stem) continue;
+            // Prefer webp when both formats exist for the same stem.
+            const prev = map.get(stem);
+            if (!prev || (rel.endsWith(".webp") && !prev.endsWith(".webp"))) {
+                map.set(stem, rel);
+            }
+        }
+        return map;
+    }
+
+    /**
+     * Presence-based img swap when a generative companion ships matching art.
+     * @param {object} item
+     * @param {string} artSublayer
+     * @param {Map<string, string>} artByStem
+     * @private
+     */
+    static _applyCompanionArt(item, artSublayer, artByStem) {
+        if (!item || !artByStem?.size) {
+            if (item) delete item._overlaySourcePath;
+            return;
+        }
+        const sourcePath = item._overlaySourcePath || "";
+        delete item._overlaySourcePath;
+        const stem = (sourcePath.split("/").pop() || "")
+            .replace(/\.json$/i, "")
+            .toLowerCase();
+        const artRel = stem ? artByStem.get(stem) : null;
+        if (!artRel) return;
+        item.img = `ionrift-data/overlays/${MODULE_ID}/${artSublayer}/${artRel}`;
     }
 
     /**
