@@ -98,3 +98,5 @@ docs/
 # Agent lock files
 ionrift-workshop.lock
 ionrift-quartermaster.lock
+
+.worktrees/

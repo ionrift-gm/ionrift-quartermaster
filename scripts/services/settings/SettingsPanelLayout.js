@@ -9,6 +9,7 @@ import { refreshOpenQuartermasterConfigApps } from "../../apps/config/Quartermas
 import { LootPoolCompiler } from "../loot/LootPoolCompiler.js";
 import { ScrollForge      } from "../scroll/ScrollForge.js";
 import { getCurseAdapter } from "../curse/getCurseAdapter.js";
+import { localize } from "../../utils/I18n.js";
 
 
 const PROFILE_KEYS = [
@@ -27,35 +28,35 @@ const PROFILE_KEYS = [
 ];
 
 const KEY_LABELS = {
-    lootEconomy: "Loot abundance",
-    magicFrequency: "Magic frequency",
-    armourDropChance: "Armour drop chance",
-    namedMagicFrequency: "Named magic frequency",
-    magicAmmoFrequency: "Magical ammunition",
-    healingPotionFrequency: "Healing potions",
-    ammoTypeTilt: "Ammunition preference",
-    obscureConsumables: "Obscure consumables",
-    obscureScrolls: "Obscure scrolls",
-    obscureMagicalItems: "Obscure magical items",
-    gmOnlyIdentification: "GM-only identification",
-    distributeCoins: "Distribute coinage"
+    lootEconomy: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.LootEconomyLabel",
+    magicFrequency: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.MagicFrequencyLabel",
+    armourDropChance: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ArmourDropChanceLabel",
+    namedMagicFrequency: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.NamedMagicFrequencyLabel",
+    magicAmmoFrequency: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.MagicAmmoFrequencyLabel",
+    healingPotionFrequency: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.HealingPotionFrequencyLabel",
+    ammoTypeTilt: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.AmmoTypeTiltLabel",
+    obscureConsumables: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ObscureConsumablesLabel",
+    obscureScrolls: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ObscureScrollsLabel",
+    obscureMagicalItems: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ObscureMagicalItemsLabel",
+    gmOnlyIdentification: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.GmOnlyIdentificationLabel",
+    distributeCoins: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.DistributeCoinsLabel"
 };
 
 const AMMO_LABELS = {
-    balanced: "Balanced",
-    arrows: "Arrows",
-    bolts: "Bolts",
-    sling: "Sling",
-    mixed: "Mixed",
-    custom: "Custom curve"
+    balanced: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.AmmoBalanced",
+    arrows: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.AmmoArrows",
+    bolts: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.AmmoBolts",
+    sling: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.AmmoSling",
+    mixed: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.AmmoMixed",
+    custom: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.AmmoCustom"
 };
 
 const PROFILES = [
     {
         id: "low",
-        label: "Low",
+        label: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ProfileLowTitle",
         icon: "fas fa-mountain",
-        desc: "Scarce loot, little magic, sparse healing, opaque items, tight scroll bands.",
+        desc: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ProfileLowDesc",
         values: {
             lootEconomy: 0.5,
             magicFrequency: 0.25,
@@ -73,9 +74,9 @@ const PROFILES = [
     },
     {
         id: "standard",
-        label: "Standard",
+        label: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ProfileStandardTitle",
         icon: "fas fa-scale-balanced",
-        desc: "Default table: balanced economy, magic, and identification.",
+        desc: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ProfileStandardDesc",
         values: {
             lootEconomy: 1,
             magicFrequency: 1,
@@ -93,9 +94,9 @@ const PROFILES = [
     },
     {
         id: "high",
-        label: "High",
+        label: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ProfileHighTitle",
         icon: "fas fa-gem",
-        desc: "Generous hauls, more magic and healing, readable loot, wider scroll overshoot.",
+        desc: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ProfileHighDesc",
         values: {
             lootEconomy: 1.5,
             magicFrequency: 1.5,
@@ -115,22 +116,22 @@ const PROFILES = [
 
 const GROUPS = [
     {
-        title: "Start here",
+        title: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.GroupStartHere",
         icon: "fas fa-flag",
         keys: ["milestoneProfile", "compendiumForge"]
     },
     {
-        title: "Loot & caches",
+        title: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.GroupLootAndCaches",
         icon: "fas fa-coins",
         keys: ["lootGenerationConfig"]
     },
     {
-        title: "At the table",
+        title: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.GroupAtTheTable",
         icon: "fas fa-eye",
         keys: ["identificationConfig"]
     },
     {
-        title: "Tools",
+        title: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.GroupTools",
         icon: "fas fa-wrench",
         keys: ["debug"]
     }
@@ -154,32 +155,40 @@ function formatProfileCell(key, value) {
         return { text, cssClass: "value" };
     }
     if (key === "ammoTypeTilt") {
-        return { text: AMMO_LABELS[value] ?? value, cssClass: "value" };
+        const ammoLabel = AMMO_LABELS[value] ? localize(AMMO_LABELS[value]) : value;
+        return { text: ammoLabel, cssClass: "value" };
     }
-    return { text: value ? "On" : "Off", cssClass: value ? "on" : "off" };
+    return {
+        text: value
+            ? localize("IONRIFT.QUARTERMASTER.SETTINGS.PANEL.On")
+            : localize("IONRIFT.QUARTERMASTER.SETTINGS.PANEL.Off"),
+        cssClass: value ? "on" : "off"
+    };
 }
 
 export function registerQuartermasterSettingsPanel() {
     const MCP = game.ionrift?.library?.ModuleConfigProfiles;
     if (!MCP) return;
 
+    // Pass i18n keys (not pre-localized strings). ModuleConfigProfiles resolves
+    // them at render / confirm time so module lang files are already loaded.
     MCP.register({
         moduleId: MODULE_ID,
         moduleLabel: "Quartermaster",
         anchorKey: "milestoneProfile",
         quickSetup: {
-            title: "Quick setup",
-            subtitle: "Pick a loot feel for the table. Sources, milestone band, and packs stay as they are.",
+            title: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.QuickSetupTitle",
+            subtitle: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.QuickSetupSubtitle",
             profiles: PROFILES,
             profileKeys: PROFILE_KEYS,
             keyLabels: KEY_LABELS,
             formatCell: formatProfileCell,
             confirmRowGroups: [
-                { beforeKey: "lootEconomy", label: "Loot & caches" },
-                { beforeKey: "obscureConsumables", label: "Identification" }
+                { beforeKey: "lootEconomy", label: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.GroupLootAndCaches" },
+                { beforeKey: "obscureConsumables", label: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.GroupIdentification" }
             ],
-            confirmNote: "Green values will change. Neutral values already match this profile. Loot pool sources, campaign milestone profile, and content packs are left unchanged.",
-            guideTooltip: "Opens the GM setup guide (loot profiles, sources, milestone grid).",
+            confirmNote: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ConfirmNote",
+            guideTooltip: "IONRIFT.QUARTERMASTER.SETTINGS.PANEL.GuideTooltip",
             onGuide: () => openSetupGuide(),
             onApplied: () => refreshOpenQuartermasterConfigApps()
         },
@@ -276,8 +285,8 @@ function injectForgeAlertBadge(html) {
 
     const isStale = status === "stale";
     const tooltip = isStale
-        ? "A compiled pool is stale or missing. Open Compendium Forge to recompile."
-        : "Content pools have not been compiled yet. Open Compendium Forge to set up.";
+        ? localize("IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ForgeBadgeStaleTooltip")
+        : localize("IONRIFT.QUARTERMASTER.SETTINGS.PANEL.ForgeBadgeNeverTooltip");
     const icon = isStale ? "fa-exclamation-triangle" : "fa-hammer";
 
     const badge = document.createElement("span");

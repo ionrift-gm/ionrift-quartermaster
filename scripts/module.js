@@ -29,6 +29,7 @@ import { Logger, MODULE_LABEL } from "./utils/Logger.js";
 import { MODULE_ID } from "./data/moduleId.js";
 import { QM_FEATURES } from "./data/QMFeatures.js";
 import { createQuartermasterContext } from "./composition/createQuartermasterContext.js";
+import "./i18n/registerBabele.js";
 
 function isResonanceActive() {
     return game.modules.get("ionrift-resonance")?.active ?? false;

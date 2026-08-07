@@ -20,23 +20,19 @@ import { ScrollForge       } from "../../services/scroll/ScrollForge.js";
 import { getCurseAdapter   } from "../../services/curse/getCurseAdapter.js";
 import { refreshForgeAlertBadge } from "../../services/settings/SettingsPanelLayout.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
+import { localize, format } from "../../utils/I18n.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 
 const QM_BUG_REPORT_CONTEXT = "quartermaster-loot-pool-compile";
 
-const LOOT_PHASE_LABELS = {
-    setup:     "Preparing...",
-    templates: "Expanding weapon templates...",
-    stubs:     "Expanding ammunition stubs...",
-    armor:     "Expanding armor templates...",
-    wondrous:  "Expanding wondrous templates...",
-    enrich:    "Enriching named economy...",
-    slaying:   "Expanding slaying ammunition...",
-    collision: "Resolving collisions...",
-    writing:   "Writing compiled pool...",
-    done:      "Complete.",
-};
+const LOOT_PHASE_KEYS = [
+    "setup", "templates", "stubs", "armor", "wondrous", "enrich", "slaying", "collision", "writing", "done"
+];
+function lootPhaseLabel(phase) {
+    if (LOOT_PHASE_KEYS.includes(phase)) return localize(`IONRIFT.QUARTERMASTER.FORGE.Phase.${phase}`);
+    return localize("IONRIFT.QUARTERMASTER.FORGE.Phase.processing");
+}
 
 export class CompendiumForgeApp extends FormApplication {
 
@@ -83,7 +79,7 @@ export class CompendiumForgeApp extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id:             "ionrift-compendium-forge",
-            title:          "Compendium Forge",
+            title:          localize("IONRIFT.QUARTERMASTER.APP.CompendiumForgeAppTitle"),
             template:       `modules/${MODULE_ID}/templates/compendium-forge.hbs`,
             width:          640,
             height:         520,
@@ -149,7 +145,7 @@ export class CompendiumForgeApp extends FormApplication {
             isLootPool:        tab === "lootPool",
 
             // Compile phase
-            phaseLabel:    LOOT_PHASE_LABELS[this._progress.phase] ?? "Processing...",
+            phaseLabel:    lootPhaseLabel(this._progress.phase),
             progressPct:   this._progress.total > 0
                 ? Math.round((this._progress.current / this._progress.total) * 100)
                 : 0,
@@ -186,9 +182,9 @@ export class CompendiumForgeApp extends FormApplication {
         if (tab === "lootPool") {
             const skipCount = r.skippedCount ?? r.skippedItems?.length ?? 0;
             return {
-                primary:        { label: "Items",     value: r.itemCount     ?? 0 },
-                secondary:      { label: "Templates", value: r.templateCount ?? 0 },
-                tertiary:       { label: "Sources",   value: (r.sourceIds ?? []).length },
+                primary:        { label: localize("IONRIFT.QUARTERMASTER.FORGE.StatItems"),     value: r.itemCount     ?? 0 },
+                secondary:      { label: localize("IONRIFT.QUARTERMASTER.FORGE.StatTemplates"), value: r.templateCount ?? 0 },
+                tertiary:       { label: localize("IONRIFT.QUARTERMASTER.FORGE.StatSources"),   value: (r.sourceIds ?? []).length },
                 skippedCount:   skipCount,
                 skippedSummary: skipCount > 0
                     ? LootPoolCompiler.formatSkippedItemsSummary(r.skippedItems)
@@ -202,8 +198,8 @@ export class CompendiumForgeApp extends FormApplication {
         }
         if (tab === "scrollForge") {
             return {
-                primary:      { label: "Scrolls", value: r.scrollCount ?? 0 },
-                secondary:    { label: "Sources", value: r.sourceCount ?? 0 },
+                primary:      { label: localize("IONRIFT.QUARTERMASTER.FORGE.StatScrolls"), value: r.scrollCount ?? 0 },
+                secondary:    { label: localize("IONRIFT.QUARTERMASTER.FORGE.StatSources"), value: r.sourceCount ?? 0 },
                 tertiary:     null,
                 showViewPack: true,
                 packId:       "world.ionrift-forged-scrolls",
@@ -211,8 +207,8 @@ export class CompendiumForgeApp extends FormApplication {
         }
         if (tab === "cursedItems") {
             return {
-                primary:      { label: "Items",   value: r.itemCount  ?? 0 },
-                secondary:    { label: "Sources", value: r.sourceCount ?? 0 },
+                primary:      { label: localize("IONRIFT.QUARTERMASTER.FORGE.StatItems"),   value: r.itemCount  ?? 0 },
+                secondary:    { label: localize("IONRIFT.QUARTERMASTER.FORGE.StatSources"), value: r.sourceCount ?? 0 },
                 tertiary:     null,
                 showViewPack: true,
                 packId:       "world.ionrift-srd-cursed",
@@ -232,7 +228,7 @@ export class CompendiumForgeApp extends FormApplication {
         const tabs = [
             {
                 id:          "scrollForge",
-                label:       "Scroll Forge",
+                label:       localize("IONRIFT.QUARTERMASTER.FORGE.TabScrollForge"),
                 icon:        "fas fa-scroll",
                 active:      this._activeTab === "scrollForge",
                 status:      scrollStatus,
@@ -240,7 +236,7 @@ export class CompendiumForgeApp extends FormApplication {
             },
             {
                 id:          "lootPool",
-                label:       adapter.supports(QM_FEATURES.LOOT_POOL_COMPILE) ? "Loot Pool" : "Loot Sources",
+                label:       adapter.supports(QM_FEATURES.LOOT_POOL_COMPILE) ? localize("IONRIFT.QUARTERMASTER.FORGE.TabLootPool") : localize("IONRIFT.QUARTERMASTER.FORGE.TabLootSources"),
                 icon:        "fas fa-treasure-chest",
                 active:      this._activeTab === "lootPool",
                 status:      lootStatus,
@@ -248,7 +244,7 @@ export class CompendiumForgeApp extends FormApplication {
             },
             {
                 id:          "cursedItems",
-                label:       "Cursed Items",
+                label:       localize("IONRIFT.QUARTERMASTER.FORGE.TabCursedItems"),
                 icon:        "fas fa-skull",
                 active:      this._activeTab === "cursedItems",
                 status:      curseStatus,
@@ -265,17 +261,17 @@ export class CompendiumForgeApp extends FormApplication {
     }
 
     _dotLabel(status) {
-        if (status === "fresh") return "Compiled and up to date";
-        if (status === "stale") return "Stale -- sources changed";
-        if (status === "never") return "Not compiled";
-        if (status === "error") return "Last compile failed -- click to retry";
-        return "Managed separately";
+        if (status === "fresh") return localize("IONRIFT.QUARTERMASTER.FORGE.DotFresh");
+        if (status === "stale") return localize("IONRIFT.QUARTERMASTER.FORGE.DotStale");
+        if (status === "never") return localize("IONRIFT.QUARTERMASTER.FORGE.DotNever");
+        if (status === "error") return localize("IONRIFT.QUARTERMASTER.FORGE.DotError");
+        return localize("IONRIFT.QUARTERMASTER.FORGE.DotManaged");
     }
 
     _paneTitle() {
-        if (this._activeTab === "scrollForge") return "Scroll Forge";
-        if (this._activeTab === "cursedItems") return "Cursed Items";
-        return "Loot Pool";
+        if (this._activeTab === "scrollForge") return localize("IONRIFT.QUARTERMASTER.FORGE.TabScrollForge");
+        if (this._activeTab === "cursedItems") return localize("IONRIFT.QUARTERMASTER.FORGE.TabCursedItems");
+        return localize("IONRIFT.QUARTERMASTER.FORGE.TabLootPool");
     }
 
     _paneDesc() {
@@ -283,20 +279,20 @@ export class CompendiumForgeApp extends FormApplication {
             const rules = game.ionrift?.quartermaster?.adapter?.getScrollForgeRules?.();
             const rec = rules?.getRecommendedPackIds?.() ?? [];
             if (rec.length) {
-                return `Select which spell compendiums Scroll Forge may draw from. Recommended: ${rec.join(", ")}.`;
+                return format("IONRIFT.QUARTERMASTER.FORGE.PaneDescScrollRec", { packs: rec.join(", ") });
             }
-            return "Select which spell compendiums Scroll Forge may draw from.";
+            return localize("IONRIFT.QUARTERMASTER.FORGE.PaneDescScroll");
         }
         if (this._activeTab === "cursedItems") {
             if (game.system?.id === "pf2e") {
-                return "Compiles every item with the cursed trait from pf2e equipment compendiums into a GM-only pool. Known GMG cursed items receive catalog tier metadata. No configuration needed.";
+                return localize("IONRIFT.QUARTERMASTER.FORGE.PaneDescCursedPf2e");
             }
-            return "The SRD Curse Adapter scans dnd5e equipment compendiums for the 12 canonical SRD cursed items and compiles them into a GM-only pool. No configuration needed.";
+            return localize("IONRIFT.QUARTERMASTER.FORGE.PaneDescCursed");
         }
         if (!LootPoolCompiler.is2024ArchitecturePresent()) {
-            return "Select which compendiums contribute items to the loot cache generator. Enable dnd5e.equipment24 to unlock weapon template compilation.";
+            return localize("IONRIFT.QUARTERMASTER.FORGE.PaneDescLootNo2024");
         }
-        return "Select which compendiums feed the loot pool. 2024 SRD sources contain weapon templates that require compilation to appear as discrete loot items.";
+        return localize("IONRIFT.QUARTERMASTER.FORGE.PaneDescLoot");
     }
 
     // ── Status helpers ────────────────────────────────────────────────────
@@ -339,10 +335,10 @@ export class CompendiumForgeApp extends FormApplication {
             status = this._getCursedStatus();
         }
 
-        if (status === "fresh") return { type: "fresh", icon: "fas fa-circle-check",         label: "Compiled" };
-        if (status === "stale") return { type: "stale", icon: "fas fa-triangle-exclamation", label: "Stale" };
-        if (status === "never") return { type: "never", icon: "fas fa-circle-xmark",         label: "Not compiled" };
-        if (status === "error") return { type: "error", icon: "fas fa-circle-exclamation",   label: "Compile failed" };
+        if (status === "fresh") return { type: "fresh", icon: "fas fa-circle-check",         label: localize("IONRIFT.QUARTERMASTER.FORGE.BadgeCompiled") };
+        if (status === "stale") return { type: "stale", icon: "fas fa-triangle-exclamation", label: localize("IONRIFT.QUARTERMASTER.FORGE.BadgeStale") };
+        if (status === "never") return { type: "never", icon: "fas fa-circle-xmark",         label: localize("IONRIFT.QUARTERMASTER.FORGE.BadgeNever") };
+        if (status === "error") return { type: "error", icon: "fas fa-circle-exclamation",   label: localize("IONRIFT.QUARTERMASTER.FORGE.BadgeFailed") };
         return null;
     }
 
@@ -354,17 +350,17 @@ export class CompendiumForgeApp extends FormApplication {
             const status = LootPoolCompiler.getStatus();
 
             if (status === "error") {
-                const when = meta?.errorAt ? this._relativeTime(meta.errorAt) : "recently";
+                const when = meta?.errorAt ? this._relativeTime(meta.errorAt) : localize("IONRIFT.QUARTERMASTER.FORGE.Recently");
                 const errMsg = meta?.errorMessage
                     ? meta.errorMessage.length > 120
                         ? meta.errorMessage.slice(0, 120) + "..."
                         : meta.errorMessage
-                    : "Unknown error -- check the browser console for details.";
+                    : localize("IONRIFT.QUARTERMASTER.FORGE.UnknownError");
                 const skipCount = meta?.skippedCount ?? meta?.skippedItems?.length ?? 0;
                 return {
                     type: "error",
                     icon: "fas fa-circle-exclamation",
-                    text: `Compile failed ${when}.`,
+                    text: format("IONRIFT.QUARTERMASTER.FORGE.CompileFailedWhen", { when }),
                     meta: errMsg,
                     skipSummary: skipCount > 0
                         ? LootPoolCompiler.formatSkippedItemsSummary(meta.skippedItems)
@@ -376,14 +372,14 @@ export class CompendiumForgeApp extends FormApplication {
                 };
             }
             if (status === "never" && LootPoolCompiler.is2024ArchitecturePresent()) {
-                return { type: "never", icon: "fas fa-circle-xmark", text: "Pool not compiled -- 2024 sources contain templates that need expanding.", meta: null, clearable: false };
+                return { type: "never", icon: "fas fa-circle-xmark", text: localize("IONRIFT.QUARTERMASTER.FORGE.PoolNotCompiled2024"), meta: null, clearable: false };
             }
             if (meta && (meta.compilerVersion ?? 0) < LootPoolCompiler.COMPILER_VERSION) {
                 return {
                     type:      "stale",
                     icon:      "fas fa-triangle-exclamation",
-                    text:      "Compiler updated. Recompile to apply new template and enrichment rules.",
-                    meta:      meta.itemCount != null ? `${meta.itemCount} items - compiled ${this._relativeTime(meta.compiledAt)}` : null,
+                    text:      localize("IONRIFT.QUARTERMASTER.FORGE.CompilerUpdated"),
+                    meta:      meta.itemCount != null ? format("IONRIFT.QUARTERMASTER.FORGE.ItemsCompiledMeta", { count: meta.itemCount, age: this._relativeTime(meta.compiledAt) }) : null,
                     clearable: !!game.packs.get(LootPoolCompiler.worldCollectionId),
                 };
             }
@@ -392,14 +388,14 @@ export class CompendiumForgeApp extends FormApplication {
                 const packGone  = !game.packs.get(LootPoolCompiler.worldCollectionId);
                 const skipCount = meta.skippedCount ?? meta.skippedItems?.length ?? 0;
                 const baseText  = packGone
-                    ? "Compiled pool was removed -- recompile to restore expanded weapons."
+                    ? localize("IONRIFT.QUARTERMASTER.FORGE.PoolRemoved")
                     : status === "stale"
-                        ? "Sources changed since last compile."
+                        ? localize("IONRIFT.QUARTERMASTER.FORGE.SourcesChanged")
                         : skipCount > 0
-                            ? "Pool compiled with compatibility warnings."
-                            : "Pool compiled and up to date.";
+                            ? localize("IONRIFT.QUARTERMASTER.FORGE.PoolWithWarnings")
+                            : localize("IONRIFT.QUARTERMASTER.FORGE.PoolUpToDate");
                 const compileMeta = meta.itemCount != null
-                    ? `${meta.itemCount} items - compiled ${age}`
+                    ? format("IONRIFT.QUARTERMASTER.FORGE.ItemsCompiledMeta", { count: meta.itemCount, age })
                     : null;
                 return {
                     type: packGone ? "stale" : (skipCount > 0 && status === "fresh" ? "warning" : status),
@@ -427,25 +423,29 @@ export class CompendiumForgeApp extends FormApplication {
             const meta   = ScrollForge.getCompiledMeta();
 
             if (status === "error") {
-                const when = meta?.errorAt ? this._relativeTime(meta.errorAt) : "recently";
-                const msg  = meta?.errorMessage ?? "Unknown error -- check the browser console.";
-                return { type: "error", icon: "fas fa-circle-exclamation", text: `Compile failed ${when}.`, meta: msg, clearable: false };
+                const when = meta?.errorAt ? this._relativeTime(meta.errorAt) : localize("IONRIFT.QUARTERMASTER.FORGE.Recently");
+                const msg  = meta?.errorMessage ?? localize("IONRIFT.QUARTERMASTER.FORGE.UnknownErrorShort");
+                return { type: "error", icon: "fas fa-circle-exclamation", text: format("IONRIFT.QUARTERMASTER.FORGE.CompileFailedWhen", { when }), meta: msg, clearable: false };
             }
             if (status === "never") {
-                return { type: "never", icon: "fas fa-circle-xmark", text: "Not yet compiled. Select spell sources and click Forge Scrolls.", meta: null, clearable: false };
+                return { type: "never", icon: "fas fa-circle-xmark", text: localize("IONRIFT.QUARTERMASTER.FORGE.ScrollNever"), meta: null, clearable: false };
             }
             const packGone = !game.packs.get(ScrollForge.worldCollectionId);
             if (packGone) {
-                return { type: "stale", icon: "fas fa-triangle-exclamation", text: "Compiled pack was removed -- recompile to restore.", meta: null, clearable: false };
+                return { type: "stale", icon: "fas fa-triangle-exclamation", text: localize("IONRIFT.QUARTERMASTER.FORGE.PackRemoved"), meta: null, clearable: false };
             }
             const baseText = status === "stale"
-                ? "Sources changed since last compile."
-                : "Scroll pool compiled and up to date.";
+                ? localize("IONRIFT.QUARTERMASTER.FORGE.SourcesChanged")
+                : localize("IONRIFT.QUARTERMASTER.FORGE.ScrollUpToDate");
             return {
                 type:      status,
                 icon:      status === "stale" ? "fas fa-triangle-exclamation" : "fas fa-circle-check",
                 text:      baseText,
-                meta:      meta?.scrollCount != null ? `${meta.scrollCount} scrolls${meta.compiledAt ? ` - compiled ${this._relativeTime(meta.compiledAt)}` : ""}` : null,
+                meta:      meta?.scrollCount != null
+                    ? (meta.compiledAt
+                        ? format("IONRIFT.QUARTERMASTER.FORGE.ScrollsCompiledMeta", { count: meta.scrollCount, age: this._relativeTime(meta.compiledAt) })
+                        : String(meta.scrollCount))
+                    : null,
                 clearable: true,
             };
         }
@@ -456,25 +456,29 @@ export class CompendiumForgeApp extends FormApplication {
             const meta   = CurseAdapter.getCompiledMeta();
 
             if (status === "error") {
-                const when = meta?.errorAt ? this._relativeTime(meta.errorAt) : "recently";
-                const msg  = meta?.errorMessage ?? "Unknown error -- check the browser console.";
-                return { type: "error", icon: "fas fa-circle-exclamation", text: `Compile failed ${when}.`, meta: msg, clearable: false };
+                const when = meta?.errorAt ? this._relativeTime(meta.errorAt) : localize("IONRIFT.QUARTERMASTER.FORGE.Recently");
+                const msg  = meta?.errorMessage ?? localize("IONRIFT.QUARTERMASTER.FORGE.UnknownErrorShort");
+                return { type: "error", icon: "fas fa-circle-exclamation", text: format("IONRIFT.QUARTERMASTER.FORGE.CompileFailedWhen", { when }), meta: msg, clearable: false };
             }
             if (status === "never") {
-                return { type: "never", icon: "fas fa-circle-xmark", text: "Not yet compiled. Click Compile Pool to build the cursed item pool.", meta: null, clearable: false };
+                return { type: "never", icon: "fas fa-circle-xmark", text: localize("IONRIFT.QUARTERMASTER.FORGE.CursedNever"), meta: null, clearable: false };
             }
             const packGone = !game.packs.get(CurseAdapter.worldCollectionId);
             if (packGone) {
-                return { type: "stale", icon: "fas fa-triangle-exclamation", text: "Compiled pack was removed -- recompile to restore.", meta: null, clearable: false };
+                return { type: "stale", icon: "fas fa-triangle-exclamation", text: localize("IONRIFT.QUARTERMASTER.FORGE.PackRemoved"), meta: null, clearable: false };
             }
             const baseText = status === "stale"
-                ? "Sources changed since last compile."
-                : "Cursed pool compiled and up to date.";
+                ? localize("IONRIFT.QUARTERMASTER.FORGE.SourcesChanged")
+                : localize("IONRIFT.QUARTERMASTER.FORGE.CursedUpToDate");
             return {
                 type:      status,
                 icon:      status === "stale" ? "fas fa-triangle-exclamation" : "fas fa-circle-check",
                 text:      baseText,
-                meta:      meta?.itemCount != null ? `${meta.itemCount} items${meta.compiledAt ? ` - compiled ${this._relativeTime(meta.compiledAt)}` : ""}` : null,
+                meta:      meta?.itemCount != null
+                    ? (meta.compiledAt
+                        ? format("IONRIFT.QUARTERMASTER.FORGE.ItemsCompiledMeta", { count: meta.itemCount, age: this._relativeTime(meta.compiledAt) })
+                        : String(meta.itemCount))
+                    : null,
                 clearable: true,
             };
         }
@@ -519,7 +523,7 @@ export class CompendiumForgeApp extends FormApplication {
 
         const groups = {};
         for (const c of candidates) {
-            const g = c.packageLabel || "Other";
+            const g = c.packageLabel || localize("IONRIFT.QUARTERMASTER.FORGE.OtherGroup");
             if (!groups[g]) groups[g] = { label: g, packs: [] };
             groups[g].packs.push({
                 id:          c.id,
@@ -567,31 +571,31 @@ export class CompendiumForgeApp extends FormApplication {
     async _onCopyBugReport() {
         const bugReport = game.ionrift?.library?.bugReport;
         if (!bugReport) {
-            ui.notifications.error("Ionrift Library is required for debug reports.");
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.FORGE.LibraryRequiredReports"));
             return;
         }
         try {
             const copied = await bugReport.copyToClipboard({ context: QM_BUG_REPORT_CONTEXT });
             ui.notifications.info(
                 copied
-                    ? "Debug report copied to clipboard."
-                    : "Debug report downloaded as JSON."
+                    ? localize("IONRIFT.QUARTERMASTER.FORGE.ReportCopied")
+                    : localize("IONRIFT.QUARTERMASTER.FORGE.ReportDownloaded")
             );
         } catch (err) {
             Logger.error(MODULE_LABEL, "Copy bug report failed:", err);
-            ui.notifications.error("Could not copy debug report. Check the browser console.");
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.FORGE.CopyFailed"));
         }
     }
 
     async _onSendBugReport() {
         const bugReport = game.ionrift?.library?.bugReport;
         if (!bugReport) {
-            ui.notifications.error("Ionrift Library is required to send reports.");
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.FORGE.LibraryRequiredSend"));
             return;
         }
         if (!bugReport.canSubmit()) {
             ui.notifications.warn(
-                "Connect Patreon in Ionrift Library (free tier is fine), or copy the report and paste it in Discord.",
+                localize("IONRIFT.QUARTERMASTER.FORGE.ConnectPatreon"),
                 { permanent: true }
             );
             return;
@@ -610,7 +614,7 @@ export class CompendiumForgeApp extends FormApplication {
             await bugReport.showSubmitSuccess(result);
         } catch (err) {
             Logger.error(MODULE_LABEL, "Send bug report failed:", err);
-            ui.notifications.error("Could not send bug report. Try copy and Discord instead.");
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.FORGE.SendFailed"));
         } finally {
             if ($sendBtn?.length) $sendBtn.prop("disabled", false);
         }
@@ -726,7 +730,7 @@ export class CompendiumForgeApp extends FormApplication {
                 || html.find(".forge-view-compendium").data("packId");
             const pack = packId ? game.packs.get(packId) : null;
             if (pack) pack.render(true);
-            else ui.notifications.warn("Compiled compendium not found.");
+            else ui.notifications.warn(localize("IONRIFT.QUARTERMASTER.FORGE.CompendiumNotFound"));
         });
 
         // Clear pool (all tabs)
@@ -764,7 +768,7 @@ export class CompendiumForgeApp extends FormApplication {
             });
             await game.settings.set(MODULE_ID, "lootPoolSources", JSON.stringify(enabled));
             ItemPoolResolver.clearCache();
-            ui.notifications.info(`Loot pool sources saved: ${enabled.length} source${enabled.length !== 1 ? "s" : ""} enabled.`);
+            ui.notifications.info(format("IONRIFT.QUARTERMASTER.FORGE.LootSourcesSaved", { count: enabled.length }));
         }
 
         else if (tab === "scrollForge") {
@@ -788,7 +792,7 @@ export class CompendiumForgeApp extends FormApplication {
         if (this._compiling.lootPool) return;
         this._compiling.lootPool = true;
         this._phases.lootPool    = "compile";
-        this._progress = { current: 0, total: 0, phase: "setup", label: "Preparing...", log: [] };
+        this._progress = { current: 0, total: 0, phase: "setup", label: localize("IONRIFT.QUARTERMASTER.FORGE.Phase.setup"), log: [] };
         this.render(false);
 
         LootPoolCompiler.compile({
@@ -800,7 +804,7 @@ export class CompendiumForgeApp extends FormApplication {
             this._phases.lootPool = "done";
         }).catch(err => {
             Logger.error(MODULE_LABEL, "CompendiumForgeApp: loot pool compile failed:", err);
-            ui.notifications.error("Compile failed -- see the browser console for details.");
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.FORGE.CompileFailed"));
             this._phases.lootPool = "pick";
         }).finally(() => {
             this._compiling.lootPool = false;
@@ -830,7 +834,7 @@ export class CompendiumForgeApp extends FormApplication {
             this._phases.scrollForge = "done";
         } catch (err) {
             Logger.error(MODULE_LABEL, "CompendiumForgeApp: scroll compile failed:", err);
-            ui.notifications.error("Scroll Forge compile failed -- see the browser console for details.");
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.FORGE.ScrollCompileFailed"));
             this._phases.scrollForge = "pick";
         } finally {
             this._compiling.scrollForge = false;
@@ -858,7 +862,7 @@ export class CompendiumForgeApp extends FormApplication {
             this._phases.cursedItems = "done";
         } catch (err) {
             Logger.error(MODULE_LABEL, "CompendiumForgeApp: curse compile failed:", err);
-            ui.notifications.error("Cursed Items compile failed -- see the browser console for details.");
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.FORGE.CurseCompileFailed"));
             this._phases.cursedItems = "pick";
         } finally {
             this._compiling.cursedItems = false;
@@ -891,14 +895,14 @@ export class CompendiumForgeApp extends FormApplication {
 
     async _clearForgeTab(tab) {
         const labels = {
-            lootPool:    "compiled loot pool",
-            scrollForge: "compiled scroll pool",
-            cursedItems: "compiled cursed item pool",
+            lootPool:    localize("IONRIFT.QUARTERMASTER.FORGE.ClearConfirmLoot"),
+            scrollForge: localize("IONRIFT.QUARTERMASTER.FORGE.ClearConfirmScroll"),
+            cursedItems: localize("IONRIFT.QUARTERMASTER.FORGE.ClearConfirmCursed"),
         };
-        const label = labels[tab] ?? "compiled pool";
+        const label = labels[tab] ?? localize("IONRIFT.QUARTERMASTER.FORGE.ClearConfirmGeneric");
         const confirmed = await Dialog.confirm({
-            title:   "Clear Compiled Pool",
-            content: `<p>Remove the ${label} compendium? You can recompile at any time.</p>`,
+            title:   localize("IONRIFT.QUARTERMASTER.APP.ClearCompiledPoolTitle"),
+            content: `<p>${format("IONRIFT.QUARTERMASTER.FORGE.ClearConfirmContent", { label })}</p>`,
             yes: () => true,
             no:  () => false,
         });
@@ -913,7 +917,7 @@ export class CompendiumForgeApp extends FormApplication {
         }
 
         if (tab === "lootPool") ItemPoolResolver.clearCache();
-        ui.notifications.info(`Quartermaster: ${label} cleared.`);
+        ui.notifications.info(format("IONRIFT.QUARTERMASTER.FORGE.Cleared", { label }));
         this.render(false);
     }
 
@@ -938,15 +942,34 @@ export class CompendiumForgeApp extends FormApplication {
     // ── Helpers ───────────────────────────────────────────────────────────
 
     _relativeTime(isoString) {
-        if (!isoString) return "unknown time ago";
+        if (!isoString) return localize("IONRIFT.QUARTERMASTER.FORGE.UnknownTimeAgo");
         const ms = Date.now() - new Date(isoString).getTime();
         const minutes = Math.floor(ms / 60000);
-        if (minutes < 1)  return "just now";
-        if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+        if (minutes < 1) return localize("IONRIFT.QUARTERMASTER.FORGE.JustNow");
+        if (minutes < 60) {
+            return format(
+                minutes === 1
+                    ? "IONRIFT.QUARTERMASTER.FORGE.MinuteAgo"
+                    : "IONRIFT.QUARTERMASTER.FORGE.MinutesAgo",
+                { count: minutes }
+            );
+        }
         const hours = Math.floor(minutes / 60);
-        if (hours < 24)   return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+        if (hours < 24) {
+            return format(
+                hours === 1
+                    ? "IONRIFT.QUARTERMASTER.FORGE.HourAgo"
+                    : "IONRIFT.QUARTERMASTER.FORGE.HoursAgo",
+                { count: hours }
+            );
+        }
         const days = Math.floor(hours / 24);
-        return `${days} day${days !== 1 ? "s" : ""} ago`;
+        return format(
+            days === 1
+                ? "IONRIFT.QUARTERMASTER.FORGE.DayAgo"
+                : "IONRIFT.QUARTERMASTER.FORGE.DaysAgo",
+            { count: days }
+        );
     }
 
     // ── FormApplication stub ──────────────────────────────────────────────

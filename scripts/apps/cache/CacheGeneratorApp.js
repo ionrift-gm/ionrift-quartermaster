@@ -14,6 +14,7 @@ import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js"
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../../services/workshop/CoinFormat.js";
 import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
+import { localize, format } from "../../utils/I18n.js";
 
 
 /** Foundry compendium / sidebar item drags (v12 and v13). */
@@ -103,7 +104,7 @@ export class CacheGeneratorApp extends Application {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "ionrift-cache-generator",
-            title: "Loot Cache Generator",
+            title: localize("IONRIFT.QUARTERMASTER.CACHE.AppTitle") || "Loot Cache Generator",
             template: `modules/${MODULE_ID}/templates/cache-generator.hbs`,
             // Match three-column layout width up front so opening empty and
             // opening after Generate do not resize (advisory column is 960px wide).
@@ -188,7 +189,10 @@ export class CacheGeneratorApp extends Application {
             ? `${Number(container.contentWeightLbs ?? 0).toFixed(1)} / ${container.capacityLbs} lb`
             : "";
         const statsLabel = container
-            ? `Empty: ${container.emptyWeightLbs ?? 0} lb  |  Cap: ${container.capacityLbs} lb`
+            ? format("IONRIFT.QUARTERMASTER.CACHE.ContainerStats", {
+                empty: container.emptyWeightLbs ?? 0,
+                cap: container.capacityLbs
+            })
             : "";
 
         const itemPilesActive = !!(game.modules?.get("itempilesdnd5e")?.active);
@@ -201,15 +205,14 @@ export class CacheGeneratorApp extends Application {
         const tierLabels = { 1: "T1", 2: "T2", 3: "T3", 4: "T4" };
         const tierLabel = tierLabels[tier] ?? `T${tier}`;
 
-        const ownerThemes = [
-            { id: "unspecified", label: "Unspecified", desc: "A general cache. Balanced distribution." },
-            { id: "arcana",      label: "Arcana",      desc: "A spellcaster's reserves. Scrolls, reagents, and arcane curiosities." },
-            { id: "apothecary",  label: "Apothecary",  desc: "A healer's stock or alchemist's shelf. Potions, elixirs, and medicinal supplies." },
-            { id: "armaments",   label: "Armaments",   desc: "Military surplus or a warrior's stash. Weapons, armor, and practical gear." },
-            { id: "implements",  label: "Implements",  desc: "A crafter's workshop or cult supplies. Tools, reagents, and utility items." },
-            { id: "relics",      label: "Relics",      desc: "Remnants of the dead or divine. Ancient coins, holy relics, and cursed objects." },
-            { id: "abandoned",   label: "Abandoned",   desc: "Forgotten junk. Mostly worthless, occasionally surprising." }
-        ].map(t => ({ ...t, selected: t.id === currentOwnerTheme }));
+        const ownerThemeIds = ["unspecified", "arcana", "apothecary", "armaments", "implements", "relics", "abandoned"];
+        const ownerThemeKey = id => id.charAt(0).toUpperCase() + id.slice(1);
+        const ownerThemes = ownerThemeIds.map(id => ({
+            id,
+            label: localize(`IONRIFT.QUARTERMASTER.CACHE.Theme${ownerThemeKey(id)}`),
+            desc:  localize(`IONRIFT.QUARTERMASTER.CACHE.Theme${ownerThemeKey(id)}Desc`),
+            selected: id === currentOwnerTheme
+        }));
 
         const brackets = TIER_BUDGET_BRACKETS[tier] ?? TIER_BUDGET_BRACKETS[1];
         const bracketIndex = this._resolveBudgetBracketIndex(tier, brackets);
@@ -549,10 +552,10 @@ export class CacheGeneratorApp extends Application {
         const pct = Math.round((row.powerNeed ?? 0) * 100);
         const lv  = visiblePlanned?.level ?? row.earliestPlannedLevel;
 
-        if (pct > 10 && lv) return `${pct}% below avg, Lv${lv} overdue`;
-        if (pct > 10)       return `${pct}% below party avg power`;
-        if (lv)             return `Lv${lv} signature pending`;
-        return "Planned item available";
+        if (pct > 10 && lv) return format("IONRIFT.QUARTERMASTER.CACHE.ReasonBelowAvgOverdue", { pct, level: lv });
+        if (pct > 10)       return format("IONRIFT.QUARTERMASTER.CACHE.ReasonBelowAvg", { pct });
+        if (lv)             return format("IONRIFT.QUARTERMASTER.CACHE.ReasonSignaturePending", { level: lv });
+        return localize("IONRIFT.QUARTERMASTER.CACHE.ReasonPlannedAvailable");
     }
 
     _groupItems(result) {
@@ -923,7 +926,7 @@ export class CacheGeneratorApp extends Application {
             ]);
         } catch (e) {
             Logger.error(MODULE_LABEL, "Generation failed:", e);
-            ui.notifications.error("Cache generation failed.");
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.CACHE.ErrorGenerationFailed"));
         } finally {
             this._generating = false;
             this._setGeneratingUi(false);
@@ -1076,9 +1079,9 @@ export class CacheGeneratorApp extends Application {
             return;
         }
 
-        const badge = payload.isCursed ? "Cursed"
-            : panelSource === "partyShelf" ? "Party Shelf"
-            : "Advisory";
+        const badge = payload.isCursed ? localize("IONRIFT.QUARTERMASTER.CACHE.CursedBadge")
+            : panelSource === "partyShelf" ? localize("IONRIFT.QUARTERMASTER.CACHE.PartyShelfBadge")
+            : localize("IONRIFT.QUARTERMASTER.CACHE.AdvisoryBadge");
 
         await this._injectItem(
             { uuid: payload.uuid, level: payload.level },
@@ -1099,7 +1102,7 @@ export class CacheGeneratorApp extends Application {
         if (await this._isDropBanned(dropUuid)) {
             const doc = await fromUuid(dropUuid);
             ui.notifications.warn(
-                `"${doc?.name ?? "Item"}" is on the ban list and cannot be added to a cache.`
+                format("IONRIFT.QUARTERMASTER.CACHE.ErrorItemBanned", { name: doc?.name ?? localize("IONRIFT.QUARTERMASTER.CACHE.ItemFallback") })
             );
             return;
         }
@@ -1123,7 +1126,7 @@ export class CacheGeneratorApp extends Application {
         if (cursedMatch) {
             await this._injectItem(
                 { uuid: dropUuid },
-                { badge: "Cursed", markCursed: true }
+                { badge: localize("IONRIFT.QUARTERMASTER.CACHE.CursedBadge"), markCursed: true }
             );
             await CacheGenerator.applyCacheCurses(this._currentResult, { forceCurse: false });
             return;
@@ -1132,12 +1135,12 @@ export class CacheGeneratorApp extends Application {
         if (shelfMatch) {
             await this._injectItem(
                 { uuid: dropUuid, level: shelfMatch.level },
-                { badge: "Party Shelf", markDelivered: true }
+                { badge: localize("IONRIFT.QUARTERMASTER.CACHE.PartyShelfBadge"), markDelivered: true }
             );
             return;
         }
 
-        await this._injectItem({ uuid: dropUuid }, { badge: "Added" });
+        await this._injectItem({ uuid: dropUuid }, { badge: localize("IONRIFT.QUARTERMASTER.CACHE.Added") });
     }
 
     async _onCacheResultsDrop(event) {
@@ -1272,7 +1275,7 @@ export class CacheGeneratorApp extends Application {
                 itemData.spellName  = spellName;
                 itemData.spellLevel = spellLevel;
                 itemData._injected  = true;
-                itemData._badgeLabel = "Scroll Unlocked";
+                itemData._badgeLabel = localize("IONRIFT.QUARTERMASTER.CACHE.ScrollUnlocked");
             }
         } catch { /* fall through */ }
 
@@ -1284,7 +1287,7 @@ export class CacheGeneratorApp extends Application {
                 spellName,
                 spellLevel,
                 _injected:   true,
-                _badgeLabel: "Scroll Unlocked"
+                _badgeLabel: localize("IONRIFT.QUARTERMASTER.CACHE.ScrollUnlocked")
             };
         }
 
@@ -1311,7 +1314,7 @@ export class CacheGeneratorApp extends Application {
     }
 
     /** Shared inject helper - resolves UUID to item data and pushes to result. */
-    async _injectItem(entry, { badge = "Advisory", markDelivered = false, treatAsSignature = false, markCursed = false } = {}) {
+    async _injectItem(entry, { badge = localize("IONRIFT.QUARTERMASTER.CACHE.AdvisoryBadge"), markDelivered = false, treatAsSignature = false, markCursed = false } = {}) {
         if (!this._currentResult) return;
 
         let itemData;
@@ -1426,11 +1429,11 @@ export class CacheGeneratorApp extends Application {
         itemData._injected   = true;
         itemData._badgeLabel = badge;
 
-        const isSpecial = treatAsSignature || markCursed || badge === "Party Shelf";
+        const isSpecial = treatAsSignature || markCursed || markDelivered;
         if (isSpecial) {
             itemData._specialSection = true;
-            itemData._specialType    = markCursed       ? "cursed"
-                                     : badge === "Party Shelf" ? "partyShelf"
+            itemData._specialType    = markCursed     ? "cursed"
+                                     : markDelivered ? "partyShelf"
                                      : "signature";
         }
         this._currentResult.items.push(itemData);
@@ -1597,7 +1600,7 @@ export class CacheGeneratorApp extends Application {
             btn.disabled = active;
             if (active) {
                 if (!btn.dataset.prevHtml) btn.dataset.prevHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${localize("IONRIFT.QUARTERMASTER.CACHE.Generating")}`;
             } else if (btn.dataset.prevHtml) {
                 btn.innerHTML = btn.dataset.prevHtml;
                 delete btn.dataset.prevHtml;
@@ -1900,7 +1903,7 @@ export class CacheGeneratorApp extends Application {
             });
         } catch (e) {
             Logger.error(MODULE_LABEL, "Item Piles createItemPile failed:", e);
-            ui.notifications.error("Failed to place cache. Check console for details.");
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.CACHE.ErrorPlaceCache"));
         }
     }
 
@@ -1911,15 +1914,15 @@ export class CacheGeneratorApp extends Application {
         if (!this._currentResult) return;
 
         const btn = $(event.currentTarget);
-        btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> Adding...');
+        btn.prop("disabled", true).html(`<i class="fas fa-spinner fa-spin"></i> ${localize("IONRIFT.QUARTERMASTER.CACHE.Adding")}`);
 
         try {
             await CacheGenerator._addToItems(this._currentResult);
-            btn.html('<i class="fas fa-check"></i> Added');
+            btn.html(`<i class="fas fa-check"></i> ${localize("IONRIFT.QUARTERMASTER.CACHE.Added")}`);
         } catch (e) {
             Logger.error(MODULE_LABEL, "Add to items failed:", e);
-            ui.notifications.error("Failed to add items. Check console.");
-            btn.prop("disabled", false).html('<i class="fas fa-box-open"></i> Add to Items');
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.CACHE.ErrorAddItems"));
+            btn.prop("disabled", false).html(`<i class="fas fa-box-open"></i> ${localize("IONRIFT.QUARTERMASTER.CACHE.AddToItems")}`);
         }
     }
 }

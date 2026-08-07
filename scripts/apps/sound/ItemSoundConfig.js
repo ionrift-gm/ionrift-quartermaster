@@ -1,8 +1,10 @@
+import { localize, format } from "../../utils/I18n.js";
+
 export class ItemSoundConfig extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "ionrift-item-sound-config",
-            title: "Item Sound Configuration",
+            title: localize("IONRIFT.QUARTERMASTER.SOUND.ItemConfigTitle"),
             template: "modules/ionrift-quartermaster/templates/item-sound-config.hbs",
             width: 500,
             height: "auto",
@@ -20,10 +22,10 @@ export class ItemSoundConfig extends FormApplication {
 
     getData() {
         const slots = [
-            { key: "sound_attack", label: "Attack / Cast", icon: "fas fa-khanda" },
-            { key: "sound_use", label: "Use / Generic", icon: "fas fa-hand-sparkles" },
-            { key: "sound_equip", label: "Equip", icon: "fas fa-tshirt" },
-            { key: "sound_unequip", label: "Unequip", icon: "fas fa-box-open" }
+            { key: "sound_attack", label: localize("IONRIFT.QUARTERMASTER.SOUND.AttackCast"), icon: "fas fa-khanda" },
+            { key: "sound_use", label: localize("IONRIFT.QUARTERMASTER.SOUND.UseGeneric"), icon: "fas fa-hand-sparkles" },
+            { key: "sound_equip", label: localize("IONRIFT.QUARTERMASTER.SOUND.Equip"), icon: "fas fa-tshirt" },
+            { key: "sound_unequip", label: localize("IONRIFT.QUARTERMASTER.SOUND.Unequip"), icon: "fas fa-box-open" }
         ];
 
         return {
@@ -95,7 +97,7 @@ export class ItemSoundConfig extends FormApplication {
             currentSoundName: currentSoundName,
             currentSoundMeta: currentSoundMeta,
             soundConfig: existingConfig,
-            title: `Bind ${key} for ${this.item.name}`
+            title: format("IONRIFT.QUARTERMASTER.SOUND.BindFor", { key, name: this.item.name })
         }).render(true);
     }
 

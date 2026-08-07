@@ -1,15 +1,17 @@
 {
     "tiers": {
-        "1": { "label": "Tier 1 (Level 1-4)",   "levelRange": [1, 4],   "rarityMax": "uncommon", "goldDice": "2d6",      "scrollLevelMax": 2, "signatureChance": 0.05, "budgetCap": 150  },
-        "2": { "label": "Tier 2 (Level 5-10)",   "levelRange": [5, 10],  "rarityMax": "rare",     "goldDice": "4d6*5",    "scrollLevelMax": 4, "signatureChance": 0.10, "budgetCap": 600  },
-        "3": { "label": "Tier 3 (Level 11-16)",  "levelRange": [11, 16], "rarityMax": "veryRare", "goldDice": "4d6*50",   "scrollLevelMax": 7, "signatureChance": 0.15, "budgetCap": 2500 },
-        "4": { "label": "Tier 4 (Level 17-20)",  "levelRange": [17, 20], "rarityMax": "legendary","goldDice": "4d6*500",  "scrollLevelMax": 9, "signatureChance": 0.20, "budgetCap": 10000}
+        "1": { "label": "Tier 1 (Level 1-4)",   "labelKey": "IONRIFT.QUARTERMASTER.CACHE.TierLabel1", "levelRange": [1, 4],   "rarityMax": "uncommon", "goldDice": "2d6",      "scrollLevelMax": 2, "signatureChance": 0.05, "budgetCap": 150  },
+        "2": { "label": "Tier 2 (Level 5-10)",   "labelKey": "IONRIFT.QUARTERMASTER.CACHE.TierLabel2", "levelRange": [5, 10],  "rarityMax": "rare",     "goldDice": "4d6*5",    "scrollLevelMax": 4, "signatureChance": 0.10, "budgetCap": 600  },
+        "3": { "label": "Tier 3 (Level 11-16)",  "labelKey": "IONRIFT.QUARTERMASTER.CACHE.TierLabel3", "levelRange": [11, 16], "rarityMax": "veryRare", "goldDice": "4d6*50",   "scrollLevelMax": 7, "signatureChance": 0.15, "budgetCap": 2500 },
+        "4": { "label": "Tier 4 (Level 17-20)",  "labelKey": "IONRIFT.QUARTERMASTER.CACHE.TierLabel4", "levelRange": [17, 20], "rarityMax": "legendary","goldDice": "4d6*500",  "scrollLevelMax": 9, "signatureChance": 0.20, "budgetCap": 10000}
     },
 
     "ownerThemes": {
         "unspecified": {
             "label": "Unspecified",
+            "labelKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeUnspecified",
             "desc": "A general cache. Balanced distribution.",
+            "descKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeUnspecifiedDesc",
             "budgetMultiplier": 1.0,
             "totalSlots": { "min": 5, "max": 8 },
             "slotPool": {
@@ -21,7 +23,9 @@
         },
         "arcana": {
             "label": "Arcana",
+            "labelKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeArcana",
             "desc": "A spellcaster's reserves. Scrolls, reagents, and arcane curiosities.",
+            "descKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeArcanaDesc",
             "budgetMultiplier": 1.0,
             "totalSlots": { "min": 5, "max": 7 },
             "slotPool": {
@@ -32,7 +36,9 @@
         },
         "apothecary": {
             "label": "Apothecary",
+            "labelKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeApothecary",
             "desc": "A healer's stock or alchemist's shelf. Potions, elixirs, and medicinal supplies.",
+            "descKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeApothecaryDesc",
             "budgetMultiplier": 0.9,
             "totalSlots": { "min": 5, "max": 7 },
             "slotPool": {
@@ -43,7 +49,9 @@
         },
         "armaments": {
             "label": "Armaments",
+            "labelKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeArmaments",
             "desc": "Military surplus or a warrior's stash.",
+            "descKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeArmamentsDesc",
             "budgetMultiplier": 1.0,
             "totalSlots": { "min": 6, "max": 8 },
             "slotPool": {
@@ -54,7 +62,9 @@
         },
         "implements": {
             "label": "Implements",
+            "labelKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeImplements",
             "desc": "A crafter's workshop or cult supplies.",
+            "descKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeImplementsDesc",
             "budgetMultiplier": 0.6,
             "totalSlots": { "min": 5, "max": 7 },
             "slotPool": {
@@ -66,7 +76,9 @@
         },
         "relics": {
             "label": "Relics",
+            "labelKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeRelics",
             "desc": "Remnants of the dead or divine.",
+            "descKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeRelicsDesc",
             "budgetMultiplier": 0.9,
             "totalSlots": { "min": 5, "max": 7 },
             "slotPool": {
@@ -79,7 +91,9 @@
         },
         "abandoned": {
             "label": "Abandoned",
+            "labelKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeAbandoned",
             "desc": "Forgotten junk. Mostly worthless, occasionally surprising.",
+            "descKey": "IONRIFT.QUARTERMASTER.CACHE.ThemeAbandonedDesc",
             "budgetMultiplier": 0.15,
             "totalSlots": { "min": 4, "max": 6 },
             "slotPool": {

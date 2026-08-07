@@ -1,33 +1,33 @@
 <form class="ionrift-quartermaster-form">
     <header class="workshop-header">
-        <h1><i class="fas fa-hammer"></i> {{#if isEdit}}Reforging{{else}}The Quartermaster{{/if}}</h1>
-        <p>{{#if isEdit}}Refine what was made.{{else}}Forge Legend. Bind Sound.{{/if}}</p>
+        <h1><i class="fas fa-hammer"></i> {{#if isEdit}}{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.HeaderEdit'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.HeaderCreate'}}{{/if}}</h1>
+        <p>{{#if isEdit}}{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.SubEdit'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.SubCreate'}}{{/if}}</p>
     </header>
 
     <div class="workshop-body">
         <!-- Identity Section -->
         <div class="identity-section">
-            <h2>Identity</h2>
+            <h2>{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.Identity'}}</h2>
 
             <!-- Image Preview + Picker -->
             <div class="image-row">
                 <div class="image-preview-container {{#unless currentImage}}empty{{/unless}}">
                     <img src="{{#if currentImage}}{{currentImage}}{{else}}icons/svg/mystery-man.svg{{/if}}" class="item-image-preview" />
-                    <button type="button" class="action-pick-image" title="Choose image">
+                    <button type="button" class="action-pick-image" title="{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.ChooseImage'}}">
                         <i class="fas fa-image"></i>
                     </button>
                 </div>
 
                 <div class="identity-fields">
                     <div class="form-group">
-                            <label>Name</label>
+                            <label>{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.Name'}}</label>
                         </div>
-                        <input type="text" name="name" placeholder="Item Name..." value="{{itemData.name}}" />
+                        <input type="text" name="name" placeholder="{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.NamePlaceholder'}}" value="{{itemData.name}}" />
                     </div>
 
                     <div class="form-group-row">
                         <div class="form-group" style="flex: 1;">
-                            <label>Type</label>
+                            <label>{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.Type'}}</label>
                             <select name="type">
                                 {{#each types}}
                                 <option value="{{this}}" {{#if (eq this ../itemData.type)}}selected{{/if}}>{{this}}</option>
@@ -38,8 +38,8 @@
             </div>
 
             <div class="form-group">
-                <label>Description</label>
-                <textarea name="description" rows="8" placeholder="A blade forged in...">{{itemData.description}}</textarea>
+                <label>{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.Description'}}</label>
+                <textarea name="description" rows="8" placeholder="{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.DescriptionPlaceholder'}}">{{itemData.description}}</textarea>
             </div>
 
 
@@ -50,36 +50,36 @@
 
         <!-- Sonic Binding (only when Resonance is active) -->
         <div class="sonic-section">
-            <h2><i class="fas fa-music"></i> Sonic Binding</h2>
+            <h2><i class="fas fa-music"></i> {{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.SonicBinding'}}</h2>
 
             <div class="sound-slot">
-                <label><i class="fas fa-fist-raised"></i> Attack Sound</label>
+                <label><i class="fas fa-fist-raised"></i> {{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.AttackSound'}}</label>
                 <div class="input-group">
-                    <input type="text" name="sound_attack" placeholder="Default / ID" />
+                    <input type="text" name="sound_attack" placeholder="{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.AttackPlaceholder'}}" />
                     <button type="button" class="action-search-sound" data-target="sound_attack"><i class="fas fa-search"></i></button>
                 </div>
             </div>
 
             <div class="sound-slot">
-                <label><i class="fas fa-hand-sparkles"></i> Use Sound (Debounced)</label>
+                <label><i class="fas fa-hand-sparkles"></i> {{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.UseSound'}}</label>
                 <div class="input-group">
-                    <input type="text" name="sound_use" placeholder="ID, ID, ID (Randomized)" />
+                    <input type="text" name="sound_use" placeholder="{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.UsePlaceholder'}}" />
                     <button type="button" class="action-search-sound" data-target="sound_use"><i class="fas fa-search"></i></button>
                 </div>
             </div>
 
             <div class="sound-slot">
-                <label><i class="fas fa-tshirt"></i> Equip Sound</label>
+                <label><i class="fas fa-tshirt"></i> {{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.EquipSound'}}</label>
                 <div class="input-group">
-                    <input type="text" name="sound_equip" placeholder="Unsheathe ID" />
+                    <input type="text" name="sound_equip" placeholder="{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.EquipPlaceholder'}}" />
                     <button type="button" class="action-search-sound" data-target="sound_equip"><i class="fas fa-search"></i></button>
                 </div>
             </div>
 
             <div class="sound-slot">
-                <label><i class="fas fa-box-open"></i> Unequip Sound</label>
+                <label><i class="fas fa-box-open"></i> {{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.UnequipSound'}}</label>
                 <div class="input-group">
-                    <input type="text" name="sound_unequip" placeholder="Sheathe ID" />
+                    <input type="text" name="sound_unequip" placeholder="{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.UnequipPlaceholder'}}" />
                     <button type="button" class="action-search-sound" data-target="sound_unequip"><i class="fas fa-search"></i></button>
                 </div>
             </div>
@@ -88,7 +88,7 @@
 
         {{#unless hasResonance}}
         <div class="standalone-hint">
-            <p><i class="fas fa-info-circle"></i> Install <strong>Ionrift Resonance</strong> for sound binding.</p>
+            <p><i class="fas fa-info-circle"></i> {{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.ResonanceHint'}}</p>
         </div>
         {{/unless}}
     </div>
@@ -96,7 +96,7 @@
     <footer class="workshop-footer">
         <button type="submit" class="action-create">
             <i class="fas fa-{{#if isEdit}}save{{else}}check{{/if}}"></i>
-            {{#if isEdit}}Update Item{{else}}Forge Item{{/if}}
+            {{#if isEdit}}{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.UpdateItem'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.WORKSHOP.ForgeItem'}}{{/if}}
         </button>
     </footer>
 </form>

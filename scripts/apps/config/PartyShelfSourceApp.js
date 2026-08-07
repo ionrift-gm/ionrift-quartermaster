@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../../data/moduleId.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { localize, format } from "../../utils/I18n.js";
 /**
  * GM dialog: choose which item compendiums the Party Shelf randomiser draws from.
  * Launched from the Signature Ledger's Party Shelf tab.
@@ -13,7 +14,7 @@ export class PartyShelfSourceApp extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id:            "ionrift-party-shelf-sources",
-            title:         "Party Shelf: item compendiums",
+            title:         localize("IONRIFT.QUARTERMASTER.APP.PartyShelfSourceAppTitle"),
             template:      `modules/${MODULE_ID}/templates/party-shelf-sources.hbs`,
             width:         520,
             height:        480,
@@ -99,7 +100,7 @@ export class PartyShelfSourceApp extends FormApplication {
         }
 
         await game.settings.set(MODULE_ID, SETTING_PARTY_SHELF_SOURCES, JSON.stringify(enabled));
-        ui.notifications.info(`Party shelf sources saved: ${enabled.length} compendium${enabled.length !== 1 ? "s" : ""} enabled.`);
+        ui.notifications.info(format("IONRIFT.QUARTERMASTER.CONFIG.PartyShelfSourcesSaved", { count: enabled.length }));
     }
 
     static getEnabledSources() {

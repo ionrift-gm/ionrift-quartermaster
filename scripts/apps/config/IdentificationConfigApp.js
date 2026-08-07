@@ -2,37 +2,37 @@ import { createQuartermasterConfigApp } from "./QuartermasterSubmenuConfigApp.js
 
 export const IdentificationConfigApp = createQuartermasterConfigApp({
     appId: "qm-identification-config",
-    title: "Identification",
+    title: "IONRIFT.QUARTERMASTER.APP.IdentificationConfigAppTitle",
     icon: "fas fa-eye-slash",
-    lead: "Control how unidentified loot appears on sheets and in chat before the party examines it.",
-    savedMessage: "Identification settings saved.",
+    lead: "IONRIFT.QUARTERMASTER.CONFIG.IdentificationLead",
+    savedMessage: "IONRIFT.QUARTERMASTER.CONFIG.IdentificationSaved",
     rows: [
         {
             key: "obscureConsumables",
-            label: "Obscure Consumables",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.obscureConsumablesName",
             icon: "fas fa-flask",
-            hint: "Potions and oils use generic names until identified. Off shows true names for common items like Potions of Healing.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.ObscureConsumablesHint",
             type: "boolean"
         },
         {
             key: "obscureScrolls",
-            label: "Obscure Spell Scrolls",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.obscureScrollsName",
             icon: "fas fa-scroll",
-            hint: "Spell scrolls appear as Unidentified Scroll until examined. Off shows spell names directly.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.ObscureScrollsHint",
             type: "boolean"
         },
         {
             key: "obscureMagicalItems",
-            label: "Obscure Magical Items",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.obscureMagicalItemsName",
             icon: "fas fa-wand-sparkles",
-            hint: "Weapons, armor, wondrous gear, and foci use mundane names until identified. Off shows true names and properties on the sheet.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.ObscureMagicalItemsHint",
             type: "boolean"
         },
         {
             key: "gmOnlyIdentification",
-            label: "GM-Only Identification",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.gmOnlyIdentificationName",
             icon: "fas fa-user-shield",
-            hint: "When on, the sheet identification toggle is GM-only. Players cannot flip masked loot to the generic unidentified label.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.GmOnlyIdentificationHint",
             type: "boolean"
         }
     ]

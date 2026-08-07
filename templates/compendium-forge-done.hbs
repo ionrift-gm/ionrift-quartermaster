@@ -5,14 +5,14 @@
     </div>
 
     {{#if isScrollForge}}
-    <h3 class="forge-done-title">Scrolls Forged</h3>
-    <p class="forge-done-subtitle">Spell scroll pool is ready for loot generation.</p>
+    <h3 class="forge-done-title">{{localize 'IONRIFT.QUARTERMASTER.FORGE.ScrollsForged'}}</h3>
+    <p class="forge-done-subtitle">{{localize 'IONRIFT.QUARTERMASTER.FORGE.ScrollsForgedSub'}}</p>
     {{else if isCursedItems}}
-    <h3 class="forge-done-title">Cursed Pool Compiled</h3>
-    <p class="forge-done-subtitle">Cursed item pool is ready.</p>
+    <h3 class="forge-done-title">{{localize 'IONRIFT.QUARTERMASTER.FORGE.CursedCompiled'}}</h3>
+    <p class="forge-done-subtitle">{{localize 'IONRIFT.QUARTERMASTER.FORGE.CursedCompiledSub'}}</p>
     {{else}}
-    <h3 class="forge-done-title">Loot Pool Compiled</h3>
-    <p class="forge-done-subtitle">Ready for cache generation.</p>
+    <h3 class="forge-done-title">{{localize 'IONRIFT.QUARTERMASTER.FORGE.LootCompiled'}}</h3>
+    <p class="forge-done-subtitle">{{localize 'IONRIFT.QUARTERMASTER.FORGE.LootCompiledSub'}}</p>
     {{/if}}
 
     <div class="forge-stat-cards">
@@ -49,39 +49,39 @@
 
     {{#if doneResult.showViewPack}}
     <button type="button" class="forge-view-compendium cache-btn-ghost" data-pack-id="{{doneResult.packId}}">
-        <i class="fas fa-book-open"></i> View Compendium
+        <i class="fas fa-book-open"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.ViewCompendium'}}
     </button>
     {{/if}}
 
     {{#if doneResult.skippedCount}}
     <div class="forge-skip-panel">
-        <p class="forge-skip-panel-title"><i class="fas fa-triangle-exclamation"></i> Compatibility warnings</p>
+        <p class="forge-skip-panel-title"><i class="fas fa-triangle-exclamation"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.CompatibilityWarnings'}}</p>
         <p class="forge-skip-panel-summary">{{doneResult.skippedSummary}}</p>
         <ul class="forge-skip-report">
             {{#each doneResult.skipReport.rows}}
             <li><span class="forge-skip-name">{{this.name}}</span>{{#if this.packId}} <span class="forge-skip-pack">{{this.packId}}</span>{{/if}} <span class="forge-skip-phase">[{{this.phase}}]</span></li>
             {{/each}}
             {{#if doneResult.skipReport.overflowCount}}
-            <li class="forge-skip-overflow">… and {{doneResult.skipReport.overflowCount}} more (see debug report for full list)</li>
+            <li class="forge-skip-overflow">{{localize 'IONRIFT.QUARTERMASTER.FORGE.AndMoreSkipped' count=doneResult.skipReport.overflowCount}}</li>
             {{/if}}
         </ul>
-        <p class="forge-skip-hint">You can drag compatible items into the compiled compendium manually, or fix the source pack and recompile.</p>
+        <p class="forge-skip-hint">{{localize 'IONRIFT.QUARTERMASTER.FORGE.SkipPanelHint'}}</p>
         {{#if bugReportUi}}
         <div class="forge-bug-report-actions">
             <button type="button" class="cache-btn-secondary forge-copy-bug-report">
-                <i class="fas fa-copy"></i> Copy debug report
+                <i class="fas fa-copy"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.CopyDebugReport'}}
             </button>
             {{#if bugReportUi.canSubmit}}
             <button type="button" class="cache-btn-accent forge-send-bug-report">
-                <i class="fas fa-paper-plane"></i> Send report
+                <i class="fas fa-paper-plane"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.SendReport'}}
             </button>
             {{/if}}
         </div>
         <p class="forge-skip-hint">
             {{#if bugReportUi.canSubmit}}
-            You get a reference number to cite in Discord when you send.
+            {{localize 'IONRIFT.QUARTERMASTER.FORGE.BugReportSubmitHint'}}
             {{else}}
-            Connect Patreon in Ionrift Library (free tier is fine), or copy the report for <a href="{{bugReportUi.discordUrl}}" target="_blank" rel="noopener">Discord</a>.
+            {{localize 'IONRIFT.QUARTERMASTER.FORGE.BugReportCopyHintDone'}} <a href="{{bugReportUi.discordUrl}}" target="_blank" rel="noopener">Discord</a>.
             {{/if}}
         </p>
         {{/if}}
@@ -89,17 +89,17 @@
     {{/if}}
 
     <p class="forge-done-note">
-        {{#if isScrollForge}}Scroll caches will now include forged spell scrolls. No further action needed until your spell sources change.
-        {{else if isCursedItems}}Cursed item pool is updated. No further action needed until your sources change.
-        {{else}}Your loot caches will now include expanded 2024 weapon variants. No further action needed until you change your source configuration.{{/if}}
+        {{#if isScrollForge}}{{localize 'IONRIFT.QUARTERMASTER.FORGE.DoneNoteScrolls'}}
+        {{else if isCursedItems}}{{localize 'IONRIFT.QUARTERMASTER.FORGE.DoneNoteCursed'}}
+        {{else}}{{localize 'IONRIFT.QUARTERMASTER.FORGE.DoneNoteLoot'}}{{/if}}
     </p>
 
     <footer class="forge-footer">
         <button type="button" class="forge-cancel-link forge-back">
-            <i class="fas fa-arrow-left"></i> Back to Sources
+            <i class="fas fa-arrow-left"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.BackToSources'}}
         </button>
         <button type="button" class="cache-btn-accent forge-done">
-            Done
+            {{localize 'IONRIFT.QUARTERMASTER.FORGE.Done'}}
         </button>
     </footer>
 </div>
