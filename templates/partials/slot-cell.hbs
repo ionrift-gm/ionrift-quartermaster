@@ -17,7 +17,7 @@
     data-uuid="{{this.uuid}}"
     {{#if this.name}}data-name="{{this.name}}"{{/if}}
     {{#if this.curseType}}data-curse-type="{{this.curseType}}"{{/if}}
-    {{#unless this.filled}}title="{{#if this.disabled}}Budget full (4 signatures). This limit keeps each item meaningful. Clear a slot to reassign.{{else}}Drop item here{{/if}}"{{/unless}}>
+    {{#unless this.filled}}title="{{#if this.disabled}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.BudgetFull'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.DropItemHere'}}{{/if}}"{{/unless}}>
     {{#if this.filled}}
         <img src="{{this.img}}" class="slot-item-img" alt="{{this.name}}" draggable="false" />
 
@@ -27,7 +27,7 @@
                 {{#if this.actorId}}data-actor-id="{{this.actorId}}"{{/if}}
                 data-slot-idx="{{this.slotIdx}}"
                 {{#if this.variant}}data-variant="{{this.variant}}"{{/if}}
-                aria-label="{{#if this.locked}}Unlock{{else}}Lock{{/if}}" draggable="false">
+                aria-label="{{#if this.locked}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.Unlock'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.Lock'}}{{/if}}" draggable="false">
             <i class="fas {{#if this.locked}}fa-lock{{else}}fa-lock-open{{/if}}" aria-hidden="true"></i>
         </button>
 
@@ -36,21 +36,21 @@
             {{#unless this.locked}}
             <button type="button" class="slot-btn slot-btn-remove action-remove-cursed-item"
                     data-level="{{this.level}}" data-uuid="{{this.uuid}}"
-                    aria-label="Remove" draggable="false">
+                    aria-label="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RemoveItem'}}" draggable="false">
                 <i class="fas fa-times" aria-hidden="true"></i>
             </button>
             {{/unless}}
             {{!-- Bottom-left: Used/delivered toggle --}}
             <button type="button" class="slot-btn slot-btn-bl action-toggle-used"
                     data-level="{{this.level}}" data-uuid="{{this.uuid}}"
-                    aria-label="{{#if this.used}}Mark unused{{else}}Mark used{{/if}}" draggable="false">
+                    aria-label="{{#if this.used}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.MarkUnused'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.MarkUsed'}}{{/if}}" draggable="false">
                 <i class="fas {{#if this.used}}fa-rotate-left{{else}}fa-virus-slash{{/if}}" aria-hidden="true"></i>
             </button>
             {{!-- Bottom-right: Re-roll --}}
             {{#unless this.locked}}
             <button type="button" class="slot-btn slot-btn-reroll action-reroll-cursed-slot"
                     data-level="{{this.level}}" data-slot-idx="{{this.slotIdx}}" data-uuid="{{this.uuid}}"
-                    aria-label="Re-roll from pool" draggable="false">
+                    aria-label="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RerollFromPool'}}" draggable="false">
                 <i class="fas fa-dice" aria-hidden="true"></i>
             </button>
             {{/unless}}
@@ -58,34 +58,34 @@
             {{!-- Top-right: Remove --}}
             <button type="button" class="slot-btn slot-btn-remove action-remove-party-item"
                     data-level="{{this.level}}" data-uuid="{{this.uuid}}"
-                    aria-label="Remove" draggable="false">
+                    aria-label="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RemoveItem'}}" draggable="false">
                 <i class="fas fa-times" aria-hidden="true"></i>
             </button>
             {{!-- Bottom-left: Delivered toggle --}}
             <button type="button" class="slot-btn slot-btn-bl action-toggle-delivered"
                     data-level="{{this.level}}" data-uuid="{{this.uuid}}"
-                    aria-label="{{#if this.delivered}}Mark undelivered{{else}}Mark delivered{{/if}}" draggable="false">
+                    aria-label="{{#if this.delivered}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.MarkUndelivered'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.MarkDelivered'}}{{/if}}" draggable="false">
                 <i class="fas {{#if this.delivered}}fa-rotate-left{{else}}fa-check{{/if}}" aria-hidden="true"></i>
             </button>
         {{else}}
             {{!-- Top-right: Remove --}}
             {{#unless this.locked}}
             <button type="button" class="slot-btn slot-btn-remove action-clear-slot"
-                    aria-label="Remove item" draggable="false">
+                    aria-label="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RemoveItem'}}" draggable="false">
                 <i class="fas fa-times" aria-hidden="true"></i>
             </button>
             {{/unless}}
             {{!-- Bottom-left: Delivered toggle --}}
             <button type="button" class="slot-btn slot-btn-bl action-toggle-sig-delivered"
                     data-level="{{this.level}}" data-actor-id="{{this.actorId}}" data-uuid="{{this.uuid}}"
-                    aria-label="{{#if this.delivered}}Mark undelivered{{else}}Mark delivered{{/if}}" draggable="false">
+                    aria-label="{{#if this.delivered}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.MarkUndelivered'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.MarkDelivered'}}{{/if}}" draggable="false">
                 <i class="fas {{#if this.delivered}}fa-rotate-left{{else}}fa-check{{/if}}" aria-hidden="true"></i>
             </button>
             {{!-- Bottom-right: Re-roll --}}
             {{#unless this.locked}}
             {{#if (eq this.source "auto")}}
             <button type="button" class="slot-btn slot-btn-reroll action-reroll-slot"
-                    aria-label="Re-roll suggestion" draggable="false">
+                    aria-label="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RerollSuggestion'}}" draggable="false">
                 <i class="fas fa-dice" aria-hidden="true"></i>
             </button>
             {{/if}}

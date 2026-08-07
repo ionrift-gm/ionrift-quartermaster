@@ -7,7 +7,7 @@
 
             {{!-- Collapsed strip view --}}
             {{#if advisoryCollapsed}}
-            <div class="advisory-strip-bar action-toggle-advisory" title="Expand Progression Advisory">
+            <div class="advisory-strip-bar action-toggle-advisory" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.ExpandAdvisory'}}">
                 <i class="fas fa-bolt advisory-strip-bolt"></i>
 
                 {{!-- Character portraits needing attention --}}
@@ -15,14 +15,14 @@
                 <div class="strip-avatar-slot" title="{{this.actorName}}">
                     <img src="{{this.actorImg}}" class="strip-avatar" alt="{{this.actorName}}" />
                     {{#if this.plannedItem}}
-                    <img src="{{this.plannedItem.img}}" class="strip-item-pip" alt="{{this.plannedItem.name}}" title="{{this.plannedItem.name}} (Lv{{this.plannedItem.level}})" />
+                    <img src="{{this.plannedItem.img}}" class="strip-item-pip" alt="{{this.plannedItem.name}}" title="{{this.plannedItem.name}} ({{localize 'IONRIFT.QUARTERMASTER.CACHE.Level' level=this.plannedItem.level}})" />
                     {{/if}}
                 </div>
                 {{/each}}
 
                 {{!-- Party shelf count --}}
                 {{#if advisory.hasPartyShelf}}
-                <div class="strip-count-badge strip-shelf-badge" title="Party Shelf items available">
+                <div class="strip-count-badge strip-shelf-badge" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.PartyShelfItems'}}">
                     <i class="fas fa-box-open"></i>
                     <span>{{advisory.partyShelf.length}}</span>
                 </div>
@@ -30,14 +30,14 @@
 
                 {{!-- Cursed pool count --}}
                 {{#if advisory.hasCursedPool}}
-                <div class="strip-count-badge strip-cursed-badge" title="Cursed items on offer">
+                <div class="strip-count-badge strip-cursed-badge" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedItems'}}">
                     <i class="fas fa-skull"></i>
                     <span>{{advisory.cursedPool.length}}</span>
                 </div>
                 {{/if}}
 
                 {{#if advisory.hasScrolls}}
-                <div class="strip-count-badge strip-scroll-badge" title="Scroll Plan pins in tier">
+                <div class="strip-count-badge strip-scroll-badge" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.ScrollPlanPins'}}">
                     <i class="fas fa-scroll"></i>
                     <span>{{advisory.scrolls.length}}</span>
                 </div>
@@ -46,9 +46,9 @@
             {{else}}
 
             {{!-- Expanded advisory --}}
-            <div class="advisory-column-header action-toggle-advisory" title="Collapse Advisory">
+            <div class="advisory-column-header action-toggle-advisory" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.CollapseAdvisory'}}">
                 <span class="advisory-column-title">
-                    <i class="fas fa-bolt"></i> Progression Advisory
+                    <i class="fas fa-bolt"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.ProgressionAdvisory'}}
                 </span>
                 <i class="fas fa-chevron-left advisory-collapse-icon"></i>
             </div>
@@ -59,7 +59,7 @@
                 {{#if advisory.characters.length}}
                 <div class="advisory-sub-section advisory-signatures-section">
                     <div class="advisory-sub-header">
-                        <span><i class="fas fa-star"></i> Signatures</span>
+                        <span><i class="fas fa-star"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.Signatures'}}</span>
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.characters}}
@@ -75,7 +75,7 @@
                             <div class="advisory-card-item" draggable="true" data-uuid="{{this.plannedItem.uuid}}" data-item-name="{{this.plannedItem.name}}">
                                 {{#if this.plannedItem.img}}<img src="{{this.plannedItem.img}}" class="advisory-card-item-img" />{{/if}}
                                 <span class="advisory-card-item-name">{{this.plannedItem.name}}</span>
-                                <span class="advisory-card-item-level">Lv{{this.plannedItem.level}}</span>
+                                <span class="advisory-card-item-level">{{localize 'IONRIFT.QUARTERMASTER.CACHE.Level' level=this.plannedItem.level}}</span>
                             </div>
                             {{/if}}
                         </div>
@@ -88,8 +88,8 @@
                 {{#if advisory.hasScrolls}}
                 <div class="advisory-sub-section advisory-scroll-section">
                     <div class="advisory-sub-header">
-                        <span><i class="fas fa-scroll"></i> Scroll Plan</span>
-                        {{#if advisory.scrollCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="scroll" title="Reroll scroll suggestions (ignores ripe gate)"><i class="fas fa-dice"></i></button>{{/if}}
+                        <span><i class="fas fa-scroll"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.ScrollPlan'}}</span>
+                        {{#if advisory.scrollCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="scroll" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.RerollScrolls'}}"><i class="fas fa-dice"></i></button>{{/if}}
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.scrolls}}
@@ -99,14 +99,14 @@
                             data-level="{{this.level}}"
                             data-spell-name="{{this.spellName}}"
                             data-spell-level="{{this.spellLevel}}"
-                            title="{{#if @root.hasResult}}Drag into cache{{else}}Generate a cache first, then drag here{{/if}}">
-                            {{#if this.isRipe}}<span class="advisory-ripe-pip" title="Gate level reached"><i class="fas fa-fire-flame-curved"></i></span>{{/if}}
+                            title="{{#if @root.hasResult}}{{localize 'IONRIFT.QUARTERMASTER.CACHE.DragIntoCache'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.CACHE.GenerateFirstThenDrag'}}{{/if}}">
+                            {{#if this.isRipe}}<span class="advisory-ripe-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.GateLevelReached'}}"><i class="fas fa-fire-flame-curved"></i></span>{{/if}}
                             <img src="{{this.img}}" class="shelf-item-img" alt="" />
                             <div class="shelf-item-text">
                                 <span class="shelf-item-name">{{this.spellName}}</span>
-                                <span class="shelf-item-sub">Circle {{this.spellLevel}}</span>
+                                <span class="shelf-item-sub">{{localize 'IONRIFT.QUARTERMASTER.CACHE.Circle' level=this.spellLevel}}</span>
                             </div>
-                            {{#if this.level}}<span class="shelf-item-level">Lv{{this.level}}</span>{{/if}}
+                            {{#if this.level}}<span class="shelf-item-level">{{localize 'IONRIFT.QUARTERMASTER.CACHE.Level' level=this.level}}</span>{{/if}}
                         </div>
                         {{/each}}
                     </div>
@@ -117,18 +117,18 @@
                 {{#if advisory.hasPartyShelf}}
                 <div class="advisory-sub-section advisory-party-section">
                     <div class="advisory-sub-header">
-                        <span><i class="fas fa-box-open"></i> Party Shelf</span>
-                        {{#if advisory.partyShelfCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="partyShelf" title="Reroll party shelf suggestions (ignores ripe gate)"><i class="fas fa-dice"></i></button>{{/if}}
+                        <span><i class="fas fa-box-open"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.PartyShelf'}}</span>
+                        {{#if advisory.partyShelfCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="partyShelf" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.RerollPartyShelf'}}"><i class="fas fa-dice"></i></button>{{/if}}
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.partyShelf}}
-                        <div class="shelf-item {{#if this.isPlanned}}shelf-item--planned{{/if}} {{#if this.isRipe}}shelf-item--ripe{{/if}}" draggable="true" data-uuid="{{this.uuid}}" {{#if this.level}}data-level="{{this.level}}"{{/if}} title="{{#if this.isRipe}}Ripe: party at or above gate level{{else}}Drag into cache{{/if}}">
-                            {{#if this.isRipe}}<span class="advisory-ripe-pip" title="Gate level reached"><i class="fas fa-fire-flame-curved"></i></span>{{/if}}
+                        <div class="shelf-item {{#if this.isPlanned}}shelf-item--planned{{/if}} {{#if this.isRipe}}shelf-item--ripe{{/if}}" draggable="true" data-uuid="{{this.uuid}}" {{#if this.level}}data-level="{{this.level}}"{{/if}} title="{{#if this.isRipe}}{{localize 'IONRIFT.QUARTERMASTER.CACHE.RipePartyAtGate'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.CACHE.DragIntoCache'}}{{/if}}">
+                            {{#if this.isRipe}}<span class="advisory-ripe-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.GateLevelReached'}}"><i class="fas fa-fire-flame-curved"></i></span>{{/if}}
                             <img src="{{this.img}}" class="shelf-item-img" alt="" />
                             <div class="shelf-item-text">
                                 <span class="shelf-item-name">{{this.name}}</span>
                             </div>
-                            {{#if this.level}}<span class="shelf-item-level">Lv{{this.level}}</span>{{/if}}
+                            {{#if this.level}}<span class="shelf-item-level">{{localize 'IONRIFT.QUARTERMASTER.CACHE.Level' level=this.level}}</span>{{/if}}
                         </div>
                         {{/each}}
 
@@ -140,8 +140,8 @@
                 {{#if advisory.hasCursedPool}}
                 <div class="advisory-sub-section advisory-cursed-section">
                     <div class="advisory-sub-header">
-                        <span><i class="fas fa-skull"></i> Cursed Pool</span>
-                        {{#if advisory.cursedCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="cursedPool" title="Reroll cursed pool suggestions (random from full pool)"><i class="fas fa-dice"></i></button>{{/if}}
+                        <span><i class="fas fa-skull"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedPool'}}</span>
+                        {{#if advisory.cursedCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="cursedPool" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.RerollCursedPool'}}"><i class="fas fa-dice"></i></button>{{/if}}
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.cursedPool}}
@@ -149,14 +149,14 @@
                             draggable="true"
                             data-uuid="{{this.uuid}}"
                             {{#if this.level}}data-level="{{this.level}}"{{/if}}
-                            title="{{#if this.isRipe}}Ripe: party at or above gate level{{else}}{{#if this.decoyAppearance}}{{this.decoyAppearance}}{{else}}Drag into cache{{/if}}{{/if}}">
-                            {{#if this.isRipe}}<span class="advisory-ripe-pip" title="Gate level reached"><i class="fas fa-fire-flame-curved"></i></span>{{/if}}
+                            title="{{#if this.isRipe}}{{localize 'IONRIFT.QUARTERMASTER.CACHE.RipePartyAtGate'}}{{else}}{{#if this.decoyAppearance}}{{this.decoyAppearance}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.CACHE.DragIntoCache'}}{{/if}}{{/if}}">
+                            {{#if this.isRipe}}<span class="advisory-ripe-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.GateLevelReached'}}"><i class="fas fa-fire-flame-curved"></i></span>{{/if}}
                             <img src="{{this.img}}" class="shelf-item-img" alt="" />
                             <div class="shelf-item-text">
                                 <span class="shelf-item-name">{{this.name}}</span>
                                 <span class="shelf-item-sub">{{this.curseType}}</span>
                             </div>
-                            {{#if this.level}}<span class="shelf-item-level">Lv{{this.level}}</span>{{/if}}
+                            {{#if this.level}}<span class="shelf-item-level">{{localize 'IONRIFT.QUARTERMASTER.CACHE.Level' level=this.level}}</span>{{/if}}
                         </div>
                         {{/each}}
 
@@ -170,7 +170,7 @@
 
             <div class="advisory-column-footer">
                 <i class="fas fa-masks-theater"></i>
-                Drag items into the cache when the moment is right.
+                {{localize 'IONRIFT.QUARTERMASTER.CACHE.DragItemsWhenRight'}}
             </div>
 
             {{/if}}
@@ -189,10 +189,10 @@
                     <div class="context-pill">
                         <i class="fas fa-layer-group"></i>
                         <select name="tier" class="context-select">
-                            <option value="1" {{#if tierIs1}}selected{{/if}}>T1  - Lv 1-4</option>
-                            <option value="2" {{#if tierIs2}}selected{{/if}}>T2  - Lv 5-10</option>
-                            <option value="3" {{#if tierIs3}}selected{{/if}}>T3  - Lv 11-16</option>
-                            <option value="4" {{#if tierIs4}}selected{{/if}}>T4  - Lv 17-20</option>
+                            <option value="1" {{#if tierIs1}}selected{{/if}}>{{localize 'IONRIFT.QUARTERMASTER.CACHE.Tier1'}}</option>
+                            <option value="2" {{#if tierIs2}}selected{{/if}}>{{localize 'IONRIFT.QUARTERMASTER.CACHE.Tier2'}}</option>
+                            <option value="3" {{#if tierIs3}}selected{{/if}}>{{localize 'IONRIFT.QUARTERMASTER.CACHE.Tier3'}}</option>
+                            <option value="4" {{#if tierIs4}}selected{{/if}}>{{localize 'IONRIFT.QUARTERMASTER.CACHE.Tier4'}}</option>
                         </select>
                     </div>
                     <div class="context-strip-divider"></div>
@@ -213,7 +213,7 @@
                 {{!-- Hero: Owner (the primary creative choice) --}}
                 <div class="owner-hero-group">
                     <label class="owner-hero-label">
-                        <i class="fas fa-skull-crossbones"></i> Cache Origin
+                        <i class="fas fa-skull-crossbones"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.CacheOrigin'}}
                     </label>
                     <select name="ownerTheme" class="owner-hero-select">
                         {{#each ownerThemes}}
@@ -236,7 +236,7 @@
 
                 <div class="results-header">
                     <h3><i class="fas fa-treasure-chest"></i> {{meta.cacheLabel}}</h3>
-                    <span class="results-meta">{{meta.tierLabel}} | {{themeLabel}} | {{itemCount}} items</span>
+                    <span class="results-meta">{{meta.tierLabel}} | {{themeLabel}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.ItemsCount' count=itemCount}}</span>
                 </div>
 
                 <div class="cache-gold-bar">
@@ -252,14 +252,14 @@
                             <span class="coin-chip coin-gp"><i class="fas fa-circle"></i> {{gold}} gp</span>
                         {{/if}}
                         {{else}}
-                        <span class="cache-gold-empty">No coinage</span>
+                        <span class="cache-gold-empty">{{localize 'IONRIFT.QUARTERMASTER.CACHE.NoCoinage'}}</span>
                         {{/if}}
                     </div>
                     <div class="cache-gold-actions">
-                        <button type="button" class="action-reroll-gold reroll-btn" title="Roll a fresh gold total for this tier; items unchanged">
+                        <button type="button" class="action-reroll-gold reroll-btn" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.RerollGold'}}">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-clear-gold remove-btn" title="Clear all coinage">
+                        <button type="button" class="action-clear-gold remove-btn" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.ClearGold'}}">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -269,29 +269,29 @@
                 {{#if hasSpecial}}
                 <div class="cache-section cache-special-section">
                     <div class="section-label special-label">
-                        <i class="fas fa-sparkles"></i> Special Items
+                        <i class="fas fa-sparkles"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.SpecialItems'}}
                     </div>
 
                     {{!-- Signatures sub-group --}}
                     {{#if specialSigs.length}}
                     <div class="special-sub-group">
-                        <div class="special-sub-label"><i class="fas fa-star"></i> Signatures</div>
+                        <div class="special-sub-label"><i class="fas fa-star"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.Signatures'}}</div>
                         {{#each specialSigs}}
                         <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                             data-source-compendium="{{this.sourceCompendium}}"
                             data-compendium-id="{{this._compendiumId}}"
-                            title="{{this.name}} | {{this.rarity}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                            title="{{this.name}} | {{this.rarity}}{{#if this.cursed}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}{{/if}}">
                             <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                             <div class="cache-item-info">
                                 <span class="cache-item-name inspectable">{{this.name}}</span>
                                 <span class="cache-item-meta">{{#if this.priceLabel}}{{this.priceLabel}}{{/if}}{{#if this.rarity}} &bull; {{this.rarity}}{{/if}}</span>
                             </div>
                             <div class="cache-item-badges">
-                                {{#if this.cursed}}<span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>{{/if}}
-                                {{#if this._isMagical}}<span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>{{/if}}
+                                {{#if this.cursed}}<span class="cursed-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}"><i class="fas fa-skull"></i></span>{{/if}}
+                                {{#if this._isMagical}}<span class="magic-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.MagicalUntilIdentified' name=this._baseItemName}}"><i class="fas fa-wand-sparkles"></i></span>{{/if}}
                             </div>
                             {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Remove'}}">
                                 <i class="fas fa-xmark"></i>
                             </button>
                         </div>
@@ -302,7 +302,7 @@
                     {{!-- Party Shelf sub-group --}}
                     {{#if specialShelf.length}}
                     <div class="special-sub-group">
-                        <div class="special-sub-label"><i class="fas fa-box-open"></i> Party Shelf</div>
+                        <div class="special-sub-label"><i class="fas fa-box-open"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.PartyShelf'}}</div>
                         {{#each specialShelf}}
                         <div class="cache-item-row special-shelf-row"
                             data-source-compendium="{{this.sourceCompendium}}"
@@ -314,10 +314,10 @@
                                 <span class="cache-item-meta">{{#if this.priceLabel}}{{this.priceLabel}}{{/if}}{{#if this.rarity}} &bull; {{this.rarity}}{{/if}}</span>
                             </div>
                             <div class="cache-item-badges">
-                                {{#if this._isMagical}}<span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>{{/if}}
+                                {{#if this._isMagical}}<span class="magic-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.MagicalUntilIdentified' name=this._baseItemName}}"><i class="fas fa-wand-sparkles"></i></span>{{/if}}
                             </div>
                             {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Remove'}}">
                                 <i class="fas fa-xmark"></i>
                             </button>
                         </div>
@@ -328,12 +328,12 @@
                     {{!-- Cursed sub-group --}}
                     {{#if specialCursed.length}}
                     <div class="special-sub-group">
-                        <div class="special-sub-label special-sub-label--cursed"><i class="fas fa-skull"></i> Cursed</div>
+                        <div class="special-sub-label special-sub-label--cursed"><i class="fas fa-skull"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.Cursed'}}</div>
                         {{#each specialCursed}}
                         <div class="cache-item-row cursed-item"
                             data-source-compendium="{{this.sourceCompendium}}"
                             data-compendium-id="{{this._compendiumId}}"
-                            title="{{this.name}}{{#if this.cursedAs}} | Cursed: {{this.cursedAs}}{{/if}}">
+                            title="{{this.name}}{{#if this.cursedAs}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}{{/if}}">
                             <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                             <div class="cache-item-info">
                                 <span class="cache-item-name inspectable">{{this.name}}{{#if this.stacked}} <span class="qty-badge">x{{this.quantity}}</span>{{/if}}</span>
@@ -341,16 +341,16 @@
                             </div>
                             {{!-- Skull = standard cursed. Droplet = infected potion stack. GM-only in both cases. --}}
                             {{#if this.isInfectedStack}}
-                            <span class="cursed-pip cursed-pip--infected" title="Infected stack: {{this.cursedAs}}">
+                            <span class="cursed-pip cursed-pip--infected" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.InfectedStack' type=this.cursedAs}}">
                                 <i class="fas fa-tint"></i>
                             </span>
                             {{else}}
-                            <span class="cursed-pip" title="Cursed{{#if this.cursedAs}}: {{this.cursedAs}}{{/if}}">
+                            <span class="cursed-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Cursed'}}{{#if this.cursedAs}}: {{this.cursedAs}}{{/if}}">
                                 <i class="fas fa-skull"></i>
                             </span>
                             {{/if}}
                             {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                            <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Remove'}}">
                                 <i class="fas fa-xmark"></i>
                             </button>
                         </div>
@@ -364,30 +364,30 @@
                 {{!-- Spell Scrolls --}}
                 {{#if scrolls.length}}
                 <div class="cache-section">
-                    <div class="section-label scroll-label">Spell Scrolls</div>
+                    <div class="section-label scroll-label">{{localize 'IONRIFT.QUARTERMASTER.CACHE.SpellScrolls'}}</div>
                     {{#each scrolls}}
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | Level {{this.spellLevel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.LevelValue' level=this.spellLevel}}{{#if this.cursed}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
-                            <span class="cache-item-meta">Level {{this.spellLevel}}</span>
+                            <span class="cache-item-meta">{{localize 'IONRIFT.QUARTERMASTER.CACHE.LevelValue' level=this.spellLevel}}</span>
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
-                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            <span class="cursed-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}"><i class="fas fa-skull"></i></span>
                             {{/if}}
                             {{#if this._isMagical}}
-                            <span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>
+                            <span class="magic-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.MagicalUntilIdentified' name=this._baseItemName}}"><i class="fas fa-wand-sparkles"></i></span>
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="scroll" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="scroll" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Reroll'}}">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Remove'}}">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -398,12 +398,12 @@
                 {{!-- Weapons & Armour --}}
                 {{#if weapons.length}}
                 <div class="cache-section">
-                    <div class="section-label weapon-label">Weapons & Armour</div>
+                    <div class="section-label weapon-label">{{localize 'IONRIFT.QUARTERMASTER.CACHE.WeaponsArmour'}}</div>
                     {{#each weapons}}
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.priceLabel}} | {{this.rarity}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}} | {{this.rarity}}{{#if this.cursed}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
@@ -411,17 +411,17 @@
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
-                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            <span class="cursed-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}"><i class="fas fa-skull"></i></span>
                             {{/if}}
                             {{#if this._isMagical}}
-                            <span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>
+                            <span class="magic-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.MagicalUntilIdentified' name=this._baseItemName}}"><i class="fas fa-wand-sparkles"></i></span>
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="mastercraft" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="mastercraft" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Reroll'}}">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Remove'}}">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -432,12 +432,12 @@
                 {{!-- Gemstones --}}
                 {{#if gemstones.length}}
                 <div class="cache-section">
-                    <div class="section-label gemstone-label">Gemstones</div>
+                    <div class="section-label gemstone-label">{{localize 'IONRIFT.QUARTERMASTER.CACHE.Gemstones'}}</div>
                     {{#each gemstones}}
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
@@ -445,14 +445,14 @@
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
-                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            <span class="cursed-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}"><i class="fas fa-skull"></i></span>
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="gemstone" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="gemstone" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Reroll'}}">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Remove'}}">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -463,12 +463,12 @@
                 {{!-- Treasure (Art Objects, Trade Goods, Coin Finds) --}}
                 {{#if treasures.length}}
                 <div class="cache-section">
-                    <div class="section-label treasure-label">Treasure</div>
+                    <div class="section-label treasure-label">{{localize 'IONRIFT.QUARTERMASTER.CACHE.Treasure'}}</div>
                     {{#each treasures}}
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
@@ -476,14 +476,14 @@
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
-                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            <span class="cursed-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}"><i class="fas fa-skull"></i></span>
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="treasure" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="treasure" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Reroll'}}">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Remove'}}">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -494,12 +494,12 @@
                 {{!-- Consumables --}}
                 {{#if consumables.length}}
                 <div class="cache-section">
-                    <div class="section-label consumable-label">Consumables</div>
+                    <div class="section-label consumable-label">{{localize 'IONRIFT.QUARTERMASTER.CACHE.Consumables'}}</div>
                     {{#each consumables}}
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
@@ -507,17 +507,17 @@
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
-                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            <span class="cursed-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}"><i class="fas fa-skull"></i></span>
                             {{/if}}
                             {{#if this._isMagical}}
-                            <span class="magic-pip" title="Magical. Players see '{{this._baseItemName}}' until identified"><i class="fas fa-wand-sparkles"></i></span>
+                            <span class="magic-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.MagicalUntilIdentified' name=this._baseItemName}}"><i class="fas fa-wand-sparkles"></i></span>
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="consumable" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="consumable" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Reroll'}}">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Remove'}}">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -528,12 +528,12 @@
                 {{!-- Trade Goods / Mundane --}}
                 {{#if mundane.length}}
                 <div class="cache-section">
-                    <div class="section-label mundane-label">Trade Goods</div>
+                    <div class="section-label mundane-label">{{localize 'IONRIFT.QUARTERMASTER.CACHE.TradeGoods'}}</div>
                     {{#each mundane}}
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
@@ -541,14 +541,14 @@
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
-                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            <span class="cursed-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}"><i class="fas fa-skull"></i></span>
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="mundane" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="mundane" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Reroll'}}">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Remove'}}">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -559,12 +559,12 @@
                 {{!-- Trinkets --}}
                 {{#if trinkets.length}}
                 <div class="cache-section">
-                    <div class="section-label mundane-label">Trinkets</div>
+                    <div class="section-label mundane-label">{{localize 'IONRIFT.QUARTERMASTER.CACHE.Trinkets'}}</div>
                     {{#each trinkets}}
                     <div class="cache-item-row {{#if this.cursed}}cursed-item{{/if}}"
                         data-source-compendium="{{this.sourceCompendium}}"
                         data-compendium-id="{{this._compendiumId}}"
-                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | Cursed: {{this.cursedAs}}{{/if}}">
+                        title="{{this.name}} | {{this.priceLabel}}{{#if this.cursed}} | {{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}{{/if}}">
                         <img src="{{this.img}}" width="32" height="32" class="cache-item-icon inspectable" />
                         <div class="cache-item-info">
                             <span class="cache-item-name inspectable">{{this.name}}</span>
@@ -572,14 +572,14 @@
                         </div>
                         <div class="cache-item-badges">
                             {{#if this.cursed}}
-                            <span class="cursed-pip" title="Cursed: {{this.cursedAs}}"><i class="fas fa-skull"></i></span>
+                            <span class="cursed-pip" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.CursedAs' type=this.cursedAs}}"><i class="fas fa-skull"></i></span>
                             {{/if}}
                         </div>
                         {{> "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs" this}}
-                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="trinket" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Reroll">
+                        <button type="button" class="action-reroll-slot reroll-btn" data-slot="trinket" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Reroll'}}">
                             <i class="fas fa-dice"></i>
                         </button>
-                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="Remove">
+                        <button type="button" class="action-remove-slot remove-btn" data-uid="{{this._uid}}" data-index="{{this._origIdx}}" data-stack-name="{{this.name}}" data-stack-count="{{this.quantity}}" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.Remove'}}">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
@@ -593,14 +593,14 @@
                 {{#if hasLootPool}}
                 <div class="cache-empty-state">
                     <i class="fas fa-treasure-chest"></i>
-                    <p>Configure your cache above and hit Generate.</p>
-                    <p class="cache-hint">Generate a cache, then drag items from the left panel, compendiums, or the Items directory into the preview.</p>
+                    <p>{{localize 'IONRIFT.QUARTERMASTER.CACHE.EmptyStateConfigure'}}</p>
+                    <p class="cache-hint">{{localize 'IONRIFT.QUARTERMASTER.CACHE.EmptyStateHint'}}</p>
                 </div>
                 {{else}}
                 <div class="cache-empty-state cache-no-pool-state">
                     <i class="fas fa-box-open"></i>
-                    <p>No loot pool configured.</p>
-                    <p class="cache-hint">The cache generator needs at least one compendium source to draw items from. Set one up in the Loot Pool compiler before generating.</p>
+                    <p>{{localize 'IONRIFT.QUARTERMASTER.CACHE.NoPoolConfigured'}}</p>
+                    <p class="cache-hint">{{localize 'IONRIFT.QUARTERMASTER.CACHE.NoPoolHint'}}</p>
                 </div>
                 {{/if}}
                 {{/unless}}
@@ -610,18 +610,18 @@
                  Sits between the loot preview and the action footer — contextual, non-intrusive. --}}
             {{#if forgeStalePip}}
             <div class="cache-forge-warning-banner cache-forge-warning--stale"
-                 title="Compiled loot pool is stale or missing. Expanded weapons may not appear.">
+                 title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.ForgeWarningStale'}}">
                 <i class="fas fa-triangle-exclamation"></i>
-                <span class="cache-forge-warning-text">Compiled loot pool is stale or missing. Expanded weapons may not appear.</span>
-                <button type="button" class="action-open-forge-from-pip cache-forge-warning-btn">Open Forge <i class="fas fa-arrow-right"></i></button>
+                <span class="cache-forge-warning-text">{{localize 'IONRIFT.QUARTERMASTER.CACHE.ForgeWarningStale'}}</span>
+                <button type="button" class="action-open-forge-from-pip cache-forge-warning-btn">{{localize 'IONRIFT.QUARTERMASTER.CACHE.OpenForge'}} <i class="fas fa-arrow-right"></i></button>
             </div>
             {{/if}}
             {{#if forgeNeverPip}}
             <div class="cache-forge-warning-banner cache-forge-warning--never"
-                 title="2024 weapon templates need compiling before they appear in caches.">
+                 title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.ForgeWarningNever'}}">
                 <i class="fas fa-hammer"></i>
-                <span class="cache-forge-warning-text">2024 weapon templates need compiling before they appear in caches.</span>
-                <button type="button" class="action-open-forge-from-pip cache-forge-warning-btn">Open Forge <i class="fas fa-arrow-right"></i></button>
+                <span class="cache-forge-warning-text">{{localize 'IONRIFT.QUARTERMASTER.CACHE.ForgeWarningNever'}}</span>
+                <button type="button" class="action-open-forge-from-pip cache-forge-warning-btn">{{localize 'IONRIFT.QUARTERMASTER.CACHE.OpenForge'}} <i class="fas fa-arrow-right"></i></button>
             </div>
             {{/if}}
 
@@ -631,8 +631,8 @@
 
                 {{!-- Left zone: slider + est total stacked --}}
                 <div class="cache-value-range">
-                    <span class="value-range-label-text"><i class="fas fa-coins"></i> Budget Range</span>
-                    <div class="value-range-track budget-segments" id="cache-range-track" role="group" aria-label="Budget range">
+                    <span class="value-range-label-text"><i class="fas fa-coins"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.BudgetRange'}}</span>
+                    <div class="value-range-track budget-segments" id="cache-range-track" role="group" aria-label="{{localize 'IONRIFT.QUARTERMASTER.CACHE.BudgetRange'}}">
                         {{#each budgetBrackets}}
                         <button type="button"
                             class="budget-segment{{#if this.selected}} is-selected{{/if}}"
@@ -650,7 +650,7 @@
                         <span class="budget-range-display">{{budgetRangeLabel}}</span>
                         <div class="cache-total">
                             <i class="fas fa-scale-balanced"></i>
-                            Est. ~ <strong>{{totalValueLabel}}</strong>
+                            {{localize 'IONRIFT.QUARTERMASTER.CACHE.EstTotal'}} <strong>{{totalValueLabel}}</strong>
                         </div>
                     </div>
                 </div>
@@ -658,9 +658,9 @@
             {{!-- Right zone: dominant reroll button --}}
                 <button type="button" class="action-generate cache-btn-reroll-footer" {{#if generating}}disabled{{/if}}>
                     {{#if generating}}
-                        <i class="fas fa-spinner fa-spin"></i> Generating...
+                        <i class="fas fa-spinner fa-spin"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.Generating'}}
                     {{else}}
-                        <i class="fas fa-dice"></i> Reroll Cache
+                        <i class="fas fa-dice"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.RerollCache'}}
                     {{/if}}
                 </button>
 
@@ -670,16 +670,16 @@
                 {{#if hasLootPool}}
                 <button type="button" class="action-generate cache-btn-primary" {{#if generating}}disabled{{/if}}>
                     {{#if generating}}
-                        <i class="fas fa-spinner fa-spin"></i> Generating...
+                        <i class="fas fa-spinner fa-spin"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.Generating'}}
                     {{else}}
-                        <i class="fas fa-treasure-chest"></i> Generate Cache
+                        <i class="fas fa-treasure-chest"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.GenerateCache'}}
                     {{/if}}
                 </button>
 
 
                 {{else}}
                 <button type="button" class="action-open-pool-compiler cache-btn-nudge">
-                    <i class="fas fa-hammer"></i> Set Up Loot Pool
+                    <i class="fas fa-hammer"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.SetUpLootPool'}}
                 </button>
                 {{/if}}
             </div>
@@ -701,10 +701,10 @@
 
                 {{#if container}}
                 {{!-- Container card, draggable when Item Piles is active --}}
-                <div class="container-card" draggable="{{itemPilesActive}}" title="{{#if itemPilesActive}}Drag to canvas to place{{else}}Container preview{{/if}}">
+                <div class="container-card" draggable="{{itemPilesActive}}" title="{{#if itemPilesActive}}{{localize 'IONRIFT.QUARTERMASTER.CACHE.DragToCanvas'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.CACHE.ContainerPreview'}}{{/if}}">
 
                     {{!-- Reroll container button --}}
-                    <button type="button" class="action-reroll-container btn-container-reroll" title="Reroll container">
+                    <button type="button" class="action-reroll-container btn-container-reroll" title="{{localize 'IONRIFT.QUARTERMASTER.CACHE.RerollContainer'}}">
                         <i class="fas fa-dice"></i>
                     </button>
 
@@ -715,25 +715,25 @@
                     <div class="capacity-bar">
                         <div class="capacity-fill {{overweightClass}}" style="width: {{fillPct}}%"></div>
                     </div>
-                    <div class="capacity-label {{overweightClass}}">{{capacityLabel}}{{#if container.isOverweight}}  - Over capacity{{/if}}</div>
+                    <div class="capacity-label {{overweightClass}}">{{capacityLabel}}{{#if container.isOverweight}} {{localize 'IONRIFT.QUARTERMASTER.CACHE.OverCapacity'}}{{/if}}</div>
 
                 </div>
 
                 {{!-- Primary action --}}
                 {{#if itemPilesActive}}
-                <p class="drag-hint"><i class="fas fa-hand-grab"></i> Drag container card to canvas to place</p>
+                <p class="drag-hint"><i class="fas fa-hand-grab"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.DragContainerHint'}}</p>
                 {{else}}
                 <button type="button" class="action-add-items btn-add-items" id="cache-add-items-btn">
-                    <i class="fas fa-box-open"></i> Add to Items
+                    <i class="fas fa-box-open"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.AddToItems'}}
                 </button>
-                <p class="drag-hint"><i class="fas fa-circle-info"></i> Install Item Piles for drag-to-canvas placement</p>
+                <p class="drag-hint"><i class="fas fa-circle-info"></i> {{localize 'IONRIFT.QUARTERMASTER.CACHE.InstallItemPiles'}}</p>
                 {{/if}}
 
                 {{else}}
                 {{!-- No container matched yet --}}
                 <div class="container-placeholder">
                     <i class="fas fa-box"></i>
-                    <p>No container matched.<br>Try rerolling the cache.</p>
+                    <p>{{localize 'IONRIFT.QUARTERMASTER.CACHE.NoContainerMatched'}}<br>{{localize 'IONRIFT.QUARTERMASTER.CACHE.TryRerolling'}}</p>
                 </div>
                 {{/if}}
 
@@ -741,11 +741,10 @@
             {{!-- No result yet --}}
             <div class="container-placeholder">
                 <i class="fas fa-treasure-chest"></i>
-                <p>Generate a cache<br>to see the container.</p>
+                <p>{{localize 'IONRIFT.QUARTERMASTER.CACHE.GenerateToSee'}}<br>{{localize 'IONRIFT.QUARTERMASTER.CACHE.ToSeeContainer'}}</p>
             </div>
             {{/if}}
         </div>{{!-- /.cache-right --}}
 
     </div>{{!-- /.cache-split-layout --}}
 </form>
-

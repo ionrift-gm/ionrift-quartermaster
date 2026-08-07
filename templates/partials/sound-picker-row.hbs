@@ -7,23 +7,23 @@
     </div>
 
     <!-- 2. Configuration (Flex 0 - Fixed Width) -->
-    <div class="sound-config-group" title="Min/Max Delay (Seconds)">
+    <div class="sound-config-group" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.MinMaxDelay'}}">
         <div class="config-input-col">
-            <label>Min</label>
+            <label>{{localize 'IONRIFT.QUARTERMASTER.SOUND.Min'}}</label>
             <input type="number" name="delayMin" value="{{delayMin}}" step="0.1" min="0" max="10" placeholder="0">
         </div>
         <span class="separator">-</span>
         <div class="config-input-col">
-            <label>Max</label>
+            <label>{{localize 'IONRIFT.QUARTERMASTER.SOUND.Max'}}</label>
             <input type="number" name="delayMax" value="{{delayMax}}" step="0.1" min="0" max="10" placeholder="0">
         </div>
     </div>
 
     <!-- 3. Actions (Flex 0) -->
     <div class="entity-actions">
-        <button type="button" class="action-test-current" data-id="{{id}}" title="Play Preview"><i
+        <button type="button" class="action-test-current" data-id="{{id}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.PlayPreview'}}"><i
                 class="fas fa-play"></i></button>
-        <button type="button" class="action-remove-binding" data-index="{{@index}}" title="Remove"><i
+        <button type="button" class="action-remove-binding" data-index="{{@index}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.Remove'}}"><i
                 class="fas fa-times"></i></button>
     </div>
 </div>

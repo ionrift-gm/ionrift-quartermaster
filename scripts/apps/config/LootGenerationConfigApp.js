@@ -6,32 +6,32 @@ import { GenericArmorBonusRegistry } from "../../services/workshop/GenericArmorB
 
 export const LootGenerationConfigApp = createQuartermasterConfigApp({
     appId: "qm-loot-generation-config",
-    title: "Loot Generation",
+    title: "IONRIFT.QUARTERMASTER.APP.LootGenerationConfigAppTitle",
     icon: "fas fa-coins",
-    lead: "Cache value, magic rates, and consumable drops. Enhancement and named magic are configured separately.",
-    savedMessage: "Loot generation settings saved.",
+    lead: "IONRIFT.QUARTERMASTER.CONFIG.LootGenerationLead",
+    savedMessage: "IONRIFT.QUARTERMASTER.CONFIG.LootGenerationSaved",
     popouts: {
         ammoTypes: AmmoTypeConfigApp,
         genericArmorBonus: GenericArmorBonusConfigApp
     },
     rows: [
-        { type: "section", label: "Economy" },
+        { type: "section", label: "IONRIFT.QUARTERMASTER.CONFIG.SectionEconomy" },
         {
             key: "lootEconomy",
-            label: "Loot Abundance",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.lootEconomyName",
             icon: "fas fa-scale-balanced",
-            hint: "Scales the value of generated caches. Below 1.0 for scarce games. Above 1.0 for high-fantasy treasure runs.",
+            hint: "IONRIFT.QUARTERMASTER.SETTINGS.lootEconomyHint",
             type: "range",
             min: 0.25,
             max: 3,
             step: 0.25
         },
-        { type: "section", label: "Enhancement Items" },
+        { type: "section", label: "IONRIFT.QUARTERMASTER.CONFIG.SectionEnhancement" },
         {
             key: "magicFrequency",
-            label: "Magic Frequency",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.magicFrequencyName",
             icon: "fas fa-wand-sparkles",
-            hint: "Mastercraft slot draw weight for generic +N weapons and enhancement gear. Does not affect armour drops or named magic.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.MagicFrequencyHint",
             type: "range",
             min: 0,
             max: 2,
@@ -39,9 +39,9 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
         },
         {
             key: "armourDropChance",
-            label: "Armour Drop Chance",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.armourDropChanceName",
             icon: "fas fa-shield-halved",
-            hint: "Chance a mastercraft armour slot is reserved per cache (Unspecified / Armaments themes). 0 = off. 0.65 = standard. 1.0 = guaranteed.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.ArmourDropChanceHint",
             type: "range",
             min: 0,
             max: 1,
@@ -49,42 +49,42 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
         },
         {
             key: "genericArmorBonusConfig",
-            label: "Generic Armor Bonus Curve",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.genericArmorBonusConfigName",
             icon: "fas fa-shield-halved",
-            hint: "Tier caps for generic +N body armor and shields in mastercraft caches. Independent of magic frequency and weapon bonuses.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.GenericArmorBonusHint",
             type: "popout",
             popout: "genericArmorBonus",
             summary: () => GenericArmorBonusRegistry.getSummaryLabel()
         },
-        { type: "section", label: "Named Magic" },
+        { type: "section", label: "IONRIFT.QUARTERMASTER.CONFIG.SectionNamedMagic" },
         {
             key: "namedMagicFrequency",
-            label: "Named Magic Frequency",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.namedMagicFrequencyName",
             icon: "fas fa-wand-sparkles",
-            hint: "Scales how often one named magical item appears per cache. Baseline: T2 10%, T3 20%, T4 35%. 0 = off. 1 = standard. 2 = double.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.NamedMagicFrequencyHint",
             type: "range",
             min: 0,
             max: 2,
             step: 0.25
         },
         { type: "column-break" },
-        { type: "section", label: "Consumables" },
+        { type: "section", label: "IONRIFT.QUARTERMASTER.CONFIG.SectionConsumables" },
         {
             key: "healingPotionFrequency",
-            label: "Healing Potion Frequency",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.healingPotionFrequencyName",
             icon: "fas fa-heart-pulse",
-            hint: "Scales consumable slots, healing picks on those slots, and bonus healing lines per cache. 1.0 is moderate; 4.0 is heavy. Requires healing potions in Loot Pool Sources.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.HealingPotionFrequencyHint",
             type: "range",
             min: 0,
             max: 4,
             step: 0.25
         },
-        { type: "section", label: "Ammunition" },
+        { type: "section", label: "IONRIFT.QUARTERMASTER.CONFIG.SectionAmmunition" },
         {
             key: "magicAmmoFrequency",
-            label: "Magical Ammunition Frequency",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.magicAmmoFrequencyName",
             icon: "fas fa-bullseye",
-            hint: "How often +1/+2/+3 ammunition appears. Independent of Magic Frequency.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.MagicAmmoFrequencyHint",
             type: "range",
             min: 0,
             max: 2,
@@ -92,19 +92,19 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
         },
         {
             key: "ammoTypeConfig",
-            label: "Ammunition Type Curve",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.ammoTypeConfigName",
             icon: "fas fa-bullseye-arrow",
-            hint: "Weight arrows, bolts, needles, sling bullets, and custom house-rule types.",
+            hint: "IONRIFT.QUARTERMASTER.CONFIG.AmmoTypeConfigHint",
             type: "popout",
             popout: "ammoTypes",
             summary: () => AmmoTypeRegistry.getSummaryLabel()
         },
-        { type: "section", label: "Coinage" },
+        { type: "section", label: "IONRIFT.QUARTERMASTER.CONFIG.SectionCoinage" },
         {
             key: "distributeCoins",
-            label: "Distribute Coinage",
+            label: "IONRIFT.QUARTERMASTER.SETTINGS.distributeCoinsName",
             icon: "fas fa-coins",
-            hint: "Convert cache gold into a randomized mix of cp, sp, ep, gp, and pp.",
+            hint: "IONRIFT.QUARTERMASTER.SETTINGS.distributeCoinsHint",
             type: "boolean"
         }
     ]

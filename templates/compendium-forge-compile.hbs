@@ -5,11 +5,11 @@
     </div>
 
     {{#if isScrollForge}}
-    <h3 class="forge-compile-title">Forging Spell Scrolls...</h3>
+    <h3 class="forge-compile-title">{{localize 'IONRIFT.QUARTERMASTER.FORGE.ForgingScrolls'}}</h3>
     {{else if isCursedItems}}
-    <h3 class="forge-compile-title">Compiling Cursed Pool...</h3>
+    <h3 class="forge-compile-title">{{localize 'IONRIFT.QUARTERMASTER.FORGE.CompilingCursed'}}</h3>
     {{else}}
-    <h3 class="forge-compile-title">Compiling Loot Pool...</h3>
+    <h3 class="forge-compile-title">{{localize 'IONRIFT.QUARTERMASTER.FORGE.CompilingLoot'}}</h3>
     {{/if}}
 
     <p class="forge-compile-phase">{{phaseLabel}}</p>
@@ -19,7 +19,7 @@
     <div class="forge-progress-track">
         <div class="forge-progress-bar" style="width: {{progressPct}}%"></div>
     </div>
-    <p class="forge-progress-stats">{{progress.current}} / {{progress.total}} items</p>
+    <p class="forge-progress-stats">{{localize 'IONRIFT.QUARTERMASTER.FORGE.ProgressItems' current=progress.current total=progress.total}}</p>
 
     {{#if progress.log.length}}
     <ul class="forge-log">
@@ -35,12 +35,12 @@
     <div class="forge-progress-track forge-progress-indeterminate">
         <div class="forge-progress-bar-sweep"></div>
     </div>
-    <p class="forge-indeterminate-note">This may take a moment for large compendiums.</p>
+    <p class="forge-indeterminate-note">{{localize 'IONRIFT.QUARTERMASTER.FORGE.IndeterminateNote'}}</p>
     {{/if}}
 
     <footer class="forge-footer forge-footer-compile">
         <button type="button" class="forge-cancel-link forge-back">
-            Cancel
+            {{localize 'IONRIFT.QUARTERMASTER.FORGE.Cancel'}}
         </button>
     </footer>
 </div>

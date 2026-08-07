@@ -16,7 +16,23 @@ import { MODULE_ID } from "../../data/moduleId.js";
  */
 
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
+import { localize } from "../../utils/I18n.js";
 import { normalizeTerrainCategory } from "../../../../ionrift-library/scripts/services/terrain/TerrainRegistry.js";
+
+/** Shared base terrain ids that ship with Library keys. */
+const LIBRARY_BASE_LABEL_KEYS = Object.freeze({
+    forest:  "IONRIFT.LIBRARY.TERRAIN.Forest",
+    swamp:   "IONRIFT.LIBRARY.TERRAIN.Swamp",
+    desert:  "IONRIFT.LIBRARY.TERRAIN.Desert",
+    urban:   "IONRIFT.LIBRARY.TERRAIN.Urban",
+    dungeon: "IONRIFT.LIBRARY.TERRAIN.Dungeon"
+});
+
+const CATEGORY_GROUP_KEYS = Object.freeze({
+    built:       "IONRIFT.QUARTERMASTER.TERRAIN.CategoryBuilt",
+    "safe-haven": "IONRIFT.QUARTERMASTER.TERRAIN.CategorySafeHaven",
+    wilderness:  "IONRIFT.QUARTERMASTER.TERRAIN.CategoryWilderness"
+});
 
 
 export class TerrainDataRegistry {
@@ -183,11 +199,37 @@ export class TerrainDataRegistry {
     }
 
     /**
+     * Resolve a terrain display label via labelKey → localize at render time.
+     * Shared base terrains prefer Library keys; QM-only/overlay terrains use
+     * their own labelKey or a Title-Case id fallback.
+     *
+     * @param {string} id
+     * @param {object} [local] - Optional pre-fetched local terrain data
+     * @param {object} [libTerrain] - Optional library base entry
+     * @returns {string}
+     */
+    static resolveLabel(id, local = undefined, libTerrain = undefined) {
+        const data = local ?? this._terrains.get(id);
+        const lib = libTerrain
+            ?? game.ionrift?.library?.terrains?.getBase?.()?.find(t => t.id === id);
+
+        const labelKey = data?.labelKey
+            ?? lib?.labelKey
+            ?? LIBRARY_BASE_LABEL_KEYS[id]
+            ?? null;
+
+        if (labelKey) return localize(labelKey);
+        if (data?.label) return data.label;
+        if (lib?.label) return lib.label;
+        return this._deriveLabel(id);
+    }
+
+    /**
      * Terrain list for UI dropdowns. Built locally from the kernel base plus
      * any QM-shipped terrains that have been loaded. The library spine is
      * never consulted at runtime under strict sovereignty.
      *
-     * @returns {{ id: string, label: string, category: string }[]}
+     * @returns {{ id: string, label: string, labelKey: string|null, category: string }[]}
      */
     static getTerrainList() {
         const baseTerrains = game.ionrift?.library?.terrains?.getBase?.() ?? [];
@@ -196,9 +238,11 @@ export class TerrainDataRegistry {
 
         for (const t of baseTerrains) {
             const local = this._terrains.get(t.id);
+            const labelKey = local?.labelKey ?? t.labelKey ?? LIBRARY_BASE_LABEL_KEYS[t.id] ?? null;
             out.push({
                 id: t.id,
-                label: local?.label ?? t.label,
+                label: this.resolveLabel(t.id, local, t),
+                labelKey,
                 category: normalizeTerrainCategory(local?.category ?? t.category) ?? "wilderness"
             });
             seen.add(t.id);
@@ -208,7 +252,8 @@ export class TerrainDataRegistry {
             if (seen.has(local.id)) continue;
             out.push({
                 id: local.id,
-                label: local.label ?? this._deriveLabel(local.id),
+                label: this.resolveLabel(local.id, local),
+                labelKey: local.labelKey ?? null,
                 category: normalizeTerrainCategory(local.category) ?? "wilderness"
             });
         }
@@ -244,9 +289,15 @@ export class TerrainDataRegistry {
             else wilderness.push(opt);
         }
         const groups = [];
-        if (built.length) groups.push({ group: "Built", options: built });
-        if (safeHaven.length) groups.push({ group: "Safe Haven", options: safeHaven });
-        if (wilderness.length) groups.push({ group: "Wilderness", options: wilderness });
+        if (built.length) {
+            groups.push({ group: localize(CATEGORY_GROUP_KEYS.built), options: built });
+        }
+        if (safeHaven.length) {
+            groups.push({ group: localize(CATEGORY_GROUP_KEYS["safe-haven"]), options: safeHaven });
+        }
+        if (wilderness.length) {
+            groups.push({ group: localize(CATEGORY_GROUP_KEYS.wilderness), options: wilderness });
+        }
         return groups;
     }
 
@@ -316,6 +367,10 @@ export class TerrainDataRegistry {
         }
 
         // Additive merge: phrases append, materials replace, descriptions merge
+        if (data.labelKey) existing.labelKey = data.labelKey;
+        if (data.label) existing.label = data.label;
+        if (data.category) existing.category = data.category;
+
         if (data.flavorPhrases?.length) {
             const merged = new Set([
                 ...(existing.flavorPhrases ?? []),

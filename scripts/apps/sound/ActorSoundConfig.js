@@ -1,10 +1,11 @@
 import { SoundPickerApp } from "./SoundPickerApp.js";
+import { localize, format } from "../../utils/I18n.js";
 
 export class ActorSoundConfig extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "ionrift-actor-sound-config",
-            title: "Actor Sound Configuration",
+            title: localize("IONRIFT.QUARTERMASTER.SOUND.ActorConfigTitle"),
             template: "modules/ionrift-quartermaster/templates/actor-sound-config.hbs",
             width: 500,
             height: "auto",
@@ -29,23 +30,31 @@ export class ActorSoundConfig extends FormApplication {
         // Voice / Identity
         const currentIdentity = this.actor.getFlag("ionrift-resonance", "identity") || "masculine";
         // Ensure legacy "female" converts to "feminine" just in case
-        const identityLabel = (currentIdentity === "feminine" || currentIdentity === "female") ? "Feminine" : "Masculine";
+        const isFeminine = currentIdentity === "feminine" || currentIdentity === "female";
+        const identityLabel = localize(
+            isFeminine
+                ? "IONRIFT.QUARTERMASTER.SOUND.IdentityFeminine"
+                : "IONRIFT.QUARTERMASTER.SOUND.IdentityMasculine"
+        );
 
         // Define Actor-specific sound slots
         const slots = [
-            { key: "sound_pain", label: "Pain / Hit", icon: "fas fa-heart-broken" },
-            { key: "sound_death", label: "Death", icon: "fas fa-skull" },
-            { key: "sound_crit_given", label: "Critical Hit (Dealt)", icon: "fas fa-bullseye" },
-            { key: "sound_crit_received", label: "Critical Hit (Received)", icon: "fas fa-shield-alt" },
-            { key: "sound_battle_theme", label: "Combat Theme", icon: "fas fa-music", hint: "Music played when this actor enters combat (Entity Start)." }
+            { key: "sound_pain", label: localize("IONRIFT.QUARTERMASTER.SOUND.PainHit"), icon: "fas fa-heart-broken" },
+            { key: "sound_death", label: localize("IONRIFT.QUARTERMASTER.SOUND.Death"), icon: "fas fa-skull" },
+            { key: "sound_crit_given", label: localize("IONRIFT.QUARTERMASTER.SOUND.CritDealt"), icon: "fas fa-bullseye" },
+            { key: "sound_crit_received", label: localize("IONRIFT.QUARTERMASTER.SOUND.CritReceived"), icon: "fas fa-shield-alt" },
+            { key: "sound_battle_theme", label: localize("IONRIFT.QUARTERMASTER.SOUND.CombatTheme"), icon: "fas fa-music", hint: localize("IONRIFT.QUARTERMASTER.SOUND.CombatThemeHint") }
         ];
 
         return {
             actorName: this.actor.name,
             actorImg: this.actor.img,
             voice: currentIdentity,
-            // We pass options for the helper or manual iteration
-            voiceOptions: { masculine: "Deep / Low (Masculine)", feminine: "Bright / High (Feminine)" },
+            // Display labels localized; option values stay as identity tokens
+            voiceOptions: {
+                masculine: localize("IONRIFT.QUARTERMASTER.SOUND.VoiceDeepLow"),
+                feminine: localize("IONRIFT.QUARTERMASTER.SOUND.VoiceBrightHigh")
+            },
             slots: slots.map(slot => {
                 const val = this.actor.getFlag("ionrift-resonance", slot.key);
                 const name = this.actor.getFlag("ionrift-resonance", slot.key + "_name");
@@ -57,15 +66,15 @@ export class ActorSoundConfig extends FormApplication {
                 if (val && typeof val === "string" && val.includes(",")) {
                     const count = val.split(",").filter(s => s.trim()).length;
                     if (count > 1) {
-                        display = `${count} Sounds (Randomized)`;
+                        display = format("IONRIFT.QUARTERMASTER.SOUND.SoundsRandomized", { count });
                     }
                 }
 
                 if (!val) {
                     if (slot.key === "sound_pain" || slot.key === "sound_death") {
-                        display = `Default (${identityLabel})`;
+                        display = format("IONRIFT.QUARTERMASTER.SOUND.DefaultIdentity", { identity: identityLabel });
                     } else {
-                        display = "Default (System)";
+                        display = localize("IONRIFT.QUARTERMASTER.SOUND.DefaultSystem");
                     }
                 }
 
@@ -97,7 +106,7 @@ export class ActorSoundConfig extends FormApplication {
         html.find(".action-save").click((ev) => {
             ev.preventDefault();
             this.close();
-            ui.notifications.info(`Ionrift Sounds: Configuration Saved for ${this.actor.name}.`);
+            ui.notifications.info(format("IONRIFT.QUARTERMASTER.SOUND.SavedFor", { name: this.actor.name }));
         });
 
         // play
@@ -117,7 +126,7 @@ export class ActorSoundConfig extends FormApplication {
 
         // Resolve Default
         let defaultSoundId = null;
-        let defaultSoundName = "System Default";
+        let defaultSoundName = localize("IONRIFT.QUARTERMASTER.SOUND.SystemDefault");
 
         if (game.ionrift?.resonance?.handler ?? game.ionrift?.handler) {
             const h = game.ionrift?.resonance?.handler ?? game.ionrift?.handler;
@@ -125,12 +134,22 @@ export class ActorSoundConfig extends FormApplication {
                 const keyId = h.getPCSound(this.actor, "PAIN");
                 defaultSoundId = h.resolveSound(keyId);
                 const i = this.actor.getFlag("ionrift-resonance", "identity") || "masculine";
-                defaultSoundName = `Default (${i === "feminine" ? "Feminine" : "Masculine"} Pain)`;
+                const identity = localize(
+                    i === "feminine"
+                        ? "IONRIFT.QUARTERMASTER.SOUND.IdentityFeminine"
+                        : "IONRIFT.QUARTERMASTER.SOUND.IdentityMasculine"
+                );
+                defaultSoundName = format("IONRIFT.QUARTERMASTER.SOUND.DefaultIdentityPain", { identity });
             } else if (key === "sound_death") {
                 const keyId = h.getPCSound(this.actor, "DEATH");
                 defaultSoundId = h.resolveSound(keyId);
                 const i = this.actor.getFlag("ionrift-resonance", "identity") || "masculine";
-                defaultSoundName = `Default (${i === "feminine" ? "Feminine" : "Masculine"} Death)`;
+                const identity = localize(
+                    i === "feminine"
+                        ? "IONRIFT.QUARTERMASTER.SOUND.IdentityFeminine"
+                        : "IONRIFT.QUARTERMASTER.SOUND.IdentityMasculine"
+                );
+                defaultSoundName = format("IONRIFT.QUARTERMASTER.SOUND.DefaultIdentityDeath", { identity });
             }
         }
 
@@ -163,7 +182,7 @@ export class ActorSoundConfig extends FormApplication {
             defaultSoundId: defaultSoundId,
             defaultSoundName: defaultSoundName,
             soundConfig: existingConfig, // Pass full config context
-            title: `Bind ${key} for ${this.actor.name}`
+            title: format("IONRIFT.QUARTERMASTER.SOUND.BindFor", { key, name: this.actor.name })
         }).render(true);
     }
 

@@ -3,6 +3,7 @@ import { MODULE_ID } from "../../data/moduleId.js";
  * GM settings submenu base for Quartermaster (Ionrift glass).
  */
 
+import { localize } from "../../utils/I18n.js";
 
 /** @type {Set<string>} */
 const CONFIG_APP_IDS = new Set();
@@ -53,6 +54,8 @@ export function createQuartermasterConfigApp(definition) {
             return {
                 rows: definition.rows.map(row => ({
                     ...row,
+                    label: row.label ? localize(row.label) : row.label,
+                    hint: row.hint ? localize(row.hint) : row.hint,
                     value: row.type === "section" || row.type === "column-break"
                         ? undefined
                         : row.type === "popout"
@@ -72,7 +75,7 @@ export function createQuartermasterConfigApp(definition) {
                     </div>
                     ${this._renderControl(row)}
                 </div>
-                <div class="settings-config-hint">${row.hint}</div>
+                <div class="settings-config-hint">${row.hint ?? ""}</div>
             </div>`;
         }
 
@@ -81,7 +84,7 @@ export function createQuartermasterConfigApp(definition) {
             const el = document.createElement("div");
             el.classList.add("qm-settings-config");
 
-            let html = `<p class="settings-config-lead">${definition.lead}</p>`;
+            let html = `<p class="settings-config-lead">${localize(definition.lead)}</p>`;
 
             if (hasColumnBreak) {
                 html += `<div class="settings-config-columns"><div class="settings-config-col settings-config-col--left">`;
@@ -112,7 +115,7 @@ export function createQuartermasterConfigApp(definition) {
             html += `
         <div class="settings-config-actions">
             <button type="button" class="settings-config-save-btn">
-                <i class="fas fa-save"></i> Save
+                <i class="fas fa-save"></i> ${localize("IONRIFT.QUARTERMASTER.CONFIG.Save")}
             </button>
         </div>`;
 
@@ -163,7 +166,7 @@ export function createQuartermasterConfigApp(definition) {
             <div class="settings-config-popout-wrap">
                 <span class="settings-config-popout-summary">${row.value ?? ""}</span>
                 <button type="button" class="settings-config-popout-btn" data-popout="${row.popout}">
-                    <i class="fas fa-sliders"></i> Configure
+                    <i class="fas fa-sliders"></i> ${localize("IONRIFT.QUARTERMASTER.CONFIG.Configure")}
                 </button>
             </div>`;
             }
@@ -177,7 +180,7 @@ export function createQuartermasterConfigApp(definition) {
 
         async _onSave(el) {
             for (const row of definition.rows) {
-                if (row.type === "section" || row.type === "column-break") continue;
+                if (row.type === "section" || row.type === "column-break" || row.type === "popout") continue;
                 if (row.type === "boolean") {
                     const cb = el.querySelector(`.settings-config-cb[data-key="${row.key}"]`);
                     if (cb) await game.settings.set(MODULE_ID, row.key, cb.checked);
@@ -189,7 +192,7 @@ export function createQuartermasterConfigApp(definition) {
                     if (range) await game.settings.set(MODULE_ID, row.key, Number(range.value));
                 }
             }
-            ui.notifications.info(definition.savedMessage ?? "Quartermaster settings saved.");
+            ui.notifications.info(localize(definition.savedMessage ?? "IONRIFT.QUARTERMASTER.CONFIG.SettingsSaved"));
             this.close();
         }
     };

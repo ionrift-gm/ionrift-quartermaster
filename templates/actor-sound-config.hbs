@@ -133,14 +133,14 @@
             style="object-fit: cover; border: 1px solid #444; border-radius: 4px;" />
         <div style="flex: 1;">
             <h1 style="border: none; margin: 0; padding: 0 0 5px 0; line-height: 1;"><input type="text"
-                    value="{{actorName}}" disabled placeholder="Actor Name"
+                    value="{{actorName}}" disabled placeholder="{{localize 'IONRIFT.QUARTERMASTER.SOUND.ActorNamePlaceholder'}}"
                     style="background: transparent; border: none; font-weight: bold; font-size: 1.2em; color: #fff; width: 100%; padding: 0;" />
             </h1>
 
             <!-- Voice Selection -->
             <div class="voice-config"
                 style="display: flex; align-items: center; gap: 10px; font-size: 0.9em; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
-                <label style="white-space: nowrap; color: #bbb;"><i class="fas fa-volume-up"></i> Voice Tone:</label>
+                <label style="white-space: nowrap; color: #bbb;"><i class="fas fa-volume-up"></i> {{localize 'IONRIFT.QUARTERMASTER.SOUND.VoiceTone'}}</label>
                 <select name="identity"
                     style="height: 24px; font-size: 0.9em; flex: 1; background: transparent; color: #fff; border: none; padding: 0;">
                     {{selectOptions voiceOptions selected=voice}}
@@ -148,14 +148,13 @@
             </div>
 
             <p class="notes" style="margin: 5px 0 0 0; font-style: italic; opacity: 0.6; font-size: 0.8em;">
-                Optional Overrides (Defaults to Voice Tone)
+                {{localize 'IONRIFT.QUARTERMASTER.SOUND.OptionalOverrides'}}
             </p>
         </div>
     </header>
 
     <div class="content ionrift-actor-sound-config">
-        <p class="notes">Configure specific sound overrides for this Actor. These will travel with the Actor if
-            exported.</p>
+        <p class="notes">{{localize 'IONRIFT.QUARTERMASTER.SOUND.ActorNotes'}}</p>
 
         <section class="slots">
             {{#each slots as |slot|}}
@@ -175,12 +174,12 @@
 
                     <div class="actions">
                         {{#if slot.hasValue}}
-                        <a class="action-btn action-play" data-key="{{slot.key}}" title="Preview"><i
+                        <a class="action-btn action-play" data-key="{{slot.key}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.Preview'}}"><i
                                 class="fas fa-play"></i></a>
-                        <a class="action-btn action-clear" data-key="{{slot.key}}" title="Clear"><i
+                        <a class="action-btn action-clear" data-key="{{slot.key}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.Clear'}}"><i
                                 class="fas fa-times"></i></a>
                         {{/if}}
-                        <a class="action-btn action-search" data-key="{{slot.key}}" title="Search Sounds"><i
+                        <a class="action-btn action-search" data-key="{{slot.key}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.SearchSounds'}}"><i
                                 class="fas fa-search"></i></a>
                     </div>
                 </div>
@@ -190,7 +189,7 @@
 
         <div class="form-footer">
             <button type="button" class="save-btn action-save">
-                <i class="fas fa-check"></i> Save & Close
+                <i class="fas fa-check"></i> {{localize 'IONRIFT.QUARTERMASTER.SOUND.SaveClose'}}
             </button>
         </div>
     </div>

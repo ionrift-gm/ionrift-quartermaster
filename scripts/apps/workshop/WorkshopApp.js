@@ -1,11 +1,12 @@
 import { SoundPickerApp } from "../sound/SoundPickerApp.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { localize, format } from "../../utils/I18n.js";
 
 export class WorkshopApp extends Application {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "ionrift-quartermaster-app",
-            title: "Ionrift Quartermaster",
+            title: localize("IONRIFT.QUARTERMASTER.WORKSHOP.AppTitle"),
             template: "modules/ionrift-quartermaster/templates/quartermaster.hbs",
             width: 800,
             height: 640,
@@ -26,7 +27,9 @@ export class WorkshopApp extends Application {
         const hasResonance = game.modules.get("ionrift-resonance")?.active ?? false;
 
         return {
-            title: isEdit ? `Editing: ${this._editItem.name}` : "Item Quartermaster",
+            title: isEdit
+                ? format("IONRIFT.QUARTERMASTER.WORKSHOP.EditingTitle", { name: this._editItem.name })
+                : localize("IONRIFT.QUARTERMASTER.WORKSHOP.ItemTitle"),
             types,
             isEdit,
             hasResonance,
@@ -96,7 +99,7 @@ export class WorkshopApp extends Application {
         const formData = Object.fromEntries(new FormData(form));
 
         if (!formData.name || !formData.type) {
-            ui.notifications.warn("Please specify a Name and Type.");
+            ui.notifications.warn(localize("IONRIFT.QUARTERMASTER.WORKSHOP.NeedNameType"));
             return;
         }
 
@@ -148,7 +151,7 @@ export class WorkshopApp extends Application {
                 img: itemData.img,
                 ...(itemData.flags ? { flags: itemData.flags } : {})
             });
-            ui.notifications.info(`Updated: ${this._editItem.name}`);
+            ui.notifications.info(format("IONRIFT.QUARTERMASTER.WORKSHOP.Updated", { name: this._editItem.name }));
             this._editItem.sheet.render(true);
             this.close();
             return;
@@ -157,7 +160,7 @@ export class WorkshopApp extends Application {
         // Create mode
         const item = await Item.create(itemData);
         if (item) {
-            ui.notifications.info(`Forged: ${item.name}`);
+            ui.notifications.info(format("IONRIFT.QUARTERMASTER.WORKSHOP.Forged", { name: item.name }));
             item.sheet.render(true);
             this.close();
         }
@@ -166,7 +169,7 @@ export class WorkshopApp extends Application {
     async _onSearchSound(event) {
         event.preventDefault();
         if (!game.modules.get("ionrift-resonance")?.active) {
-            ui.notifications.warn("Ionrift Resonance is required for sound binding.");
+            ui.notifications.warn(localize("IONRIFT.QUARTERMASTER.WORKSHOP.ResonanceRequired"));
             return;
         }
 
@@ -182,9 +185,8 @@ export class WorkshopApp extends Application {
                 input.val(result.id);
             }
 
-            ui.notifications.info(`Selected Sound: ${result.name} (${result.id})`);
+            ui.notifications.info(format("IONRIFT.QUARTERMASTER.WORKSHOP.SelectedSound", { name: result.name, id: result.id }));
         }).render(true);
     }
 
 }
-

@@ -1,5 +1,6 @@
 import { ItemPoolResolver } from "../../services/loot/ItemPoolResolver.js";
 import { MODULE_ID } from "../../data/moduleId.js";
+import { localize, format } from "../../utils/I18n.js";
 
 
 /**
@@ -11,7 +12,7 @@ export class LootPoolConfigApp extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "ionrift-loot-pool-config",
-            title: "Loot Pool Sources",
+            title: localize("IONRIFT.QUARTERMASTER.APP.LootPoolConfigAppTitle"),
             template: `modules/${MODULE_ID}/templates/loot-pool-config.hbs`,
             width: 480,
             height: 520,
@@ -56,7 +57,7 @@ export class LootPoolConfigApp extends FormApplication {
 
         await game.settings.set(MODULE_ID, "lootPoolSources", JSON.stringify(enabled));
         ItemPoolResolver.clearCache();
-        ui.notifications.info(`Loot pool updated: ${enabled.length} source${enabled.length !== 1 ? 's' : ''} enabled.`);
+        ui.notifications.info(format("IONRIFT.QUARTERMASTER.CONFIG.LootPoolUpdated", { count: enabled.length }));
     }
 
     activateListeners(html) {
