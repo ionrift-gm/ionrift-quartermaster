@@ -300,7 +300,7 @@
         <!-- A. Search Bar -->
         <div class="search-bar">
             <input type="text" name="search" class="search-input" value="{{searchTerm}}"
-                placeholder="Search all 175k+ Syrinscape sounds..." />
+                placeholder="{{localize 'IONRIFT.QUARTERMASTER.SOUND.SearchPlaceholder'}}" />
             <button class="action-search"
                 style="flex: 0 0 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: rgba(139, 92, 246, 0.6); color: white; border: none; border-radius: 4px; cursor: pointer;"><i
                     class="fas fa-search"></i></button>
@@ -311,28 +311,28 @@
             <!-- Left: Cache Status & Filter -->
             <div class="status-left">
                 <div class="cache-info">
-                    <span style="font-weight: 600; text-transform: uppercase;">Global One-Shots:</span>
+                    <span style="font-weight: 600; text-transform: uppercase;">{{localize 'IONRIFT.QUARTERMASTER.SOUND.GlobalOneShots'}}</span>
                     {{#if cacheCount}}
-                    <span style="color: #6ee7b7;">{{cacheCount}} cached</span>
+                    <span style="color: #6ee7b7;">{{localize 'IONRIFT.QUARTERMASTER.SOUND.CachedCount' count=cacheCount}}</span>
                     {{else}}
-                    <span style="color: #fca5a5;">Not Synced</span>
+                    <span style="color: #fca5a5;">{{localize 'IONRIFT.QUARTERMASTER.SOUND.NotSynced'}}</span>
                     {{/if}}
                 </div>
                 <!-- Filter Toggle -->
                 <div style="display: flex; align-items: center; gap: 6px; cursor: pointer;"
-                    title="If checked, limits search to One-Shot sound effects only (hides Moods/Music).">
+                    title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.OneShotsOnlyTitle'}}">
                     <input type="checkbox" name="filterOneshots" id="filterOneshots" {{checked filterOneshots}}>
-                    <label for="filterOneshots">One-Shots Only</label>
+                    <label for="filterOneshots">{{localize 'IONRIFT.QUARTERMASTER.SOUND.OneShotsOnly'}}</label>
                 </div>
             </div>
 
             <!-- Right: Tools -->
             <div class="cache-tools">
                 <button type="button" class="action-update-lib"
-                    title="Syncs your local cache with the latest Global One-Shots from Syrinscape.">
-                    <i class="fas fa-sync-alt"></i> <span>Sync Cache</span>
+                    title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.SyncCacheTitle'}}">
+                    <i class="fas fa-sync-alt"></i> <span>{{localize 'IONRIFT.QUARTERMASTER.SOUND.SyncCache'}}</span>
                 </button>
-                <button type="button" class="action-purge-lib" title="Clear local cache (Force Re-Sync)">
+                <button type="button" class="action-purge-lib" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.PurgeCacheTitle'}}">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
@@ -344,29 +344,28 @@
         <ul class="results-list">
             {{#if isLoading}}
             <div class="loading" style="padding: 20px; text-align: center; color: #aaa;"><i
-                    class="fas fa-spinner fa-spin"></i> Searching...</div>
+                    class="fas fa-spinner fa-spin"></i> {{localize 'IONRIFT.QUARTERMASTER.SOUND.Searching'}}</div>
             {{else}}
             {{#each results}}
             <li class="result-row" data-id="{{this.id}}" data-name="{{this.name}}" data-type="{{this.type}}"
-                data-meta="{{this.meta}}" title="Click to Add">
+                data-meta="{{this.meta}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.ClickToAdd'}}">
                 <i class="{{this.icon}}" style="width: 24px; text-align: center; opacity: 0.8;"></i>
                 <div class="result-info">
                     <span class="result-name">{{this.name}}</span>
                     {{#if this.meta}}<span class="result-meta">{{this.meta}}</span>{{/if}}
                 </div>
-                <span class="preview-icon" title="Preview Sound"><i class="fas fa-play"></i></span>
+                <span class="preview-icon" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.PreviewSound'}}"><i class="fas fa-play"></i></span>
             </li>
             {{else}}
             {{#if searchTerm}}
             <div class="no-results" style="padding: 20px; text-align: center; color: #777;">
-                <div>No results found.</div>
-                {{#if filterOneshots}}<div style="font-size: 0.9em; margin-top: 5px;">Try unchecking <strong>"One-Shots
-                        Only"</strong>.</div>{{/if}}
+                <div>{{localize 'IONRIFT.QUARTERMASTER.SOUND.NoResults'}}</div>
+                {{#if filterOneshots}}<div style="font-size: 0.9em; margin-top: 5px;">{{localize 'IONRIFT.QUARTERMASTER.SOUND.TryUncheckOneShots'}}</div>{{/if}}
             </div>
             {{else}}
             <div class="empty-state" style="padding: 40px 20px; text-align: center; color: #888;">
                 <i class="fas fa-search" style="font-size: 2em; opacity: 0.2; margin-bottom: 15px;"></i>
-                <div>Type above to search sounds.</div>
+                <div>{{localize 'IONRIFT.QUARTERMASTER.SOUND.TypeToSearch'}}</div>
             </div>
             {{/if}}
             {{/each}}
@@ -378,11 +377,11 @@
     <div class="footer-area">
         <div
             style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; padding-left: 8px;">
-            <h3 style="margin: 0; font-size: 0.9em; text-transform: uppercase; color: #888;">Selected Sounds</h3>
+            <h3 style="margin: 0; font-size: 0.9em; text-transform: uppercase; color: #888;">{{localize 'IONRIFT.QUARTERMASTER.SOUND.SelectedSounds'}}</h3>
             <div class="delay-help"
-                title="Configures a random start delay (Min/Max). useful for syncing with animation latency."
+                title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.DelayTitle'}}"
                 style="font-size: 0.8em; color: #666; cursor: help; margin-right: 85px;">
-                <i class="fas fa-question-circle"></i> <span>Delay (Sec)</span>
+                <i class="fas fa-question-circle"></i> <span>{{localize 'IONRIFT.QUARTERMASTER.SOUND.DelaySec'}}</span>
             </div>
         </div>
 
@@ -398,15 +397,15 @@
                 </div>
 
                 <!-- 2. Configuration (Flex 0 - Fixed Width) -->
-                <div class="sound-config-group" title="Min/Max Delay (Seconds)">
+                <div class="sound-config-group" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.MinMaxDelay'}}">
                     <div class="config-input-col">
-                        <label>Min</label>
+                        <label>{{localize 'IONRIFT.QUARTERMASTER.SOUND.Min'}}</label>
                         <input type="number" name="delayMin" value="{{this.delayMin}}" step="0.1" min="0" max="10"
                             placeholder="0">
                     </div>
                     <span class="separator">-</span>
                     <div class="config-input-col">
-                        <label>Max</label>
+                        <label>{{localize 'IONRIFT.QUARTERMASTER.SOUND.Max'}}</label>
                         <input type="number" name="delayMax" value="{{this.delayMax}}" step="0.1" min="0" max="10"
                             placeholder="0">
                     </div>
@@ -414,9 +413,9 @@
 
                 <!-- 3. Actions (Flex 0) -->
                 <div class="entity-actions">
-                    <button type="button" class="action-test-current" data-id="{{this.id}}" title="Play Preview"><i
+                    <button type="button" class="action-test-current" data-id="{{this.id}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.PlayPreview'}}"><i
                             class="fas fa-play"></i></button>
-                    <button type="button" class="action-remove-binding" data-index="{{@index}}" title="Remove"><i
+                    <button type="button" class="action-remove-binding" data-index="{{@index}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.Remove'}}"><i
                             class="fas fa-times"></i></button>
                 </div>
             </div>
@@ -426,21 +425,21 @@
             <div class="binding-row default-binding" style="opacity: 0.7;">
                 <div class="entity-info" style="flex: 1;">
                     <span style="font-weight: bold; font-style: italic;">{{defaultSoundName}}</span>
-                    <span style="display: block; font-size: 0.7em; color: #aaa;">Default Sound</span>
+                    <span style="display: block; font-size: 0.7em; color: #aaa;">{{localize 'IONRIFT.QUARTERMASTER.SOUND.DefaultSound'}}</span>
                 </div>
                 <div class="entity-actions">
-                    <button type="button" class="action-test-default" title="Play Default"><i
+                    <button type="button" class="action-test-default" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.PlayDefault'}}"><i
                             class="fas fa-play"></i></button>
                 </div>
             </div>
             {{else}}
-            <div style="padding: 15px; text-align: center; color: #666; font-style: italic;">No sounds selected.</div>
+            <div style="padding: 15px; text-align: center; color: #666; font-style: italic;">{{localize 'IONRIFT.QUARTERMASTER.SOUND.NoSoundsSelected'}}</div>
             {{/if}}
             {{/if}}
         </div>
 
         <button class="action-save">
-            <i class="fas fa-check" style="margin-right: 5px;"></i> Save Changes
+            <i class="fas fa-check" style="margin-right: 5px;"></i> {{localize 'IONRIFT.QUARTERMASTER.SOUND.SaveChanges'}}
         </button>
     </div>
 </div>

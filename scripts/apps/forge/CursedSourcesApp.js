@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../../data/moduleId.js";
+import { localize, format } from "../../utils/I18n.js";
 /**
  * GM dialog: choose which Item compendiums the cursed pool may draw from.
  * Launched from the Signature Ledger (standalone) or via Add from Compendium.
@@ -18,7 +19,7 @@ export class CursedSourcesApp extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id:            "ionrift-cursed-sources",
-            title:         "Cursed Pool: Compendium Sources",
+            title:         localize("IONRIFT.QUARTERMASTER.APP.CursedSourcesAppTitle"),
             template:      `modules/${MODULE_ID}/templates/cursed-sources.hbs`,
             width:         520,
             height:        480,
@@ -97,7 +98,7 @@ export class CursedSourcesApp extends FormApplication {
         }
 
         await game.settings.set(MODULE_ID, SETTING_CURSED_ITEM_SOURCES, JSON.stringify(enabled));
-        ui.notifications.info(`Cursed pool sources saved: ${enabled.length} compendium${enabled.length !== 1 ? "s" : ""} enabled.`);
+        ui.notifications.info(format("IONRIFT.QUARTERMASTER.CONFIG.CursedSourcesSaved", { count: enabled.length }));
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
     }
 

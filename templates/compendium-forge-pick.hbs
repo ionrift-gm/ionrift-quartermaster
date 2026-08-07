@@ -15,7 +15,7 @@
     {{#if loading}}
     <div class="forge-loading-state">
         <span class="forge-loading-spinner"><i class="fas fa-circle-notch fa-spin"></i></span>
-        <span class="forge-loading-label">Discovering spell compendiums...</span>
+        <span class="forge-loading-label">{{localize 'IONRIFT.QUARTERMASTER.FORGE.DiscoveringSpells'}}</span>
     </div>
     {{else}}
 
@@ -24,8 +24,8 @@
     {{!-- Bulk actions: shown for any tab with selectable checkboxes (not Cursed Items) --}}
     {{#unless isCursedItems}}
     <div class="forge-bulk-actions">
-        <button type="button" class="forge-select-all cache-btn-ghost"><i class="fas fa-check-double"></i> All</button>
-        <button type="button" class="forge-select-none cache-btn-ghost"><i class="fas fa-xmark"></i> None</button>
+        <button type="button" class="forge-select-all cache-btn-ghost"><i class="fas fa-check-double"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.All'}}</button>
+        <button type="button" class="forge-select-none cache-btn-ghost"><i class="fas fa-xmark"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.None'}}</button>
     </div>
     {{/unless}}
 
@@ -41,11 +41,11 @@
                 <span class="pool-pack-label">{{this.label}}</span>
                 {{!-- Spell count pill (Scroll Forge) --}}
                 {{#if this.count}}
-                <span class="pool-pack-count">{{this.count}} spells</span>
+                <span class="pool-pack-count">{{localize 'IONRIFT.QUARTERMASTER.FORGE.SpellsPill' count=this.count}}</span>
                 {{/if}}
                 {{!-- Recommended badge (Loot Pool) --}}
                 {{#if this.recommended}}
-                <span class="pool-pack-badge badge-recommended">Recommended</span>
+                <span class="pool-pack-badge badge-recommended">{{localize 'IONRIFT.QUARTERMASTER.FORGE.Recommended'}}</span>
                 {{/if}}
                 <span class="pool-pack-id">{{this.id}}</span>
             </label>
@@ -58,8 +58,8 @@
     {{!-- Only show the empty note for tabs that expect groups (not Cursed Items, which is hardwired) --}}
     {{#unless isCursedItems}}
     <p class="forge-empty-note"><i class="fas fa-circle-info"></i>
-        {{#if isScrollForge}}No spell compendiums found. Make sure a spellbook compendium (e.g. dnd5e.spells24) is enabled.
-        {{else}}No item compendiums found.{{/if}}
+        {{#if isScrollForge}}{{localize 'IONRIFT.QUARTERMASTER.FORGE.NoSpellCompendiums'}}
+        {{else}}{{localize 'IONRIFT.QUARTERMASTER.FORGE.NoItemCompendiums'}}{{/if}}
     </p>
     {{/unless}}
     {{/if}}
@@ -69,7 +69,7 @@
     {{!-- Cursed Items: read-only source list (no checkboxes, no save) --}}
     {{#if curseSourceInfo}}
     <div class="forge-curse-sources">
-        <p class="forge-curse-sources-label"><i class="fas fa-magnifying-glass"></i> Compendiums that will be scanned:</p>
+        <p class="forge-curse-sources-label"><i class="fas fa-magnifying-glass"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.CompendiumsScanned'}}</p>
         {{#each curseSourceInfo}}
         <div class="forge-curse-source-row">
             <i class="fas fa-box-archive"></i>
@@ -90,7 +90,7 @@
             {{/if}}
             {{#if compiledStatus.skipSummary}}
             <div class="forge-status-card-skip">
-                <p class="forge-status-card-skip-title"><i class="fas fa-triangle-exclamation"></i> Compatibility warnings</p>
+                <p class="forge-status-card-skip-title"><i class="fas fa-triangle-exclamation"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.CompatibilityWarnings'}}</p>
                 <p class="forge-status-card-skip-summary">{{compiledStatus.skipSummary}}</p>
                 {{#if compiledStatus.skipReport}}
                 <ul class="forge-skip-report">
@@ -98,35 +98,35 @@
                     <li><span class="forge-skip-name">{{this.name}}</span>{{#if this.packId}} <span class="forge-skip-pack">{{this.packId}}</span>{{/if}} <span class="forge-skip-phase">[{{this.phase}}]</span></li>
                     {{/each}}
                     {{#if compiledStatus.skipReport.overflowCount}}
-                    <li class="forge-skip-overflow">… and {{compiledStatus.skipReport.overflowCount}} more (see debug report for full list)</li>
+                    <li class="forge-skip-overflow">{{localize 'IONRIFT.QUARTERMASTER.FORGE.AndMoreSkipped' count=compiledStatus.skipReport.overflowCount}}</li>
                     {{/if}}
                 </ul>
-                <p class="forge-skip-hint">Skipped source rows do not block the compiled pool. Add replacements manually to the compiled compendium if needed.</p>
+                <p class="forge-skip-hint">{{localize 'IONRIFT.QUARTERMASTER.FORGE.SkipHint'}}</p>
                 {{/if}}
             </div>
             {{/if}}
             {{#if bugReportUi}}
             <div class="forge-bug-report-actions">
                 <button type="button" class="cache-btn-secondary forge-copy-bug-report">
-                    <i class="fas fa-copy"></i> Copy debug report
+                    <i class="fas fa-copy"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.CopyDebugReport'}}
                 </button>
                 {{#if bugReportUi.canSubmit}}
                 <button type="button" class="cache-btn-accent forge-send-bug-report">
-                    <i class="fas fa-paper-plane"></i> Send report
+                    <i class="fas fa-paper-plane"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.SendReport'}}
                 </button>
                 {{/if}}
             </div>
             <p class="forge-skip-hint">
                 {{#if bugReportUi.canSubmit}}
-                You get a reference number to cite in Discord when you send.
+                {{localize 'IONRIFT.QUARTERMASTER.FORGE.BugReportSubmitHint'}}
                 {{else}}
-                Connect Patreon in Ionrift Library (free tier is fine) to send directly, or copy the report for <a href="{{bugReportUi.discordUrl}}" target="_blank" rel="noopener">Discord</a>.
+                {{localize 'IONRIFT.QUARTERMASTER.FORGE.BugReportCopyHint'}} <a href="{{bugReportUi.discordUrl}}" target="_blank" rel="noopener">Discord</a>.
                 {{/if}}
             </p>
             {{/if}}
         </div>
         {{#if compiledStatus.clearable}}
-        <button type="button" class="forge-clear-pool" title="Remove the compiled pool and revert to raw SRD reads.">
+        <button type="button" class="forge-clear-pool" title="{{localize 'IONRIFT.QUARTERMASTER.FORGE.ClearPoolTitle'}}">
             <i class="fas fa-trash-can"></i>
         </button>
         {{/if}}
@@ -137,19 +137,19 @@
         {{#unless loading}}
         {{#if showViewCompendium}}
         <button type="button" class="forge-view-compendium cache-btn-ghost" data-pack-id="{{viewPackId}}">
-            <i class="fas fa-book-open"></i> View Compendium
+            <i class="fas fa-book-open"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.ViewCompendium'}}
         </button>
         {{/if}}
         {{!-- No Save Sources for Cursed Items -- nothing user-configurable --}}
         {{#unless isCursedItems}}
         <button type="button" class="cache-btn-secondary forge-save-sources">
-            <i class="fas fa-save"></i> Save Sources
+            <i class="fas fa-save"></i> {{localize 'IONRIFT.QUARTERMASTER.FORGE.SaveSources'}}
         </button>
         {{/unless}}
         {{#if showCompileButton}}
         <button type="button" class="cache-btn-accent forge-compile-pool">
             <i class="fas fa-hammer"></i>
-            {{#if isScrollForge}}Forge Scrolls{{else if isCursedItems}}Compile Pool{{else}}Compile Pool{{/if}}
+            {{#if isScrollForge}}{{localize 'IONRIFT.QUARTERMASTER.FORGE.ForgeScrolls'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.FORGE.CompilePool'}}{{/if}}
             <i class="fas fa-arrow-right forge-arrow"></i>
         </button>
         {{/if}}

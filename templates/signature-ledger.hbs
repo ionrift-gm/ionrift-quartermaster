@@ -4,20 +4,20 @@
     <div class="registry-tabs">
         <div class="registry-tabs-primary">
             <button type="button" class="registry-tab {{#if (eq activeTab 'signatures')}}active{{/if}}" data-tab="signatures">
-                <i class="fas fa-book-sparkles"></i> Signatures
+                <i class="fas fa-book-sparkles"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.Signatures'}}
             </button>
             <button type="button" class="registry-tab {{#if (eq activeTab 'scrolls')}}active{{/if}}" data-tab="scrolls">
-                <i class="fas fa-scroll"></i> Scroll Plan
+                <i class="fas fa-scroll"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.ScrollPlan'}}
             </button>
             <button type="button" class="registry-tab {{#if (eq activeTab 'party')}}active{{/if}}" data-tab="party">
-                <i class="fas fa-users"></i> Party Shelf
+                <i class="fas fa-users"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.PartyShelf'}}
             </button>
             <button type="button" class="registry-tab {{#if (eq activeTab 'cursed')}}active{{/if}}" data-tab="cursed">
-                <i class="fas fa-skull"></i> Cursed Pool
+                <i class="fas fa-skull"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.CursedPool'}}
             </button>
         </div>
         <button type="button" class="registry-tab {{#if (eq activeTab 'banlist')}}active{{/if}}" data-tab="banlist">
-            <i class="fas fa-ban"></i> Ban List
+            <i class="fas fa-ban"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.BanList'}}
             {{#if banCount}}<span class="tab-badge">{{banCount}}</span>{{/if}}
         </button>
     </div>
@@ -25,18 +25,18 @@
     {{!-- ══ SIGNATURES ══════════════════════════════════════════ --}}
     {{#if (eq activeTab 'signatures')}}
     <div class="registry-panel panel-signatures">
-        <p class="tab-desc"><i class="fas fa-book-sparkles"></i> Plan milestone items per character. The generator prioritises these when filling signature loot slots near the relevant level. These are intentions, not guarantees: the GM <span class="desc-highlight">places</span> items in the world, but the party <span class="desc-highlight">decides</span> who claims them.</p>
-        <p class="tab-desc tab-desc-philosophy"><strong>Why only 4 per character?</strong> Signature items are campaign-defining moments, not routine drops. The budget keeps each one meaningful. Stagger deliveries across sessions - when characters find their signature at different times, each moment carries weight. Not everyone needs to be rewarded at once.</p>
+        <p class="tab-desc"><i class="fas fa-book-sparkles"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.SignaturesDesc1'}}<span class="desc-highlight">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.SignaturesDesc2'}}</span>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.SignaturesDesc3'}}<span class="desc-highlight">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.SignaturesDesc4'}}</span>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.SignaturesDesc5'}}</p>
+        <p class="tab-desc tab-desc-philosophy"><strong>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.SignaturesPhilosophyTitle'}}</strong>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.SignaturesPhilosophy'}}</p>
         <div class="ledger-scroll-area">
 
             <div class="ledger-grid-header sig-header">
                 <div class="grid-corner grid-corner-sig">
-                    <span>Character</span>
-                    <button type="button" class="btn-manage-party" title="Choose which characters appear in the Ledger">
+                    <span>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.Character'}}</span>
+                    <button type="button" class="btn-manage-party" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ChooseCharacters'}}">
                         <i class="fas fa-user-gear"></i>
                     </button>
                 </div>
-                {{#each milestones}}<div class="grid-col-header">Lv {{this}}</div>{{/each}}
+                {{#each milestones}}<div class="grid-col-header">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.LevelCol' level=this}}</div>{{/each}}
             </div>
 
             {{#each actors}}
@@ -47,24 +47,24 @@
                     <div class="actor-info">
                         <span class="actor-name" title="{{this.name}}">{{this.name}}</span>
                         <div class="actor-sub-row">
-                            <span class="actor-sub">{{this.classes}} (Lv {{this.level}})</span>
+                            <span class="actor-sub">{{this.classes}} ({{localize 'IONRIFT.QUARTERMASTER.LEDGER.LevelCol' level=this.level}})</span>
                             <div class="actor-toolbar">
-                                <span class="sig-budget-pips" title="Signature budget  - intentional scarcity keeps each item a campaign moment.">
+                                <span class="sig-budget-pips" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.SignatureBudget'}}">
                                     {{#each this.budgetPips}}<span class="budget-pip {{#if this.filled}}pip-filled{{else}}pip-empty{{/if}}"></span>{{/each}}
                                     <span class="budget-count">{{this.budgetUsed}}/{{this.budgetTotal}}</span>
                                 </span>
                                 {{#if this.hasEmptySlots}}
                                 <button type="button" class="btn-seed-inline action-seed-signatures"
                                         data-actor-id="{{this.id}}"
-                                        title="Fill empty slots with suggestions"
-                                        aria-label="Fill empty signature slots with suggestions">
+                                        title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.FillEmptySlots'}}"
+                                        aria-label="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.FillEmptySlots'}}">
                                     <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i>
                                 </button>
                                 {{/if}}
                             </div>
                         </div>
                         {{#if this.showStat}}
-                        <div class="sig-actor-stat {{this.powerTier}}" title="Raw power score: {{this.powerScore}} | Party avg: {{../avgPower}}. Centre = party average. Bar grows right for over-equipped, left for under-equipped.">
+                        <div class="sig-actor-stat {{this.powerTier}}" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RawPowerScore' score=this.powerScore avg=../avgPower}}">
                             <div class="power-bar-track sig-actor-stat-bar power-bar-centered" data-sign="{{this.powerSign}}">
                                 <span class="power-bar-centerline" aria-hidden="true"></span>
                                 <div class="power-bar-fill" style="width:{{this.powerBarHalfPct}}%;"></div>
@@ -88,20 +88,20 @@
 
             {{#if this.isBehind}}
             <div class="row-warning-banner">
-                <i class="fas fa-exclamation-triangle"></i> {{this.name}} is under-equipped relative to the party ({{this.powerLabel}}).
+                <i class="fas fa-exclamation-triangle"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.UnderEquippedWarning' name=this.name label=this.powerLabel}}
             </div>
             {{/if}}
 
             {{else}}
             <div class="empty-state">
                 <i class="fas fa-users-slash"></i>
-                <p>No player characters found.</p>
+                <p>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.NoPlayerCharacters'}}</p>
             </div>
             {{/each}}
         </div>
         <div class="ledger-footer ledger-footer-sig">
-            <span class="footer-hint">Avg power: {{avgPower}}</span>
-            <span class="footer-hint footer-hint-philosophy"><em>Variation between characters is by design - staggered signatures create anticipation, not imbalance.</em></span>
+            <span class="footer-hint">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.AvgPower' avg=avgPower}}</span>
+            <span class="footer-hint footer-hint-philosophy"><em>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.VariationHint'}}</em></span>
         </div>
     </div>
     {{/if}}
@@ -115,7 +115,7 @@
             {{!-- ── Scroll Policy Dashboard (always visible) ─────────── --}}
             <div class="qm-policy-dashboard scroll-policy-dashboard">
                 <div class="policy-hero-badge">
-                    <span class="policy-hero-label">Party Level</span>
+                    <span class="policy-hero-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.PartyLevel'}}</span>
                     <span class="policy-hero-value">{{../scrollPolicyData.partyLevel}}</span>
                 </div>
 
@@ -124,39 +124,39 @@
                     <div class="policy-bar-col {{#if this.isOptimal}}policy-bar-optimal{{/if}}">
                         <div class="policy-bar" style="height: {{this.barHeight}}%;"></div>
                         <span class="policy-bar-pct">{{this.percent}}%</span>
-                        <span class="policy-bar-label">Lv {{this.level}}</span>
+                        <span class="policy-bar-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.LevelCol' level=this.level}}</span>
                     </div>
                     {{/each}}
                 </div>
 
                 <div class="policy-sliders-row">
-                    <div class="policy-slider-group" title="Floor: The lowest spell level scrolls can drop at. The distribution stretches down to this level as the party levels up.">
-                        <label class="policy-slider-label">Floor <span class="policy-slider-value">{{../scrollFloor}}</span></label>
+                    <div class="policy-slider-group" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.FloorTooltip'}}">
+                        <label class="policy-slider-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.Floor'}} <span class="policy-slider-value">{{../scrollFloor}}</span></label>
                         <input type="range" class="policy-slider action-update-scroll-floor" min="1" max="9" step="1" value="{{../scrollFloor}}">
                     </div>
-                    <div class="policy-slider-group" title="Concentration: Controls how tightly the distribution clusters around the optimal level. 1 = flat spread, 5 = sharply peaked at optimal.">
-                        <label class="policy-slider-label">Concentration <span class="policy-slider-value">{{../scrollConcentration}}</span></label>
+                    <div class="policy-slider-group" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ConcentrationTooltip'}}">
+                        <label class="policy-slider-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.Concentration'}} <span class="policy-slider-value">{{../scrollConcentration}}</span></label>
                         <input type="range" class="policy-slider action-update-scroll-concentration" min="1" max="5" step="1" value="{{../scrollConcentration}}">
                     </div>
-                    <div class="policy-slider-group" title="Optimal Offset: Offsets the party's assumed optimal scroll level to favor pulling lower or higher level scrolls.">
-                        <label class="policy-slider-label">Optimal Offset <span class="policy-slider-value">{{../scrollPolicyData.offsetLabel}}</span></label>
+                    <div class="policy-slider-group" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.OptimalOffsetTooltip'}}">
+                        <label class="policy-slider-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.OptimalOffset'}} <span class="policy-slider-value">{{../scrollPolicyData.offsetLabel}}</span></label>
                         <input type="range" class="policy-slider action-update-scroll-offset" min="-4" max="4" step="1" value="{{../scrollOffset}}">
                     </div>
-                    <div class="policy-slider-group" title="Upper Reach: The maximum spell levels above optimal that randomisation can push. 0 = scrolls never exceed optimal.">
-                        <label class="policy-slider-label">Upper Reach <span class="policy-slider-value">+{{../scrollUpperReach}}</span></label>
+                    <div class="policy-slider-group" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.UpperReachTooltip'}}">
+                        <label class="policy-slider-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.UpperReach'}} <span class="policy-slider-value">+{{../scrollUpperReach}}</span></label>
                         <input type="range" class="policy-slider action-update-scroll-upper-reach" min="0" max="4" step="1" value="{{../scrollUpperReach}}">
                     </div>
                 </div>
 
                 <div class="dashboard-footer-actions">
                     <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
-                        <a role="button" class="btn-qm-reset action-reset-scroll-defaults" title="Reset all scroll distribution settings to defaults">
+                        <a role="button" class="btn-qm-reset action-reset-scroll-defaults" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ResetScrollDefaults'}}">
                             <i class="fas fa-undo"></i>
                         </a>
                     </div>
                     <button type="button" class="btn-qm-override action-toggle-scroll-tracker {{#if ../scrollTrackerExpanded}}is-expanded{{/if}}">
                         <i class="fas {{#if ../scrollTrackerExpanded}}fa-chevron-up{{else}}fa-chevron-down{{/if}}"></i>
-                        {{#if ../scrollTrackerExpanded}}Collapse Scroll Overrides{{else}}Override on Specific Scrolls{{/if}}
+                        {{#if ../scrollTrackerExpanded}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CollapseScrollOverrides'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.OverrideOnSpecificScrolls'}}{{/if}}
                     </button>
                 </div>
             </div>
@@ -168,23 +168,23 @@
                     {{!-- ── Pinned Scrolls Section ─────────────────────────── --}}
                     <div class="scroll-section-header scroll-pinned-header">
                         <div class="scroll-section-header-row">
-                            <span class="scroll-section-title"><i class="fas fa-thumbtack"></i> Pinned Scrolls</span>
+                            <span class="scroll-section-title"><i class="fas fa-thumbtack"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.PinnedScrolls'}}</span>
                         </div>
                     </div>
         
                     {{#unless ../hasParty}}
                     <div class="no-party-notice">
-                        <i class="fas fa-users-slash"></i> No player characters found. The reach band defaults to level 1.
+                        <i class="fas fa-users-slash"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.NoPartyReachBand'}}
                     </div>
                     {{/unless}}
 
-                    <span class="scroll-section-hint qm-accordion-hint">This board is <strong class="hint-highlight">optional</strong>. The loot generator delivers spell scrolls automatically. Pin a scroll to manually place it at a specific milestone.</span>
+                    <span class="scroll-section-hint qm-accordion-hint">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ScrollBoardHint1'}}<strong class="hint-highlight">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ScrollBoardHint2'}}</strong>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ScrollBoardHint3'}}</span>
                     
                     <div class="cursed-planned-strip-wrap scroll-planned-strip-wrap">
                     <div class="cursed-planned-col-labels scroll-planned-col-labels">
                         <div class="cursed-planned-col-labels-grid">
                             {{#each milestoneLabels}}
-                            <div class="cursed-planned-col-label scroll-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</div>
+                            <div class="cursed-planned-col-label scroll-planned-col-label" style="opacity: {{this.labelFade}};">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.LevelCol' level=this.level}}</div>
                             {{/each}}
                         </div>
                         <div class="cursed-planned-median-overlay">
@@ -214,22 +214,22 @@
                                 {{#if this.filled}}
                                     <img src="{{this.img}}" class="slot-item-img" alt="{{this.name}}" draggable="false" />
                                     {{!-- Spell level badge --}}
-                                    {{#if this.spellLevel}}<span class="scroll-slot-level-badge">Lv {{this.spellLevel}}</span>{{/if}}
+                                    {{#if this.spellLevel}}<span class="scroll-slot-level-badge">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.LevelCol' level=this.spellLevel}}</span>{{/if}}
                                     {{!-- Lock --}}
                                     <button type="button" class="slot-btn slot-btn-lock action-toggle-lock {{#if this.locked}}is-locked{{/if}}"
                                             data-level="{{this.level}}" data-uuid="{{this.uuid}}" data-variant="scroll"
-                                            title="{{#if this.locked}}Unlock{{else}}Lock{{/if}}">
+                                            title="{{#if this.locked}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.Unlock'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.Lock'}}{{/if}}">
                                         <i class="fas {{#if this.locked}}fa-lock{{else}}fa-lock-open{{/if}}"></i>
                                     </button>
                                     {{!-- Remove --}}
                                     <button type="button" class="slot-btn slot-btn-remove action-remove-scroll-pin"
-                                            data-level="{{this.level}}" data-uuid="{{this.uuid}}" title="Remove pinned scroll">
+                                            data-level="{{this.level}}" data-uuid="{{this.uuid}}" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RemovePinnedScroll'}}">
                                         <i class="fas fa-times"></i>
                                     </button>
                                     {{!-- Delivered toggle --}}
                                     <button type="button" class="slot-btn slot-btn-bl action-toggle-scroll-delivered"
                                             data-level="{{this.level}}" data-uuid="{{this.uuid}}"
-                                            title="{{#if this.delivered}}Mark undelivered{{else}}Mark delivered{{/if}}">
+                                            title="{{#if this.delivered}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.MarkUndelivered'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.MarkDelivered'}}{{/if}}">
                                         <i class="fas {{#if this.delivered}}fa-rotate-left{{else}}fa-check{{/if}}"></i>
                                     </button>
                                 {{else}}
@@ -246,15 +246,15 @@
                 {{!-- ── Scroll actions (inside override accordion) ── --}}
                 <div class="scroll-compendium-info tracker-accordion-actions">
                     <div class="scroll-compendium-buttons">
-                        <button type="button" class="scroll-open-compendium action-open-forged-scrolls" title="Open the forged spell scroll compendium">
-                            <i class="fas fa-book-open"></i> Open Quartermaster: Spell Scrolls
+                        <button type="button" class="scroll-open-compendium action-open-forged-scrolls" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.OpenScrollCompendium'}}">
+                            <i class="fas fa-book-open"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.OpenScrollCompendium'}}
                         </button>
-                        <a role="button" class="qm-secondary-link action-compile-scroll-forge" title="Choose spell sources and recompile the scroll compendium">
-                            <i class="fas fa-hammer"></i> Item Compiler
+                        <a role="button" class="qm-secondary-link action-compile-scroll-forge" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ItemCompiler'}}">
+                            <i class="fas fa-hammer"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.ItemCompiler'}}
                         </a>
                     </div>
                     <p class="scroll-jitter-note">
-                        Drag scrolls from the compendium into slots. <strong>Pinned</strong> scrolls bypass randomisation and land at their milestone.
+                        {{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ScrollJitterNote'}}}
                     </p>
                 </div>
 
@@ -282,7 +282,7 @@
                     {{!-- ── Left Column: Rarity Distribution ────── --}}
                     <div class="party-policy-left">
                         <div class="policy-hero-badge">
-                            <span class="policy-hero-label">Party Level</span>
+                            <span class="policy-hero-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.PartyLevel'}}</span>
                             <span class="policy-hero-value">{{../shelfPolicyData.partyLevel}}</span>
                         </div>
 
@@ -297,12 +297,12 @@
                         </div>
 
                         <div class="policy-sliders-row">
-                            <div class="policy-slider-group" title="Concentration: Controls how tightly the rarity distribution clusters around Uncommon. 1 = flat spread across rarities, 5 = heavily Uncommon.">
-                                <label class="policy-slider-label">Concentration <span class="policy-slider-value">{{../shelfConcentration}}</span></label>
+                            <div class="policy-slider-group" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ShelfConcentrationTooltip'}}">
+                                <label class="policy-slider-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.Concentration'}} <span class="policy-slider-value">{{../shelfConcentration}}</span></label>
                                 <input type="range" class="policy-slider action-update-shelf-concentration" min="1" max="5" step="1" value="{{../shelfConcentration}}">
                             </div>
-                            <div class="policy-slider-group" title="Attunement Bias: Controls the ratio of items that require attunement versus those that do not. Low = fewer attuned items, High = more attuned items.">
-                                <label class="policy-slider-label">Attunement Bias <span class="policy-slider-value">{{../shelfPolicyData.attunementLabel}}</span></label>
+                            <div class="policy-slider-group" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.AttunementBiasTooltip'}}">
+                                <label class="policy-slider-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.AttunementBias'}} <span class="policy-slider-value">{{../shelfPolicyData.attunementLabel}}</span></label>
                                 <input type="range" class="policy-slider action-update-shelf-attunement" min="0" max="2" step="1" value="{{../shelfAttunementBias}}">
                             </div>
                         </div>
@@ -313,7 +313,7 @@
 
                     {{!-- ── Right Column: Category Mix ──────────── --}}
                     <div class="party-policy-right">
-                        <span class="party-category-header">Category Mix</span>
+                        <span class="party-category-header">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CategoryMix'}}</span>
 
                         {{#each ../shelfPolicyData.categoryMix}}
                         <div class="party-category-row {{#unless this.enabled}}is-disabled{{/unless}}">
@@ -330,25 +330,25 @@
                         </div>
                         {{/each}}
 
-                        <span class="party-category-note">Weights auto-normalise among enabled categories.</span>
+                        <span class="party-category-note">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.WeightsAutoNormalise'}}</span>
 
                         <div class="party-shelf-loot-config-note">
                             <i class="fas fa-circle-info"></i>
-                            <span>These filters control what appears in the advisory panel. Armour and weapon drops in generated caches are controlled separately in Loot Generation settings.</span>
-                            <a role="button" class="party-shelf-loot-config-link action-open-loot-generation-config">Open Config &rarr;</a>
+                            <span>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.PartyShelfConfigNote'}}</span>
+                            <a role="button" class="party-shelf-loot-config-link action-open-loot-generation-config">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.OpenConfig'}}</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="dashboard-footer-actions">
                     <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
-                        <a role="button" class="btn-qm-reset action-reset-party-defaults" title="Reset all party shelf settings to defaults">
+                        <a role="button" class="btn-qm-reset action-reset-party-defaults" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ResetPartyDefaults'}}">
                             <i class="fas fa-undo"></i>
                         </a>
                     </div>
                     <button type="button" class="btn-qm-override action-toggle-party-tracker {{#if ../partyTrackerExpanded}}is-expanded{{/if}}">
                         <i class="fas {{#if ../partyTrackerExpanded}}fa-chevron-up{{else}}fa-chevron-down{{/if}}"></i>
-                        {{#if ../partyTrackerExpanded}}Collapse Tracker{{else}}Override on Specific Items{{/if}}
+                        {{#if ../partyTrackerExpanded}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CollapseTracker'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.OverrideOnSpecificItems'}}{{/if}}
                     </button>
                 </div>
             </div>
@@ -360,15 +360,15 @@
                     {{!-- ── Party Shelf Section Header ───────────────────────── --}}
                     <div class="scroll-section-header party-shelf-header">
                         <div class="scroll-section-header-row">
-                            <span class="scroll-section-title"><i class="fas fa-users"></i> Party Items</span>
+                            <span class="scroll-section-title"><i class="fas fa-users"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.PartyItems'}}</span>
                         </div>
                     </div>
 
-                    <span class="scroll-section-hint qm-accordion-hint">Plan milestone-level party items. <strong class="hint-highlight">Planned</strong> items surface automatically at their assigned level. Empty slots show unsaved, randomised suggestions that cycle on each reroll.</span>
+                    <span class="scroll-section-hint qm-accordion-hint">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.PartyBoardHint1'}}<strong class="hint-highlight">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.PartyBoardHint2'}}</strong>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.PartyBoardHint3'}}</span>
 
                     {{#unless ../hasParty}}
                     <div class="no-party-notice">
-                        <i class="fas fa-users-slash"></i> No player characters found. The reach band defaults to level 1.
+                        <i class="fas fa-users-slash"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.NoPartyReachBand'}}
                     </div>
                     {{/unless}}
 
@@ -376,7 +376,7 @@
                         <div class="cursed-planned-col-labels party-planned-col-labels">
                             <div class="cursed-planned-col-labels-grid">
                                 {{#each milestoneLabels}}
-                                <div class="cursed-planned-col-label party-planned-col-label" style="opacity: {{this.labelFade}};">Lv {{this.level}}</div>
+                                <div class="cursed-planned-col-label party-planned-col-label" style="opacity: {{this.labelFade}};">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.LevelCol' level=this.level}}</div>
                                 {{/each}}
                             </div>
                             <div class="cursed-planned-median-overlay">
@@ -407,15 +407,15 @@
                 {{!-- ── Party Shelf actions (inside override accordion) ── --}}
                 <div class="scroll-compendium-info party-compendium-info tracker-accordion-actions">
                     <div class="scroll-compendium-buttons party-compendium-buttons">
-                        <button type="button" class="scroll-open-compendium action-seed-shelf" title="Randomise party items from the configured compendiums by rarity">
-                            <i class="fas fa-wand-magic-sparkles"></i> Randomise
+                        <button type="button" class="scroll-open-compendium action-seed-shelf" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RandomisePartyItems'}}">
+                            <i class="fas fa-wand-magic-sparkles"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.Randomise'}}
                         </button>
-                        <a role="button" class="qm-secondary-link action-curate-shelf" title="Choose which item compendiums the randomiser draws from and compile the loot pool">
-                            <i class="fas fa-hammer"></i> Item Compiler
+                        <a role="button" class="qm-secondary-link action-curate-shelf" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CurateShelf'}}">
+                            <i class="fas fa-hammer"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.ItemCompiler'}}
                         </a>
                     </div>
                     <p class="scroll-jitter-note party-jitter-note">
-                        Drop items from compendiums into slots to plan them. <strong>Planned</strong> items bypass randomisation and land at their milestone.
+                        {{{localize 'IONRIFT.QUARTERMASTER.LEDGER.PartyJitterNote'}}}
                     </p>
                 </div>
 
@@ -432,27 +432,27 @@
     {{!-- ══ BAN LIST ═════════════════════════════════════════════ --}}
     {{#if (eq activeTab 'banlist')}}
     <div class="registry-panel panel-banlist">
-        <p class="tab-desc"><i class="fas fa-ban"></i> Items on this list are excluded from all cache generation. Manual loot placement is always allowed regardless of bans.</p>
+        <p class="tab-desc"><i class="fas fa-ban"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.BanListDesc'}}</p>
 
         <div class="ban-drop-zone" data-drop-target="banlist">
             <i class="fas fa-arrow-down-to-bracket ban-drop-icon"></i>
-            <span class="ban-drop-label">Drop items here to ban them</span>
-            <span class="ban-drop-hint">Drag from a compendium or the item sidebar</span>
+            <span class="ban-drop-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.DropItemsToBan'}}</span>
+            <span class="ban-drop-hint">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.DragFromCompendium'}}</span>
         </div>
 
         <div class="banlist-toolbar">
             <div class="ban-search-wrapper">
                 <i class="fas fa-search ban-search-icon"></i>
-                <input type="text" class="ban-search-input" placeholder="Filter banned items..." />
+                <input type="text" class="ban-search-input" placeholder="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.FilterBanned'}}" />
             </div>
-            {{#if banCount}}<span class="ban-count-badge">{{banCount}} banned</span>{{/if}}
+            {{#if banCount}}<span class="ban-count-badge">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.BannedCount' count=banCount}}</span>{{/if}}
         </div>
 
         <div class="banlist-scroll-area">
             <div class="ban-card-grid">
                 {{#each banList}}
                 <div class="ban-card" data-index="{{@index}}" data-name="{{this.name}}">
-                    <button type="button" class="ban-card-remove action-remove-ban" data-index="{{@index}}" title="Remove from ban list">
+                    <button type="button" class="ban-card-remove action-remove-ban" data-index="{{@index}}" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RemoveFromBanList'}}">
                         <i class="fas fa-times"></i>
                     </button>
                     <div class="ban-card-icon">
@@ -470,13 +470,13 @@
             {{#unless banCount}}
             <div class="empty-state ban-empty-state">
                 <i class="fas fa-thumbs-up"></i>
-                <p>No items banned. All loot is fair game.</p>
+                <p>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.NoItemsBanned'}}</p>
             </div>
             {{/unless}}
 
             <div class="ban-no-matches" style="display:none;">
                 <i class="fas fa-search"></i>
-                <p>No banned items match your filter.</p>
+                <p>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.NoBannedMatch'}}</p>
             </div>
         </div>
 
@@ -491,28 +491,28 @@
         <div class="curse-header-bar">
             <div class="curse-header-left">
                 <i class="fas fa-flask-vial"></i>
-                <span class="curse-header-title">Cursed Pool</span>
-                <span class="curse-header-sub">Priority shapes drop probability within each tier.</span>
+                <span class="curse-header-title">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CursedPool'}}</span>
+                <span class="curse-header-sub">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CursedPoolSub'}}</span>
             </div>
             <div class="curse-header-right">
                 {{#unless cwPresent}}
-                <span class="curse-cw-signal" title="Cursewright is not loaded in this world.">
-                    <span class="curse-cw-dot">◦</span> Cursewright not loaded
+                <span class="curse-cw-signal" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CursewrightNotLoadedTooltip'}}">
+                    <span class="curse-cw-dot">◦</span> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.CursewrightNotLoaded'}}
                 </span>
                 {{/unless}}
                 {{#if cwPresent}}
                 <button type="button" class="btn-cursed-tracker-launch action-open-curse-registry"
-                        title="View active cursed items tracked by the Curse Engine">
-                    <i class="fas fa-eye"></i> Curse Tracker
+                        title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ViewCurseTracker'}}">
+                    <i class="fas fa-eye"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.CurseTracker'}}
                 </button>
                 {{/if}}
-                <span class="curse-header-level">Lv {{partyLevel}}</span>
+                <span class="curse-header-level">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.LevelCol' level=partyLevel}}</span>
             </div>
         </div>
 
         {{!-- ── Tier distribution chart ────────────────────────────────────── --}}
         <div class="curse-tier-dist-panel">
-            <span class="curse-dist-label">Drop probability at Lv {{partyLevel}}</span>
+            <span class="curse-dist-label">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.DropProbability' level=partyLevel}}</span>
             <div class="curse-dist-chart-group">
                 <div class="curse-dist-bars">
                     {{#each cursedTierDistribution}}
@@ -525,15 +525,15 @@
                 </div>
                 <div class="curse-dist-vert-divider"></div>
                 <div class="curse-tier-toggles">
-                    <label class="curse-tier-toggle-row {{#unless t3Enabled}}curse-toggle-off{{/unless}}" title="T3 cursed items are documented as high-lethality - capable of killing players. Enable when your campaign is ready for that.">
+                    <label class="curse-tier-toggle-row {{#unless t3Enabled}}curse-toggle-off{{/unless}}" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.T3Tooltip'}}">
                         <input type="checkbox" class="curse-tier-toggle-check action-toggle-t3" {{#if t3Enabled}}checked{{/if}}>
                         <span class="curse-toggle-tier">T3</span>
-                        <span class="curse-toggle-hint">Dangerous - high lethality</span>
+                        <span class="curse-toggle-hint">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.T3Hint'}}</span>
                     </label>
-                    <label class="curse-tier-toggle-row {{#unless t4Enabled}}curse-toggle-off{{/unless}}" title="T4 cursed items are campaign-altering - expect side quests, major distractions, and long-term consequences.">
+                    <label class="curse-tier-toggle-row {{#unless t4Enabled}}curse-toggle-off{{/unless}}" title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.T4Tooltip'}}">
                         <input type="checkbox" class="curse-tier-toggle-check action-toggle-t4" {{#if t4Enabled}}checked{{/if}}>
                         <span class="curse-toggle-tier">T4</span>
-                        <span class="curse-toggle-hint">Campaign-altering</span>
+                        <span class="curse-toggle-hint">{{localize 'IONRIFT.QUARTERMASTER.LEDGER.T4Hint'}}</span>
                     </label>
                 </div>
             </div>
@@ -553,7 +553,7 @@
                 {{#unless this.enabled}}
                 <div class="curse-col-disabled-notice">
                     <i class="fas fa-lock"></i>
-                    <span>Tier disabled - items held in reserve</span>
+                    <span>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.TierDisabled'}}</span>
                 </div>
                 {{/unless}}
 
@@ -580,7 +580,7 @@
                         <button type="button" class="curse-priority-card-remove action-remove-pool-item"
                                 data-index="{{this.posInCol}}"
                                 data-uuid="{{this.uuid}}"
-                                title="Remove from pool">
+                                title="{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RemoveFromPool'}}">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -589,14 +589,14 @@
                     {{#unless this.isFull}}
                     <div class="curse-col-drop-hint">
                         <i class="fas fa-arrow-down-to-bracket"></i>
-                        <span>Drop item here</span>
+                        <span>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.DropItemHere'}}</span>
                     </div>
                     {{/unless}}
 
                     {{#if this.isFull}}
                     <div class="curse-col-full-notice">
                         <i class="fas fa-circle-info"></i>
-                        <span>Column full - remove to add</span>
+                        <span>{{localize 'IONRIFT.QUARTERMASTER.LEDGER.ColumnFull'}}</span>
                     </div>
                     {{/if}}
                 {{/if}}
@@ -611,22 +611,22 @@
                 {{#unless cwPresent}}
                 {{#if srdPoolCount}}
                 <span class="curse-source-pill curse-source-pill--active">
-                    <i class="fas fa-circle-check"></i> SRD · {{srdPoolCount}} item{{#if (gt srdPoolCount 1)}}s{{/if}}
+                    <i class="fas fa-circle-check"></i> {{#if (gt srdPoolCount 1)}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.SRDItemsPlural' count=srdPoolCount}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.SRDItems' count=srdPoolCount}}{{/if}}
                 </span>
                 {{else}}
                 <span class="curse-source-pill">
-                    <i class="fas fa-flask-vial"></i> SRD not loaded
+                    <i class="fas fa-flask-vial"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.SRDNotLoaded'}}
                 </span>
                 {{/if}}
                 {{/unless}}
                 {{#if cwPresent}}
                     {{#if cwPoolCount}}
                     <span class="curse-source-pill curse-source-pill--active">
-                        <i class="fas fa-circle-check"></i> Cursewright · {{cwPoolCount}} item{{#if (gt cwPoolCount 1)}}s{{/if}}
+                        <i class="fas fa-circle-check"></i> {{#if (gt cwPoolCount 1)}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CWItemsPlural' count=cwPoolCount}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CWItems' count=cwPoolCount}}{{/if}}
                     </span>
                     {{else}}
                     <span class="curse-source-pill">
-                        <i class="fas fa-skull-crossbones"></i> Cursewright not compiled
+                        <i class="fas fa-skull-crossbones"></i> {{localize 'IONRIFT.QUARTERMASTER.LEDGER.CWNotCompiled'}}
                     </span>
                     {{/if}}
                 {{/if}}
@@ -636,18 +636,18 @@
                 {{#if hasSrdPack}}
                 <a role="button" class="curse-footer-link action-compile-srd-cursed"
                    data-action="compile-srd-cursed"
-                   title="{{#if srdPoolCount}}Refresh SRD cursed items{{else}}Load SRD cursed items{{/if}}">
+                   title="{{#if srdPoolCount}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RefreshSRDTooltip'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.LoadSRDTooltip'}}{{/if}}">
                     <i class="fas {{#if srdPoolCount}}fa-rotate{{else}}fa-plus{{/if}}"></i>
-                    {{#if srdPoolCount}}Refresh SRD{{else}}Load SRD{{/if}}
+                    {{#if srdPoolCount}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RefreshSRD'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.LoadSRD'}}{{/if}}
                 </a>
                 {{/if}}
                 {{/unless}}
                 {{#if cwPresent}}
                 <a role="button" class="curse-footer-link action-compile-curse-forge"
                    data-action="compile-curse-forge"
-                   title="{{#if cwPoolCount}}Refresh Cursewright items{{else}}Compile Cursewright curse recipes{{/if}}">
+                   title="{{#if cwPoolCount}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RefreshCWTooltip'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CompileCWTooltip'}}{{/if}}">
                     <i class="fas {{#if cwPoolCount}}fa-rotate{{else}}fa-hammer{{/if}}"></i>
-                    {{#if cwPoolCount}}Refresh CW{{else}}Compile CW{{/if}}
+                    {{#if cwPoolCount}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.RefreshCW'}}{{else}}{{localize 'IONRIFT.QUARTERMASTER.LEDGER.CompileCW'}}{{/if}}
                 </a>
                 {{/if}}
             </div>
@@ -658,4 +658,3 @@
 {{/if}}
 
 </form>
-

@@ -1,5 +1,6 @@
 import { AMMO_TILT_PRESETS, AmmoTypeRegistry } from "../../services/workshop/AmmoTypeRegistry.js";
 import { MODULE_ID } from "../../data/moduleId.js";
+import { localize } from "../../utils/I18n.js";
 
 
 // ── Per-type colour palette ────────────────────────────────────────────────
@@ -47,7 +48,7 @@ export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
     static DEFAULT_OPTIONS = {
         id: "qm-ammo-type-config",
         window: {
-            title: "Ammunition Type Curve",
+            title: "IONRIFT.QUARTERMASTER.APP.AmmoTypeConfigAppTitle",
             icon:  "fas fa-bullseye-arrow",
             resizable: false
         },
@@ -92,17 +93,16 @@ export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
     _buildShell() {
         return `
             <p class="qm-ammo-lead">
-                Cache generation picks an ammo category first, then picks a random item within it.
-                Raise a type to favour it; set to 0 or toggle off to exclude it.
+                ${localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoLead")}
             </p>
 
             <div class="qm-dist-wrap">
-                <div class="qm-dist-bar" aria-label="Ammo weight distribution"></div>
+                <div class="qm-dist-bar" aria-label="${localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoDistAria")}"></div>
                 <div class="qm-dist-legend"></div>
             </div>
 
             <div class="qm-ammo-presets">
-                <span class="qm-presets-label">Quick presets</span>
+                <span class="qm-presets-label">${localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoQuickPresets")}</span>
                 <div class="qm-preset-row">
                     ${this._buildPresetButtons()}
                 </div>
@@ -112,12 +112,12 @@ export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
 
             <div class="qm-ammo-footer">
                 <button type="button" class="qm-add-btn">
-                    <i class="fas fa-plus"></i> Add custom type
+                    <i class="fas fa-plus"></i> ${localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoAddCustomType")}
                 </button>
                 <div class="qm-footer-actions">
-                    <button type="button" class="qm-cancel-btn">Cancel</button>
+                    <button type="button" class="qm-cancel-btn">${localize("IONRIFT.QUARTERMASTER.CONFIG.Cancel")}</button>
                     <button type="button" class="qm-save-btn">
-                        <i class="fas fa-save"></i> Save
+                        <i class="fas fa-save"></i> ${localize("IONRIFT.QUARTERMASTER.CONFIG.Save")}
                     </button>
                 </div>
             </div>`;
@@ -125,11 +125,11 @@ export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
 
     _buildPresetButtons() {
         const labels = {
-            balanced: "Balanced",
-            arrows:   "Arrows",
-            bolts:    "Bolts",
-            sling:    "Sling",
-            mixed:    "Mixed"
+            balanced: localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoPresetBalanced"),
+            arrows:   localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoPresetArrows"),
+            bolts:    localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoPresetBolts"),
+            sling:    localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoPresetSling"),
+            mixed:    localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoPresetMixed")
         };
         return Object.keys(AMMO_TILT_PRESETS).map(id => `
             <button type="button" class="qm-preset-btn" data-preset="${id}">
@@ -164,23 +164,24 @@ export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
         const isDisabled = weight === 0;
         const displayW   = isDisabled ? (typeEntry._prevWeight ?? 1) : weight;
         const isBuiltin  = !!typeEntry.builtin;
-        const patternTxt = (typeEntry.patterns ?? []).join(", ") || "Fallback category";
+        const patternTxt = (typeEntry.patterns ?? []).join(", ")
+            || localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoFallbackCategory");
 
         const nameHtml = isBuiltin
             ? `<span class="qm-type-name">${foundry.utils.escapeHTML(typeEntry.label ?? "")}</span>`
             : `<input type="text" class="qm-type-name-input"
                       value="${foundry.utils.escapeHTML(typeEntry.label ?? "")}"
-                      placeholder="Custom label" />`;
+                      placeholder="${localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoCustomLabelPlaceholder")}" />`;
 
         const patternHtml = isBuiltin
             ? `<span class="qm-type-pattern">${foundry.utils.escapeHTML(patternTxt)}</span>`
             : `<input type="text" class="qm-type-pattern-input"
                       value="${foundry.utils.escapeHTML((typeEntry.patterns ?? []).join(", "))}"
-                      placeholder="Regex patterns, comma-separated" />`;
+                      placeholder="${localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoPatternsPlaceholder")}" />`;
 
         const removeHtml = isBuiltin
             ? ""
-            : `<button type="button" class="qm-remove-btn" title="Remove">
+            : `<button type="button" class="qm-remove-btn" title="${localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoRemove")}">
                    <i class="fas fa-trash-alt"></i>
                </button>`;
 
@@ -191,6 +192,10 @@ export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
         el.dataset.weight = displayW;
         el.dataset.color  = color;
         el.style.setProperty("--type-color", color);
+
+        const toggleTitle = isDisabled
+            ? localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoEnableType")
+            : localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoDisableType");
 
         el.innerHTML = `
             <span class="qm-type-dot" style="background: ${color};
@@ -203,17 +208,17 @@ export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
 
             <div class="qm-stepper-ctrl">
                 <button type="button" class="qm-step-btn qm-step-down"
-                        ${isDisabled ? "disabled" : ""} aria-label="Decrease weight">
+                        ${isDisabled ? "disabled" : ""} aria-label="${localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoDecreaseWeight")}">
                     <i class="fas fa-minus"></i>
                 </button>
                 <span class="qm-step-val">${isDisabled ? "0" : displayW}</span>
                 <button type="button" class="qm-step-btn qm-step-up"
-                        ${isDisabled ? "disabled" : ""} aria-label="Increase weight">
+                        ${isDisabled ? "disabled" : ""} aria-label="${localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoIncreaseWeight")}">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
 
-            <label class="qm-toggle" title="${isDisabled ? "Enable" : "Disable"} this type">
+            <label class="qm-toggle" title="${toggleTitle}">
                 <input type="checkbox" class="qm-type-toggle" ${isDisabled ? "" : "checked"} />
                 <span class="qm-toggle-track"></span>
             </label>
@@ -250,7 +255,7 @@ export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
         if (!bar) return;
 
         if (total === 0) {
-            bar.innerHTML   = `<div class="qm-dist-empty">All types excluded</div>`;
+            bar.innerHTML   = `<div class="qm-dist-empty">${localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoAllTypesExcluded")}</div>`;
             if (legend) legend.innerHTML = "";
             return;
         }
@@ -403,7 +408,8 @@ export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
                 return;
             }
 
-            const label      = row.querySelector(".qm-type-name-input")?.value?.trim() || "Custom type";
+            const label      = row.querySelector(".qm-type-name-input")?.value?.trim()
+                || localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoCustomTypeDefault");
             const patternRaw = row.querySelector(".qm-type-pattern-input")?.value ?? "";
             const patterns   = patternRaw.split(",").map(p => p.trim()).filter(Boolean);
             types.push({ ...existing, label, patterns, weight });
@@ -415,7 +421,7 @@ export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
     async _onSave() {
         const config = this._collectDraftFromDom();
         await AmmoTypeRegistry.save(config);
-        ui.notifications.info("Ammunition type curve saved.");
+        ui.notifications.info(localize("IONRIFT.QUARTERMASTER.CONFIG.AmmoCurveSaved"));
         this.close();
     }
 }

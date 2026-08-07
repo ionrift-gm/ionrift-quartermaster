@@ -4,6 +4,7 @@ import { MODULE_ID } from "../../data/moduleId.js";
  */
 
 import { ScrollForge } from "../../services/scroll/ScrollForge.js";
+import { localize } from "../../utils/I18n.js";
 
 
 export class ScrollForgeSourceApp extends FormApplication {
@@ -27,7 +28,7 @@ export class ScrollForgeSourceApp extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id:       "ionrift-scroll-forge-sources",
-            title:    "Scroll Forge: spell compendiums",
+            title:    localize("IONRIFT.QUARTERMASTER.APP.ScrollForgeSourceAppTitle"),
             template: `modules/${MODULE_ID}/templates/scroll-forge-sources.hbs`,
             width:    520,
             height:   "auto",
@@ -94,7 +95,7 @@ export class ScrollForgeSourceApp extends FormApplication {
         );
         await game.settings.set(MODULE_ID, ScrollForge.SETTING_HASH, "");
 
-        ui.notifications.info("Scroll Forge spell sources saved. Compiling scrolls.");
+        ui.notifications.info(localize("IONRIFT.QUARTERMASTER.CONFIG.ScrollForgeSourcesSaved"));
 
         await ScrollForge.compile();
         this.close();

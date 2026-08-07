@@ -1,10 +1,11 @@
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
+import { localize, format } from "../../utils/I18n.js";
 
 export class SoundPickerApp extends Application {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "ionrift-sound-picker",
-            title: "Sound Library",
+            title: localize("IONRIFT.QUARTERMASTER.SOUND.LibraryTitle"),
             template: "modules/ionrift-quartermaster/templates/sound-picker.hbs",
             width: 500,
             height: 600,
@@ -68,7 +69,7 @@ export class SoundPickerApp extends Application {
                 // Prioritize saved name in config, then fallback to passed-in options (legacy), then ID
                 name: cfg.name || ((id === this.opts.currentSoundId.split(",")[0].trim() && this.opts.currentSoundName)
                     ? this.opts.currentSoundName
-                    : `ID: ${id}`),
+                    : format("IONRIFT.QUARTERMASTER.SOUND.IdPrefix", { id })),
                 meta: cfg.meta || ((id === this.opts.currentSoundId.split(",")[0].trim() && this.opts.currentSoundMeta)
                     ? this.opts.currentSoundMeta
                     : ""),
@@ -190,28 +191,27 @@ export class SoundPickerApp extends Application {
         event.preventDefault();
 
         new Dialog({
-            title: "Purge Cache?",
+            title: localize("IONRIFT.QUARTERMASTER.SOUND.PurgeTitle"),
             content: `
                 <div style="text-align: center; padding: 10px;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 3em; color: #f87171; margin-bottom: 10px;"></i>
-                    <p style="font-size: 1.1em; margin-bottom: 5px;">Clear your local One-Shot cache?</p>
-                    <p style="font-size: 0.9em; color: #aaa;">You will need to Sync again to see Global One-Shots.</p>
+                    <p style="font-size: 1.1em; margin-bottom: 5px;">${localize("IONRIFT.QUARTERMASTER.SOUND.PurgeContent")}</p>
                 </div>
             `,
             buttons: {
                 purge: {
-                    label: `<i class="fas fa-trash"></i> Purge`,
+                    label: `<i class="fas fa-trash"></i> ${localize("IONRIFT.QUARTERMASTER.SOUND.Purge")}`,
                     callback: async () => {
                         await game.settings.set('ionrift-resonance', 'oneshotCache', { results: [] });
                         this._cacheCountOverride = 0;
                         this.results = [];
                         this.searchTerm = "";
                         this.render();
-                        ui.notifications.info("Ionrift: Cache Purged.");
+                        ui.notifications.info(localize("IONRIFT.QUARTERMASTER.SOUND.CachePurged"));
                     }
                 },
                 cancel: {
-                    label: "Cancel"
+                    label: localize("IONRIFT.QUARTERMASTER.SOUND.Cancel")
                 }
             },
             default: "cancel"
@@ -229,13 +229,13 @@ export class SoundPickerApp extends Application {
         // Visual Feedback
         const btn = this.element.find(".action-update-lib");
         const originalContent = btn.html();
-        btn.html('<i class="fas fa-spinner fa-spin"></i> Syncing...');
+        btn.html(`<i class="fas fa-spinner fa-spin"></i> ${localize("IONRIFT.QUARTERMASTER.SOUND.SyncCache")}`);
         btn.prop('disabled', true);
 
         try {
-            ui.notifications.info("Ionrift: Syncing Global One-Shots...");
+            ui.notifications.info(localize("IONRIFT.QUARTERMASTER.SOUND.Syncing"));
             const results = await manager.provider.cacheLibrary({});
-            ui.notifications.info(`Ionrift: Sync Complete (${results.length} Global One-Shots).`);
+            ui.notifications.info(format("IONRIFT.QUARTERMASTER.SOUND.SyncComplete", { count: results.length }));
 
             // Override cache count for this session to ensure UI updates immediately
             this._cacheCountOverride = results.length;
@@ -249,7 +249,7 @@ export class SoundPickerApp extends Application {
 
         } catch (e) {
             Logger.error(MODULE_LABEL, "Update failed:", e);
-            ui.notifications.error("Update Failed.");
+            ui.notifications.error(localize("IONRIFT.QUARTERMASTER.SOUND.UpdateFailed"));
             btn.html(originalContent);
             btn.prop('disabled', false);
         }
@@ -316,7 +316,7 @@ export class SoundPickerApp extends Application {
             }
         } catch (err) {
             Logger.error(MODULE_LABEL, "Search failed:", err);
-            ui.notifications.warn("Search failed.");
+            ui.notifications.warn(localize("IONRIFT.QUARTERMASTER.SOUND.SearchFailed"));
         } finally {
             this.isLoading = false;
             this.render();
@@ -332,7 +332,7 @@ export class SoundPickerApp extends Application {
 
         // Check duplicates
         if (this.currentBindings.some(b => b.id === id)) {
-            ui.notifications.warn("Sound already in list.");
+            ui.notifications.warn(localize("IONRIFT.QUARTERMASTER.SOUND.AlreadyInList"));
             return;
         }
 

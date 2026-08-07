@@ -1,5 +1,5 @@
 <form class="ionrift-loot-pool-config">
-    <p class="pool-instructions">Select which compendiums contribute items to the loot cache generator. Checked packs are queried at generation time.</p>
+    <p class="pool-instructions">{{localize 'IONRIFT.QUARTERMASTER.CONFIG.LootPoolInstructions'}}</p>
 
     <div class="loot-pool-sources-scroll">
         {{#each groups}}
@@ -20,7 +20,7 @@
 
     <footer class="pool-footer">
         <button type="submit" class="cache-btn-accent">
-            <i class="fas fa-save"></i> Save Sources
+            <i class="fas fa-save"></i> {{localize 'IONRIFT.QUARTERMASTER.CONFIG.SaveSources'}}
         </button>
     </footer>
 </form>

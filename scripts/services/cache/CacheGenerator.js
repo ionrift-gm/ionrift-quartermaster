@@ -10,6 +10,7 @@ import { TerrainDataRegistry } from "../loot/TerrainDataRegistry.js";
 import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../workshop/CoinFormat.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
+import { localize, format } from "../../utils/I18n.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 import {
     CacheScrollLogic,
@@ -522,17 +523,19 @@ export class CacheGenerator {
         const debug = game.settings?.get(MODULE_ID, "debug") === true;
         const debugSlots = [];
 
-        // Capitalise theme for display purposes when owner is unspecified
-        const themeDisplay = theme.charAt(0).toUpperCase() + theme.slice(1);
+        // Localize terrain / owner theme labels for display (ids stay English)
+        const themeDisplay = this._resolveTerrainDisplay(theme);
+        const ownerThemeLabel = this._resolveOwnerThemeLabel(ownerTheme, ownerDef);
+        const tierLabel = this._resolveTierLabel(tier, tierData);
         const cacheLabel = ownerTheme === "unspecified"
-            ? `${themeDisplay} Cache`
-            : ownerDef.label;
+            ? format("IONRIFT.QUARTERMASTER.CACHE.TerrainCache", { terrain: themeDisplay })
+            : ownerThemeLabel;
 
         const result = {
             gold: 0, items: [], container: null,
             meta: { 
-                tier, theme, ownerTheme, tierLabel: tierData.label, 
-                cacheLabel, economy,
+                tier, theme, ownerTheme, tierLabel,
+                cacheLabel, themeDisplay, economy,
                 mintBatch: foundry.utils.randomID(8)
             }
         };
@@ -1165,8 +1168,70 @@ export class CacheGenerator {
     static async getOwnerThemes() {
         const tables = await this._loadTables();
         return Object.entries(tables.ownerThemes ?? {}).map(([id, data]) => ({
-            id, label: data.label, desc: data.desc
+            id,
+            label: this._resolveOwnerThemeLabel(id, data),
+            desc: this._resolveOwnerThemeDesc(id, data)
         }));
+    }
+
+    /**
+     * Localized terrain display label for a theme id.
+     * @param {string} theme
+     * @returns {string}
+     */
+    static _resolveTerrainDisplay(theme) {
+        if (TerrainDataRegistry.isReady) {
+            return TerrainDataRegistry.resolveLabel(theme);
+        }
+        const pascal = theme.charAt(0).toUpperCase() + theme.slice(1);
+        const libKey = `IONRIFT.LIBRARY.TERRAIN.${pascal}`;
+        const fromLib = localize(libKey);
+        if (fromLib !== libKey) return fromLib;
+        return pascal;
+    }
+
+    /**
+     * Localized owner-theme label (cache-tables labelKey or Theme* keys).
+     * @param {string} id
+     * @param {object} [ownerDef]
+     * @returns {string}
+     */
+    static _resolveOwnerThemeLabel(id, ownerDef = null) {
+        if (ownerDef?.labelKey) return localize(ownerDef.labelKey);
+        const pascal = id.charAt(0).toUpperCase() + id.slice(1);
+        const key = `IONRIFT.QUARTERMASTER.CACHE.Theme${pascal}`;
+        const localized = localize(key);
+        if (localized !== key) return localized;
+        return ownerDef?.label ?? pascal;
+    }
+
+    /**
+     * Localized owner-theme description.
+     * @param {string} id
+     * @param {object} [ownerDef]
+     * @returns {string}
+     */
+    static _resolveOwnerThemeDesc(id, ownerDef = null) {
+        if (ownerDef?.descKey) return localize(ownerDef.descKey);
+        const pascal = id.charAt(0).toUpperCase() + id.slice(1);
+        const key = `IONRIFT.QUARTERMASTER.CACHE.Theme${pascal}Desc`;
+        const localized = localize(key);
+        if (localized !== key) return localized;
+        return ownerDef?.desc ?? "";
+    }
+
+    /**
+     * Localized tier display label from cache-tables.
+     * @param {number|string} tier
+     * @param {object} [tierData]
+     * @returns {string}
+     */
+    static _resolveTierLabel(tier, tierData = null) {
+        if (tierData?.labelKey) return localize(tierData.labelKey);
+        const key = `IONRIFT.QUARTERMASTER.CACHE.TierLabel${tier}`;
+        const localized = localize(key);
+        if (localized !== key) return localized;
+        return tierData?.label ?? `Tier ${tier}`;
     }
 
     /**
@@ -1867,7 +1932,13 @@ export class CacheGenerator {
         const { gold, items, meta: metaBase, coinage } = result;
         const meta = {
             ...metaBase,
-            themeDisplay: metaBase.theme.charAt(0).toUpperCase() + metaBase.theme.slice(1)
+            themeDisplay: metaBase.themeDisplay
+                ?? this._resolveTerrainDisplay(metaBase.theme),
+            chatMetaLine: format("IONRIFT.QUARTERMASTER.CACHE.ChatMetaLine", {
+                tier: metaBase.tierLabel,
+                terrain: metaBase.themeDisplay
+                    ?? this._resolveTerrainDisplay(metaBase.theme)
+            })
         };
         const coinageRows = coinage
             ? ["pp", "gp", "ep", "sp", "cp"].filter(d => coinage[d]).map(d => ({ denom: d, amount: coinage[d] }))
@@ -1921,7 +1992,7 @@ export class CacheGenerator {
             const cacheId = event.currentTarget.dataset.cacheId;
             const result = this._pendingCaches.get(cacheId);
             if (!result) {
-                ui.notifications.warn("Cache data expired. Generate a new cache.");
+                ui.notifications.warn(localize("IONRIFT.QUARTERMASTER.CACHE.DataExpired"));
                 return;
             }
             await this.createCacheItems(result);
@@ -1938,7 +2009,7 @@ export class CacheGenerator {
      */
     static async createCacheItems(cacheResult, options = {}) {
         if (!game.user.isGM) {
-            ui.notifications.warn("Only the GM can create cache items.");
+            ui.notifications.warn(localize("IONRIFT.QUARTERMASTER.CACHE.GMOnlyCreate"));
             return;
         }
 
@@ -1946,7 +2017,11 @@ export class CacheGenerator {
         const { wrapInContainer = false, containerTerrain = 'any' } = options;
 
         // Create a folder for this cache
-        const folderName = `Cache: ${cacheResult.meta?.cacheLabel ?? "Loot"} (${new Date().toLocaleDateString()})`;
+        const lootFallback = localize("IONRIFT.QUARTERMASTER.CACHE.LootFallback");
+        const folderName = format("IONRIFT.QUARTERMASTER.CACHE.FolderName", {
+            label: cacheResult.meta?.cacheLabel ?? lootFallback,
+            date: new Date().toLocaleDateString()
+        });
         let folder = game.folders.find(f => f.name === folderName && f.type === "Item");
         if (!folder) {
             folder = await Folder.create({ name: folderName, type: "Item", parent: null });
@@ -1963,7 +2038,11 @@ export class CacheGenerator {
                     quantity: item.quantity ?? 1,
                     price: { value: item.price ?? 0, denomination: "gp" },
                     rarity: item.rarity ?? "common",
-                    description: { value: `<p>Generated from a ${cacheResult.meta?.cacheLabel ?? "loot cache"}.</p>` }
+                    description: {
+                        value: `<p>${format("IONRIFT.QUARTERMASTER.CACHE.GeneratedFrom", {
+                            label: cacheResult.meta?.cacheLabel ?? lootFallback
+                        })}</p>`
+                    }
                 },
                 flags: {
                     [MODULE_ID]: {
@@ -2032,14 +2111,14 @@ export class CacheGenerator {
                 const innerItems = toCreate.map(i => ({ ...i, folder: folder.id, system: { ...i.system, container: containerItem.id } }));
                 CacheGenerator._guardMintSources(innerItems);
                 await Item.create(innerItems);
-                ui.notifications.info(`Created "${container.name}" with ${innerItems.length} items in "${folderName}".`);
+                ui.notifications.info(format("IONRIFT.QUARTERMASTER.CACHE.CreatedContainer", { name: container.name, count: innerItems.length, folderName }));
                 return;
             }
         }
 
         CacheGenerator._guardMintSources(toCreate);
         const created = await Item.create(toCreate);
-        ui.notifications.info(`Created ${created.length} items in "${folderName}".`);
+        ui.notifications.info(format("IONRIFT.QUARTERMASTER.CACHE.CreatedItems", { count: created.length, folderName }));
     }
 
     /**
@@ -2136,12 +2215,16 @@ export class CacheGenerator {
      */
     static async _addToItems(result) {
         if (!game.user.isGM) {
-            ui.notifications.warn("Only the GM can create cache items.");
+            ui.notifications.warn(localize("IONRIFT.QUARTERMASTER.CACHE.GMOnlyCreate"));
             return { count: 0 };
         }
 
         const items = result.items ?? [];
-        const folderName = `Cache: ${result.meta?.cacheLabel ?? "Loot"} (${new Date().toLocaleDateString()})`;
+        const lootFallback = localize("IONRIFT.QUARTERMASTER.CACHE.LootFallback");
+        const folderName = format("IONRIFT.QUARTERMASTER.CACHE.FolderName", {
+            label: result.meta?.cacheLabel ?? lootFallback,
+            date: new Date().toLocaleDateString()
+        });
         let folder = game.folders.find(f => f.name === folderName && f.type === "Item");
         if (!folder) {
             folder = await Folder.create({ name: folderName, type: "Item", parent: null });
@@ -2158,7 +2241,11 @@ export class CacheGenerator {
                     price: { value: item.price ?? 0, denomination: "gp" },
                     weight: { value: item.weight ?? 0, units: "lb" },
                     rarity: item.rarity ?? "common",
-                    description: { value: `<p>Generated from a ${result.meta?.cacheLabel ?? "loot cache"}.</p>` }
+                    description: {
+                        value: `<p>${format("IONRIFT.QUARTERMASTER.CACHE.GeneratedFrom", {
+                            label: result.meta?.cacheLabel ?? lootFallback
+                        })}</p>`
+                    }
                 }
             };
 
@@ -2207,7 +2294,7 @@ export class CacheGenerator {
         CacheGenerator._guardMintSources(toCreate);
         const created = await Item.create(toCreate);
 
-        ui.notifications.info(`Cache added to Items directory: ${created.length} items in "${folderName}".`);
+        ui.notifications.info(format("IONRIFT.QUARTERMASTER.CACHE.CacheAdded", { count: created.length, folderName }));
         
         return { count: created.length };
     }

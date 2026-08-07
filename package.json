@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --config scripts/tests/vitest.config.js",
     "build:packs": "node ../ionrift-testharness/tools/modules/quartermaster/compile-packs.mjs",
     "validate:packs": "node ../ionrift-testharness/tools/modules/quartermaster/validate-packs-local.mjs",
     "validate:shipping": "node ../ionrift-testharness/tools/modules/quartermaster/validate-shipping.mjs",

@@ -3,7 +3,7 @@
         <img src="{{itemImg}}"
             style="width: 48px; height: 48px; border: 1px solid #a78bfa; border-radius: 4px; margin-bottom: 8px;" />
         <h2 style="border: none; margin: 0;">{{itemName}}</h2>
-        <p class="notes" style="margin-top: 5px;">Configure sonic identity.</p>
+        <p class="notes" style="margin-top: 5px;">{{localize 'IONRIFT.QUARTERMASTER.SOUND.ConfigureSonic'}}</p>
     </div>
 
     <div class="slots-list" style="display: flex; flex-direction: column; gap: 10px;">
@@ -25,19 +25,19 @@
                             {{#if this.meta}}<span class="sound-meta">{{this.meta}}</span>{{/if}}
                         </div>
                     </div>
-                    {{else}}No binding{{/if}}
+                    {{else}}{{localize 'IONRIFT.QUARTERMASTER.SOUND.NoBinding'}}{{/if}}
                 </div>
             </div>
 
             <div class="slot-actions" style="display: flex; gap: 5px;">
                 {{#if this.hasValue}}
-                <button type="button" class="action-play" data-key="{{this.key}}" title="Test Play"
+                <button type="button" class="action-play" data-key="{{this.key}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.TestPlay'}}"
                     style="width: 30px; padding: 0;"><i class="fas fa-play"></i></button>
-                <button type="button" class="action-clear" data-key="{{this.key}}" title="Clear"
+                <button type="button" class="action-clear" data-key="{{this.key}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.Clear'}}"
                     style="width: 30px; padding: 0; background: #3f1919; border-color: #7f1d1d;"><i
                         class="fas fa-trash"></i></button>
                 {{/if}}
-                <button type="button" class="action-search" data-key="{{this.key}}" title="Search"
+                <button type="button" class="action-search" data-key="{{this.key}}" title="{{localize 'IONRIFT.QUARTERMASTER.SOUND.Search'}}"
                     style="width: 30px; padding: 0;"><i class="fas fa-search"></i></button>
             </div>
 
