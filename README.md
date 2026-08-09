@@ -5,7 +5,7 @@
 ![Foundry v12+](https://img.shields.io/badge/Foundry-v12%2B-333333?style=flat&logo=foundryvirtualtabletop)
 ![Systems](https://img.shields.io/badge/system-dnd5e-blue)
 
-**The GM's loot engine for Foundry VTT.** Terrain-aware cache generation, masked item identification, scroll management, cursed item tracking, and campaign item planning.
+**Terrain-aware loot generation for Foundry VTT.** Cache generation, masked item identification, scroll management, cursed item tracking, and campaign item planning.
 
 ### Support Ionrift
 
@@ -21,13 +21,13 @@
   ![Compile Scrolls](assets/screenshots/compile_scrolls.webp)
 
 - **Cache Generator:** Terrain-aware, tier-scaled loot caches with a single click. Nine terrain
-  themes, four party tiers, ten owner profiles. Full slot re-roll and preview before commit.
+  themes, four party tiers, ten owner profiles. Slot re-roll and preview before commit.
   Drag caches onto the canvas as interactive loot containers with [Item Piles](https://foundryvtt.com/packages/itempilesdnd5e).
-- **Masked Items & Identification:** Generated items appear mundane to players — masked names,
+- **Masked Items & Identification:** Generated items appear mundane to players: masked names,
   generic icons, concealed rarity. The GM reveals true identities with the identification wand.
-- **Cursed Item Pool:** Seed your campaign with SRD cursed items that blend seamlessly into
-  ordinary loot. Standalone management or full lifecycle integration with
-  [Ionrift Cursewright](https://patreon.com/ionrift) (premium companion module).
+- **Cursed Item Pool:** Seed the campaign with SRD cursed items that appear in ordinary loot.
+  Standalone management or escalation, activation, and narration with
+  [Ionrift Cursewright](https://patreon.com/ionrift) (Patreon module).
 - **Scroll Management:** Tagged spell scrolls with spell name, level, class hints, and party
   awareness. Scrolls the party already knows are deprioritised automatically.
 - **Signature Ledger:** Campaign-length item distribution planner. Per-character timelines,
@@ -46,7 +46,7 @@
 - Click **Loot Cache** in the Items Directory header to generate terrain-aware loot.
 - Click **Quartermaster** to open the Signature Ledger and campaign planner.
 - Right-click any item, then **Edit in Quartermaster** to refine it.
-- Open **Module Settings → Quartermaster** to configure loot sources, scroll jitter,
+- Open **Module Settings > Quartermaster** to configure loot sources, scroll jitter,
   magic frequency, and the cursed item pool.
 
 ## Dependencies
@@ -54,16 +54,16 @@
 | Module | Required? | What it enables |
 |--------|-----------|----------------|
 | [`ionrift-library`](https://github.com/ionrift-gm/ionrift-library) v2.0.0+ | **Yes** | Core shared utilities |
-| [`itempilesdnd5e`](https://foundryvtt.com/packages/itempilesdnd5e) | Recommended | Drag-to-canvas loot containers, player looting UI |
-| [`ionrift-cursewright`](https://patreon.com/ionrift) | Optional | Full cursed item lifecycle — escalation, activation, narration |
+| [`itempilesdnd5e`](https://foundryvtt.com/packages/itempilesdnd5e) | Optional | Drag-to-canvas loot containers, player looting UI |
+| [`ionrift-cursewright`](https://patreon.com/ionrift) | Optional | Curse escalation, activation, and narration |
 | [`ionrift-resonance`](https://github.com/ionrift-gm/ionrift-resonance) | Optional | Sound effects bound to item actions |
 
 ## Documentation
 
 Full guides on the **[Ionrift Wiki](https://github.com/ionrift-gm/ionrift-library/wiki)**:
 
-- **[Setup: Quartermaster](https://github.com/ionrift-gm/ionrift-library/wiki/10-Setup-Quartermaster)** — Installation, cache generation, and first-time configuration
-- **[Setup: Cursewright](https://github.com/ionrift-gm/ionrift-library/wiki/11-Setup-Cursewright)** — Cursed item lifecycle (premium companion)
+- **[Setup: Quartermaster](https://github.com/ionrift-gm/ionrift-library/wiki/10-Setup-Quartermaster)**: Installation, cache generation, and first-time configuration
+- **[Setup: Cursewright](https://github.com/ionrift-gm/ionrift-library/wiki/11-Setup-Cursewright)**: Cursed item lifecycle (Patreon module)
 
 ## Bug Reports
 
