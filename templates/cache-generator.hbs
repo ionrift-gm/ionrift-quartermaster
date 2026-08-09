@@ -599,8 +599,8 @@
                 {{else}}
                 <div class="cache-empty-state cache-no-pool-state">
                     <i class="fas fa-box-open"></i>
-                    <p>No loot pool configured.</p>
-                    <p class="cache-hint">The cache generator needs at least one compendium source to draw items from. Set one up in the Loot Pool compiler before generating.</p>
+                    <p>{{#if lootSourcesOnly}}No loot sources configured.{{else}}No loot pool configured.{{/if}}</p>
+                    <p class="cache-hint">{{#if lootSourcesOnly}}The cache generator needs at least one compendium source to draw items from. Open Compendium Forge, pick packs under Loot Sources, then Save Sources.{{else}}The cache generator needs at least one compendium source to draw items from. Set one up in the Loot Pool compiler before generating.{{/if}}</p>
                 </div>
                 {{/if}}
                 {{/unless}}
@@ -679,7 +679,7 @@
 
                 {{else}}
                 <button type="button" class="action-open-pool-compiler cache-btn-nudge">
-                    <i class="fas fa-hammer"></i> Set Up Loot Pool
+                    <i class="fas fa-hammer"></i> {{#if lootSourcesOnly}}Set Up Loot Sources{{else}}Set Up Loot Pool{{/if}}
                 </button>
                 {{/if}}
             </div>
