@@ -5,7 +5,7 @@ import { getCurseAdapter } from "../../services/curse/getCurseAdapter.js";
 import { StandalonePoolRegistry, getActiveCursedRegistry } from "../../services/loot/StandalonePoolRegistry.js";
 import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "../forge/CursedSourcesApp.js";
 import { CursedItemResolver } from "../../services/curse/CursedItemResolver.js";
-import { LootGenerationConfigApp } from "../config/LootGenerationConfigApp.js";
+import { LootGenerationConfigApp } from "../config/loot/LootGenerationConfigApp.js";
 import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 
@@ -267,8 +267,7 @@ export class SignatureLedgerApp extends Application {
             SignatureLedger.getBanList()
         ]);
 
-        // Cursed Pool tab is always shown - works standalone (SRD stubs via
-        // SrdCurseAdapter) or with Cursewright for the full premium experience.
+        // Cursed Pool tab: standalone SRD stubs, or Cursewright when present.
         const curseSystemEnabled = true;
         const cwPresent = !!game.ionrift?.cursewright;
 

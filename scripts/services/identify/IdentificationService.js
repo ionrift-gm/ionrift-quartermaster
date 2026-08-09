@@ -8,31 +8,7 @@ const FLAG_LATENT_MAGIC = "latentMagic";
 const FLAG_CURSED_META = "cursedMeta";
 
 /**
- * IdentificationService
- *
- * Single entry point for item identification in Quartermaster worlds.
- * Promotes stashed magical properties back onto the item's system data
- * and flips `system.identified = true`. Stashed payloads live on item flags:
- *
- *   - `latentMagic`: set by the cache masking pipeline on plain
- *     magical items (a +1 Javelin from a loot cache). Carries
- *     magicalBonus, the `mgc` property, and attunement. Marked
- *     `promoted: true` after promotion so a GM can re-obscure.
- *
- *   - Legacy `cursedMeta.lure`: older compendium rows that stash the decoy
- *     on the meta object instead of `latentMagic`. Curse Forge now writes
- *     the same latent shape as cache +1 items and keeps only the curse arc
- *     on `cursedMeta` (plus `lureName` for engine bookkeeping).
- *
- *   - Modern Cursewright rows can carry `cursedMeta` without `lure` once
- *     latent magic is absent or already promoted. Identification then only
- *     flips `system.identified` and records `cursedMeta.gmRevealed` after a
- *     GM-only notice.
- *
- * All identification paths in Quartermaster (GM action, Respite rest
- * activity, future Arcana flow) should route through `identify(item)`.
- * Foundry's native wand toggle is blocked by `IdentificationGuard` when
- * `gmOnlyIdentification` is enabled (default).
+ * Identify entry: promote latentMagic / cursedMeta, set system.identified.
  */
 export class IdentificationService {
 
@@ -45,6 +21,23 @@ export class IdentificationService {
      * @param {boolean} [options.silent=false] Skip the user notification.
      * @returns {Promise<{identified: boolean, kind: string, reason?: string}>}
      */
+    /**
+     * Whether Identify should promote the true poison identity (RAW Potion of Poison).
+     * @param {object|null} cursedMeta
+     * @param {object|null} latent
+     * @param {Item} item
+     * @returns {boolean}
+     */
+    static _shouldRevealPoisonTruth(cursedMeta, latent, item) {
+        if (cursedMeta?.identifyRevealsTruth) return true;
+        if (cursedMeta?.truthRevealed) return false;
+        const lureName = String(cursedMeta?.lureName ?? latent?.originalName ?? "");
+        if (/^potion of poison\b/i.test(lureName)) return true;
+        const recipeKey = String(item?.flags?.["ionrift-cursewright"]?.recipeKey ?? "");
+        if (/poison-potion/i.test(recipeKey)) return true;
+        return false;
+    }
+
     static async identify(item, { silent = false } = {}) {
         traceIdentify("identify:start", { silent, ...traceItemFlags(item) });
 
@@ -55,6 +48,19 @@ export class IdentificationService {
         if (!item) {
             traceIdentify("identify:abort", { reason: "no-item" });
             return { identified: false, kind: "none", reason: "no-item" };
+        }
+
+        // Infected stacks: intentional Identify exposes poisoned doses (split).
+        // Must run before the pending-payload abort: surface may already be identified:true.
+        const infectedCount = Number(item.getFlag?.(MODULE_ID, "infectedCount") ?? 0) || 0;
+        if (infectedCount > 0) {
+            const reveal = game.ionrift?.cursewright?.infectedStacks?.revealInfectedByIdentify;
+            if (typeof reveal === "function") {
+                traceIdentify("identify:infected-split", { infectedCount, ...traceItemFlags(item) });
+                return reveal.call(game.ionrift.cursewright.infectedStacks, item, { silent });
+            }
+            Logger.warn("Quartermaster", "IdentificationService: infected stack present but Cursewright InfectedStackManager unavailable.");
+            return { identified: false, kind: "none", reason: "infected-handler-missing" };
         }
 
         const latent = item.getFlag?.(MODULE_ID, FLAG_LATENT_MAGIC) ?? null;
@@ -76,9 +82,12 @@ export class IdentificationService {
             return { identified: false, kind: "none", reason: "already-identified" };
         }
 
+        const revealPoisonTruth = IdentificationService._shouldRevealPoisonTruth(cursedMeta, latent, item);
+
         traceIdentify("identify:promote", {
             hasUnpromotedLatent,
             hasCursedOnlyMeta,
+            revealPoisonTruth,
             forgedFrom: item.flags?.[MODULE_ID]?.forgedFrom ?? null
         });
 
@@ -100,7 +109,10 @@ export class IdentificationService {
             // state (name, magical bonus, activities with damage, properties).
             // Falls back to the latentMagic flag path for items compiled
             // before the twin model landed.
-            const twin = await IdentificationService._resolveIdentifiedTwin(item);
+            // Poison family (identifyRevealsTruth): no twin; latent holds poison truth.
+            const twin = revealPoisonTruth
+                ? null
+                : await IdentificationService._resolveIdentifiedTwin(item);
             if (twin) {
                 Object.assign(updates, ItemMaskingHelper.buildPromotionPatchFromTwin(item, twin, latent));
                 displayName = twin.name ?? latent.originalName ?? item.name;
@@ -115,10 +127,10 @@ export class IdentificationService {
                     ItemMaskingHelper.buildActivityPromotionPatch(item, latent.activities)
                 );
             }
-            kind = "cursed-lure";
+            kind = revealPoisonTruth ? "poison-truth" : "cursed-lure";
         } else if (latent && !latent.promoted) {
             Object.assign(updates, ItemMaskingHelper.buildPromotionPatch(item.system, latent, item.type, item));
-            kind = "latent-magic";
+            kind = revealPoisonTruth ? "poison-truth" : "latent-magic";
             displayName = latent.originalName ?? item.name;
         } else if (cursedMeta?.lure && item.system?.identified === false) {
             const lure = cursedMeta.lure;
@@ -181,10 +193,13 @@ export class IdentificationService {
         // unconditionally - these values are not stashed in latentMagic
         // and may be absent or incorrect from the original compendium entry.
         // enrichIdentifiedItem is a no-op for non-healing-potion items.
-        const enriched = await PotionEnrichment.enrichIdentifiedItem(item);
-        if (enriched === false) {
-            traceIdentify("identify:abort", { reason: "enrichment-failed", ...traceItemFlags(item) });
-            return { identified: false, kind, reason: "enrichment-failed" };
+        // Skip for poison-truth: name/activity are poison, not healing.
+        if (kind !== "poison-truth") {
+            const enriched = await PotionEnrichment.enrichIdentifiedItem(item);
+            if (enriched === false) {
+                traceIdentify("identify:abort", { reason: "enrichment-failed", ...traceItemFlags(item) });
+                return { identified: false, kind, reason: "enrichment-failed" };
+            }
         }
 
         if (latent) {
@@ -263,6 +278,19 @@ export class IdentificationService {
             }
         }
 
+        if (kind === "poison-truth" && cursedMeta) {
+            try {
+                const live = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? cursedMeta;
+                await item.setFlag(MODULE_ID, FLAG_CURSED_META, {
+                    ...live,
+                    identifyRevealsTruth: true,
+                    truthRevealed: true
+                });
+            } catch (err) {
+                Logger.warn("Quartermaster", `IdentificationService: failed to mark truthRevealed on ${item.name}:`, err.message);
+            }
+        }
+
         if (hasCursedOnlyMeta) {
             try {
                 await item.setFlag(MODULE_ID, FLAG_CURSED_META, { ...cursedMeta, gmRevealed: true });
@@ -281,7 +309,11 @@ export class IdentificationService {
 
         if (!silent && kind !== "cursed-identified") {
             const actorName = item.parent?.name ?? "an unknown holder";
-            const suffix = kind === "cursed-lure" ? ". The lure is active." : ".";
+            const suffix = kind === "cursed-lure"
+                ? ". The lure is active."
+                : kind === "poison-truth"
+                    ? ". Its true nature is poison."
+                    : ".";
             ui.notifications.info(`${displayName} has been identified for ${actorName}${suffix}`);
         }
 
@@ -341,6 +373,9 @@ export class IdentificationService {
      */
     static hasPendingIdentification(item) {
         if (!item) return false;
+        const infectedCount = Number(item.getFlag?.(MODULE_ID, "infectedCount") ?? 0) || 0;
+        if (infectedCount > 0) return true;
+
         const latent = item.getFlag?.(MODULE_ID, FLAG_LATENT_MAGIC) ?? null;
         const cursedMeta = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? null;
 
