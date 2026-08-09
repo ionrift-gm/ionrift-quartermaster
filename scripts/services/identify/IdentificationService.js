@@ -13,15 +13,6 @@ const FLAG_CURSED_META = "cursedMeta";
 export class IdentificationService {
 
     /**
-     * Identify an item. Returns a small result object describing what
-     * happened. No-op on already-identified items.
-     *
-     * @param {Item} item
-     * @param {object} [options]
-     * @param {boolean} [options.silent=false] Skip the user notification.
-     * @returns {Promise<{identified: boolean, kind: string, reason?: string}>}
-     */
-    /**
      * Whether Identify should promote the true poison identity (RAW Potion of Poison).
      * @param {object|null} cursedMeta
      * @param {object|null} latent
@@ -38,8 +29,101 @@ export class IdentificationService {
         return false;
     }
 
-    static async identify(item, { silent = false } = {}) {
-        traceIdentify("identify:start", { silent, ...traceItemFlags(item) });
+    /**
+     * @param {string} [intent]
+     * @returns {"taste"|"focus"|"identify"}
+     */
+    static _normalizeIntent(intent) {
+        if (intent === "taste" || intent === "focus" || intent === "identify") return intent;
+        return "identify";
+    }
+
+    /**
+     * Taste / focus on forge poison: keep healing surface; leave latent poison for Identify.
+     * @param {Item} item
+     * @param {{ silent?: boolean, intent?: string }} [options]
+     * @returns {Promise<{identified: boolean, kind: string}>}
+     */
+    static async _confirmPoisonLureSurface(item, { silent = false, intent = "taste" } = {}) {
+        traceIdentify("identify:poison-lure-surface", { intent, ...traceItemFlags(item) });
+        try {
+            if (item.system?.identified !== true) {
+                await item.update({ "system.identified": true }, { curseBypass: true });
+            }
+        } catch (err) {
+            Logger.error("Quartermaster", `IdentificationService: poison lure surface update failed for ${item.name}:`, err.message);
+            return { identified: false, kind: "none", reason: "update-failed" };
+        }
+        // Enrich healing surface; do not promote poison latent or set truthRevealed.
+        const enriched = await PotionEnrichment.enrichIdentifiedItem(item);
+        if (enriched === false) {
+            return { identified: false, kind: "none", reason: "enrichment-failed" };
+        }
+        if (!silent) {
+            ui.notifications?.info?.(`${item.name} identified.`);
+        }
+        return { identified: true, kind: "poison-lure-surface" };
+    }
+
+    /**
+     * Taste / focus on infected stack: healing surface, keep infectedCount (no split).
+     * @param {Item} item
+     * @param {{ silent?: boolean, intent?: string }} [options]
+     * @returns {Promise<{identified: boolean, kind: string, reason?: string}>}
+     */
+    static async _promoteInfectedHealingSurface(item, { silent = false, intent = "taste" } = {}) {
+        const latent = item.getFlag?.(MODULE_ID, FLAG_LATENT_MAGIC) ?? null;
+        const healingName = latent?.originalName || item.name;
+        traceIdentify("identify:infected-taste-surface", {
+            intent,
+            healingName,
+            infectedCount: item.getFlag?.(MODULE_ID, "infectedCount"),
+            ...traceItemFlags(item)
+        });
+        const updates = {
+            "system.identified": true,
+            ...(healingName ? { name: healingName } : {}),
+            ...(latent?.originalImg ? { img: latent.originalImg } : {}),
+            ...(latent?.originalDescription !== undefined
+                ? { "system.description.value": latent.originalDescription }
+                : {}),
+            ...(latent?.originalRarity ? { "system.rarity": latent.originalRarity } : {})
+        };
+        if (item.type === "consumable") {
+            updates["system.attunement"] = "";
+        }
+        try {
+            await item.update(updates, { curseBypass: true });
+        } catch (err) {
+            Logger.error("Quartermaster", `IdentificationService: infected taste update failed for ${item.name}:`, err.message);
+            return { identified: false, kind: "none", reason: "update-failed" };
+        }
+        const enriched = await PotionEnrichment.enrichIdentifiedItem(item);
+        if (enriched === false) {
+            return { identified: false, kind: "none", reason: "enrichment-failed" };
+        }
+        // Do not mark latent.promoted: Identify spell must still be able to split.
+        if (!silent) {
+            ui.notifications?.info?.(`${item.name} identified.`);
+        }
+        return { identified: true, kind: "infected-lure-surface" };
+    }
+
+    /**
+     * Identify an item. Returns a small result object describing what
+     * happened. No-op on already-identified items.
+     *
+     * @param {Item} item
+     * @param {object} [options]
+     * @param {boolean} [options.silent=false] Skip the user notification.
+     * @param {"taste"|"focus"|"identify"} [options.intent="identify"]
+     *   taste/focus never reveal Potion of Poison / infected split; identify does.
+     * @returns {Promise<{identified: boolean, kind: string, reason?: string}>}
+     */
+    static async identify(item, { silent = false, intent = "identify" } = {}) {
+        const normalizedIntent = IdentificationService._normalizeIntent(intent);
+        const allowPoisonTruth = normalizedIntent === "identify";
+        traceIdentify("identify:start", { silent, intent: normalizedIntent, ...traceItemFlags(item) });
 
         if (!game.user.isGM) {
             traceIdentify("identify:abort", { reason: "not-gm" });
@@ -54,6 +138,12 @@ export class IdentificationService {
         // Must run before the pending-payload abort: surface may already be identified:true.
         const infectedCount = Number(item.getFlag?.(MODULE_ID, "infectedCount") ?? 0) || 0;
         if (infectedCount > 0) {
+            if (!allowPoisonTruth) {
+                return IdentificationService._promoteInfectedHealingSurface(item, {
+                    silent,
+                    intent: normalizedIntent
+                });
+            }
             const reveal = game.ionrift?.cursewright?.infectedStacks?.revealInfectedByIdentify;
             if (typeof reveal === "function") {
                 traceIdentify("identify:infected-split", { infectedCount, ...traceItemFlags(item) });
@@ -65,6 +155,17 @@ export class IdentificationService {
 
         const latent = item.getFlag?.(MODULE_ID, FLAG_LATENT_MAGIC) ?? null;
         const cursedMeta = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? null;
+
+        // Taste/focus on forge poison: confirm healing lure; leave poison latent for Identify.
+        if (
+            !allowPoisonTruth
+            && IdentificationService._shouldRevealPoisonTruth(cursedMeta, latent, item)
+        ) {
+            return IdentificationService._confirmPoisonLureSurface(item, {
+                silent,
+                intent: normalizedIntent
+            });
+        }
 
         const hasUnpromotedLatent = !!(latent && !latent.promoted);
         const hasCursedOnlyMeta = !!(
@@ -82,7 +183,8 @@ export class IdentificationService {
             return { identified: false, kind: "none", reason: "already-identified" };
         }
 
-        const revealPoisonTruth = IdentificationService._shouldRevealPoisonTruth(cursedMeta, latent, item);
+        const revealPoisonTruth = allowPoisonTruth
+            && IdentificationService._shouldRevealPoisonTruth(cursedMeta, latent, item);
 
         traceIdentify("identify:promote", {
             hasUnpromotedLatent,
@@ -322,6 +424,16 @@ export class IdentificationService {
         Logger.info("Quartermaster", `IdentificationService: ${kind} -> "${item.name}".`);
         traceIdentify("identify:done", { kind, displayName, ...traceItemFlags(item) });
         return { identified: true, kind };
+    }
+
+    /** @param {Item} item @param {object} [options] */
+    static taste(item, options = {}) {
+        return IdentificationService.identify(item, { ...options, intent: "taste" });
+    }
+
+    /** @param {Item} item @param {object} [options] */
+    static focus(item, options = {}) {
+        return IdentificationService.identify(item, { ...options, intent: "focus" });
     }
 
     /**

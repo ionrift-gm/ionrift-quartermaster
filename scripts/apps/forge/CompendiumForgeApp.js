@@ -243,8 +243,10 @@ export class CompendiumForgeApp extends FormApplication {
                 label:       adapter.supports(QM_FEATURES.LOOT_POOL_COMPILE) ? "Loot Pool" : "Loot Sources",
                 icon:        "fas fa-treasure-chest",
                 active:      this._activeTab === "lootPool",
-                status:      lootStatus,
-                statusLabel: this._dotLabel(lootStatus),
+                status:      adapter.supports(QM_FEATURES.LOOT_POOL_COMPILE) ? lootStatus : "na",
+                statusLabel: adapter.supports(QM_FEATURES.LOOT_POOL_COMPILE)
+                    ? this._dotLabel(lootStatus)
+                    : "No compile step",
             },
             {
                 id:          "cursedItems",
@@ -272,10 +274,15 @@ export class CompendiumForgeApp extends FormApplication {
         return "Managed separately";
     }
 
+    /** True when this world expands loot via a compiled pool (dnd5e 2024 path). */
+    _lootPoolCompileSupported() {
+        return getQuartermasterAdapter().supports(QM_FEATURES.LOOT_POOL_COMPILE);
+    }
+
     _paneTitle() {
         if (this._activeTab === "scrollForge") return "Scroll Forge";
         if (this._activeTab === "cursedItems") return "Cursed Items";
-        return "Loot Pool";
+        return this._lootPoolCompileSupported() ? "Loot Pool" : "Loot Sources";
     }
 
     _paneDesc() {
@@ -292,6 +299,14 @@ export class CompendiumForgeApp extends FormApplication {
                 return "Compiles every item with the cursed trait from pf2e equipment compendiums into a GM-only pool. Known GMG cursed items receive catalog tier metadata. No configuration needed.";
             }
             return "The SRD Curse Adapter scans dnd5e equipment compendiums for the 12 canonical SRD cursed items and compiles them into a GM-only pool. No configuration needed.";
+        }
+        if (!this._lootPoolCompileSupported()) {
+            const adapter = getQuartermasterAdapter();
+            const recommended = adapter.getDefaultLootPoolSources?.() ?? [];
+            const recNote = recommended.length
+                ? ` Recommended: ${recommended.join(", ")}.`
+                : "";
+            return `Select which item compendiums the cache generator draws from. Items are used as written from those packs, so Save Sources is the only step.${recNote}`;
         }
         if (!LootPoolCompiler.is2024ArchitecturePresent()) {
             return "Select which compendiums contribute items to the loot cache generator. Enable dnd5e.equipment24 to unlock weapon template compilation.";
@@ -330,6 +345,9 @@ export class CompendiumForgeApp extends FormApplication {
 
     _buildStatusBadge() {
         const tab = this._activeTab;
+        if (tab === "lootPool" && !this._lootPoolCompileSupported()) {
+            return { type: "fresh", icon: "fas fa-circle-check", label: "No compile needed" };
+        }
         let status;
         if (tab === "lootPool") {
             status = LootPoolCompiler.getStatus();
@@ -350,6 +368,16 @@ export class CompendiumForgeApp extends FormApplication {
         const tab = this._activeTab;
 
         if (tab === "lootPool") {
+            if (!this._lootPoolCompileSupported()) {
+                return {
+                    type: "fresh",
+                    icon: "fas fa-circle-info",
+                    text: "No compiled pool on this system. Saved sources feed the cache generator directly.",
+                    meta: null,
+                    clearable: false,
+                };
+            }
+
             const meta   = LootPoolCompiler.getCompiledMeta();
             const status = LootPoolCompiler.getStatus();
 

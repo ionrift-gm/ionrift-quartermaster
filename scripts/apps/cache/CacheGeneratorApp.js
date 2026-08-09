@@ -14,6 +14,8 @@ import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js"
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../../services/workshop/CoinFormat.js";
 import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
+import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { QM_FEATURES } from "../../data/QMFeatures.js";
 
 
 /** Foundry compendium / sidebar item drags (v12 and v13). */
@@ -227,6 +229,7 @@ export class CacheGeneratorApp extends Application {
         // Detect whether any loot pool compendium is configured. When empty the
         // Generate button is replaced with a nudge so the GM sets up sources first.
         const hasLootPool = ItemPoolResolver.getEnabledSources().length > 0;
+        const lootSourcesOnly = !getQuartermasterAdapter().supports(QM_FEATURES.LOOT_POOL_COMPILE);
 
         // Forge status pip -- shown inline next to Generate when a compiled pool
         // is stale or missing so the GM can act without leaving the generator.
@@ -254,6 +257,7 @@ export class CacheGeneratorApp extends Application {
             generating: this._generating,
             hasResult: !!this._currentResult,
             hasLootPool,
+            lootSourcesOnly,
             forgeStalePip,
             forgeNeverPip,
 
