@@ -1,5 +1,5 @@
-import { AMMO_TILT_PRESETS, AmmoTypeRegistry } from "../../services/workshop/AmmoTypeRegistry.js";
-import { MODULE_ID } from "../../data/moduleId.js";
+import { AMMO_TILT_PRESETS, AmmoTypeRegistry } from "../../../services/workshop/AmmoTypeRegistry.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
 
 
 // ── Per-type colour palette ────────────────────────────────────────────────
@@ -25,23 +25,6 @@ function typeColor(entry, customIdx = 0) {
         : CUSTOM_PALETTE[customIdx % CUSTOM_PALETTE.length];
 }
 
-/**
- * AmmoTypeConfigApp — Distribution Bar edition.
- *
- * Layout:
- *   ┌───────────────────────────────────────────────────┐
- *   │  [proportional colour bar]                        │
- *   │  [legend: dot  Name  pct%  ···]                   │
- *   ├───────────────────────────────────────────────────┤
- *   │  QUICK PRESETS  [Balanced] [Arrows] [Bolts] ···   │
- *   ├───────────────────────────────────────────────────┤
- *   │  ● Arrows   ···pattern···  [−] 1.25 [+]  ◉        │
- *   │  ● Bolts    ···            [−]  1   [+]  ◉        │
- *   │  ···                                              │
- *   ├───────────────────────────────────────────────────┤
- *   │  + Add custom type        [Cancel]  [💾 Save]     │
- *   └───────────────────────────────────────────────────┘
- */
 export class AmmoTypeConfigApp extends foundry.applications.api.ApplicationV2 {
 
     static DEFAULT_OPTIONS = {

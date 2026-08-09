@@ -1,4 +1,4 @@
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
 
 export class CacheCoinageLogic {
 

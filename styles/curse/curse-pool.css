@@ -1,0 +1,951 @@
+/* Ionrift Quartermaster: Curse pool cards and workflow */
+
+/* ── Curse Pool: source cards ───────────────────────────────────────────────── */
+
+.cursed-pool-actions {
+    padding: 0 2px 4px;
+}
+
+.cursed-source-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 7px;
+}
+
+.cursed-source-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 11px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.cursed-source-card.source-card-active {
+    background: rgba(107, 203, 119, 0.06);
+    border-color: rgba(107, 203, 119, 0.22);
+}
+
+.cursed-source-card:hover {
+    background: rgba(255, 255, 255, 0.055);
+    border-color: rgba(255, 255, 255, 0.13);
+}
+
+.cursed-source-card.source-card-active:hover {
+    background: rgba(107, 203, 119, 0.1);
+}
+
+.source-card-icon {
+    flex: 0 0 22px;
+    text-align: center;
+    font-size: 1em;
+    color: rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.cursed-source-card.source-card-active .source-card-icon {
+    color: rgba(107, 203, 119, 0.8);
+}
+
+.source-card-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.source-card-body strong {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.cursed-source-card.source-card-active .source-card-body strong {
+    color: rgba(200, 240, 200, 0.9);
+}
+
+.source-card-body span {
+    font-size: 0.69em;
+    color: rgba(255, 255, 255, 0.32);
+    line-height: 1.3;
+}
+
+.source-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.source-card-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+    font-size: 0.74em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    width: auto !important;
+    flex-shrink: 0;
+    line-height: 1.4;
+}
+
+.source-card-btn:hover {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.45);
+    color: #d5c8f8;
+}
+
+.cursed-source-card.source-card-active .source-card-btn {
+    background: rgba(107, 203, 119, 0.1);
+    border-color: rgba(107, 203, 119, 0.25);
+    color: rgba(180, 240, 180, 0.7);
+}
+
+.cursed-source-card.source-card-active .source-card-btn:hover {
+    background: rgba(107, 203, 119, 0.2);
+    border-color: rgba(107, 203, 119, 0.45);
+    color: #b8f0b8;
+}
+
+.source-card-btn-remove {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.source-card-btn-remove:hover {
+    background: rgba(220, 90, 90, 0.18);
+    border-color: rgba(220, 90, 90, 0.4);
+    color: #f0b0b0;
+}
+
+.cursed-source-card.source-card-active .source-card-btn-remove {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.cursed-source-card.source-card-active .source-card-btn-remove:hover {
+    background: rgba(220, 90, 90, 0.2);
+    border-color: rgba(220, 90, 90, 0.45);
+    color: #f0b0b0;
+}
+
+
+/* ── Curse Pool: empty-state offer card ──────────────────────────────────── */
+
+.pool-offer-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 13px;
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.22);
+    border-radius: 7px;
+    margin-bottom: 7px;
+    transition: border-color 0.2s;
+}
+
+.pool-offer-card:hover {
+    border-color: rgba(139, 92, 246, 0.38);
+}
+
+.pool-offer-icon {
+    flex: 0 0 28px;
+    font-size: 1.3em;
+    color: rgba(200, 175, 255, 0.6);
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.pool-offer-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.pool-offer-body strong {
+    font-size: 0.84em;
+    color: #e0e0e0;
+    font-weight: 600;
+}
+
+.pool-offer-body span {
+    font-size: 0.71em;
+    color: rgba(255, 255, 255, 0.38);
+    line-height: 1.35;
+}
+
+.pool-offer-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    background: rgba(139, 92, 246, 0.28);
+    border: 1px solid rgba(139, 92, 246, 0.48);
+    color: #d5c8f8;
+    border-radius: 5px;
+    font-size: 0.8em;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pool-offer-btn:hover {
+    background: rgba(139, 92, 246, 0.48);
+    border-color: rgba(139, 92, 246, 0.7);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.pool-offer-note {
+    font-size: 0.72em;
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0 0 2px 0;
+    padding: 0 2px;
+    line-height: 1.4;
+}
+
+.qm-ammo-type-config {
+    padding: 0.55rem 0.65rem 0.7rem;
+}
+
+.qm-ammo-type-lead {
+    margin: 0 0 0.75rem;
+    font-size: 0.82rem;
+    color: rgba(220, 220, 220, 0.75);
+    line-height: 1.45;
+}
+
+.qm-ammo-type-presets {
+    margin-bottom: 0.75rem;
+}
+
+.qm-ammo-type-presets-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(200, 160, 60, 0.75);
+}
+
+.qm-ammo-type-preset-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.qm-ammo-type-preset-btn,
+.qm-ammo-type-add-btn,
+.qm-ammo-type-cancel-btn,
+.qm-ammo-type-save-btn {
+    padding: 0.28rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid rgba(200, 160, 60, 0.35);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(220, 190, 110, 0.95);
+    cursor: pointer;
+    font-size: 0.78rem;
+}
+
+.qm-ammo-type-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 0.15rem;
+}
+
+.qm-ammo-type-row {
+    padding: 0.55rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.qm-ammo-type-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+}
+
+.qm-ammo-type-label {
+    font-weight: 600;
+    color: rgba(235, 235, 235, 0.95);
+}
+
+.qm-ammo-type-label-input,
+.qm-ammo-type-pattern-input {
+    width: 100%;
+    padding: 0.28rem 0.45rem;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.25);
+    color: rgba(235, 235, 235, 0.95);
+}
+
+.qm-ammo-type-pattern-wrap,
+.qm-ammo-type-weight-wrap {
+    margin-top: 0.4rem;
+}
+
+.qm-ammo-type-pattern-label,
+.qm-ammo-type-weight-label {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.72rem;
+    color: rgba(200, 200, 200, 0.65);
+}
+
+.qm-ammo-type-pattern-readonly {
+    font-size: 0.76rem;
+    color: rgba(200, 200, 200, 0.75);
+    font-family: var(--font-monospace, monospace);
+}
+
+.qm-ammo-type-remove-btn {
+    border: none;
+    background: transparent;
+    color: rgba(220, 120, 120, 0.85);
+    cursor: pointer;
+    padding: 0.15rem 0.35rem;
+}
+
+.qm-ammo-type-footer {
+    margin-top: 0.75rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.qm-ammo-type-actions {
+    display: flex;
+    gap: 0.45rem;
+}
+
+.qm-ammo-type-save-btn {
+    border-color: rgba(200, 160, 60, 0.45);
+    background: rgba(200, 160, 60, 0.15);
+}
+
+/* --- */
+   Ammunition Type Curve v2  -  Distribution Bar layout
+   .qm-ammo-v2
+   ═══════════════════════════════════════════════════════ */
+
+.qm-ammo-v2 {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0.75rem 1.25rem 1rem;
+}
+
+.qm-ammo-lead {
+    margin: 0;
+    font-size: 0.82em;
+    color: rgba(255, 255, 255, 0.48);
+    line-height: 1.5;
+}
+
+/* ── Distribution bar ─────────────────────────────────── */
+
+.qm-dist-wrap {
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 12px 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.qm-dist-bar {
+    height: 26px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.qm-dist-segment {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.qm-dist-segment::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.13), rgba(0,0,0,0.1));
+    pointer-events: none;
+}
+
+.qm-dist-label {
+    font-size: 0.66em;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.72);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 5px;
+    position: relative;
+    z-index: 1;
+}
+
+.qm-dist-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.28);
+    font-style: italic;
+}
+
+/* Legend dots + pct row */
+
+.qm-dist-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+}
+
+.qm-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.qm-legend-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.qm-legend-name {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.qm-legend-pct {
+    color: rgba(255, 255, 255, 0.3);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Presets ──────────────────────────────────────────── */
+
+.qm-ammo-presets {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.qm-presets-label {
+    font-size: 0.68em;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: rgba(255, 255, 255, 0.28);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.qm-preset-row {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.qm-preset-btn {
+    padding: 0.45rem 1rem;
+    border-radius: 20px;
+    border: 1px solid rgba(139, 92, 246, 0.32);
+    background: rgba(139, 92, 246, 0.08);
+    color: rgba(196, 167, 247, 0.75);
+    font-size: 0.78em;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    line-height: 1.5;
+}
+
+.qm-preset-btn:hover {
+    background: rgba(139, 92, 246, 0.28);
+    border-color: rgba(139, 92, 246, 0.65);
+    color: #ddd6fe;
+}
+
+/* ── Stepper list ─────────────────────────────────────── */
+
+.qm-stepper-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+/* Single stepper row */
+
+.qm-stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px 7px 8px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-left: 3px solid var(--type-color, #8b5cf6);
+    transition: background 0.15s, opacity 0.2s;
+}
+
+.qm-stepper-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.qm-stepper-row.is-disabled {
+    opacity: 0.42;
+}
+
+/* Color accent dot */
+
+.qm-type-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Name + pattern column */
+
+.qm-type-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.qm-type-name {
+    font-size: 0.86em;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.88);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.qm-type-name-input {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: #ddd;
+    font-size: 0.84em;
+    padding: 2px 6px;
+    width: 100%;
+}
+
+.qm-type-pattern {
+    font-size: 0.65em;
+    font-family: var(--font-monospace, monospace);
+    color: rgba(255, 255, 255, 0.22);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.qm-type-pattern-input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.65em;
+    font-family: var(--font-monospace, monospace);
+    padding: 1px 5px;
+    width: 100%;
+}
+
+/* ── Stepper +/- controls ─────────────────────────────── */
+
+.qm-stepper-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.qm-step-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.6em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    padding: 0;
+    line-height: 1;
+}
+
+.qm-step-btn:hover:not(:disabled) {
+    background: rgba(139, 92, 246, 0.28);
+    border-color: rgba(139, 92, 246, 0.65);
+    color: #fff;
+}
+
+.qm-step-btn:disabled {
+    opacity: 0.28;
+    cursor: not-allowed;
+}
+
+.qm-step-val {
+    font-size: 0.82em;
+    font-weight: 700;
+    color: var(--type-color, #8b5cf6);
+    min-width: 2.4em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Toggle switch ────────────────────────────────────── */
+
+.qm-toggle {
+    position: relative;
+    display: inline-flex;
+    width: 32px;
+    height: 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+    margin: 0;
+}
+
+.qm-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.qm-toggle-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.qm-toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: transform 0.2s, background 0.2s;
+}
+
+.qm-toggle input:checked ~ .qm-toggle-track {
+    background: rgba(139, 92, 246, 0.42);
+    border-color: rgba(167, 130, 255, 0.6);
+}
+
+.qm-toggle input:checked ~ .qm-toggle-track::after {
+    transform: translateX(14px);
+    background: #c4b5fd;
+}
+
+/* ── Remove button (custom types) ─────────────────────── */
+
+.qm-remove-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.18);
+    font-size: 0.62em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.qm-remove-btn:hover {
+    background: rgba(220, 38, 38, 0.18);
+    border-color: rgba(220, 38, 38, 0.45);
+    color: #f87171;
+}
+
+/* ── Footer ───────────────────────────────────────────── */
+
+.qm-ammo-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.qm-footer-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.qm-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    border: 1px dashed rgba(139, 92, 246, 0.32);
+    background: transparent;
+    color: rgba(196, 167, 247, 0.55);
+    font-size: 0.78em;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    line-height: 1.4;
+}
+
+.qm-add-btn:hover {
+    border-color: rgba(139, 92, 246, 0.65);
+    background: rgba(139, 92, 246, 0.1);
+    color: #ddd6fe;
+}
+
+.qm-cancel-btn {
+    padding: 0.45rem 1.1rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    line-height: 1.4;
+}
+
+.qm-cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: #fff;
+}
+
+.qm-save-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 1.25rem;
+    border-radius: 6px;
+    border: 1px solid rgba(139, 92, 246, 0.5);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.32), rgba(99, 62, 206, 0.22));
+    color: #ddd6fe;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.4;
+}
+
+.qm-save-btn:hover {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.52), rgba(99, 62, 206, 0.42));
+    border-color: rgba(167, 130, 255, 0.75);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.28);
+}
+
+
+/* ── Curse Pool: populated-state compact bar ──────────────────────────────── */
+
+.cursed-pool-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 5px;
+}
+
+.cursed-pool-bar .pool-bar-btn,
+.cursed-pool-bar a.pool-bar-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 9px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    color: rgba(255, 255, 255, 0.45);
+    border-radius: 4px;
+    font-size: 0.75em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    width: auto !important;
+    flex-shrink: 0;
+    line-height: 1.4;
+}
+
+.cursed-pool-bar .pool-bar-btn:hover,
+.cursed-pool-bar a.pool-bar-btn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.pool-bar-note {
+    font-size: 0.72em;
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0;
+    padding: 0 2px;
+    line-height: 1.4;
+}
+
+
+/* ── Curse Pool: 3-step Workflow Guide (standalone path) ──────────────────── */
+
+.cursed-pool-workflow-guide {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.cursed-pool-workflow-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 6px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.cursed-pool-workflow-step:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Completed step: dim it back out so the remaining ones stand out */
+.cursed-pool-workflow-step.workflow-step-done {
+    opacity: 0.5;
+}
+
+/* Optional step: slightly more muted than active, not as dim as done */
+.cursed-pool-workflow-step.workflow-step-optional {
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.05);
+    opacity: 0.7;
+}
+
+.workflow-step-num {
+    flex: 0 0 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(139, 92, 246, 0.25);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 50%;
+    font-size: 0.75em;
+    font-weight: 700;
+    color: rgba(200, 175, 255, 0.9);
+    flex-shrink: 0;
+}
+
+.cursed-pool-workflow-step.workflow-step-done .workflow-step-num {
+    background: rgba(107, 203, 119, 0.2);
+    border-color: rgba(107, 203, 119, 0.4);
+    color: rgba(107, 203, 119, 0.9);
+}
+
+.workflow-step-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.workflow-step-body strong {
+    font-size: 0.82em;
+    color: #e2e2e2;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.workflow-step-hint {
+    font-size: 0.72em;
+    color: rgba(255, 255, 255, 0.4);
+    line-height: 1.35;
+}
+
+.workflow-step-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ccc;
+    border-radius: 4px;
+    font-size: 0.78em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.workflow-step-btn:hover {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.5);
+    color: #fff;
+}
+
+.cursed-pool-workflow-note {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0;
+    line-height: 1.4;
+    padding: 0 2px;
+}
+

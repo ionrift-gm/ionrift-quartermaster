@@ -1,0 +1,646 @@
+/* Ionrift Quartermaster: Source and pack picker rows */
+
+/* --- */
+   Loot Pool Config + Scroll Forge Sources
+   Shared by loot-pool-config.hbs and scroll-forge-sources.hbs
+   ═══════════════════════════════════════════════════════ */
+
+.ionrift-loot-pool-config {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0.5rem 0.75rem;
+}
+
+.loot-pool-sources-scroll,
+.party-shelf-sources-scroll,
+.cursed-sources-scroll,
+.cursed-pool-sources-scroll,
+.cursed-import-scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+
+
+/* Foundry V13+ core scrollbar styling can win over .ionrift-window (load order).
+   Per ionrift-brand/00_Foundation/UI/IONRIFT_UI_HANDBOOK.md (scrollbars): app-id nuclear
+   overrides so scrollbars stay Ionrift purple (matches ionrift-library ionrift.css). */
+#ionrift-loot-pool-config,
+#ionrift-scroll-forge-sources,
+#ionrift-party-shelf-sources,
+#ionrift-cursed-sources,
+#ionrift-cursed-pool-sources,
+#ionrift-cursed-import,
+#ionrift-cache-generator,
+#ionrift-signature-ledger,
+#ionrift-quartermaster-app,
+#ionrift-sound-picker,
+#ionrift-item-sound-config,
+#ionrift-actor-sound-config,
+#ionrift-compendium-forge {
+    scrollbar-color: #6d28d9 rgba(0, 0, 0, 0.4) !important;
+    scrollbar-width: thin !important;
+}
+
+#ionrift-loot-pool-config *,
+#ionrift-scroll-forge-sources *,
+#ionrift-party-shelf-sources *,
+#ionrift-cursed-sources *,
+#ionrift-cursed-pool-sources *,
+#ionrift-cursed-import *,
+#ionrift-cache-generator *,
+#ionrift-signature-ledger *,
+#ionrift-quartermaster-app *,
+#ionrift-sound-picker *,
+#ionrift-item-sound-config *,
+#ionrift-actor-sound-config *,
+#ionrift-compendium-forge * {
+    scrollbar-color: #6d28d9 rgba(0, 0, 0, 0.4) !important;
+    scrollbar-width: thin !important;
+}
+
+#ionrift-loot-pool-config ::-webkit-scrollbar,
+#ionrift-loot-pool-config *::-webkit-scrollbar,
+#ionrift-scroll-forge-sources ::-webkit-scrollbar,
+#ionrift-scroll-forge-sources *::-webkit-scrollbar,
+#ionrift-party-shelf-sources ::-webkit-scrollbar,
+#ionrift-party-shelf-sources *::-webkit-scrollbar,
+#ionrift-cursed-sources ::-webkit-scrollbar,
+#ionrift-cursed-sources *::-webkit-scrollbar,
+#ionrift-cursed-pool-sources ::-webkit-scrollbar,
+#ionrift-cursed-pool-sources *::-webkit-scrollbar,
+#ionrift-cursed-import ::-webkit-scrollbar,
+#ionrift-cursed-import *::-webkit-scrollbar,
+#ionrift-cache-generator ::-webkit-scrollbar,
+#ionrift-cache-generator *::-webkit-scrollbar,
+#ionrift-signature-ledger ::-webkit-scrollbar,
+#ionrift-signature-ledger *::-webkit-scrollbar,
+#ionrift-quartermaster-app ::-webkit-scrollbar,
+#ionrift-quartermaster-app *::-webkit-scrollbar,
+#ionrift-sound-picker ::-webkit-scrollbar,
+#ionrift-sound-picker *::-webkit-scrollbar,
+#ionrift-item-sound-config ::-webkit-scrollbar,
+#ionrift-item-sound-config *::-webkit-scrollbar,
+#ionrift-actor-sound-config ::-webkit-scrollbar,
+#ionrift-actor-sound-config *::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+}
+
+#ionrift-loot-pool-config ::-webkit-scrollbar-track,
+#ionrift-loot-pool-config *::-webkit-scrollbar-track,
+#ionrift-scroll-forge-sources ::-webkit-scrollbar-track,
+#ionrift-scroll-forge-sources *::-webkit-scrollbar-track,
+#ionrift-party-shelf-sources ::-webkit-scrollbar-track,
+#ionrift-party-shelf-sources *::-webkit-scrollbar-track,
+#ionrift-cursed-sources ::-webkit-scrollbar-track,
+#ionrift-cursed-sources *::-webkit-scrollbar-track,
+#ionrift-cursed-pool-sources ::-webkit-scrollbar-track,
+#ionrift-cursed-pool-sources *::-webkit-scrollbar-track,
+#ionrift-cursed-import ::-webkit-scrollbar-track,
+#ionrift-cursed-import *::-webkit-scrollbar-track,
+#ionrift-cache-generator ::-webkit-scrollbar-track,
+#ionrift-cache-generator *::-webkit-scrollbar-track,
+#ionrift-signature-ledger ::-webkit-scrollbar-track,
+#ionrift-signature-ledger *::-webkit-scrollbar-track,
+#ionrift-quartermaster-app ::-webkit-scrollbar-track,
+#ionrift-quartermaster-app *::-webkit-scrollbar-track,
+#ionrift-sound-picker ::-webkit-scrollbar-track,
+#ionrift-sound-picker *::-webkit-scrollbar-track,
+#ionrift-item-sound-config ::-webkit-scrollbar-track,
+#ionrift-item-sound-config *::-webkit-scrollbar-track,
+#ionrift-actor-sound-config ::-webkit-scrollbar-track,
+#ionrift-actor-sound-config *::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-radius: 4px;
+}
+
+#ionrift-loot-pool-config ::-webkit-scrollbar-thumb,
+#ionrift-loot-pool-config *::-webkit-scrollbar-thumb,
+#ionrift-scroll-forge-sources ::-webkit-scrollbar-thumb,
+#ionrift-scroll-forge-sources *::-webkit-scrollbar-thumb,
+#ionrift-party-shelf-sources ::-webkit-scrollbar-thumb,
+#ionrift-party-shelf-sources *::-webkit-scrollbar-thumb,
+#ionrift-cursed-sources ::-webkit-scrollbar-thumb,
+#ionrift-cursed-sources *::-webkit-scrollbar-thumb,
+#ionrift-cursed-pool-sources ::-webkit-scrollbar-thumb,
+#ionrift-cursed-pool-sources *::-webkit-scrollbar-thumb,
+#ionrift-cursed-import ::-webkit-scrollbar-thumb,
+#ionrift-cursed-import *::-webkit-scrollbar-thumb,
+#ionrift-cache-generator ::-webkit-scrollbar-thumb,
+#ionrift-cache-generator *::-webkit-scrollbar-thumb,
+#ionrift-signature-ledger ::-webkit-scrollbar-thumb,
+#ionrift-signature-ledger *::-webkit-scrollbar-thumb,
+#ionrift-quartermaster-app ::-webkit-scrollbar-thumb,
+#ionrift-quartermaster-app *::-webkit-scrollbar-thumb,
+#ionrift-sound-picker ::-webkit-scrollbar-thumb,
+#ionrift-sound-picker *::-webkit-scrollbar-thumb,
+#ionrift-item-sound-config ::-webkit-scrollbar-thumb,
+#ionrift-item-sound-config *::-webkit-scrollbar-thumb,
+#ionrift-actor-sound-config ::-webkit-scrollbar-thumb,
+#ionrift-actor-sound-config *::-webkit-scrollbar-thumb {
+    background: #6d28d9 !important;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#ionrift-loot-pool-config ::-webkit-scrollbar-thumb:hover,
+#ionrift-loot-pool-config *::-webkit-scrollbar-thumb:hover,
+#ionrift-scroll-forge-sources ::-webkit-scrollbar-thumb:hover,
+#ionrift-scroll-forge-sources *::-webkit-scrollbar-thumb:hover,
+#ionrift-party-shelf-sources ::-webkit-scrollbar-thumb:hover,
+#ionrift-party-shelf-sources *::-webkit-scrollbar-thumb:hover,
+#ionrift-cursed-sources ::-webkit-scrollbar-thumb:hover,
+#ionrift-cursed-sources *::-webkit-scrollbar-thumb:hover,
+#ionrift-cursed-pool-sources ::-webkit-scrollbar-thumb:hover,
+#ionrift-cursed-pool-sources *::-webkit-scrollbar-thumb:hover,
+#ionrift-cursed-import ::-webkit-scrollbar-thumb:hover,
+#ionrift-cursed-import *::-webkit-scrollbar-thumb:hover,
+#ionrift-cache-generator ::-webkit-scrollbar-thumb:hover,
+#ionrift-cache-generator *::-webkit-scrollbar-thumb:hover,
+#ionrift-signature-ledger ::-webkit-scrollbar-thumb:hover,
+#ionrift-signature-ledger *::-webkit-scrollbar-thumb:hover,
+#ionrift-quartermaster-app ::-webkit-scrollbar-thumb:hover,
+#ionrift-quartermaster-app *::-webkit-scrollbar-thumb:hover,
+#ionrift-sound-picker ::-webkit-scrollbar-thumb:hover,
+#ionrift-sound-picker *::-webkit-scrollbar-thumb:hover,
+#ionrift-item-sound-config ::-webkit-scrollbar-thumb:hover,
+#ionrift-item-sound-config *::-webkit-scrollbar-thumb:hover,
+#ionrift-actor-sound-config ::-webkit-scrollbar-thumb:hover,
+#ionrift-actor-sound-config *::-webkit-scrollbar-thumb:hover {
+    background: #8b5cf6 !important;
+}
+
+.ionrift-cursed-import .cursed-import-manage-sources {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: var(--ionrift-accent, #8b5cf6);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.ionrift-cursed-import .cursed-import-manage-sources:hover {
+    color: rgba(196, 181, 253, 0.95);
+}
+
+.ionrift-cursed-import .cursed-import-footer-note .cursed-import-manage-sources {
+    margin-right: 0.25em;
+}
+
+.ionrift-cursed-import .cursed-import-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 0.5rem;
+}
+
+.ionrift-cursed-import .cursed-import-pack-label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.ionrift-cursed-import .cursed-import-pack-select {
+    min-width: 220px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.25);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.ionrift-cursed-import .cursed-import-toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ionrift-cursed-import .cursed-import-row.in-pool {
+    opacity: 0.45;
+}
+
+.ionrift-cursed-import .cursed-import-badges {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.ionrift-cursed-import .cursed-import-tier-badge,
+.ionrift-cursed-import .cursed-import-type-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    background: rgba(139, 92, 246, 0.12);
+    color: rgba(200, 180, 255, 0.95);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.ionrift-cursed-import .cursed-import-empty {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.45);
+    padding: 0.5rem 0;
+}
+
+.pool-instructions {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.5;
+    margin: 0 0 0.75rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Group (one per module / system) ────────────────── */
+
+.pool-group {
+    margin-bottom: 0.35rem;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.pool-group-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(139, 92, 246, 0.12);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.18);
+    font-size: 0.82em;
+    font-weight: 600;
+    color: rgba(139, 92, 246, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+}
+
+.pool-group-header:hover {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.pool-group-header i {
+    font-size: 0.85em;
+    opacity: 0.7;
+}
+
+.pool-group-header::after {
+    content: "\f078"; /* fa-chevron-down */
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 0.7em;
+    margin-left: auto;
+    opacity: 0.5;
+    transition: transform 0.2s;
+}
+
+.pool-group.collapsed .pool-group-header::after {
+    transform: rotate(-90deg);
+}
+
+/* ── Pack rows (checkbox + label + id) ──────────────── */
+
+.pool-pack-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px 5px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    transition: background 0.15s;
+    min-height: 28px;
+}
+
+.pool-pack-row:last-child {
+    border-bottom: none;
+}
+
+.pool-pack-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.pool-pack-row input[type="checkbox"] {
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--ionrift-accent, #8b5cf6);
+    cursor: pointer;
+}
+
+.pool-pack-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.88em;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.pool-pack-id {
+    flex: 0 1 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.72em;
+    color: rgba(255, 255, 255, 0.3);
+    max-width: 220px;
+    text-align: right;
+}
+
+/* ── Recommended pack row highlight ──────────────────── */
+
+.pool-pack-row.pack-recommended {
+    border-left: 2px solid rgba(139, 92, 246, 0.25);
+    background: rgba(139, 92, 246, 0.03);
+}
+
+.pool-pack-row.pack-recommended:hover {
+    background: rgba(139, 92, 246, 0.07);
+}
+
+/* ── Checked row: indent to express selection at row level ── */
+
+.pool-pack-row:has(input[type="checkbox"]:checked) {
+    padding-left: 22px;
+    border-left: 2px solid rgba(139, 92, 246, 0.6);
+    background: rgba(139, 92, 246, 0.06);
+}
+
+.pool-pack-row:has(input[type="checkbox"]:checked):hover {
+    background: rgba(139, 92, 246, 0.1);
+}
+
+/* ── Pack inline badges ──────────────────────────────── */
+
+.pool-pack-badge {
+    flex: 0 0 auto;
+    font-size: 0.65em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.pool-pack-badge.badge-recommended {
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    color: rgba(196, 167, 255, 0.85);
+}
+
+.pool-pack-badge.badge-needs-compile {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    color: rgba(253, 211, 77, 0.8);
+    font-size: 0.6em;
+    padding: 2px 5px;
+}
+
+/* ── Spell count pill (Scroll Forge rows) ────────────────── */
+
+.pool-pack-count {
+    flex: 0 0 auto;
+    font-size: 0.68em;
+    color: rgba(139, 92, 246, 0.75);
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.18);
+    border-radius: 10px;
+    padding: 1px 6px;
+    white-space: nowrap;
+}
+
+/* ── Bulk action buttons (Select All / Toggle All) ───────── */
+
+.forge-bulk-actions {
+    display: flex;
+    gap: 6px;
+    padding: 0 0 8px 0;
+}
+
+.forge-bulk-actions .cache-btn-ghost {
+    font-size: 0.75em;
+    padding: 3px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.forge-bulk-actions .cache-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── Loading skeleton (Scroll Forge async discovery) ─────── */
+
+.forge-loading-state {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 32px 0;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.88em;
+}
+
+.forge-loading-spinner i {
+    color: rgba(139, 92, 246, 0.7);
+    font-size: 1.1em;
+}
+
+/* ── Indeterminate progress sweep (Scroll / Curse compile) ─ */
+
+.forge-progress-indeterminate {
+    overflow: hidden;
+    position: relative;
+}
+
+.forge-progress-bar-sweep {
+    position: absolute;
+    top: 0;
+    left: -40%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.8), transparent);
+    animation: forge-sweep 1.6s ease-in-out infinite;
+}
+
+@keyframes forge-sweep {
+    0%   { left: -40%; }
+    100% { left: 120%; }
+}
+
+.forge-indeterminate-note {
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.35);
+    text-align: center;
+    margin-top: 6px;
+}
+
+/* ── Cursed Items read-only source list ──────────────────── */
+
+.forge-curse-sources {
+    margin: 12px 0 0;
+}
+
+.forge-curse-sources-label {
+    font-size: 0.78em;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.forge-curse-source-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 0.84em;
+    color: rgba(255, 255, 255, 0.6);
+    border-left: 2px solid rgba(139, 92, 246, 0.25);
+    background: rgba(139, 92, 246, 0.04);
+    margin-bottom: 3px;
+}
+
+.forge-curse-source-row i {
+    color: rgba(139, 92, 246, 0.5);
+    font-size: 0.85em;
+}
+
+.forge-curse-source-name {
+    flex: 1 1 auto;
+    font-weight: 500;
+}
+
+/* Hide rows inside collapsed groups */
+.pool-group.collapsed .pool-pack-row {
+    display: none;
+}
+
+/* ── Footer (save button) ───────────────────────────── */
+
+.pool-footer {
+    position: sticky;
+    bottom: 0;
+    padding: 0.6rem 0 0.25rem;
+    background: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(30, 25, 45, 0.95) 30%);
+    margin-top: 0.5rem;
+}
+
+/* ── .cache-btn-accent (shared save/compile button) ─── */
+
+.cache-btn-accent {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 36px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(59, 130, 246, 0.25));
+    border: 1px solid rgba(139, 92, 246, 0.45);
+    color: #fff;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.12);
+}
+
+.cache-btn-accent:hover {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.55), rgba(59, 130, 246, 0.4));
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+    transform: translateY(-1px);
+}
+
+/* --- */
+   Scroll Forge Sources  -  additions over the shared pool base
+   ═══════════════════════════════════════════════════════ */
+
+.scroll-forge-welcome {
+    text-align: center;
+    padding: 1rem 0.75rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.scroll-forge-welcome-icon {
+    font-size: 2.5em;
+    color: rgba(139, 92, 246, 0.6);
+    margin-bottom: 0.4rem;
+}
+
+.scroll-forge-welcome h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.2em;
+    color: rgba(255, 255, 255, 0.9);
+    border: none;
+}
+
+.scroll-forge-welcome-desc,
+.scroll-forge-welcome-action {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.5;
+    margin: 0.25rem 0;
+}
+
+.scroll-forge-welcome-action strong {
+    color: rgba(139, 92, 246, 0.85);
+}
+
+.scroll-forge-toolbar {
+    display: flex;
+    gap: 6px;
+    padding: 0 0 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 0.5rem;
+}
+
+.scroll-forge-toolbar .cache-btn-accent {
+    width: auto;
+    flex: 1;
+    height: 30px;
+    font-size: 0.8em;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.6);
+    box-shadow: none;
+}
+
+.scroll-forge-toolbar .cache-btn-accent:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.4);
+    color: #fff;
+    box-shadow: none;
+    transform: none;
+}
+

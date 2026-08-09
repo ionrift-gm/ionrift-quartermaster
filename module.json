@@ -15,7 +15,19 @@
                       "scripts/module.js"
                   ],
     "styles":  [
-                   "styles/quartermaster.css"
+                   "styles/_chrome.css",
+                   "styles/sound-picker.css",
+                   "styles/settings-editors.css",
+                   "styles/cache/cache-generator.css",
+                   "styles/ledger/ledger-welcome.css",
+                   "styles/ledger/ledger-shell.css",
+                   "styles/ledger/ledger-cursed-party.css",
+                   "styles/ledger/scroll-plan.css",
+                   "styles/forge/forge-sources.css",
+                   "styles/forge/compendium-forge.css",
+                   "styles/curse/curse-dialogs.css",
+                   "styles/curse/curse-pool.css",
+                   "styles/curse/curse-priority-pool.css"
                ],
     "packs":  [
                   {

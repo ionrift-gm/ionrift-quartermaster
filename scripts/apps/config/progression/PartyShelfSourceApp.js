@@ -1,5 +1,5 @@
-import { MODULE_ID } from "../../data/moduleId.js";
-import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
+import { getQuartermasterAdapter } from "../../../adapters/getAdapter.js";
 /**
  * GM dialog: choose which item compendiums the Party Shelf randomiser draws from.
  * Launched from the Signature Ledger's Party Shelf tab.

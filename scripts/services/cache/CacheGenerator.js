@@ -16,11 +16,11 @@ import {
     SCROLL_PRICES_BY_LEVEL,
     TIER_SCROLL_MIN_LEVEL,
     TIER_SCROLL_MAX_UNIQUES
-} from "./CacheScrollLogic.js";
-import { CacheAmmoLogic } from "./CacheAmmoLogic.js";
-import { CacheHealingLogic } from "./CacheHealingLogic.js";
-import { CacheQuantityLogic } from "./CacheQuantityLogic.js";
-import { CacheCoinageLogic } from "./CacheCoinageLogic.js";
+} from "./logic/CacheScrollLogic.js";
+import { CacheAmmoLogic } from "./logic/CacheAmmoLogic.js";
+import { CacheHealingLogic } from "./logic/CacheHealingLogic.js";
+import { CacheQuantityLogic } from "./logic/CacheQuantityLogic.js";
+import { CacheCoinageLogic } from "./logic/CacheCoinageLogic.js";
 import {
     PACK_SUFFIX,
     isQmPackRole,
@@ -46,7 +46,7 @@ import {
     isTreasureEntry,
     isTrinketEntry,
     isGemEntry
-} from "./CachePackIndex.js";
+} from "./logic/CachePackIndex.js";
 
 
 

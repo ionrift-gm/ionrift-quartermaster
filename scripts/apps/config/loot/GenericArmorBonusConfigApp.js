@@ -2,7 +2,7 @@ import {
     DEFAULT_GENERIC_ARMOR_BONUS,
     GENERIC_ARMOR_BONUS_PRESETS,
     GenericArmorBonusRegistry
-} from "../../services/workshop/GenericArmorBonusRegistry.js";
+} from "../../../services/workshop/GenericArmorBonusRegistry.js";
 
 const PRESET_LABELS = {
     standard: "Standard",
@@ -10,9 +10,6 @@ const PRESET_LABELS = {
     noPlusArmor: "No +N armor"
 };
 
-/**
- * Configure tier caps and global ceiling for generic +N armor and shields.
- */
 export class GenericArmorBonusConfigApp extends foundry.applications.api.ApplicationV2 {
 
     static DEFAULT_OPTIONS = {

@@ -1,7 +1,7 @@
-import { MODULE_ID } from "../../data/moduleId.js";
-import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { ScrollForge } from "../scroll/ScrollForge.js";
-import { ItemMaskingHelper } from "../identify/ItemMaskingHelper.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
+import { Logger, MODULE_LABEL } from "../../../utils/Logger.js";
+import { ScrollForge } from "../../scroll/ScrollForge.js";
+import { ItemMaskingHelper } from "../../identify/ItemMaskingHelper.js";
 
 /** SRD scroll price by spell level (gp). */
 export const SCROLL_PRICES_BY_LEVEL = {

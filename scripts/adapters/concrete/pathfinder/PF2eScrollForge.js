@@ -3,9 +3,9 @@
  * Uses the system API when present; otherwise builds a compendium-faithful scroll stub.
  */
 
-import { ItemMaskingHelper } from "../../services/identify/ItemMaskingHelper.js";
+import { ItemMaskingHelper } from "../../../services/identify/ItemMaskingHelper.js";
 
-import { MODULE_ID as FORGED_FLAG } from "../../data/moduleId.js";
+import { MODULE_ID as FORGED_FLAG } from "../../../data/moduleId.js";
 
 const PACK_PRIORITY = ["pf2e.spells-srd", "pf2e.spells"];
 const DEFAULT_PACK_IDS = ["pf2e.spells-srd"];

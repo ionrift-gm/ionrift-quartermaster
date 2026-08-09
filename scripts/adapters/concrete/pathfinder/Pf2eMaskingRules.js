@@ -1,34 +1,7 @@
-import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
-/**
- * Pf2eMaskingRules
- *
- * PF2e-specific identification masking for Quartermaster loot caches.
- *
- * Hybrid approach: uses PF2e's native `system.identification` for display
- * masking (name, image, description) while stashing price, rarity, and
- * magical traits in QM's `latentMagic` flags for IdentificationService
- * compatibility.
- *
- * PF2e's identification schema:
- *   system.identification.status           "identified" | "unidentified"
- *   system.identification.unidentified     { name, img, data: { description: { value } } }
- *
- * Design: items are set to `status: "unidentified"` with QM-generated
- * mundane names/descriptions in the unidentified fields. The actual
- * item.name / item.img stay as the real values (GM-visible). Players
- * see the unidentified layer via PF2e's rendering engine.
- *
- * latentMagic stash covers fields PF2e doesn't mask natively:
- *   - originalRarity        system.traits.rarity
- *   - originalTraits        magical trait from system.traits.value[]
- *   - originalPrice         system.price
- */
+import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../../data/moduleId.js";
+import { TerrainDataRegistry } from "../../../services/loot/TerrainDataRegistry.js";
 
-import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js";
-
-
-// ── PF2e Unidentified Item Icons ─────────────────────────────────────────
-// Shipped with the PF2e system at systems/pf2e/icons/unidentified_item_icons/
+// PF2e unidentified icons: systems/pf2e/icons/unidentified_item_icons/
 
 const PF2E_ICON_BASE = "systems/pf2e/icons/unidentified_item_icons";
 

@@ -1,4 +1,4 @@
-import { createQuartermasterConfigApp } from "./QuartermasterSubmenuConfigApp.js";
+import { createQuartermasterConfigApp } from "../QuartermasterSubmenuConfigApp.js";
 
 export const IdentificationConfigApp = createQuartermasterConfigApp({
     appId: "qm-identification-config",

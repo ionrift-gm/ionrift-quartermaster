@@ -1,0 +1,207 @@
+/* Ionrift Quartermaster: Shared chrome, dialogs, form shell */
+
+/* Ionrift Quartermaster Styles */
+
+/* Curse Engine dialog button padding */
+.ionrift-window.glass-ui .dialog-buttons {
+    padding: 8px 12px 12px;
+    gap: 6px;
+    display: flex;
+    flex-direction: column;
+}
+
+.current-sound {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.current-sound i {
+    width: 20px;
+    text-align: center;
+    color: var(--ionrift-accent, #9b59b6);
+}
+
+.info-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.sound-meta {
+    font-size: 0.75em;
+    color: #aaa;
+    font-style: italic;
+}
+
+.result-row i {
+    width: 24px;
+    text-align: center;
+    margin-right: 8px;
+    margin-top: 4px;
+    /* Align with first line of text */
+}
+
+/* Ensure flex layout for result row to handle multi-line text */
+.result-row {
+    align-items: flex-start;
+}
+
+
+.ionrift-quartermaster-form {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: var(--color-text-light-highlight, #eee);
+}
+
+.workshop-header {
+    text-align: center;
+    border-bottom: 2px solid var(--ionrift-accent, #9b59b6);
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+}
+
+.workshop-header h1 {
+    border: none;
+    font-family: "Modesto Condensed", "Palatino Linotype", serif;
+    font-size: 2em;
+    margin: 0;
+}
+
+.workshop-body {
+    flex: 1;
+    gap: 15px;
+    overflow-y: auto;
+}
+
+.column {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.column h2 {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Vertical Form Layout */
+.ionrift-quartermaster-form .form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.ionrift-quartermaster-form .form-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #ccc;
+}
+
+.ionrift-quartermaster-form .form-group input,
+.ionrift-quartermaster-form .form-group select,
+.ionrift-quartermaster-form .form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.ionrift-quartermaster-form .form-group input:focus,
+.ionrift-quartermaster-form .form-group select:focus,
+.ionrift-quartermaster-form .form-group textarea:focus {
+    border-color: var(--ionrift-accent, #9b59b6);
+    outline: none;
+}
+
+/* Sound Picker */
+.sound-picker .search-bar {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
+}
+
+/* Higher specificity to beat system styles */
+.ionrift-window .ionrift-picker-layout ul.results-list {
+    height: 480px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    /* Reset List Styles */
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    padding-left: 0 !important;
+    /* Double tap */
+    margin-left: 0 !important;
+}
+
+.result-row {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+}
+
+.result-row:hover {
+    background: rgba(155, 89, 182, 0.3);
+    /* Violet Highlight */
+}
+
+.result-row .id {
+    font-size: 0.8em;
+    opacity: 0.6;
+}
+
+.input-group {
+    display: flex;
+    gap: 5px;
+}
+
+.input-group button {
+    flex: 0 0 30px;
+    line-height: 26px;
+}
+
+.input-group input {
+    flex: 1;
+    width: auto;
+    /* Override 100% width to allow flex sizing */
+    min-width: 0;
+    /* Prevent overflow */
+}
+
+.sound-slot {
+    margin-bottom: 10px;
+    padding: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.sound-slot label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 3px;
+    font-size: 0.9em;
+}
+
+.workshop-footer {
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 10px;
+}
+
+.action-create {
+    background: var(--ionrift-accent, #9b59b6);
+    color: white;
+    font-size: 1.2em;
+}
+
+

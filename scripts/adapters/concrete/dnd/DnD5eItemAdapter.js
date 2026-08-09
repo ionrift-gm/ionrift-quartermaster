@@ -1,9 +1,9 @@
-import { QuartermasterItemAdapter } from "./QuartermasterItemAdapter.js";
-import { QM_FEATURES } from "../data/QMFeatures.js";
-import { ItemMaskingHelper } from "../services/identify/ItemMaskingHelper.js";
-import { PotionEnrichment } from "../services/scroll/PotionEnrichment.js";
-import * as DnD5ePool from "./pool/DnD5ePoolRules.js";
-import { DnD5eScrollForge } from "./scroll/DnD5eScrollForge.js";
+import { QuartermasterItemAdapter } from "../../QuartermasterItemAdapter.js";
+import { QM_FEATURES } from "../../../data/QMFeatures.js";
+import { ItemMaskingHelper } from "../../../services/identify/ItemMaskingHelper.js";
+import { PotionEnrichment } from "../../../services/scroll/PotionEnrichment.js";
+import * as DnD5ePool from "./DnD5ePoolRules.js";
+import { DnD5eScrollForge } from "./DnD5eScrollForge.js";
 
 const DND5E_DEFAULT_SOURCES = [
     "dnd5e.items",
@@ -24,9 +24,6 @@ const QM_ONLY_FEATURES = new Set([
     QM_FEATURES.LATENT_MASKING,
 ]);
 
-/**
- * Full Quartermaster pipeline for DnD 5e / 2024.
- */
 export class DnD5eItemAdapter extends QuartermasterItemAdapter {
 
     get id() { return "dnd5e"; }
