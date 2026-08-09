@@ -1,10 +1,8 @@
-import { DnD5eItemAdapter } from "./DnD5eItemAdapter.js";
-import { PF2eItemAdapter } from "./PF2eItemAdapter.js";
+import { DnD5eItemAdapter } from "./concrete/dnd/DnD5eItemAdapter.js";
+import { PF2eItemAdapter } from "./concrete/pathfinder/PF2eItemAdapter.js";
 import { Logger, MODULE_LABEL } from "../utils/Logger.js";
 
-/**
- * @returns {import("./QuartermasterItemAdapter.js").QuartermasterItemAdapter}
- */
+/** @returns {import("./QuartermasterItemAdapter.js").QuartermasterItemAdapter} */
 export function createQuartermasterAdapter() {
     const systemId = game.system?.id ?? "unknown";
 

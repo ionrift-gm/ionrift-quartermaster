@@ -15,7 +15,7 @@ import { GenericArmorBonusRegistry } from "../workshop/GenericArmorBonusRegistry
 import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
 import { isSrdCursedLootName } from "../curse/SrdCurseCatalog.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
-import * as DnD5ePool from "../../adapters/pool/DnD5ePoolRules.js";
+import * as DnD5ePool from "../../adapters/concrete/dnd/DnD5ePoolRules.js";
 
 
 export class ItemPoolResolver {

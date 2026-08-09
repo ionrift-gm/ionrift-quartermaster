@@ -1,8 +1,8 @@
-import { MODULE_ID } from "../../data/moduleId.js";
-import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { ItemPoolResolver } from "../loot/ItemPoolResolver.js";
-import { ItemClassifier } from "../workshop/ItemClassifier.js";
-import { AmmoTypeRegistry } from "../workshop/AmmoTypeRegistry.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
+import { Logger, MODULE_LABEL } from "../../../utils/Logger.js";
+import { ItemPoolResolver } from "../../loot/ItemPoolResolver.js";
+import { ItemClassifier } from "../../workshop/ItemClassifier.js";
+import { AmmoTypeRegistry } from "../../workshop/AmmoTypeRegistry.js";
 
 export class CacheAmmoLogic {
 

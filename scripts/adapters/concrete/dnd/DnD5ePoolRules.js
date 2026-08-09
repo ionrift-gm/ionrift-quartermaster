@@ -1,11 +1,11 @@
-import { MODULE_ID } from "../../data/moduleId.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
 /**
  * DnD5e compendium pool matching and exclusion rules for ItemPoolResolver.
  */
 
-import { ItemClassifier } from "../../services/workshop/ItemClassifier.js";
-import { PotionEnrichment } from "../../services/scroll/PotionEnrichment.js";
-import { isSrdCursedLootName } from "../../services/curse/SrdCurseCatalog.js";
+import { ItemClassifier } from "../../../services/workshop/ItemClassifier.js";
+import { PotionEnrichment } from "../../../services/scroll/PotionEnrichment.js";
+import { isSrdCursedLootName } from "../../../services/curse/SrdCurseCatalog.js";
 
 
 export const EQUIPMENT24_PACKS = new Set(["dnd5e.equipment24"]);

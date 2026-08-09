@@ -1,0 +1,268 @@
+/* Ionrift Quartermaster: Sound picker */
+
+/* --- Sound Picker UI (Refactor) --- */
+.ionrift-picker-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.picker-header {
+    flex: 0 0 auto;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px 10px 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.search-bar {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0 12px;
+    height: 34px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--ionrift-accent, #8b5cf6);
+}
+
+.status-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 2px;
+    font-size: 0.8em;
+    color: #888;
+}
+
+.status-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding-left: 4px;
+}
+
+.cache-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1;
+}
+
+.cache-tools {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    height: 34px;
+}
+
+.action-update-lib {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #aaa;
+    border-radius: 3px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.action-update-lib:hover {
+    color: #fff;
+    border-color: rgba(139, 92, 246, 0.6);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.action-purge-lib {
+    flex: 0 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #888;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-purge-lib:hover {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.results-area {
+    flex: 1;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.results-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.result-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.result-row:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.result-info {
+    flex: 1;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.result-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.result-meta {
+    display: block;
+    font-size: 0.8em;
+    color: #aaa;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.footer-area {
+    flex: 0 0 auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 10px;
+}
+
+.current-bindings-list {
+    max-height: 120px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Sound Config Row Matches Standard but with Input Group */
+.binding-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.entity-info .entity-name {
+    font-weight: bold;
+    font-size: 0.9em;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.entity-info .entity-meta {
+    font-size: 0.75em;
+    color: #777;
+}
+
+.sound-config-group {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin-right: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 4px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.config-input-col {
+    display: flex;
+    flex-direction: column;
+    width: 40px;
+}
+
+.config-input-col label {
+    font-size: 0.65em;
+    color: #aaa;
+    text-align: center;
+}
+
+.config-input-col input {
+    height: 16px;
+    font-size: 0.8em;
+    padding: 0 2px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #444;
+    color: #ddd;
+}
+
+.separator {
+    color: #666;
+    font-size: 0.8em;
+}
+
+.entity-actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.action-save {
+    width: 100%;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(139, 92, 246, 0.3);
+    border: 1px solid rgba(139, 92, 246, 0.6);
+    color: white;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
+    transition: all 0.2s;
+}
+
+.action-save:hover {
+    background: rgba(139, 92, 246, 0.5);
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+}
+

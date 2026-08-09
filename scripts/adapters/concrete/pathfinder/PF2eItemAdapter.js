@@ -1,5 +1,5 @@
-import { QuartermasterItemAdapter } from "./QuartermasterItemAdapter.js";
-import { QM_FEATURES } from "../data/QMFeatures.js";
+import { QuartermasterItemAdapter } from "../../QuartermasterItemAdapter.js";
+import { QM_FEATURES } from "../../../data/QMFeatures.js";
 import {
     extractPf2ePriceGp,
     extractPf2eWeight,
@@ -9,8 +9,8 @@ import {
     matchesPf2eSlotType,
     normalizePf2eRarityForTier
 } from "./PF2ePoolRules.js";
-import { PF2eScrollForge } from "./scroll/PF2eScrollForge.js";
-import { detectPf2eMagical, applyPf2eMask } from "./masking/Pf2eMaskingRules.js";
+import { PF2eScrollForge } from "./PF2eScrollForge.js";
+import { detectPf2eMagical, applyPf2eMask } from "./Pf2eMaskingRules.js";
 
 const PF2E_SOURCE_CANDIDATES = [
     "pf2e.equipment-srd",
@@ -31,10 +31,7 @@ const PF2E_LIB_FEATURES = new Set([
     QM_FEATURES.SRD_CURSES,
 ]);
 
-/**
- * Pass-through loot mode for Pathfinder 2e. Items drop as compendium-faithful
- * documents without QM latent-magic masking or loot-pool compilation.
- */
+/** Pathfinder 2e: compendium-faithful loot; no QM latent masking or pool compile. */
 export class PF2eItemAdapter extends QuartermasterItemAdapter {
 
     get id() { return "pf2e"; }

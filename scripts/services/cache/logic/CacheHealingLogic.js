@@ -1,7 +1,7 @@
-import { MODULE_ID } from "../../data/moduleId.js";
-import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { ItemPoolResolver } from "../loot/ItemPoolResolver.js";
-import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
+import { Logger, MODULE_LABEL } from "../../../utils/Logger.js";
+import { ItemPoolResolver } from "../../loot/ItemPoolResolver.js";
+import { PotionEnrichment } from "../../scroll/PotionEnrichment.js";
 
 export class CacheHealingLogic {
 

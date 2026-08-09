@@ -1,0 +1,109 @@
+/* Ionrift Quartermaster: Ledger welcome banner */
+
+/* ── Scroll Forge: First-Run Welcome Banner ──────────────── */
+
+.scroll-forge-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    padding: 20px 24px 16px;
+    margin-bottom: 4px;
+    background: linear-gradient(
+        180deg,
+        rgba(139, 92, 246, 0.10) 0%,
+        rgba(139, 92, 246, 0.02) 100%
+    );
+    border: 1px solid rgba(139, 92, 246, 0.18);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.scroll-forge-welcome::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        ellipse 80% 60% at 50% 0%,
+        rgba(139, 92, 246, 0.12),
+        transparent 70%
+    );
+    pointer-events: none;
+}
+
+.scroll-forge-welcome-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        rgba(139, 92, 246, 0.25),
+        rgba(99, 179, 237, 0.18)
+    );
+    border: 1px solid rgba(139, 92, 246, 0.30);
+    box-shadow:
+        0 0 20px rgba(139, 92, 246, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.scroll-forge-welcome-icon i {
+    font-size: 1.3em;
+    color: #c4a7f7;
+    filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.4));
+}
+
+.scroll-forge-welcome h3 {
+    margin: 2px 0 0;
+    font-size: 1.05em;
+    font-weight: 700;
+    color: #e0d4f5;
+    letter-spacing: 0.02em;
+}
+
+.scroll-forge-welcome-desc {
+    font-size: 0.85em;
+    color: #aaa;
+    line-height: 1.55;
+    margin: 0;
+    max-width: 440px;
+}
+
+.scroll-forge-welcome-desc strong {
+    color: #ccc;
+}
+
+.scroll-forge-welcome-action {
+    font-size: 0.8em;
+    color: #888;
+    line-height: 1.5;
+    margin: 2px 0 0;
+    max-width: 440px;
+}
+
+.scroll-forge-welcome-action strong {
+    color: var(--ionrift-accent, #8b5cf6);
+}
+
+.ionrift-scroll-forge-sources .scroll-forge-toolbar,
+.ionrift-party-shelf-sources .scroll-forge-toolbar,
+.ionrift-cursed-sources .scroll-forge-toolbar,
+.ionrift-cursed-pool-sources .scroll-forge-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.party-shelf-sources-scroll,
+.cursed-sources-scroll,
+.cursed-pool-sources-scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+}
+

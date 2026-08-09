@@ -707,7 +707,7 @@ export class ProgressionSeeder {
      *   - Uncommon-to-VeryRare range (common too weak, legendary too defining)
      */
     static async _fetchShelfCandidates(banSet) {
-        const { PartyShelfSourceApp } = await import("../../apps/config/PartyShelfSourceApp.js");
+        const { PartyShelfSourceApp } = await import("../../apps/config/progression/PartyShelfSourceApp.js");
         const sourceIds = PartyShelfSourceApp.getEnabledSources();
 
         // Read category weights

@@ -4,8 +4,8 @@ import { MODULE_ID } from "../../data/moduleId.js";
  * @description Registers Quartermaster settings, menus, and layout footer.
  */
 
-import { LootGenerationConfigApp } from "../../apps/config/LootGenerationConfigApp.js";
-import { IdentificationConfigApp } from "../../apps/config/IdentificationConfigApp.js";
+import { LootGenerationConfigApp } from "../../apps/config/loot/LootGenerationConfigApp.js";
+import { IdentificationConfigApp } from "../../apps/config/identify/IdentificationConfigApp.js";
 
 import { SignatureLedger } from "../progression/SignatureLedger.js";
 import { registerQuartermasterSettingsPanel } from "./SettingsPanelLayout.js";

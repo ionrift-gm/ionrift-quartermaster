@@ -1,8 +1,8 @@
-import { createQuartermasterConfigApp } from "./QuartermasterSubmenuConfigApp.js";
+import { createQuartermasterConfigApp } from "../QuartermasterSubmenuConfigApp.js";
 import { AmmoTypeConfigApp } from "./AmmoTypeConfigApp.js";
 import { GenericArmorBonusConfigApp } from "./GenericArmorBonusConfigApp.js";
-import { AmmoTypeRegistry } from "../../services/workshop/AmmoTypeRegistry.js";
-import { GenericArmorBonusRegistry } from "../../services/workshop/GenericArmorBonusRegistry.js";
+import { AmmoTypeRegistry } from "../../../services/workshop/AmmoTypeRegistry.js";
+import { GenericArmorBonusRegistry } from "../../../services/workshop/GenericArmorBonusRegistry.js";
 
 export const LootGenerationConfigApp = createQuartermasterConfigApp({
     appId: "qm-loot-generation-config",

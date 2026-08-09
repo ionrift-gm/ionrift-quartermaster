@@ -1,5 +1,5 @@
-import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { MODULE_ID } from "../../data/moduleId.js";
+import { Logger, MODULE_LABEL } from "../../../utils/Logger.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
 
 const PACK_SUFFIX = {
     gemstones: "quartermaster-gemstones",

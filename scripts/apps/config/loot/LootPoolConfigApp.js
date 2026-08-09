@@ -1,5 +1,5 @@
-import { ItemPoolResolver } from "../../services/loot/ItemPoolResolver.js";
-import { MODULE_ID } from "../../data/moduleId.js";
+import { ItemPoolResolver } from "../../../services/loot/ItemPoolResolver.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
 
 
 /**
