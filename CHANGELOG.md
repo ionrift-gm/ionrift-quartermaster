@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.9.5] - 2026-08-09
+
+### Added
+- **Poison-aware Identify.** Taste and focus keep a healing potion looking like a healing potion. The Identify spell is what reveals Potion of Poison or splits an infected stack.
+
+### Changed
+- On systems that do not use a compiled loot pool, Compendium Forge and the cache empty state now talk about loot sources and Save Sources instead of a compile step.
+- Companion overlay items materialise more reliably when packs install or refresh.
+
 ## [1.9.4] - 2026-07-26
 
 ### Changed
