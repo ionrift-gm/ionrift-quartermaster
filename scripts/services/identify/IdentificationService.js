@@ -383,11 +383,21 @@ export class IdentificationService {
         if (kind === "poison-truth" && cursedMeta) {
             try {
                 const live = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? cursedMeta;
+                // Keep a durable instance stub even if BlueprintRegistry later lifts
+                // shared recipe fields into BlueprintStore.
                 await item.setFlag(MODULE_ID, FLAG_CURSED_META, {
                     ...live,
                     identifyRevealsTruth: true,
                     truthRevealed: true
                 });
+                const afterLift = item.getFlag?.(MODULE_ID, FLAG_CURSED_META);
+                if (!afterLift?.truthRevealed) {
+                    await item.setFlag(MODULE_ID, FLAG_CURSED_META, {
+                        ...(afterLift ?? {}),
+                        identifyRevealsTruth: true,
+                        truthRevealed: true
+                    });
+                }
             } catch (err) {
                 Logger.warn("Quartermaster", `IdentificationService: failed to mark truthRevealed on ${item.name}:`, err.message);
             }
