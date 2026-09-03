@@ -212,9 +212,10 @@ export class ItemPoolResolver {
         const rarityMax = rarityMaxOverride ?? tierData?.rarityMax ?? "uncommon";
 
         if (this._simulationPool) {
-            const sim = this._simulationPool.filter(entry =>
+            let sim = this._simulationPool.filter(entry =>
                 this._matchesSlotType(entry, slotType)
             );
+            sim = this._filterByTierLevel(sim, tierData, tier);
             if (!theme) return sim;
             return sim.filter(item => this._eligibleForTheme(item, theme));
         }
@@ -237,11 +238,14 @@ export class ItemPoolResolver {
             return true;
         });
 
+        // Level ceiling: for leveled systems (PF2e/SF2e), exclude items above tier maximum
+        const levelFiltered = this._filterByTierLevel(deduped, tierData, tier);
+
         // Cursed-item blocklist: remove items that exist in any cursedItemSources
         // compendium so they can never appear as random cache drops. These items
         // are only ever placed through the deliberate curse mechanic.
         const cursedNames = await this._getCursedBlocklist();
-        const uncursed = deduped.filter(item => {
+        const uncursed = levelFiltered.filter(item => {
             const nameLower = item.name.trim().toLowerCase();
             if (isSrdCursedLootName(item.name)) return false;
             if (cursedNames.has(nameLower)) return false;
@@ -250,6 +254,46 @@ export class ItemPoolResolver {
 
         if (!theme) return uncursed;
         return uncursed.filter(item => this._eligibleForTheme(item, theme));
+    }
+
+    /**
+     * Determine the numeric level of an item, if any.
+     * Returns null for systems/items that do not define item levels (e.g. D&D 5e).
+     *
+     * @param {object} item
+     * @returns {number|null}
+     */
+    static _getItemLevel(item) {
+        const raw = item?.level ?? item?.system?.level?.value ?? item?.system?.level;
+        if (raw === undefined || raw === null || raw === "") return null;
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    /**
+     * Filter pool items by the tier's maximum level ceiling.
+     * Items with no level defined (e.g. D&D 5e) pass through unfiltered.
+     * For leveled systems (PF2e/SF2e), items above the tier's level ceiling are excluded.
+     *
+     * @param {object[]} pool
+     * @param {object} [tierData]
+     * @param {number} [tier=1]
+     * @returns {object[]}
+     */
+    static _filterByTierLevel(pool, tierData, tier = 1) {
+        if (!Array.isArray(pool) || pool.length === 0) return [];
+        const DEFAULT_TIER_MAX_LEVEL = { 1: 4, 2: 10, 3: 16, 4: 20 };
+        const maxLevel = tierData?.levelRange?.[1]
+            ?? DEFAULT_TIER_MAX_LEVEL[tier]
+            ?? Infinity;
+
+        if (maxLevel === Infinity) return pool;
+
+        return pool.filter(item => {
+            const lvl = this._getItemLevel(item);
+            if (lvl === null) return true;
+            return lvl <= maxLevel;
+        });
     }
 
     /**

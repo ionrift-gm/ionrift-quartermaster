@@ -51,9 +51,9 @@ swap-containers.ps1
 dev-profiles.json
 packs/.staging/
 
-# Test suites — montecarlo local deps excluded, all else tracked
-tests/montecarlo/node_modules/
-!scripts/tests/ForgeTestRunner.js
+# Test suites — housed in private ionrift-tests repo (DEV_PROTOCOLS §31)
+tests/
+scripts/tests/
 
 # Node / dev tooling
 node_modules/
