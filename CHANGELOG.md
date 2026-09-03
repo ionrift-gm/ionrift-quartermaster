@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.6] - 2026-09-03
+
+### Fixed
+- Starfinder 2e caches now cap item drops to the party's tier level, so low-level caches won't drop high-tier gear.
+- Items in Starfinder 2e caches now show their actual prices instead of 0 gp.
+- Starfinder 2e equipment compendium (`sf2e.equipment`) is now enabled as a default cache source.
+
 ## [1.9.5] - 2026-08-09
 
 ### Added

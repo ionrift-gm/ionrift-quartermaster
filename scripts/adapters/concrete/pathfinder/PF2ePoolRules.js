@@ -40,12 +40,20 @@ export function normalizePf2eRarityForTier(rarity) {
  */
 export function extractPf2ePriceGp(entry) {
     const lib = game.ionrift?.library?.system;
-    if (lib?.getPrice) return lib.getPrice(entry);
+    if (lib?.getPrice) {
+        const p = lib.getPrice(entry);
+        if (typeof p === "number" && Number.isFinite(p)) return p;
+    }
     const price = entry.system?.price;
-    if (!price?.value) return 0;
-    const v = price.value;
+    if (!price) return 0;
+    const v = price.value ?? price;
     if (typeof v === "number") return v;
-    return (v.gp ?? 0) + (v.sp ?? 0) / 10 + (v.cp ?? 0) / 100;
+    if (typeof v === "object" && v !== null) {
+        const credits = (v.credits ?? 0) + (v.upb ?? 0);
+        return (v.pp ?? 0) * 10 + (v.gp ?? 0) + (v.sp ?? 0) / 10 + credits / 10 + (v.cp ?? 0) / 100;
+    }
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
 }
 
 /**

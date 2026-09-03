@@ -17,6 +17,7 @@ const PF2E_SOURCE_CANDIDATES = [
     "pf2e.consumables-srd",
     "pf2e.equipment",
     "pf2e.consumables",
+    "sf2e.equipment",
 ];
 
 const PF2E_SUPPORTED = new Set([
@@ -86,6 +87,7 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
 
     normalizePoolEntry(entry, packId) {
         const category = getPf2eCategory(entry);
+        const level = Number(entry.system?.level?.value ?? entry.system?.level ?? entry.level ?? 0) || 0;
         return {
             name: entry.name,
             type: entry.type,
@@ -94,9 +96,11 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
             price: this.extractPrice(entry),
             rarity: this.getRarityFromEntry(entry),
             weight: this.extractWeight(entry),
+            level,
             _baseItem: entry.system?.baseItem ?? "",
             subtype: category,
             system: {
+                level: { value: level },
                 rarity: entry.system?.traits?.rarity ?? entry.system?.rarity,
                 category: entry.system?.category,
                 bulk: entry.system?.bulk,
