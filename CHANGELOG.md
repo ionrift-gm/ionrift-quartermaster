@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.9] - 2026-09-06
+
+### Fixed
+- Compendium Forge source list, compile progress, and done screens now scroll and lay out correctly on Foundry V14. A CSS comment formatting issue silently dropped the flex layout rules for those panels.
+
 ## [1.9.8] - 2026-09-06
 
 ### Added
