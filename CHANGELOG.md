@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.9.8] - 2026-09-06
+
+### Added
+- Quartermaster now loads on any Foundry game system. On unrecognised systems, cache generation draws from GM-selected compendium sources. Scroll Forge, curses, and identification masking remain available on supported systems (dnd5e, pf2e, sf2e).
+
+### Changed
+- Unknown systems no longer silently receive the DnD 5e adapter. A dedicated fallback handles item extraction without assuming 5e schemas.
+
+## [1.9.7] - 2026-09-06
+
+### Added
+- Fallback adapter for unrecognised systems.
+
 ## [1.9.6] - 2026-09-03
 
 ### Fixed
