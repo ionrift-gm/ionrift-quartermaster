@@ -1,7 +1,7 @@
 /* Ionrift Quartermaster: Compendium forge shell, policy dashboards */
 
-/* --- */
-   Compendium Forge  -  unified compiler dialog
+/* ═══════════════════════════════════════════════════════
+   Compendium Forge: unified compiler dialog
    #ionrift-compendium-forge
    ═══════════════════════════════════════════════════════ */
 
@@ -132,8 +132,8 @@
     overflow: hidden;
 }
 
-/* --- */
-   Phase 1  -  Pick (source selector)
+/* ════════════════════════════════════════════════════════
+   Phase 1: Pick (source selector)
    ════════════════════════════════════════════════════════ */
 
 .forge-pane-pick {
@@ -488,8 +488,8 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* --- */
-   Phase 2  -  Compile (progress)
+/* ════════════════════════════════════════════════════════
+   Phase 2: Compile (progress)
    ════════════════════════════════════════════════════════ */
 
 .forge-pane-compile {
@@ -669,8 +669,8 @@
     color: rgba(255, 255, 255, 0.6);
 }
 
-/* --- */
-   Phase 3  -  Done (result)
+/* ════════════════════════════════════════════════════════
+   Phase 3: Done (result)
    ════════════════════════════════════════════════════════ */
 
 .forge-pane-done {
@@ -1052,8 +1052,8 @@
 .timeline-segment-jitter i { color: #1168bb; font-size: 12px; }
 
 
-/* --- */
-   Scroll Policy Dashboard  -  Polish A (Amber/Gold)
+/* ══════════════════════════════════════════════════════
+   Scroll Policy Dashboard: Polish A (Amber/Gold)
    ══════════════════════════════════════════════════════ */
 
 /* Card */
