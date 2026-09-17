@@ -3,12 +3,16 @@
 ## [1.10.0] - 2026-09-17
 
 ### Added
-- Pathfinder 2e players without Item Piles get a "Create Loot Actor" button on the Cache Generator. It builds a native PF2e Loot actor with populated pp/gp/sp/cp currency, categorised inventory, and the sheet's built-in Distribute Coins, Loot Selected Tokens, and Send to Party Stash workflows.
+- Pathfinder 2e worlds without Item Piles can now drag the container card onto the scene to place a native Loot actor.
 
-## [1.9.13] - 2026-09-17
+### Changed
+- Cache Generator preview panel now shows every item that will land on the generated pile. Previously a bug filtered PF2e item types out of the view.
+- Coins on a generated cache now populate correctly on Pathfinder 2e worlds without Item Piles.
 
 ### Fixed
-- Adding a generated cache to the Items sidebar no longer errors on Pathfinder 2e when Item Piles is not installed. On Pathfinder 2e, coins now drop as a single "Coin Purse" treasure item carrying the total gold value.
+- Adding a generated cache to the Items sidebar no longer errors on Pathfinder 2e when Item Piles is not installed.
+- Items in a PF2e loot cache now show prices from the compendium instead of 0 gp, and duplicate picks correctly stack.
+- Loot actor tokens now inherit the container's art and name when placed on the canvas.
 
 ## [1.9.12] - 2026-09-17
 

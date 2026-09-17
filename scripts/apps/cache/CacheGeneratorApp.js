@@ -10,6 +10,7 @@ import { takeVisibleCapped } from "../../services/settings/AdvisoryStripUtils.js
 import { CursedItemResolver } from "../../services/curse/CursedItemResolver.js";
 import { ItemResolutionPipeline } from "../../services/workshop/ItemResolutionPipeline.js";
 import { SquashMerger } from "../../services/packs/SquashMerger.js";
+import { classifyCacheItem } from "../../services/cache/CacheItemClassifier.js";
 import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../../services/workshop/CoinFormat.js";
@@ -588,29 +589,20 @@ export class CacheGeneratorApp extends Application {
             }
         }
 
-        // Items that land in the Special Items section: anything injected from the
-        // advisory panels (party shelf, cursed, signature) or auto-injected via RNG.
-        // Generator-native signature stubs also belong here.
+        // Classification is delegated to a pure classifier (single source of
+        // truth for preview + deployment). See CacheItemClassifier.js. The
+        // predicates below just adapt bucket names to the local `isXxx`
+        // shape that this method's downstream `items.filter(...)` calls
+        // and the special-item sub-bucket split expect.
         const isSpecialSection = i => i._specialSection || i.isSignature;
-        const isScroll         = i => !!i.spellName && !isSpecialSection(i);
-        const isConsumable     = i => i.type === "consumable" && !i.spellName && !isSpecialSection(i);
-        const isWeapon         = i => (i.type === "weapon" || i.type === "equipment") && !isSpecialSection(i);
-        // Kind matchers accept either the runtime _qmKind tag (set by the
-        // cache generator when picking from any QM role pool, including
-        // overlay-materialised packs) or a legacy role-named compendium
-        // suffix. Without _qmKind, items shipped via the kind-first overlay
-        // path (world.quartermaster-core, world.quartermaster-bone-dust,
-        // etc.) would fall through to the mundane section and render under
-        // the Trade Goods header.
-        const qmKindOrSuffix = (i, kind, suffix) =>
-            i._qmKind === kind
-            || (!!i.sourceCompendium && i.sourceCompendium.endsWith(`.${suffix}`));
-        const isGemstone = i => qmKindOrSuffix(i, "gemstones", "quartermaster-gemstones") && !isSpecialSection(i);
-        const isTreasure = i => qmKindOrSuffix(i, "treasure",  "quartermaster-treasure")  && !isSpecialSection(i);
-        const isTrinket  = i => qmKindOrSuffix(i, "trinkets",  "quartermaster-trinkets")  && !isSpecialSection(i);
-        const isMundane        = i => !isScroll(i) && !isSpecialSection(i) && !isConsumable(i)
-                                      && !isWeapon(i) && !isGemstone(i) && !isTreasure(i) && !isTrinket(i)
-                                      && (i.type === "loot" || i.type === "tool" || !i.type);
+        const bucketOf         = i => classifyCacheItem(i);
+        const isScroll         = i => bucketOf(i) === "scroll";
+        const isConsumable     = i => bucketOf(i) === "consumable";
+        const isWeapon         = i => bucketOf(i) === "weapon";
+        const isGemstone       = i => bucketOf(i) === "gemstone";
+        const isTreasure       = i => bucketOf(i) === "treasure";
+        const isTrinket        = i => bucketOf(i) === "trinket";
+        const isMundane        = i => bucketOf(i) === "mundane";
 
         // Merge same-name items into stacks
         const squash = (arr) => {
@@ -1780,17 +1772,30 @@ export class CacheGeneratorApp extends Application {
     // ── Drag-to-canvas (primary, Item Piles) ─────────────────────────────────
 
     _onDragContainerStart(event) {
-        const itemPilesActive = !!(game.modules?.get("itempilesdnd5e")?.active)
-            && game.system?.id === "dnd5e";
-        if (!this._currentResult || !itemPilesActive) {
+        if (!this._currentResult) {
             event.preventDefault();
             return;
         }
 
-        // Serialise result for the canvas drop handler
+        const itemPilesActive = !!(game.modules?.get("itempilesdnd5e")?.active)
+            && game.system?.id === "dnd5e";
+        const adapter = game.ionrift?.quartermaster?.adapter;
+        const supportsLootActor = !itemPilesActive
+            && !!adapter?.canCreateLootActor?.();
+
+        if (!itemPilesActive && !supportsLootActor) {
+            event.preventDefault();
+            return;
+        }
+
+        // Both deployment paths use a custom payload the app resolves on drop,
+        // rather than the compendium Actor.uuid Foundry natively handles. This
+        // lets us create the target actor lazily on drop so the sidebar never
+        // fills up with orphaned actors when a GM iterates on the cache roll.
+        const payloadType = supportsLootActor ? "ionrift-cache-loot-actor" : "ionrift-cache";
         event.dataTransfer.setData("text/plain", JSON.stringify({
-            type: "ionrift-cache",
-            result: this._currentResult
+            type: payloadType,
+            result: supportsLootActor ? null : this._currentResult
         }));
         event.dataTransfer.effectAllowed = "copy";
 
@@ -1818,9 +1823,6 @@ export class CacheGeneratorApp extends Application {
         } catch {
             return;
         }
-        if (data?.type !== "ionrift-cache" || !data.result) return;
-
-        const result = data.result;
 
         // Convert browser client coords to canvas world coordinates, then snap to grid
         const t = canvas.stage.worldTransform;
@@ -1829,6 +1831,14 @@ export class CacheGeneratorApp extends Application {
         const snapped = canvas.grid.getSnappedPoint({ x: rawX, y: rawY }, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX });
         const x = snapped?.x ?? rawX;
         const y = snapped?.y ?? rawY;
+
+        if (data?.type === "ionrift-cache-loot-actor") {
+            return this._onCanvasDropLootActor(x, y);
+        }
+
+        if (data?.type !== "ionrift-cache" || !data.result) return;
+
+        const result = data.result;
 
         try {
             const pileItems = [];
@@ -1920,6 +1930,37 @@ export class CacheGeneratorApp extends Application {
         } catch (e) {
             Logger.error(MODULE_LABEL, "Item Piles createItemPile failed:", e);
             ui.notifications.error("Failed to place cache. Check console for details.");
+        }
+    }
+
+    /**
+     * PF2E native drop path: creates a Loot actor from the current cache
+     * result, then places a token for it at the drop coordinates. No Item
+     * Piles involvement, which is the whole point on PF2E where the Item
+     * Piles pile creation crashes.
+     *
+     * @param {number} x - Canvas world x (already grid-snapped)
+     * @param {number} y - Canvas world y
+     */
+    async _onCanvasDropLootActor(x, y) {
+        if (!this._currentResult) return;
+        if (!canvas.scene) {
+            ui.notifications.warn("Open a scene to place the loot actor.");
+            return;
+        }
+
+        try {
+            const { actorId } = await CacheGenerator._createLootActor(this._currentResult);
+            if (!actorId) return;
+
+            const actor = game.actors.get(actorId);
+            if (!actor) return;
+
+            const tokenDoc = await actor.getTokenDocument({ x, y });
+            await canvas.scene.createEmbeddedDocuments("Token", [tokenDoc.toObject()]);
+        } catch (e) {
+            Logger.error(MODULE_LABEL, "Loot actor placement failed:", e);
+            ui.notifications.error("Failed to place loot actor. Check console.");
         }
     }
 
