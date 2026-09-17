@@ -1,0 +1,325 @@
+{
+  "_generated": "2026-09-17",
+  "entries": [
+    {
+      "_id": "cac5a45974b8a96b",
+      "name": "Battered Wooden Chest",
+      "type": "container",
+      "img": "icons/containers/chest/chest-worn-oak-tan.webp",
+      "system": {
+        "description": {
+          "value": "<p>A battered wooden chest with iron fittings, hinges worn loose from years of use.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-battered-wooden-chest",
+          "containerMeta": {
+            "terrains": [
+              "dungeon",
+              "urban"
+            ],
+            "cacheTypes": [
+              "hoard",
+              "merchant_wreck"
+            ],
+            "capacityLbs": 220
+          }
+        }
+      }
+    },
+    {
+      "_id": "88bdd4175d86e72c",
+      "name": "Carved Stone Box",
+      "type": "container",
+      "img": "icons/containers/chest/chest-reinforced-stone.webp",
+      "system": {
+        "description": {
+          "value": "<p>A heavy stone box with simple geometric carvings. Clearly intended for long-term storage.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-carved-stone-box",
+          "containerMeta": {
+            "terrains": [
+              "dungeon"
+            ],
+            "cacheTypes": [
+              "hoard",
+              "arcane_cache"
+            ],
+            "capacityLbs": 175
+          }
+        }
+      }
+    },
+    {
+      "_id": "8f74223eda8fbb3d",
+      "name": "Clay-Sealed Urn",
+      "type": "container",
+      "img": "icons/containers/kitchenware/jug-clay-brown-sealed.webp",
+      "system": {
+        "description": {
+          "value": "<p>A wide-mouthed clay urn, stoppered and sealed with fired clay paste. Common in wetland settlements where rot claims anything with a lid that breathes.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-clay-sealed-urn",
+          "containerMeta": {
+            "terrains": [
+              "swamp",
+              "dungeon",
+              "desert"
+            ],
+            "cacheTypes": [
+              "stash",
+              "reliquary"
+            ],
+            "capacityLbs": 70
+          }
+        }
+      }
+    },
+    {
+      "_id": "92404d5855536ff3",
+      "name": "Dwarven Tool Chest",
+      "type": "container",
+      "img": "icons/containers/chest/chest-reinforced-steel-red.webp",
+      "system": {
+        "description": {
+          "value": "<p>A well-made iron-reinforced chest stamped with a dwarven mason mark. Heavy and dependable.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-dwarven-tool-chest",
+          "containerMeta": {
+            "terrains": [
+              "dungeon"
+            ],
+            "cacheTypes": [
+              "hoard",
+              "merchant_wreck"
+            ],
+            "capacityLbs": 175
+          }
+        }
+      }
+    },
+    {
+      "_id": "17dcc25742e2735c",
+      "name": "Hollowed Tree Stump",
+      "type": "container",
+      "img": "icons/containers/barrels/barrel-oak-tan.webp",
+      "system": {
+        "description": {
+          "value": "<p>A large rotting stump hollowed out and used as a natural cache. Damp on the inside.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-hollowed-tree-stump",
+          "containerMeta": {
+            "terrains": [
+              "forest"
+            ],
+            "cacheTypes": [
+              "stash",
+              "camp_supplies"
+            ],
+            "capacityLbs": 175
+          }
+        }
+      }
+    },
+    {
+      "_id": "f02d7c531943fa21",
+      "name": "Iron Lockbox",
+      "type": "container",
+      "img": "icons/containers/chest/chest-reinforced-steel-brown.webp",
+      "system": {
+        "description": {
+          "value": "<p>A compact iron lockbox, hinged lid secured with a simple pin lock. Solid construction.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-iron-lockbox",
+          "containerMeta": {
+            "terrains": [
+              "dungeon",
+              "urban"
+            ],
+            "cacheTypes": [
+              "hoard",
+              "arcane_cache"
+            ],
+            "capacityLbs": 140
+          }
+        }
+      }
+    },
+    {
+      "_id": "9a27e1408d685a95",
+      "name": "Old Adventurer's Pack",
+      "type": "container",
+      "img": "icons/containers/bags/pack-simple-leather-brown.webp",
+      "system": {
+        "description": {
+          "value": "<p>A weathered adventurer's pack that has clearly been through a great deal. Stains on the canvas.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-old-adventurer-s-pack",
+          "containerMeta": {
+            "terrains": [
+              "any"
+            ],
+            "cacheTypes": [
+              "stash",
+              "camp_supplies",
+              "merchant_wreck"
+            ],
+            "capacityLbs": 140
+          }
+        }
+      }
+    },
+    {
+      "_id": "89ad937677946cea",
+      "name": "Reed Basket",
+      "type": "container",
+      "img": "icons/containers/misc/basket-simple-yellow.webp",
+      "system": {
+        "description": {
+          "value": "<p>A tightly woven reed basket with a fitted lid. Lightweight and common in coastal settlements.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-reed-basket",
+          "containerMeta": {
+            "terrains": [
+              "forest"
+            ],
+            "cacheTypes": [
+              "stash",
+              "camp_supplies"
+            ],
+            "capacityLbs": 110
+          }
+        }
+      }
+    },
+    {
+      "_id": "c9933fcbbb24e2c0",
+      "name": "Tarred Reed Bundle",
+      "type": "container",
+      "img": "icons/containers/misc/basket-simple-yellow.webp",
+      "system": {
+        "description": {
+          "value": "<p>Tightly bound river reeds sealed with pine tar along every seam. It floats. Whoever made this knew they might need to cross water in a hurry.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-tarred-reed-bundle",
+          "containerMeta": {
+            "terrains": [
+              "swamp",
+              "forest"
+            ],
+            "cacheTypes": [
+              "stash",
+              "camp_supplies"
+            ],
+            "capacityLbs": 70
+          }
+        }
+      }
+    },
+    {
+      "_id": "7510211eb4e4d0c6",
+      "name": "Waxed Leather Satchel",
+      "type": "container",
+      "img": "icons/containers/bags/pack-simple-leather-brown.webp",
+      "system": {
+        "description": {
+          "value": "<p>A soft leather pack treated with beeswax on every seam and fold. The wax needs reapplying every season, but it keeps out standing water well enough for anything short of submersion.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-waxed-leather-satchel",
+          "containerMeta": {
+            "terrains": [
+              "swamp",
+              "forest"
+            ],
+            "cacheTypes": [
+              "stash",
+              "camp_supplies",
+              "traveller_pack"
+            ],
+            "capacityLbs": 110
+          }
+        }
+      }
+    },
+    {
+      "_id": "c1516a6b2e2a2719",
+      "name": "Worn Leather Sack",
+      "type": "container",
+      "img": "icons/containers/bags/sack-worn-brown.webp",
+      "system": {
+        "description": {
+          "value": "<p>A weathered leather sack, stitched crudely. It has seen better days, but still holds its contents.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-worn-leather-sack",
+          "containerMeta": {
+            "terrains": [
+              "any"
+            ],
+            "cacheTypes": [
+              "stash",
+              "camp_supplies"
+            ],
+            "capacityLbs": 110
+          }
+        }
+      }
+    },
+    {
+      "_id": "e54ba35535404b4d",
+      "name": "Woven Bamboo Box",
+      "type": "container",
+      "img": "icons/containers/misc/basket-handle-woven-yellow.webp",
+      "system": {
+        "description": {
+          "value": "<p>A finely woven bamboo box with a simple clasp. Clearly crafted with care.</p>"
+        }
+      },
+      "flags": {
+        "ionrift-quartermaster": {
+          "itemRef": "container-woven-bamboo-box",
+          "containerMeta": {
+            "terrains": [
+              "forest"
+            ],
+            "cacheTypes": [
+              "stash",
+              "camp_supplies"
+            ],
+            "capacityLbs": 110
+          }
+        }
+      }
+    }
+  ]
+}
