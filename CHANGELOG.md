@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.12] - 2026-09-17
+
+### Fixed
+- Placing a cache from Pathfinder 2e or Starfinder 2e no longer errors. Drag-to-canvas placement is dnd5e-only; other systems use the Add to Items button, which now shows automatically.
+
 ## [1.9.11] - 2026-09-17
 
 ### Fixed

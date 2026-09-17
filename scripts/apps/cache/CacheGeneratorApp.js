@@ -193,7 +193,12 @@ export class CacheGeneratorApp extends Application {
             ? `Empty: ${container.emptyWeightLbs ?? 0} lb  |  Cap: ${container.capacityLbs} lb`
             : "";
 
-        const itemPilesActive = !!(game.modules?.get("itempilesdnd5e")?.active);
+        // Drag-to-canvas via Item Piles is dnd5e-only. On other systems the
+        // pile creation crashes (Actor.create rejects with no valid actor
+        // type, and the ITEM_TRANSFORMER reads CONFIG.DND5E.attunementTypes).
+        // Force the "Add to Items" fallback path on non-dnd5e systems.
+        const itemPilesActive = !!(game.modules?.get("itempilesdnd5e")?.active)
+            && game.system?.id === "dnd5e";
 
         const currentOwnerTheme = this._currentResult?.meta?.ownerTheme
             ?? game.settings?.get(MODULE_ID, "defaultCacheOwnerTheme")
@@ -1767,7 +1772,9 @@ export class CacheGeneratorApp extends Application {
     // ── Drag-to-canvas (primary, Item Piles) ─────────────────────────────────
 
     _onDragContainerStart(event) {
-        if (!this._currentResult || !game.modules?.get("itempilesdnd5e")?.active) {
+        const itemPilesActive = !!(game.modules?.get("itempilesdnd5e")?.active)
+            && game.system?.id === "dnd5e";
+        if (!this._currentResult || !itemPilesActive) {
             event.preventDefault();
             return;
         }
