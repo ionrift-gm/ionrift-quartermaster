@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.10] - 2026-09-17
+
+### Fixed
+- Container compendium now loads correctly in Pathfinder 2e and Starfinder 2e worlds. Previously, cache generation always reported "No Container Matched" on non-dnd5e systems.
+
 ## [1.9.9] - 2026-09-06
 
 ### Fixed
