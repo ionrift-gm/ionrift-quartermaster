@@ -11,6 +11,8 @@ import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../workshop/CoinFormat.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { SquashMerger } from "../packs/SquashMerger.js";
+import { ItemResolutionPipeline } from "../workshop/ItemResolutionPipeline.js";
 import {
     CacheScrollLogic,
     SCROLL_PRICES_BY_LEVEL,
@@ -2225,20 +2227,21 @@ export class CacheGenerator {
 
         const actor = await Actor.create(actorPayload);
 
-        const itemPayloads = items.map(item => {
-            const data = adapter.buildCacheItemPayload(item, meta);
-            if (!data.img) data.img = DEFAULT_ITEM_ICON;
-
-            if (item._isMagical) {
-                adapter.applyCacheMask(data, {
-                    baseItemName: item._baseItemName,
-                    mundaneDesc: item._mundaneDesc,
-                    obscuredImg: item._obscuredImg,
-                    sourceImg: item._maskSourceImg
-                });
-            }
-            return data;
+        // Route items through the same resolution pipeline as the Item Piles
+        // drag path: squash duplicate picks into single stacks, resolve real
+        // compendium documents (so PF2E gets full system.traits, level, bulk,
+        // etc.), apply identification masking, and stamp stack quantity.
+        // A raw items.map(buildCacheItemPayload) misses all of that and would
+        // emit N loose rows per stack with mask-only field shapes.
+        const mintBatch = meta.mintBatch;
+        const squashedMap = SquashMerger.merge(items, {
+            log: (msg) => Logger.info(MODULE_LABEL, msg)
         });
+        const itemPayloads = [];
+        for (const entry of squashedMap.values()) {
+            const resolved = await ItemResolutionPipeline.resolve(entry, mintBatch);
+            itemPayloads.push(ItemResolutionPipeline.stampQuantity(resolved, entry._totalQty ?? 1));
+        }
 
         CacheGenerator._guardMintSources(itemPayloads);
 

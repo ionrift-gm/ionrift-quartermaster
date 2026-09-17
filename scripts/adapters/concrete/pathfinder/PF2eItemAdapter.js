@@ -193,11 +193,14 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
 
     buildLootActorPayload(result, meta = {}) {
         const label = meta.cacheLabel ?? "Loot Cache";
-        const containerImg = result?.container?.img;
+        const containerName = result?.container?.name ?? label;
+        const containerImg = result?.container?.img
+            ?? "icons/containers/chest/chest-reinforced-steel.webp";
+        const actorName = `Cache: ${label}`;
         return {
-            name: `Cache: ${label}`,
+            name: actorName,
             type: "loot",
-            img: containerImg ?? "icons/containers/chest/chest-reinforced-steel.webp",
+            img: containerImg,
             system: {
                 details: {
                     description: {
@@ -207,6 +210,17 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
                 },
                 lootSheetType: "Loot",
                 hiddenWhenEmpty: false
+            },
+            // Prototype token drives the on-canvas token when the actor is
+            // dragged onto a scene. Without an explicit texture the token
+            // shows Foundry's default silhouette instead of the container.
+            prototypeToken: {
+                name: containerName,
+                texture: { src: containerImg },
+                actorLink: false,
+                displayName: 50,
+                lockRotation: true,
+                sight: { enabled: false }
             }
         };
     }
@@ -245,12 +259,17 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
 
     buildFallbackPileItem(metaObj) {
         const w = Number(metaObj.weight);
+        const priceGp = Number(metaObj.price) || 0;
+        // PF2E persists price as a Coins object at system.price.value
+        // (system.price.value.gp, .sp, .cp, .pp). The legacy flat shape
+        // { value: N, denomination: "gp" } persists but renders as 0 gp
+        // on the loot actor sheet.
         return {
             name: metaObj.name,
             type: metaObj.type ?? "treasure",
             img: metaObj.img,
             system: {
-                price: { value: metaObj.price ?? 0, denomination: "gp" },
+                price: { value: { gp: priceGp } },
                 bulk: { value: Number.isFinite(w) ? Math.max(0.1, w / 5) : 0.1 }
             }
         };

@@ -700,8 +700,8 @@
                 {{/if}}
 
                 {{#if container}}
-                {{!-- Container card, draggable when Item Piles is active --}}
-                <div class="container-card" draggable="{{itemPilesActive}}" title="{{#if itemPilesActive}}Drag to canvas to place{{else}}Container preview{{/if}}">
+                {{!-- Container card, draggable when a deployment path is available --}}
+                <div class="container-card" draggable="{{#if itemPilesActive}}true{{else if supportsLootActor}}true{{else}}false{{/if}}" title="{{#if itemPilesActive}}Drag to canvas to place{{else if supportsLootActor}}Drag to canvas to place as a Loot actor{{else}}Container preview{{/if}}">
 
                     {{!-- Reroll container button --}}
                     <button type="button" class="action-reroll-container btn-container-reroll" title="Reroll container">
@@ -723,10 +723,10 @@
                 {{#if itemPilesActive}}
                 <p class="drag-hint"><i class="fas fa-hand-grab"></i> Drag container card to canvas to place</p>
                 {{else if supportsLootActor}}
-                <button type="button" class="action-create-loot-actor btn-add-items" id="cache-create-loot-actor-btn">
-                    <i class="fas fa-treasure-chest"></i> Create Loot Actor
+                <p class="drag-hint"><i class="fas fa-hand-grab"></i> Drag container card to canvas to place as a Loot actor</p>
+                <button type="button" class="action-create-loot-actor btn-secondary-link" id="cache-create-loot-actor-btn" title="Create the Loot actor without placing a token">
+                    <i class="fas fa-plus-square"></i> Create actor only
                 </button>
-                <p class="drag-hint"><i class="fas fa-circle-info"></i> Creates a Loot actor with distribute-coins and party-stash workflows</p>
                 {{else}}
                 <button type="button" class="action-add-items btn-add-items" id="cache-add-items-btn">
                     <i class="fas fa-box-open"></i> Add to Items
