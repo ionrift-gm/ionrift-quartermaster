@@ -722,6 +722,11 @@
                 {{!-- Primary action --}}
                 {{#if itemPilesActive}}
                 <p class="drag-hint"><i class="fas fa-hand-grab"></i> Drag container card to canvas to place</p>
+                {{else if supportsLootActor}}
+                <button type="button" class="action-create-loot-actor btn-add-items" id="cache-create-loot-actor-btn">
+                    <i class="fas fa-treasure-chest"></i> Create Loot Actor
+                </button>
+                <p class="drag-hint"><i class="fas fa-circle-info"></i> Creates a Loot actor with distribute-coins and party-stash workflows</p>
                 {{else}}
                 <button type="button" class="action-add-items btn-add-items" id="cache-add-items-btn">
                     <i class="fas fa-box-open"></i> Add to Items

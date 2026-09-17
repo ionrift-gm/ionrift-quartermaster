@@ -223,6 +223,48 @@ export class QuartermasterItemAdapter {
     }
 
     /**
+     * Whether this system supports the "Create Loot Actor" deployment path.
+     * When true and Item Piles is not installed, the Cache Generator surfaces
+     * a Create Loot Actor button instead of Add to Items. Default: false.
+     * @returns {boolean}
+     */
+    canCreateLootActor() { return false; }
+
+    /**
+     * The actor `type` string used by {@link buildLootActorPayload}. Systems
+     * that override {@link canCreateLootActor} must also supply this.
+     * @returns {string|null}
+     */
+    getLootActorType() { return null; }
+
+    /**
+     * Build the Actor.create payload for a cache deployed as a loot actor.
+     * Items are attached separately via createEmbeddedDocuments; currency is
+     * deposited via {@link depositLootActorCurrency} after the actor exists.
+     *
+     * @param {object} result  Cache result from generate()
+     * @param {object} [meta]  Cache result meta
+     * @returns {object|null}
+     */
+    buildLootActorPayload(_result, _meta = {}) { return null; }
+
+    /**
+     * Deposit cache currency into an already-created loot actor. Systems that
+     * have a native currency API (PF2E: actor.inventory.addCoins) use it;
+     * others fall back to adding a Coin Purse item.
+     *
+     * @param {Actor} actor
+     * @param {object} result
+     * @returns {Promise<void>}
+     */
+    async depositLootActorCurrency(actor, result) {
+        const coinItems = this.buildCoinItems(result, {});
+        if (coinItems.length > 0) {
+            await actor.createEmbeddedDocuments("Item", coinItems);
+        }
+    }
+
+    /**
      * @param {object} metaObj
      * @returns {object}
      */

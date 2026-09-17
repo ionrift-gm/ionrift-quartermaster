@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.10.0] - 2026-09-17
+
+### Added
+- Pathfinder 2e players without Item Piles get a "Create Loot Actor" button on the Cache Generator. It builds a native PF2e Loot actor with populated pp/gp/sp/cp currency, categorised inventory, and the sheet's built-in Distribute Coins, Loot Selected Tokens, and Send to Party Stash workflows.
+
 ## [1.9.13] - 2026-09-17
 
 ### Fixed

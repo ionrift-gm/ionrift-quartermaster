@@ -2187,4 +2187,69 @@ export class CacheGenerator {
 
         return { count: created.length };
     }
+
+    /**
+     * Deploys a cache as a system-native Loot actor. Used on systems whose
+     * adapter advertises {@link canCreateLootActor} = true (PF2E) and Item
+     * Piles is not installed. Provides the distribute-coins, loot-selected-
+     * tokens, and party-stash workflows the sidebar-folder path cannot.
+     *
+     * @param {Object} result - Output from generate()
+     * @returns {Promise<{ actorId: string, itemCount: number }>}
+     */
+    static async _createLootActor(result) {
+        if (!game.user.isGM) {
+            ui.notifications.warn("Only the GM can create loot actors.");
+            return { actorId: null, itemCount: 0 };
+        }
+
+        const adapter = getQuartermasterAdapter();
+        if (!adapter.canCreateLootActor()) {
+            ui.notifications.warn("This system does not support the Loot actor deployment path.");
+            return { actorId: null, itemCount: 0 };
+        }
+
+        const meta = result.meta ?? {};
+        const items = result.items ?? [];
+        const folderName = `Cache: ${meta.cacheLabel ?? "Loot"} (${new Date().toLocaleDateString()})`;
+        let folder = game.folders.find(f => f.name === folderName && f.type === "Actor");
+        if (!folder) {
+            folder = await Folder.create({ name: folderName, type: "Actor", parent: null });
+        }
+
+        const actorPayload = adapter.buildLootActorPayload(result, meta);
+        if (!actorPayload) {
+            throw new Error("Adapter advertises loot actor support but returned no payload");
+        }
+        actorPayload.folder = folder.id;
+
+        const actor = await Actor.create(actorPayload);
+
+        const itemPayloads = items.map(item => {
+            const data = adapter.buildCacheItemPayload(item, meta);
+            if (!data.img) data.img = DEFAULT_ITEM_ICON;
+
+            if (item._isMagical) {
+                adapter.applyCacheMask(data, {
+                    baseItemName: item._baseItemName,
+                    mundaneDesc: item._mundaneDesc,
+                    obscuredImg: item._obscuredImg,
+                    sourceImg: item._maskSourceImg
+                });
+            }
+            return data;
+        });
+
+        CacheGenerator._guardMintSources(itemPayloads);
+
+        if (itemPayloads.length > 0) {
+            await actor.createEmbeddedDocuments("Item", itemPayloads);
+        }
+
+        await adapter.depositLootActorCurrency(actor, result);
+
+        ui.notifications.info(`Loot actor "${actor.name}" created with ${itemPayloads.length} items.`);
+
+        return { actorId: actor.id, itemCount: itemPayloads.length };
+    }
 }
