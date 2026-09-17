@@ -196,9 +196,15 @@ export class CacheGeneratorApp extends Application {
         // Drag-to-canvas via Item Piles is dnd5e-only. On other systems the
         // pile creation crashes (Actor.create rejects with no valid actor
         // type, and the ITEM_TRANSFORMER reads CONFIG.DND5E.attunementTypes).
-        // Force the "Add to Items" fallback path on non-dnd5e systems.
+        // Force the fallback path on non-dnd5e systems.
         const itemPilesActive = !!(game.modules?.get("itempilesdnd5e")?.active)
             && game.system?.id === "dnd5e";
+
+        // Systems whose adapter advertises a native loot actor path
+        // (PF2E) replace the sidebar-folder fallback with Create Loot Actor
+        // when Item Piles is unavailable.
+        const supportsLootActor = !itemPilesActive
+            && !!game.ionrift?.quartermaster?.adapter?.canCreateLootActor?.();
 
         const currentOwnerTheme = this._currentResult?.meta?.ownerTheme
             ?? game.settings?.get(MODULE_ID, "defaultCacheOwnerTheme")
@@ -272,6 +278,7 @@ export class CacheGeneratorApp extends Application {
             capacityLabel,
             statsLabel,
             itemPilesActive,
+            supportsLootActor,
             advisory:         this._buildAdvisoryContext(),
             advisoryCollapsed: this._advisoryCollapsed,
             budgetMin,
@@ -682,6 +689,7 @@ export class CacheGeneratorApp extends Application {
         html.find(".action-reroll-container").click(this._onRerollContainer.bind(this));
         html.find(".action-inject-signature").click(this._onInjectSignature.bind(this));
         html.find(".action-add-items").click(this._onAddToItems.bind(this));
+        html.find(".action-create-loot-actor").click(this._onCreateLootActor.bind(this));
         html.find(".action-clear-gold").click(this._onClearGold.bind(this));
         html.find(".action-reroll-gold").click(this._onRerollGold.bind(this));
 
@@ -1931,6 +1939,27 @@ export class CacheGeneratorApp extends Application {
             Logger.error(MODULE_LABEL, "Add to items failed:", e);
             ui.notifications.error("Failed to add items. Check console.");
             btn.prop("disabled", false).html('<i class="fas fa-box-open"></i> Add to Items');
+        }
+    }
+
+    async _onCreateLootActor(event) {
+        event.preventDefault();
+        if (!this._currentResult) return;
+
+        const btn = $(event.currentTarget);
+        btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> Creating...');
+
+        try {
+            const { actorId } = await CacheGenerator._createLootActor(this._currentResult);
+            btn.html('<i class="fas fa-check"></i> Created');
+            if (actorId) {
+                const actor = game.actors.get(actorId);
+                actor?.sheet?.render(true);
+            }
+        } catch (e) {
+            Logger.error(MODULE_LABEL, "Create loot actor failed:", e);
+            ui.notifications.error("Failed to create loot actor. Check console.");
+            btn.prop("disabled", false).html('<i class="fas fa-treasure-chest"></i> Create Loot Actor');
         }
     }
 }
