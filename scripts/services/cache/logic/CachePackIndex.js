@@ -230,28 +230,70 @@ function selectBlendedContainerPool(byTerrain) {
     return byTerrain;
 }
 
+/** Bundled container catalog path (system-agnostic JSON). */
+const CONTAINER_CATALOG_PATH = `modules/${MODULE_ID}/data/containers.json`;
+
+/**
+ * Load the bundled container catalog shipped as a JSON data file. Used as
+ * the primary source on systems where the dnd5e-locked compendium pack is
+ * not visible (PF2E, SF2E, generic).
+ * @returns {Promise<object[]>}
+ */
+async function _loadBundledContainerCatalog() {
+    try {
+        const response = await fetch(`/${CONTAINER_CATALOG_PATH}`);
+        if (!response.ok) return [];
+        const data = await response.json();
+        const entries = Array.isArray(data?.entries) ? data.entries : [];
+        return entries.map(e => ({ ...e, _sourceCollection: `${MODULE_ID}.bundled-data` }));
+    } catch (err) {
+        Logger.warn(MODULE_LABEL, "Bundled container catalog load failed:", err.message);
+        return [];
+    }
+}
+
 /**
  * @returns {Promise<object[]>}
  */
 async function loadContainerPoolIndex() {
     const packs = resolveQmContainerPacks();
-    if (!packs.length) return [];
-
     const modulePackId = `${MODULE_ID}.${PACK_SUFFIX.containers}`;
+    const hasModulePack = packs.some(p => p.collection === modulePackId);
+
     const merged = [];
-    for (const pack of packs) {
-        try {
-            const index = await pack.getIndex({ fields: ["name", "img", "system", "flags", "type"] });
-            const chunk = index.contents || Array.from(index) || [];
-            const isModulePack = pack.collection === modulePackId;
-            for (const entry of chunk) {
-                if (!isModulePack && entry.type !== "container") continue;
-                merged.push({ ...entry, _sourceCollection: pack.collection });
+
+    if (hasModulePack) {
+        for (const pack of packs) {
+            try {
+                const index = await pack.getIndex({ fields: ["name", "img", "system", "flags", "type"] });
+                const chunk = index.contents || Array.from(index) || [];
+                const isModulePack = pack.collection === modulePackId;
+                for (const entry of chunk) {
+                    if (!isModulePack && entry.type !== "container") continue;
+                    merged.push({ ...entry, _sourceCollection: pack.collection });
+                }
+            } catch (err) {
+                Logger.warn(MODULE_LABEL, `Container index failed for ${pack.collection}:`, err.message);
             }
-        } catch (err) {
-            Logger.warn(MODULE_LABEL, `Container index failed for ${pack.collection}:`, err.message);
+        }
+    } else {
+        const bundled = await _loadBundledContainerCatalog();
+        merged.push(...bundled);
+
+        for (const pack of packs) {
+            try {
+                const index = await pack.getIndex({ fields: ["name", "img", "system", "flags", "type"] });
+                const chunk = index.contents || Array.from(index) || [];
+                for (const entry of chunk) {
+                    if (entry.type !== "container") continue;
+                    merged.push({ ...entry, _sourceCollection: pack.collection });
+                }
+            } catch (err) {
+                Logger.warn(MODULE_LABEL, `Container index failed for ${pack.collection}:`, err.message);
+            }
         }
     }
+
     return merged;
 }
 

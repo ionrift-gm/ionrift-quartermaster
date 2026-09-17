@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.11] - 2026-09-17
+
+### Fixed
+- Cache generation on Pathfinder 2e and Starfinder 2e now picks a container correctly instead of showing "No container matched."
+
 ## [1.9.10] - 2026-09-17
 
 ### Fixed
