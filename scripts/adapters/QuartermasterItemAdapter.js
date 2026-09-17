@@ -155,6 +155,74 @@ export class QuartermasterItemAdapter {
     resolvePileItemData(data) { return data; }
 
     /**
+     * Build an Item document payload for the "Add to Items" fallback path,
+     * used when Item Piles is not installed. Different from
+     * {@link buildFallbackPileItem} which targets pile inventories.
+     *
+     * Default shape matches dnd5e. System adapters override for PF2E, SF2E, etc.
+     *
+     * @param {object} item  Resolved cache item entry
+     * @param {object} [meta]  Cache result meta (cacheLabel used in description)
+     * @returns {object} Foundry Item document data
+     */
+    buildCacheItemPayload(item, meta = {}) {
+        return {
+            name: item.name,
+            type: item.type ?? "loot",
+            img: item.img,
+            system: {
+                quantity: item.quantity ?? 1,
+                price: { value: item.price ?? 0, denomination: "gp" },
+                weight: { value: item.weight ?? 0, units: "lb" },
+                rarity: item.rarity ?? "common",
+                description: {
+                    value: `<p>Generated from a ${meta.cacheLabel ?? "loot cache"}.</p>`
+                }
+            }
+        };
+    }
+
+    /**
+     * Build coin item payloads for the "Add to Items" fallback path.
+     * Base implementation (dnd5e) returns one item per denomination when
+     * coinage is provided, or a single Coin Purse otherwise.
+     *
+     * @param {{ gold: number, coinage?: Record<string, number> }} result
+     * @param {object} [_meta]
+     * @returns {object[]} Array of Foundry Item document data
+     */
+    buildCoinItems(result, _meta = {}) {
+        const { gold, coinage } = result;
+        const out = [];
+        const img = "icons/commodities/currency/coins-assorted-mix-copper-silver-gold.webp";
+
+        if (coinage) {
+            for (const denom of ["pp", "gp", "ep", "sp", "cp"]) {
+                if (coinage[denom]) {
+                    out.push({
+                        name: `Coins (${denom.toUpperCase()})`,
+                        type: "loot",
+                        img,
+                        system: { price: { value: coinage[denom], denomination: denom } }
+                    });
+                }
+            }
+        } else if (gold > 0) {
+            out.push({
+                name: "Coin Purse",
+                type: "loot",
+                img,
+                system: {
+                    quantity: 1,
+                    price: { value: gold, denomination: "gp" },
+                    description: { value: `<p>${gold} gold pieces.</p>` }
+                }
+            });
+        }
+        return out;
+    }
+
+    /**
      * @param {object} metaObj
      * @returns {object}
      */

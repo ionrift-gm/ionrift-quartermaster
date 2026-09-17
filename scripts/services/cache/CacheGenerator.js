@@ -2132,6 +2132,12 @@ export class CacheGenerator {
     /**
      * Creates all items from a cache result into the world Items directory.
      * Fallback path used when Item Piles is not installed.
+     *
+     * Payload construction is delegated to the active QuartermasterItemAdapter
+     * so each system emits its own Item schema (dnd5e uses `type: "loot"` +
+     * `system.price.denomination`; PF2E uses `type: "treasure"` +
+     * `system.price.value.gp`, etc.).
+     *
      * @param {Object} result - Output from generate()
      */
     static async _addToItems(result) {
@@ -2140,31 +2146,23 @@ export class CacheGenerator {
             return { count: 0 };
         }
 
+        const adapter = getQuartermasterAdapter();
         const items = result.items ?? [];
-        const folderName = `Cache: ${result.meta?.cacheLabel ?? "Loot"} (${new Date().toLocaleDateString()})`;
+        const meta = result.meta ?? {};
+        const folderName = `Cache: ${meta.cacheLabel ?? "Loot"} (${new Date().toLocaleDateString()})`;
         let folder = game.folders.find(f => f.name === folderName && f.type === "Item");
         if (!folder) {
             folder = await Folder.create({ name: folderName, type: "Item", parent: null });
         }
 
         const toCreate = items.map(item => {
-            const data = {
-                name: item.name,
-                type: item.type ?? "loot",
-                img: item.img ?? DEFAULT_ITEM_ICON,
-                folder: folder.id,
-                system: {
-                    quantity: item.quantity ?? 1,
-                    price: { value: item.price ?? 0, denomination: "gp" },
-                    weight: { value: item.weight ?? 0, units: "lb" },
-                    rarity: item.rarity ?? "common",
-                    description: { value: `<p>Generated from a ${result.meta?.cacheLabel ?? "loot cache"}.</p>` }
-                }
-            };
+            const data = adapter.buildCacheItemPayload(item, meta);
+            data.folder = folder.id;
+            if (!data.img) data.img = DEFAULT_ITEM_ICON;
 
             // Apply identification masking for magical items
             if (item._isMagical) {
-                getQuartermasterAdapter().applyCacheMask(data, {
+                adapter.applyCacheMask(data, {
                     baseItemName: item._baseItemName,
                     mundaneDesc: item._mundaneDesc,
                     obscuredImg: item._obscuredImg,
@@ -2175,32 +2173,10 @@ export class CacheGenerator {
             return data;
         });
 
-        // Add gold as loot items
         if (result.gold > 0) {
-            if (result.coinage) {
-                for (const denom of ["pp", "gp", "ep", "sp", "cp"]) {
-                    if (result.coinage[denom]) {
-                        toCreate.push({
-                            name: `Coins (${denom.toUpperCase()})`,
-                            type: "loot",
-                            img: "icons/commodities/currency/coins-assorted-mix-copper-silver-gold.webp",
-                            folder: folder.id,
-                            system: { price: { value: result.coinage[denom], denomination: denom } }
-                        });
-                    }
-                }
-            } else {
-                toCreate.push({
-                    name: "Coin Purse",
-                    type: "loot",
-                    img: "icons/commodities/currency/coins-assorted-mix-copper-silver-gold.webp",
-                    folder: folder.id,
-                    system: {
-                        quantity: 1,
-                        price: { value: result.gold, denomination: "gp" },
-                        description: { value: `<p>${result.gold} gold pieces.</p>` }
-                    }
-                });
+            for (const coin of adapter.buildCoinItems(result, meta)) {
+                coin.folder = folder.id;
+                toCreate.push(coin);
             }
         }
 
@@ -2208,7 +2184,7 @@ export class CacheGenerator {
         const created = await Item.create(toCreate);
 
         ui.notifications.info(`Cache added to Items directory: ${created.length} items in "${folderName}".`);
-        
+
         return { count: created.length };
     }
 }

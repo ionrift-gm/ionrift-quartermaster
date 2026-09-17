@@ -133,6 +133,54 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
         return super.getPowerScoreContribution(item, weights);
     }
 
+    /**
+     * PF2E-shaped payload for the "Add to Items" fallback (no Item Piles).
+     * Emits PF2E's real Item schema so `Item.create` does not reject the
+     * document: valid PF2E item type, `system.price.value.{gp}`, `system.bulk`,
+     * `system.traits.rarity`.
+     */
+    buildCacheItemPayload(item, meta = {}) {
+        const priceGp = Number(item.price ?? 0) || 0;
+        const w = Number(item.weight);
+        const bulk = Number.isFinite(w) && w > 0 ? Math.max(0.1, w / 5) : 0;
+        return {
+            name: item.name,
+            type: item.type ?? "treasure",
+            img: item.img,
+            system: {
+                quantity: item.quantity ?? 1,
+                price: { value: { gp: priceGp } },
+                bulk: { value: bulk },
+                traits: { rarity: item.rarity ?? "common" },
+                description: {
+                    value: `<p>Generated from a ${meta.cacheLabel ?? "loot cache"}.</p>`
+                }
+            }
+        };
+    }
+
+    /**
+     * PF2E coin drop: single Coin Purse treasure item carrying the total
+     * gold value. Individual denominations (pp/gp/sp/cp) roll up into gp
+     * for the sidebar fallback; the GM redistributes when moving the
+     * purse into a Loot actor or party stash.
+     */
+    buildCoinItems(result, _meta = {}) {
+        const gold = Number(result?.gold) || 0;
+        if (gold <= 0) return [];
+        return [{
+            name: "Coin Purse",
+            type: "treasure",
+            img: "icons/commodities/currency/coins-assorted-mix-copper-silver-gold.webp",
+            system: {
+                quantity: 1,
+                price: { value: { gp: gold } },
+                bulk: { value: 0 },
+                description: { value: `<p>${gold} gold pieces in a purse.</p>` }
+            }
+        }];
+    }
+
     resolvePileItemData(data) {
         if (Array.isArray(data.effects) && data.effects.length > 0) {
             data.effects = [];
