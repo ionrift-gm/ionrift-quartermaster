@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.13] - 2026-09-17
+
+### Fixed
+- Adding a generated cache to the Items sidebar no longer errors on Pathfinder 2e when Item Piles is not installed. On Pathfinder 2e, coins now drop as a single "Coin Purse" treasure item carrying the total gold value.
+
 ## [1.9.12] - 2026-09-17
 
 ### Fixed
