@@ -44,6 +44,7 @@ export class TerrainDataRegistry {
 
         await this._loadModuleBase();
         await this._loadFromOverlays();
+        await this._loadFromImported();
 
         this._ready = true;
 
@@ -161,6 +162,23 @@ export class TerrainDataRegistry {
         }
     }
 
+    /**
+     * Load QM terrain data that was stored via the custom terrain import
+     * feature. Reads the `importedTerrainData` world setting and registers
+     * each entry additively.
+     * @private
+     */
+    static async _loadFromImported() {
+        try {
+            const stored = game.settings.get(MODULE_ID, "importedTerrainData") ?? {};
+            for (const [id, data] of Object.entries(stored)) {
+                this.register({ id, ...data });
+            }
+        } catch (e) {
+            Logger.warn(MODULE_LABEL, "TerrainDataRegistry: imported terrain load failed:", e);
+        }
+    }
+
     // ── Accessors ─────────────────────────────────────────────────────
 
     /**
@@ -229,6 +247,7 @@ export class TerrainDataRegistry {
 
     /**
      * Terrain dropdown groups aligned with Respite (Built, Safe Haven, Wilderness).
+     * Imported custom terrains get their own group at the end.
      * @param {string} [selectedId]
      * @returns {{ group: string, options: { id: string, label: string, selected?: boolean }[] }[]}
      */
@@ -237,16 +256,26 @@ export class TerrainDataRegistry {
         const built = [];
         const safeHaven = [];
         const wilderness = [];
+        const custom = [];
+        const isImported = game.ionrift?.library?.terrains?.isImported?.bind(game.ionrift.library.terrains);
+
         for (const t of list) {
             const opt = { ...t, selected: t.id === selectedId };
-            if (t.category === "built") built.push(opt);
-            else if (t.category === "safe-haven") safeHaven.push(opt);
-            else wilderness.push(opt);
+            if (isImported?.(t.id)) {
+                custom.push(opt);
+            } else if (t.category === "built") {
+                built.push(opt);
+            } else if (t.category === "safe-haven") {
+                safeHaven.push(opt);
+            } else {
+                wilderness.push(opt);
+            }
         }
         const groups = [];
         if (built.length) groups.push({ group: "Built", options: built });
         if (safeHaven.length) groups.push({ group: "Safe Haven", options: safeHaven });
         if (wilderness.length) groups.push({ group: "Wilderness", options: wilderness });
+        if (custom.length) groups.push({ group: "Custom", options: custom });
         return groups;
     }
 

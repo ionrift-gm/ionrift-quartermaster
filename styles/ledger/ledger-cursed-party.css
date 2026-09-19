@@ -1279,3 +1279,22 @@
     box-shadow: 0 0 8px rgba(168, 85, 247, 0.4) !important;
 }
 
+/* Suppress the Foundry "Red Halo of Doom" on focus */
+.ionrift-item-directory-toolbar .ionrift-cache-btn:focus,
+.ionrift-item-directory-toolbar .ionrift-ledger-btn:focus,
+.ionrift-cache-btn:focus,
+.ionrift-ledger-btn:focus {
+    outline: none !important;
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.4) !important;
+    border-color: rgba(192, 132, 252, 0.8) !important;
+}
+
+.ionrift-item-directory-toolbar .ionrift-cache-btn:focus-visible,
+.ionrift-item-directory-toolbar .ionrift-ledger-btn:focus-visible,
+.ionrift-cache-btn:focus-visible,
+.ionrift-ledger-btn:focus-visible {
+    outline: 2px solid rgba(168, 85, 247, 0.85) !important;
+    outline-offset: 2px !important;
+    box-shadow: none !important;
+}
+

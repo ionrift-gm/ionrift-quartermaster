@@ -13,6 +13,13 @@ const RARITY_CEILING = {
     legendary: "legendary"
 };
 
+const TIER_TO_RARITY_MAX = {
+    1: "uncommon",
+    2: "rare",
+    3: "veryRare",
+    4: "legendary"
+};
+
 /** Rarity → milestone position index (resolved to actual level at runtime). */
 const RARITY_BASE_POS = { common: 0, uncommon: 0, rare: 1, veryRare: 3, legendary: 4 };
 
@@ -57,7 +64,10 @@ export class PartyShelfPool {
                     if (!rawRarity || rawRarity === "common") continue;
                     const rarity = this._normaliseRarity(adapter.normalizeRarityForTier(rawRarity));
                     if (!allowed.has(rarity)) continue;
-                    if (entry.type !== "equipment") continue;
+
+                    const lootableTypes = new Set(adapter.getWorkshopItemTypes());
+                    if (!lootableTypes.has(entry.type)) continue;
+                    if (entry.type === "spell" || entry.type === "feat") continue;
 
                     const key = entry.name.toLowerCase();
                     if (banSet.has(key) || seen.has(key)) continue;
@@ -130,7 +140,7 @@ export class PartyShelfPool {
             const td = tables.tiers?.[String(tier)];
             if (td?.rarityMax) return this._normaliseRarity(td.rarityMax);
         } catch { /* fall through */ }
-        return RARITY_CEILING[tier] ?? "uncommon";
+        return TIER_TO_RARITY_MAX[tier] ?? RARITY_CEILING[tier] ?? "uncommon";
     }
 
     static _getEnabledSources() {
@@ -159,6 +169,9 @@ export class PartyShelfPool {
     }
 
     static _fallback(tier, count) {
+        const adapter = getQuartermasterAdapter();
+        if (adapter.id !== "dnd5e") return [];
+
         const pool = [
             { name: "Bag of Holding",      rarity: "uncommon", img: "icons/containers/bags/pack-leather-tan.webp" },
             { name: "Cloak of Protection",  rarity: "uncommon", img: "icons/equipment/back/cloak-collared-green.webp" },
@@ -167,7 +180,7 @@ export class PartyShelfPool {
             { name: "Eversmoking Bottle",   rarity: "uncommon", img: "icons/containers/bottles/bottle-corked-labeled-blue.webp" }
         ];
 
-        const maxRarity = RARITY_CEILING[tier] ?? "uncommon";
+        const maxRarity = TIER_TO_RARITY_MAX[tier] ?? RARITY_CEILING[tier] ?? "uncommon";
         const allowed = this._raritiesUpTo(maxRarity);
         const viable = pool.filter(p => allowed.has(p.rarity));
         const shuffled = [...viable].sort(() => Math.random() - 0.5).slice(0, count);

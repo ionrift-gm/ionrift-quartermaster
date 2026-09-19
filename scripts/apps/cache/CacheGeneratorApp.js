@@ -127,6 +127,7 @@ export class CacheGeneratorApp extends Application {
         this._cursedPool       = [];      // random compendium-drawn cursed items for left panel
         this._cursedPlanned    = [];      // ledger cursedPlanned (milestone-pinned)
         this._partyShelfPool   = [];      // ephemeral party shelf from compendiums
+        this._partyShelfPoolLoaded = false;
         // Bound reference so we can remove it after use
         this._boundCanvasDrop = this._onCanvasDrop.bind(this);
         this._cursedPoolLoaded = false; // [EA] guards against re-fetch loop
@@ -338,6 +339,7 @@ export class CacheGeneratorApp extends Application {
         } catch {
             this._partyShelfPool = [];
         }
+        this._partyShelfPoolLoaded = true;
         return this._partyShelfPool;
     }
 
@@ -666,12 +668,10 @@ export class CacheGeneratorApp extends Application {
 
         html.find(".action-generate").click(this._onGenerate.bind(this));
 
-        // Loot pool nudge: opens CompendiumForgeApp on the Loot Pool tab so the
-        // GM can configure sources before attempting generation.
-        html.find(".action-open-pool-compiler, .action-open-forge-from-pip").click(async () => {
-            const { CompendiumForgeApp } = await import("../forge/CompendiumForgeApp.js");
-            new CompendiumForgeApp({}, { activeTab: "lootPool" }).render(true);
-        });
+        const lootSourceBtns = html.find(".action-open-pool-compiler, .action-open-forge-from-pip");
+        Logger.info(MODULE_LABEL,
+            `CacheGen loot-sources bind: ${lootSourceBtns.length} button(s), html=${html[0]?.tagName ?? html[0]?.nodeName}`);
+        lootSourceBtns.on("click", this._onOpenLootSources.bind(this));
         html.find(".action-reroll-slot").click(this._onRerollSlot.bind(this));
         html.find(".action-remove-slot").click(this._onRemoveSlot.bind(this));
         html.find(".action-qty-up").click(this._onQtyStep.bind(this, 1));
@@ -773,7 +773,7 @@ export class CacheGeneratorApp extends Application {
             );
         }
 
-        if (this._partyShelfPool.length === 0) {
+        if (!this._partyShelfPoolLoaded) {
             pending.push(this._refreshPartyShelfPool(tier));
         }
 
@@ -867,6 +867,26 @@ export class CacheGeneratorApp extends Application {
     }
 
     // ── Generate ─────────────────────────────────────────────────────────────
+
+    /**
+     * Open Compendium Forge on the Loot Pool tab.
+     * Stop the click from bubbling: Foundry brings the clicked window to the
+     * front after inner handlers run, which would cover the newly opened Forge.
+     */
+    async _onOpenLootSources(event) {
+        event?.preventDefault();
+        event?.stopPropagation();
+        Logger.info(MODULE_LABEL, "Set Up Loot Sources click fired");
+        try {
+            const { CompendiumForgeApp } = await import("../forge/CompendiumForgeApp.js");
+            const app = new CompendiumForgeApp({}, { activeTab: "lootPool" });
+            await app.render(true);
+            Logger.info(MODULE_LABEL, "Compendium Forge rendered");
+        } catch (err) {
+            Logger.error(MODULE_LABEL, "Failed to open Compendium Forge:", err);
+            ui.notifications.error("Could not open the Compendium Forge. Check the console for details.");
+        }
+    }
 
     /** Debounce budget segment reroll after a segment click. */
     _debouncedBudgetReroll() {
