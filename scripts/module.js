@@ -152,6 +152,32 @@ Hooks.once('init', async () => {
         });
     });
 
+    // ── Custom terrain import listeners ───────────────────────────────
+    Hooks.on("ionrift.terrainImported", (data) => {
+        if (!game.user.isGM) return;
+        const qmData = data.modules?.quartermaster;
+        if (!qmData) return;
+        try {
+            const stored = game.settings.get(MODULE_ID, "importedTerrainData") ?? {};
+            stored[data.id] = qmData;
+            game.settings.set(MODULE_ID, "importedTerrainData", stored);
+            TerrainDataRegistry.register({ id: data.id, ...qmData });
+        } catch (e) {
+            Logger.warn(MODULE_LABEL, `Failed to store imported terrain QM data for "${data.id}":`, e);
+        }
+    });
+
+    Hooks.on("ionrift.terrainRemoved", (id) => {
+        if (!game.user.isGM) return;
+        try {
+            const stored = game.settings.get(MODULE_ID, "importedTerrainData") ?? {};
+            delete stored[id];
+            game.settings.set(MODULE_ID, "importedTerrainData", stored);
+        } catch (e) {
+            Logger.warn(MODULE_LABEL, `Failed to remove imported terrain QM data for "${id}":`, e);
+        }
+    });
+
     Hooks.on("ionrift.overlayContentChanged", async (detail) => {
         if (detail?.moduleId !== MODULE_ID) return;
         const { ContentPackLoader } = await import("./services/packs/ContentPackLoader.js");
@@ -410,23 +436,32 @@ Hooks.on("renderItemDirectory", (app, html, data) => {
     if (!game.user.isGM) return;
 
     const $html = $(html);
-    if ($html.find(".ionrift-item-directory-toolbar").length > 0) return;
+    $html.find(".ionrift-cache-btn, .ionrift-ledger-btn").closest(".ionrift-directory-toolbar").remove();
+    $html.find(".ionrift-item-directory-toolbar").remove();
 
-    const toolbar = $('<div class="ionrift-item-directory-toolbar"></div>');
+    const toolbar = $('<div class="ionrift-directory-toolbar ionrift-item-directory-toolbar"></div>');
 
-    const cacheBtn = $(`<button type="button" class="ionrift-cache-btn"><i class="fas fa-treasure-chest"></i> Loot Cache</button>`);
+    const cacheBtn = $(`<button type="button" class="ionrift-directory-btn ionrift-cache-btn"><i class="fas fa-treasure-chest"></i> Loot Cache</button>`);
     cacheBtn.click(() => {
         new CacheGeneratorApp().render(true);
     });
 
-    const ledgerBtn = $(`<button type="button" class="ionrift-ledger-btn"><i class="fas fa-book-sparkles"></i> Quartermaster</button>`);
+    const ledgerBtn = $(`<button type="button" class="ionrift-directory-btn ionrift-ledger-btn"><i class="fas fa-book-sparkles"></i> Quartermaster</button>`);
     ledgerBtn.click(async () => {
         const { SignatureLedgerApp } = await import("./apps/ledger/SignatureLedgerApp.js");
         new SignatureLedgerApp().render(true);
     });
 
     toolbar.append(cacheBtn).append(ledgerBtn);
-    $html.find(".header-actions").append(toolbar);
+
+    // Scoped strictly to .directory-header to avoid matching .directory-footer.action-buttons
+    const header = $html.find(".directory-header");
+    const actions = header.find(".header-actions, .action-buttons").first();
+    if (actions.length > 0) {
+        actions.after(toolbar);
+    } else if (header.length > 0) {
+        header.prepend(toolbar);
+    }
 });
 
 // Windfall Logger for Signature Items
