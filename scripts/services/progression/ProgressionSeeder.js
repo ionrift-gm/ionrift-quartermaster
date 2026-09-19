@@ -12,6 +12,7 @@ import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 import { SignatureLedger } from "./SignatureLedger.js";
 import { ScrollForge } from "../scroll/ScrollForge.js";
+import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 
 // ── Positional Curves ────────────────────────────────────────────────────────
 // Indexed by milestone position (0-5), not character level.
@@ -465,65 +466,82 @@ export class ProgressionSeeder {
     // ── Compendium Queries ────────────────────────────────────────────────────
 
     /**
-     * Pull magic items from dnd5e compendium with enriched type data.
+     * Pull magic items from configured compendiums via the system adapter.
      * Returns { uuid, name, img, rarity, itemType, subtype, armorType, weaponType,
      *            description, requiresAttunement }.
      */
     static async _fetchCandidates(classNames, banSet) {
-        const pack = game.packs.get("dnd5e.items");
-        if (!pack) return this._fallbackSignaturePool(classNames);
+        const adapter = getQuartermasterAdapter();
+        const sourceIds = adapter.getDefaultLootPoolSources();
 
-        const index = await pack.getIndex({
-            fields: [
-                "system.rarity", "type", "img",
-                "system.type.value",
-                "system.armor.type",
-                "system.type.baseItem",
-                "system.attunement",
-                "system.description.value"
-            ]
-        });
+        // Try configured sources first, then adapter defaults
+        let packIds;
+        try {
+            const raw = JSON.parse(game.settings.get(MODULE_ID, "lootPoolSources"));
+            packIds = Array.isArray(raw) && raw.length ? raw : sourceIds;
+        } catch {
+            packIds = sourceIds.length ? sourceIds : ["dnd5e.items"];
+        }
+
         const results = [];
-
+        const seen = new Set();
         const allowedRarities = new Set([
             "uncommon", "rare", "veryRare", "legendary", "very rare"
         ]);
+        const lootableTypes = new Set(adapter.getWorkshopItemTypes());
 
-        for (const entry of index) {
-            if (!entry.system?.rarity) continue;
-            const rarity = entry.system.rarity.toLowerCase().replace(" ", "");
-            if (!allowedRarities.has(rarity) && !allowedRarities.has(entry.system.rarity)) continue;
-            if (!["weapon", "equipment"].includes(entry.type)) continue;
-            if (banSet.has(entry.name.toLowerCase())) continue;
+        for (const packId of packIds) {
+            const pack = game.packs.get(packId);
+            if (!pack || pack.documentName !== "Item") continue;
 
-            const normalRarity = entry.system.rarity === "very rare" ? "veryRare" : entry.system.rarity;
-
-            const subtype    = entry.system?.type?.value || "";
-            const armorType  = entry.system?.armor?.type || "";
-            const weaponType = entry.type === "weapon" ? subtype : "";
-
-            // Resolve effective armor type: armor.type takes priority,
-            // then type.value for equipment with armor-like subtypes
-            const effectiveArmorType = armorType
-                || (entry.type === "equipment" && ["light", "medium", "heavy", "shield"].includes(subtype) ? subtype : "");
-
-            const att = entry.system?.attunement;
-            const requiresAttunement = att === "required" || att === "optional";
-
-            results.push({
-                uuid:                 `Compendium.dnd5e.items.Item.${entry._id}`,
-                name:                 entry.name,
-                img:                  entry.img || DEFAULT_ITEM_ICON,
-                rarity:               normalRarity,
-                itemType:             entry.type,
-                subtype:              subtype,
-                armorType:            effectiveArmorType,
-                weaponType:           weaponType,
-                description:          entry.system?.description?.value ?? "",
-                requiresAttunement
+            const index = await pack.getIndex({
+                fields: adapter.getCompendiumIndexFields()
             });
+
+            for (const entry of index) {
+                const rarity = adapter.getRarityFromEntry(entry);
+                const normalised = adapter.normalizeRarityForTier(rarity);
+                if (!allowedRarities.has(normalised) && !allowedRarities.has(rarity)) continue;
+
+                if (!lootableTypes.has(entry.type)) continue;
+                if (banSet.has(entry.name.toLowerCase())) continue;
+
+                const key = entry.name.toLowerCase();
+                if (seen.has(key)) continue;
+                seen.add(key);
+
+                const normalRarity = rarity === "very rare" ? "veryRare" : normalised;
+
+                const subtype    = entry.system?.type?.value || entry.system?.category || "";
+                const armorType  = entry.system?.armor?.type || "";
+                const weaponType = entry.type === "weapon" ? (subtype || entry.system?.category || "") : "";
+
+                const effectiveArmorType = armorType
+                    || (["armor", "shield"].includes(entry.type) ? entry.type : "")
+                    || (entry.type === "equipment" && ["light", "medium", "heavy", "shield"].includes(subtype) ? subtype : "");
+
+                const att = entry.system?.attunement;
+                const traits = entry.system?.traits?.value ?? [];
+                const requiresAttunement = att === "required" || att === "optional"
+                    || traits.includes("invested");
+
+                const docId = entry._id ?? entry.id ?? "";
+                results.push({
+                    uuid:                 docId ? `Compendium.${packId}.Item.${docId}` : null,
+                    name:                 entry.name,
+                    img:                  entry.img || DEFAULT_ITEM_ICON,
+                    rarity:               normalRarity,
+                    itemType:             entry.type,
+                    subtype:              String(subtype),
+                    armorType:            effectiveArmorType,
+                    weaponType:           weaponType,
+                    description:          entry.system?.description?.value ?? "",
+                    requiresAttunement
+                });
+            }
         }
 
+        if (!results.length) return this._fallbackSignaturePool(classNames);
         return results;
     }
 
@@ -587,6 +605,9 @@ export class ProgressionSeeder {
     // ── Static Fallback Pools ─────────────────────────────────────────────────
 
     static _fallbackSignaturePool(classNames) {
+        const adapter = getQuartermasterAdapter();
+        if (adapter.id !== "dnd5e") return [];
+
         const casterItems = [
             { uuid: null, name: "Pearl of Power",       rarity: "uncommon", img: "icons/commodities/gems/pearl-white.webp",                itemType: "equipment", subtype: "wondrous", armorType: "", weaponType: "" },
             { uuid: null, name: "Cloak of Protection",  rarity: "uncommon", img: "icons/equipment/back/cloak-collared-green.webp",          itemType: "equipment", subtype: "wondrous", armorType: "", weaponType: "" },
@@ -605,6 +626,9 @@ export class ProgressionSeeder {
     }
 
     static _fallbackScrollPool() {
+        const adapter = getQuartermasterAdapter();
+        if (adapter.id !== "dnd5e") return [];
+
         return [
             { uuid: null, name: "Shield",          spellLevel: 1, school: "abj", img: "icons/sundries/scrolls/scroll-writing-orange-black.webp" },
             { uuid: null, name: "Detect Magic",    spellLevel: 1, school: "div", img: "icons/sundries/scrolls/scroll-writing-orange-black.webp" },
@@ -802,6 +826,9 @@ export class ProgressionSeeder {
     }
 
     static _fallbackShelfPool() {
+        const adapter = getQuartermasterAdapter();
+        if (adapter.id !== "dnd5e") return [];
+
         return [
             { uuid: null, name: "Bag of Holding",       rarity: "uncommon",  requiresAttunement: false, img: "icons/containers/bags/pack-leather-tan.webp" },
             { uuid: null, name: "Cloak of Protection",  rarity: "uncommon",  requiresAttunement: true,  img: "icons/equipment/back/cloak-collared-green.webp" },

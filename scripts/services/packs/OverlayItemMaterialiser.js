@@ -12,7 +12,7 @@ import { MODULE_ID } from "../../data/moduleId.js";
  *     {item}.json         One file per item, Foundry pack-source shape
  *
  * Materialisation rules:
- *   - One overlay sublayer -> exactly one world compendium named
+ *   - One overlay sublayer becomes exactly one world compendium named
  *     `world.quartermaster-{sublayer}` (e.g. world.quartermaster-core,
  *     world.quartermaster-bone-dust). Strict pack ownership: a pack only
  *     ever writes into its own compendium; no overlay touches another
@@ -117,7 +117,7 @@ export class OverlayItemMaterialiser {
         // so the GM does not see "materialised" on every world reload.
         if (result.changed) {
             ui.notifications.info(
-                `Quartermaster: ${manifest.overlayId} materialised - ${result.itemCount} items in ${result.collection}.`
+                `Quartermaster: ${manifest.overlayId} materialised: ${result.itemCount} items in ${result.collection}.`
             );
         }
     }
@@ -266,7 +266,8 @@ export class OverlayItemMaterialiser {
             return null;
         }
 
-        const hashKey = `${overlayId}:${sublayer}:${overlayVersion}:${totalFileCount}:art=${artVersion}:${artCount}`;
+        const coerceRev = this._overlayCoerceRev();
+        const hashKey = `${overlayId}:${sublayer}:${overlayVersion}:${totalFileCount}:art=${artVersion}:${artCount}:coerce=${coerceRev}`;
         const state = this._getState();
         const existingHash = state[overlayId]?.packHashes?.[sublayer];
 
@@ -337,9 +338,31 @@ export class OverlayItemMaterialiser {
 
         const ItemClass = CONFIG.Item.documentClass;
         const chunkSize = 50;
-        for (let i = 0; i < preparedItems.length; i += chunkSize) {
-            const chunk = preparedItems.slice(i, i + chunkSize);
-            await ItemClass.createDocuments(chunk, { pack: fresh.collection });
+        const { prepared: coerced, skipped } = this._prepareItemsForSystem(preparedItems);
+        if (skipped) {
+            Logger.warn(MODULE_LABEL,
+                `OverlayItemMaterialiser | Skipped ${skipped} item(s) whose types are not valid on ${game.system?.id}.`
+            );
+        }
+
+        for (let i = 0; i < coerced.length; i += chunkSize) {
+            const chunk = coerced.slice(i, i + chunkSize);
+            try {
+                await ItemClass.createDocuments(chunk, { pack: fresh.collection });
+            } catch (chunkErr) {
+                Logger.warn(MODULE_LABEL,
+                    `OverlayItemMaterialiser | Chunk create failed (${chunkErr.message}); retrying per item.`
+                );
+                for (const item of chunk) {
+                    try {
+                        await ItemClass.createDocuments([item], { pack: fresh.collection });
+                    } catch (itemErr) {
+                        Logger.warn(MODULE_LABEL,
+                            `OverlayItemMaterialiser | Skipped "${item.name}" (${item.type}): ${itemErr.message}`
+                        );
+                    }
+                }
+            }
         }
 
         await assignPackToCompiledFolder(fresh);
@@ -353,10 +376,10 @@ export class OverlayItemMaterialiser {
         await this._setState(newState);
 
         Logger.info(MODULE_LABEL,
-            `OverlayItemMaterialiser | Built "${collection}" - ${preparedItems.length} items across ${sectionPlans.length} section(s).`
+            `OverlayItemMaterialiser | Built "${collection}": ${coerced.length} items across ${sectionPlans.length} section(s).`
         );
 
-        return { collection, itemCount: preparedItems.length, changed: true };
+        return { collection, itemCount: coerced.length, changed: true };
     }
 
     /**
@@ -721,6 +744,25 @@ export class OverlayItemMaterialiser {
             const { ItemPoolResolver } = await import("../loot/ItemPoolResolver.js");
             ItemPoolResolver.clearCache();
         } catch { /* resolver unavailable */ }
+    }
+
+    /**
+     * Kernel overlay coerce (type remap + foreign `system` stub). Falls back
+     * to a passthrough when Library is not yet on the world.
+     * @param {object[]} items
+     * @returns {{ prepared: object[], skipped: number }}
+     */
+    static _prepareItemsForSystem(items) {
+        const Kernel = game.ionrift?.library?.materialiser;
+        if (typeof Kernel?.prepareOverlayItemsForSystem === "function") {
+            return Kernel.prepareOverlayItemsForSystem(items);
+        }
+        return { prepared: items, skipped: 0 };
+    }
+
+    static _overlayCoerceRev() {
+        const rev = game.ionrift?.library?.materialiser?.OVERLAY_ITEM_COERCE_REV;
+        return Number.isFinite(rev) ? rev : 0;
     }
 
     static _getState() {

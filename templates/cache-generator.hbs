@@ -122,7 +122,7 @@
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.partyShelf}}
-                        <div class="shelf-item {{#if this.isPlanned}}shelf-item--planned{{/if}} {{#if this.isRipe}}shelf-item--ripe{{/if}}" draggable="true" data-uuid="{{this.uuid}}" {{#if this.level}}data-level="{{this.level}}"{{/if}} title="{{#if this.isRipe}}Ripe: party at or above gate level{{else}}Drag into cache{{/if}}">
+                        <div class="shelf-item {{#if this.isPlanned}}shelf-item--planned{{/if}} {{#if this.isRipe}}shelf-item--ripe{{/if}} {{#unless this.uuid}}shelf-item--no-uuid{{/unless}}" draggable="{{#if this.uuid}}true{{else}}false{{/if}}" data-uuid="{{this.uuid}}" {{#if this.level}}data-level="{{this.level}}"{{/if}} title="{{#unless this.uuid}}Not in compendiums; add manually{{else}}{{#if this.isRipe}}Ripe: party at or above gate level{{else}}Drag into cache{{/if}}{{/unless}}">
                             {{#if this.isRipe}}<span class="advisory-ripe-pip" title="Gate level reached"><i class="fas fa-fire-flame-curved"></i></span>{{/if}}
                             <img src="{{this.img}}" class="shelf-item-img" alt="" />
                             <div class="shelf-item-text">
@@ -145,8 +145,8 @@
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.cursedPool}}
-                        <div class="shelf-item shelf-item--cursed {{#if this.isPlanned}}shelf-item--planned{{/if}} {{#if this.isRipe}}shelf-item--ripe{{/if}}"
-                            draggable="true"
+                        <div class="shelf-item shelf-item--cursed {{#if this.isPlanned}}shelf-item--planned{{/if}} {{#if this.isRipe}}shelf-item--ripe{{/if}} {{#unless this.uuid}}shelf-item--no-uuid{{/unless}}"
+                            draggable="{{#if this.uuid}}true{{else}}false{{/if}}"
                             data-uuid="{{this.uuid}}"
                             {{#if this.level}}data-level="{{this.level}}"{{/if}}
                             title="{{#if this.isRipe}}Ripe: party at or above gate level{{else}}{{#if this.decoyAppearance}}{{this.decoyAppearance}}{{else}}Drag into cache{{/if}}{{/if}}">

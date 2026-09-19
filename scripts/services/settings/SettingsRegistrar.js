@@ -523,6 +523,14 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         restricted: true
     });
 
+    game.settings.register(MODULE_ID, "importedTerrainData", {
+        scope: "world",
+        config: false,
+        type: Object,
+        default: {},
+        restricted: true
+    });
+
 
 
     game.settings.registerMenu(MODULE_ID, "lootGenerationConfig", {
