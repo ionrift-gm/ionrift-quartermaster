@@ -16,7 +16,18 @@ import { MODULE_ID } from "../../data/moduleId.js";
  */
 
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { normalizeTerrainCategory } from "../../../../ionrift-library/scripts/services/terrain/TerrainRegistry.js";
+
+const TERRAIN_CATEGORY_ALIASES = Object.freeze({
+    dungeon: "built",
+    urban: "built"
+});
+
+function normalizeTerrainCategory(category) {
+    if (!category) return null;
+    const resolved = TERRAIN_CATEGORY_ALIASES[category] ?? category;
+    if (resolved === "built" || resolved === "safe-haven" || resolved === "wilderness") return resolved;
+    return null;
+}
 
 
 export class TerrainDataRegistry {
