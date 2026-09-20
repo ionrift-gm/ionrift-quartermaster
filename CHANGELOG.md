@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.10.1] - 2026-09-20
+
+### Changed
+- Directory toolbar buttons updated to purple glass styling.
+
+### Fixed
+- Party shelf now pulls from configured compendiums across systems instead of hardcoding D&D 5e items.
+- Items without compendium records can no longer be dragged from the shelf into the generator.
+- Opening loot sources from the cache generator no longer drops behind the active window.
+- Overlay pack imports now coerce foreign item types when loading on non-5e systems.
+- Suppressed the default red border on directory buttons.
+
 ## [1.10.0] - 2026-09-17
 
 ### Added
