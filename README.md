@@ -78,6 +78,12 @@ MIT License. See [LICENSE](./LICENSE) for details.
 
 ---
 
-**Part of the [Ionrift Module Suite](https://github.com/ionrift-gm)**
+## Ionrift Module Suite
 
-[Wiki](https://github.com/ionrift-gm/ionrift-library/wiki) · [Discord](https://discord.gg/vFGXf7Fncj) · [Patreon](https://patreon.com/ionrift)
+- **[Respite](https://github.com/ionrift-gm/ionrift-respite)**: Structured rest phases and downtime activities
+- **[Monstrous Feast](https://github.com/ionrift-gm/ionrift-monstrous-feast)**: Butcher slain creatures and cook camp meals with buffs
+- **[Resonance](https://github.com/ionrift-gm/ionrift-resonance)**: Context-sensitive combat soundscapes and audio cues
+- **[Waterline](https://github.com/ionrift-gm/ionrift-waterline)**: Traced water caustics and procedural border walls
+- **[Ionrift Library](https://github.com/ionrift-gm/ionrift-library)**: Shared ecosystem kernel and creature index
+
+[Wiki](https://github.com/ionrift-gm/ionrift-library/wiki) · [Website](https://ionrift.cloud) · [Discord](https://discord.gg/vFGXf7Fncj) · [Patreon](https://patreon.com/ionrift)
