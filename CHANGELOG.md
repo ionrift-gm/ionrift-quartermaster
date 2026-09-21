@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.10.2] - 2026-09-21
+
+### Fixed
+- The containers compendium names D&D 5e again, so an update on Foundry 14 can install.
+
 ## [1.10.1] - 2026-09-20
 
 ### Changed
