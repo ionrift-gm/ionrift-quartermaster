@@ -314,7 +314,7 @@ Hooks.on('ready', () => {
                         `Cursewright detected: purged ${removed} SRD cursed item${removed !== 1 ? "s" : ""} from pool (superseded by Cursewright).`
                     );
                     ui.notifications.info(
-                        `Quartermaster: removed ${removed} SRD cursed item${removed !== 1 ? "s" : ""} — Cursewright is active and provides its own pool.`
+                        `Quartermaster: removed ${removed} SRD cursed item${removed !== 1 ? "s" : ""}. Cursewright is active and provides its own pool.`
                     );
                 }
             } catch (err) {

@@ -10,10 +10,10 @@
     <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
         <label for="cmd-tier" style="font-size: 0.85em; opacity: 0.9;">Tier</label>
         <select id="cmd-tier" name="tier" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;">
-            <option value="1">1  - Nuisance</option>
-            <option value="2">2  - Moderate</option>
-            <option value="3">3  - Dangerous</option>
-            <option value="4">4  - Catastrophic</option>
+            <option value="1">1: Nuisance</option>
+            <option value="2">2: Moderate</option>
+            <option value="3">3: Dangerous</option>
+            <option value="4">4: Catastrophic</option>
         </select>
     </div>
 
@@ -73,15 +73,15 @@
                 <label for="cmd-player-hint" style="font-size: 0.85em; opacity: 0.9;">Player Escalation Whisper</label>
                 <textarea id="cmd-player-hint" name="playerHint" rows="2"
                           style="width: 100%; padding: 6px; box-sizing: border-box; resize: vertical; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;"
-                          placeholder="Atmospheric text whispered to the player at first escalation. No item or curse reference  - keep it eerie and source-agnostic."></textarea>
+                          placeholder="Atmospheric text whispered to the player at first escalation. No item or curse reference. Keep it eerie and source-agnostic."></textarea>
             </div>
             <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
-                <label for="cmd-remove-level" style="font-size: 0.85em; opacity: 0.9;">Removal  - Remove Curse Level</label>
+                <label for="cmd-remove-level" style="font-size: 0.85em; opacity: 0.9;">Removal: Remove Curse Level</label>
                 <input id="cmd-remove-level" type="number" name="removeCurseLevel" value="3" min="1" max="20" step="1"
                        style="width: 100%; max-width: 120px; padding: 6px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;" />
             </div>
             <div class="form-group" style="display: flex; flex-direction: column; gap: 4px;">
-                <label for="cmd-remove-custom" style="font-size: 0.85em; opacity: 0.9;">Removal  - Custom Requirement (T3+ required)</label>
+                <label for="cmd-remove-custom" style="font-size: 0.85em; opacity: 0.9;">Removal: Custom Requirement (T3+ required)</label>
                 <input id="cmd-remove-custom" type="text" name="removalCustom" value=""
                        style="width: 100%; padding: 6px; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); color: inherit; border-radius: 4px;"
                        placeholder="Quest text, if any." />

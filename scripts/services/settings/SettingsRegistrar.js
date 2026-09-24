@@ -170,7 +170,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
     game.settings.register(MODULE_ID, "healingPotionFrequency", {
         name: "Healing Potion Frequency",
-        hint: "Scales consumable slots, healing chance on those slots, and extra healing lines per cache. 0 is scarce. 1.0 is moderate. 4.0 adds several healing potions per cache when the loot pool includes them. Enable dnd5e.items (or recompile Forge) so healing rows exist.",
+        hint: "Scales consumable slots and healing potions per cache. 0 is scarce, 1.0 is moderate, 4.0 is abundant.",
         scope: "world",
         config: false,
         type: Number,
@@ -227,7 +227,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
     game.settings.register(MODULE_ID, "obscureConsumables", {
         name: "Obscure Consumables",
-        hint: "When enabled, potions, oils, and other consumables are presented with generic names (e.g. 'Sealed Vial') until identified, regardless of rarity. Disable to show true names for common items like Potions of Healing.",
+        hint: "Presents potions and consumables with generic names (such as Sealed Vial) until identified. Disable to reveal names immediately.",
         scope: "world",
         config: false,
         type: Boolean,
@@ -237,7 +237,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
     game.settings.register(MODULE_ID, "obscureScrolls", {
         name: "Obscure Spell Scrolls",
-        hint: "When enabled, all spell scrolls appear as 'Unidentified Scroll' until identified. By the 2024 DMG, anyone can identify a scroll via Identify or a Short Rest; this setting models the moment before the party has examined it. Disable to show spell names directly.",
+        hint: "Displays spell scrolls as 'Unidentified Scroll' until examined. Disable to show spell names directly.",
         scope: "world",
         config: false,
         type: Boolean,
@@ -399,7 +399,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
     game.settings.register(MODULE_ID, "cursedT3Enabled", {
         name: "Cursed Pool: T3 Enabled",
-        hint: "Allow Tier 3 cursed items to surface in advisory suggestions. T3 items are documented as high-lethality — they can kill players. Disable to keep them out of generated caches.",
+        hint: "Allow Tier 3 cursed items in advisory suggestions. T3 items are high-lethality and can kill characters.",
         scope: "world",
         config: false,
         type: Boolean,
@@ -409,7 +409,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
     game.settings.register(MODULE_ID, "cursedT4Enabled", {
         name: "Cursed Pool: T4 Enabled",
-        hint: "Allow Tier 4 cursed items to surface in advisory suggestions. T4 items are campaign-altering — side quests, major distractions, and long-term consequences. Disable to reserve them for deliberate placement.",
+        hint: "Allow Tier 4 cursed items in advisory suggestions. T4 items carry campaign-altering consequences and quests.",
         scope: "world",
         config: false,
         type: Boolean,
@@ -499,7 +499,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
     game.settings.register(MODULE_ID, "shelfAttunementBias", {
         name: "Party Shelf Attunement Bias",
-        hint: "0 = Low (avoid attunement items), 1 = Medium (neutral), 2 = High (prefer powerful attuned items).",
+        hint: "0 = Low (avoid attunement), 1 = Medium (neutral), 2 = High (favor attunement items).",
         scope: "world",
         config: false,
         type: Number,
@@ -556,7 +556,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     game.settings.registerMenu(MODULE_ID, "compendiumForge", {
         name: "Compendium Forge",
         label: "Compendium Forge",
-        hint: "Manage compiled content pools - loot sources, spell scrolls, and cursed items.",
+        hint: "Manage compiled content pools: loot sources, spell scrolls, and cursed items.",
         icon: "fas fa-hammer",
         type: CompendiumForgeApp,
         restricted: true

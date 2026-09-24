@@ -26,7 +26,7 @@
     {{#if (eq activeTab 'signatures')}}
     <div class="registry-panel panel-signatures">
         <p class="tab-desc"><i class="fas fa-book-sparkles"></i> Plan milestone items per character. The generator prioritises these when filling signature loot slots near the relevant level. These are intentions, not guarantees: the GM <span class="desc-highlight">places</span> items in the world, but the party <span class="desc-highlight">decides</span> who claims them.</p>
-        <p class="tab-desc tab-desc-philosophy"><strong>Why only 4 per character?</strong> Signature items are campaign-defining moments, not routine drops. The budget keeps each one meaningful. Stagger deliveries across sessions - when characters find their signature at different times, each moment carries weight. Not everyone needs to be rewarded at once.</p>
+        <p class="tab-desc tab-desc-philosophy"><strong>Why only 4 per character?</strong> Signature items are campaign-defining moments, not routine drops. The budget keeps each one meaningful. Stagger deliveries across sessions: when characters find their signature at different times, each moment carries weight. Not everyone needs to be rewarded at once.</p>
         <div class="ledger-scroll-area">
 
             <div class="ledger-grid-header sig-header">
@@ -49,7 +49,7 @@
                         <div class="actor-sub-row">
                             <span class="actor-sub">{{this.classes}} (Lv {{this.level}})</span>
                             <div class="actor-toolbar">
-                                <span class="sig-budget-pips" title="Signature budget  - intentional scarcity keeps each item a campaign moment.">
+                                <span class="sig-budget-pips" title="Signature budget: intentional scarcity keeps each item a campaign moment.">
                                     {{#each this.budgetPips}}<span class="budget-pip {{#if this.filled}}pip-filled{{else}}pip-empty{{/if}}"></span>{{/each}}
                                     <span class="budget-count">{{this.budgetUsed}}/{{this.budgetTotal}}</span>
                                 </span>
@@ -101,7 +101,7 @@
         </div>
         <div class="ledger-footer ledger-footer-sig">
             <span class="footer-hint">Avg power: {{avgPower}}</span>
-            <span class="footer-hint footer-hint-philosophy"><em>Variation between characters is by design - staggered signatures create anticipation, not imbalance.</em></span>
+            <span class="footer-hint footer-hint-philosophy"><em>Staggered signatures create anticipation, not imbalance.</em></span>
         </div>
     </div>
     {{/if}}
@@ -326,7 +326,7 @@
                                    min="0" max="100" step="5"
                                    value="{{this.weight}}"
                                    {{#unless this.enabled}}disabled{{/unless}}>
-                            <span class="party-category-weight {{#unless this.enabled}}is-off{{/unless}}">{{#if this.enabled}}{{this.percent}}%{{else}}&mdash;{{/if}}</span>
+                            <span class="party-category-weight {{#unless this.enabled}}is-off{{/unless}}">{{#if this.enabled}}{{this.percent}}%{{else}}&ndash;{{/if}}</span>
                         </div>
                         {{/each}}
 
@@ -525,12 +525,12 @@
                 </div>
                 <div class="curse-dist-vert-divider"></div>
                 <div class="curse-tier-toggles">
-                    <label class="curse-tier-toggle-row {{#unless t3Enabled}}curse-toggle-off{{/unless}}" title="T3 cursed items are documented as high-lethality - capable of killing players. Enable when your campaign is ready for that.">
+                    <label class="curse-tier-toggle-row {{#unless t3Enabled}}curse-toggle-off{{/unless}}" title="T3 cursed items are high-lethality and capable of killing characters. Enable when your campaign is ready.">
                         <input type="checkbox" class="curse-tier-toggle-check action-toggle-t3" {{#if t3Enabled}}checked{{/if}}>
                         <span class="curse-toggle-tier">T3</span>
-                        <span class="curse-toggle-hint">Dangerous - high lethality</span>
+                        <span class="curse-toggle-hint">Dangerous: high lethality</span>
                     </label>
-                    <label class="curse-tier-toggle-row {{#unless t4Enabled}}curse-toggle-off{{/unless}}" title="T4 cursed items are campaign-altering - expect side quests, major distractions, and long-term consequences.">
+                    <label class="curse-tier-toggle-row {{#unless t4Enabled}}curse-toggle-off{{/unless}}" title="T4 cursed items are campaign-altering, with side quests and long-term consequences.">
                         <input type="checkbox" class="curse-tier-toggle-check action-toggle-t4" {{#if t4Enabled}}checked{{/if}}>
                         <span class="curse-toggle-tier">T4</span>
                         <span class="curse-toggle-hint">Campaign-altering</span>
@@ -553,7 +553,7 @@
                 {{#unless this.enabled}}
                 <div class="curse-col-disabled-notice">
                     <i class="fas fa-lock"></i>
-                    <span>Tier disabled - items held in reserve</span>
+                    <span>Tier disabled: items held in reserve</span>
                 </div>
                 {{/unless}}
 
@@ -596,7 +596,7 @@
                     {{#if this.isFull}}
                     <div class="curse-col-full-notice">
                         <i class="fas fa-circle-info"></i>
-                        <span>Column full - remove to add</span>
+                        <span>Column full: remove to add</span>
                     </div>
                     {{/if}}
                 {{/if}}

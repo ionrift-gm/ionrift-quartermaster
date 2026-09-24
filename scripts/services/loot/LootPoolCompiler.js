@@ -752,7 +752,7 @@ export class LootPoolCompiler {
             ? ` ${this.formatSkippedItemsSummary(report.skips)}`
             : "";
         ui.notifications.info(
-            `Quartermaster: compiled loot pool - ${meta.itemCount} items ` +
+            `Quartermaster: compiled loot pool: ${meta.itemCount} items ` +
             `(${genericArmorPlusCount} generic +N armor, ${genericWeaponItems.length} generic +N weapons).` +
             skipNote
         );

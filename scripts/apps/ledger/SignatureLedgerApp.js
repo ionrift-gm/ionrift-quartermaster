@@ -2302,7 +2302,7 @@ export class SignatureLedgerApp extends Application {
         // SRD items are superseded when Cursewright is loaded. Block silently so
         // any programmatic caller doesn't pollute the pool with obsolete items.
         if (game.ionrift?.cursewright) {
-            ui.notifications.warn("Cursewright is active — use Compile CW to refresh the cursed pool. SRD items are not used when Cursewright is loaded.");
+            ui.notifications.warn("Cursewright is active. Use Compile CW to refresh the cursed pool.");
             return;
         }
 

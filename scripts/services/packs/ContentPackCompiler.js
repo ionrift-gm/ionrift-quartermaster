@@ -151,7 +151,7 @@ export class ContentPackCompiler {
             `ContentPackCompiler | Pack "${packId}" compiled: ${totalItems} items across ${compendiums.length} compendiums.`
         );
         ui.notifications.info(
-            `Quartermaster: "${manifest.name}" content pack compiled - ${totalItems} items ready.`
+            `Quartermaster: "${manifest.name}" content pack compiled: ${totalItems} items ready.`
         );
     }
 
