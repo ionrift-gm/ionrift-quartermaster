@@ -380,9 +380,11 @@ export class IdentificationService {
             }
         }
 
-        if (kind === "poison-truth" && cursedMeta) {
+        if (kind === "poison-truth") {
             try {
-                const live = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? cursedMeta;
+                // The blueprint lift often clears the inline flag before Identify
+                // runs. Stamp the instance fields anyway so truthRevealed survives.
+                const live = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? cursedMeta ?? {};
                 // Keep a durable instance stub even if BlueprintRegistry later lifts
                 // shared recipe fields into BlueprintStore.
                 await item.setFlag(MODULE_ID, FLAG_CURSED_META, {
