@@ -1,4 +1,4 @@
-name: CI — Commit Identity Gate
+﻿name: CI - Commit Identity Gate
 
 on:
   push:
