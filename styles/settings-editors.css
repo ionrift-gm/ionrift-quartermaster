@@ -1,4 +1,5 @@
 /* Ionrift Quartermaster: GM settings submenu editors */
+/* Respite-aligned design token convergence */
 
 /* GM settings submenus (Loot / Identification / Progression) */
 .qm-settings-config {
@@ -14,7 +15,7 @@
     margin: 0.1rem 0.2rem 0.4rem;
     font-size: 0.72rem;
     line-height: 1.4;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.45);
 }
 
 .qm-settings-config .settings-config-list {
@@ -50,19 +51,19 @@
 .qm-settings-config .settings-config-col-divider {
     width: 1px;
     align-self: stretch;
-    background: linear-gradient(180deg, transparent, rgba(200, 160, 60, 0.2), transparent);
+    background: linear-gradient(180deg, transparent, var(--ionrift-accent-muted, rgba(155, 89, 182, 0.2)), transparent);
     flex-shrink: 0;
 }
 
 .qm-settings-config .qm-config-section-header {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.9px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: rgba(200, 160, 60, 0.55);
-    padding: 0.5rem 0.2rem 0.15rem;
-    border-bottom: 1px solid rgba(200, 160, 60, 0.12);
-    margin-bottom: 0.1rem;
+    color: var(--ionrift-accent-lavender, #c4a0dc);
+    padding: 0.5rem 0.2rem 0.25rem;
+    border-bottom: 1px solid var(--ionrift-surface-border, rgba(255, 255, 255, 0.06));
+    margin-bottom: 0.2rem;
 }
 
 .qm-settings-config .settings-config-row {
@@ -70,10 +71,10 @@
     flex-direction: column;
     align-items: stretch;
     gap: 0.3rem;
-    padding: 0.4rem 0.6rem 0.45rem;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 8px;
+    padding: 0.45rem 0.65rem;
+    background: var(--ionrift-surface-l1, rgba(0, 0, 0, 0.22));
+    border: 1px solid var(--ionrift-surface-border, rgba(255, 255, 255, 0.06));
+    border-radius: var(--ionrift-radius-lg, 8px);
 }
 
 .qm-settings-config .settings-config-head {
@@ -87,28 +88,30 @@
 .qm-settings-config .settings-config-label {
     flex: 1 1 auto;
     min-width: 0;
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     font-weight: 600;
     line-height: 1.25;
+    color: rgba(255, 255, 255, 0.92);
 }
 
 .qm-settings-config .settings-config-icon {
-    color: rgba(200, 160, 60, 0.85);
+    color: var(--ionrift-accent-lavender, #c4a0dc);
     margin-right: 0.3rem;
+    font-size: 0.72rem;
 }
 
 .qm-settings-config .settings-config-hint {
-    font-size: 0.64rem;
-    color: rgba(255, 255, 255, 0.35);
-    line-height: 1.3;
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.45);
+    line-height: 1.35;
     padding-right: 0.1rem;
 }
 
 .qm-settings-config .settings-config-toggle {
     position: relative;
     display: inline-block;
-    width: 36px;
-    height: 20px;
+    width: 34px;
+    height: 18px;
     flex-shrink: 0;
     cursor: pointer;
 }
@@ -123,39 +126,50 @@
 .qm-settings-config .settings-config-slider {
     position: absolute;
     inset: 0;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     overflow: hidden;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .qm-settings-config .settings-config-slider::before {
     content: "";
     position: absolute;
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     top: 2px;
     left: 2px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.45);
-    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    background: rgba(255, 255, 255, 0.65);
+    transition: all 0.2s ease;
 }
 
 .qm-settings-config .settings-config-toggle input:checked + .settings-config-slider {
-    background: rgba(200, 160, 60, 0.35);
-    border-color: rgba(200, 160, 60, 0.55);
+    background: var(--ionrift-btn-primary-bg, rgba(155, 89, 182, 0.35));
+    border-color: var(--ionrift-accent, #9b59b6);
+    box-shadow: 0 0 8px var(--ionrift-accent-glow, rgba(155, 89, 182, 0.35));
 }
 
 .qm-settings-config .settings-config-toggle input:checked + .settings-config-slider::before {
     transform: translateX(16px);
-    background: rgba(255, 228, 160, 0.95);
-    box-shadow: 0 0 5px rgba(200, 160, 60, 0.45);
+    background: #ffffff;
 }
 
 .qm-settings-config .settings-config-select {
     min-width: 10rem;
     font-size: 0.8rem;
+    background: var(--ionrift-surface-l3, rgba(0, 0, 0, 0.35));
+    border: 1px solid var(--ionrift-surface-border-focus, rgba(255, 255, 255, 0.12));
+    border-radius: var(--ionrift-radius-sm, 4px);
+    color: rgba(255, 255, 255, 0.92);
+    padding: 0.28rem 0.45rem;
+}
+
+.qm-settings-config .settings-config-select:focus {
+    outline: none;
+    border-color: rgba(155, 89, 182, 0.55);
+    box-shadow: 0 0 0 1px rgba(155, 89, 182, 0.25);
 }
 
 .qm-settings-config .settings-config-range-wrap {
@@ -170,13 +184,15 @@
     width: 88px;
     min-width: 72px;
     flex: 0 1 auto;
+    accent-color: var(--ionrift-accent, #9b59b6);
 }
 
 .qm-settings-config .settings-config-range-val {
     font-size: 0.75rem;
     min-width: 2.5rem;
     text-align: right;
-    color: rgba(200, 160, 60, 0.9);
+    font-weight: 600;
+    color: var(--ionrift-accent-lavender, #c4a0dc);
 }
 
 .qm-settings-config .settings-config-actions {
@@ -184,16 +200,30 @@
     padding-top: 0.45rem;
     display: flex;
     justify-content: flex-end;
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .qm-settings-config .settings-config-save-btn {
-    padding: 0.35rem 0.85rem;
-    border-radius: 6px;
-    border: 1px solid rgba(200, 160, 60, 0.4);
-    background: rgba(200, 160, 60, 0.15);
-    color: rgba(220, 190, 110, 0.95);
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.42rem 0.85rem;
+    border-radius: var(--ionrift-radius-md, 6px);
+    font-size: 0.76rem;
+    font-weight: 600;
     cursor: pointer;
+    border: 1px solid var(--ionrift-btn-primary-border, rgba(155, 89, 182, 0.35));
+    background: var(--ionrift-btn-primary-bg, rgba(155, 89, 182, 0.18));
+    color: var(--ionrift-btn-primary-text, rgba(210, 170, 235, 0.95));
+    transition: all 0.15s ease;
+}
+
+.qm-settings-config .settings-config-save-btn:hover {
+    background: var(--ionrift-btn-primary-hover-bg, rgba(155, 89, 182, 0.28));
+    border-color: var(--ionrift-btn-primary-hover-border, rgba(155, 89, 182, 0.50));
+    box-shadow: 0 0 10px var(--ionrift-accent-glow, rgba(155, 89, 182, 0.35));
 }
 
 .qm-settings-config .settings-config-popout-wrap {
@@ -209,7 +239,7 @@
 
 .qm-settings-config .settings-config-popout-summary {
     font-size: 0.68rem;
-    color: rgba(200, 160, 60, 0.85);
+    color: var(--ionrift-accent-lavender, #c4a0dc);
     text-align: right;
     line-height: 1.2;
     white-space: nowrap;
@@ -219,13 +249,26 @@
 }
 
 .qm-settings-config .settings-config-popout-btn {
-    padding: 0.3rem 0.7rem;
-    border-radius: 6px;
-    border: 1px solid rgba(200, 160, 60, 0.35);
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(220, 190, 110, 0.95);
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.32rem 0.65rem;
+    border-radius: var(--ionrift-radius-sm, 4px);
+    border: 1px solid var(--ionrift-btn-ghost-border, rgba(255, 255, 255, 0.12));
+    background: var(--ionrift-btn-ghost-bg, rgba(255, 255, 255, 0.06));
+    color: var(--ionrift-btn-ghost-text, rgba(255, 255, 255, 0.78));
     cursor: pointer;
-    white-space: nowrap;
+    font-size: 0.74rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.qm-settings-config .settings-config-popout-btn:hover {
+    background: var(--ionrift-btn-ghost-hover-bg, rgba(255, 255, 255, 0.10));
+    border-color: var(--ionrift-btn-ghost-hover-border, rgba(255, 255, 255, 0.22));
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .qm-ammo-type-config {
@@ -246,10 +289,11 @@
 .qm-ammo-type-presets-label {
     display: block;
     margin-bottom: 0.35rem;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: rgba(200, 160, 60, 0.75);
+    letter-spacing: 0.06em;
+    color: var(--ionrift-accent-lavender, #c4a0dc);
 }
 
 .qm-ammo-type-preset-row {
@@ -260,15 +304,52 @@
 
 .qm-ammo-type-preset-btn,
 .qm-ammo-type-add-btn,
-.qm-ammo-type-cancel-btn,
-.qm-ammo-type-save-btn {
+.qm-ammo-type-cancel-btn {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     padding: 0.28rem 0.65rem;
-    border-radius: 6px;
-    border: 1px solid rgba(200, 160, 60, 0.35);
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(220, 190, 110, 0.95);
+    border-radius: var(--ionrift-radius-md, 6px);
+    border: 1px solid var(--ionrift-btn-ghost-border, rgba(255, 255, 255, 0.12));
+    background: var(--ionrift-btn-ghost-bg, rgba(255, 255, 255, 0.06));
+    color: var(--ionrift-btn-ghost-text, rgba(255, 255, 255, 0.78));
     cursor: pointer;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.qm-ammo-type-preset-btn:hover,
+.qm-ammo-type-add-btn:hover,
+.qm-ammo-type-cancel-btn:hover {
+    background: var(--ionrift-btn-ghost-hover-bg, rgba(255, 255, 255, 0.10));
+    border-color: var(--ionrift-btn-ghost-hover-border, rgba(255, 255, 255, 0.22));
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.qm-ammo-type-save-btn {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--ionrift-radius-md, 6px);
+    border: 1px solid var(--ionrift-btn-primary-border, rgba(155, 89, 182, 0.35));
+    background: var(--ionrift-btn-primary-bg, rgba(155, 89, 182, 0.18));
+    color: var(--ionrift-btn-primary-text, rgba(210, 170, 235, 0.95));
+    cursor: pointer;
+    font-size: 0.76rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.qm-ammo-type-save-btn:hover {
+    background: var(--ionrift-btn-primary-hover-bg, rgba(155, 89, 182, 0.28));
+    border-color: var(--ionrift-btn-primary-hover-border, rgba(155, 89, 182, 0.50));
+    box-shadow: 0 0 10px var(--ionrift-accent-glow, rgba(155, 89, 182, 0.35));
 }
 
 .qm-ammo-type-list {
@@ -282,9 +363,9 @@
 
 .qm-ammo-type-row {
     padding: 0.55rem 0.6rem;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(0, 0, 0, 0.18);
+    border-radius: var(--ionrift-radius-lg, 8px);
+    border: 1px solid var(--ionrift-surface-border, rgba(255, 255, 255, 0.06));
+    background: var(--ionrift-surface-l1, rgba(0, 0, 0, 0.22));
 }
 
 .qm-ammo-type-row-head {
@@ -298,16 +379,25 @@
 .qm-ammo-type-label {
     font-weight: 600;
     color: rgba(235, 235, 235, 0.95);
+    font-size: 0.82rem;
 }
 
 .qm-ammo-type-label-input,
 .qm-ammo-type-pattern-input {
     width: 100%;
     padding: 0.28rem 0.45rem;
-    border-radius: 5px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(0, 0, 0, 0.25);
+    border-radius: var(--ionrift-radius-sm, 4px);
+    border: 1px solid var(--ionrift-surface-border-focus, rgba(255, 255, 255, 0.12));
+    background: var(--ionrift-surface-l3, rgba(0, 0, 0, 0.35));
     color: rgba(235, 235, 235, 0.95);
+    font-size: 0.82rem;
+}
+
+.qm-ammo-type-label-input:focus,
+.qm-ammo-type-pattern-input:focus {
+    outline: none;
+    border-color: rgba(155, 89, 182, 0.55);
+    box-shadow: 0 0 0 1px rgba(155, 89, 182, 0.25);
 }
 
 .qm-ammo-type-pattern-wrap,
@@ -319,7 +409,8 @@
 .qm-ammo-type-weight-label {
     display: block;
     margin-bottom: 0.2rem;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
+    font-weight: 600;
     color: rgba(200, 200, 200, 0.65);
 }
 
@@ -332,15 +423,20 @@
 .qm-ammo-type-remove-btn {
     border: none;
     background: transparent;
-    color: rgba(220, 120, 120, 0.85);
+    color: rgba(252, 165, 165, 0.85);
     cursor: pointer;
     padding: 0.15rem 0.35rem;
+    transition: color 0.15s ease;
+}
+
+.qm-ammo-type-remove-btn:hover {
+    color: #ef4444;
 }
 
 .qm-ammo-type-footer {
     margin-top: 0.75rem;
     padding-top: 0.55rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -351,9 +447,3 @@
     display: flex;
     gap: 0.45rem;
 }
-
-.qm-ammo-type-save-btn {
-    border-color: rgba(200, 160, 60, 0.45);
-    background: rgba(200, 160, 60, 0.15);
-}
-
