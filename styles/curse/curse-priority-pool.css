@@ -97,10 +97,10 @@
     align-items: center;
     gap: 5px;
     padding: 4px 10px;
-    border-radius: 5px;
-    background: rgba(220, 38, 38, 0.10);
-    border: 1px solid rgba(220, 38, 38, 0.35);
-    color: rgba(248, 113, 113, 0.85);
+    border-radius: var(--ionrift-radius-md, 5px);
+    background: var(--ionrift-btn-danger-bg, rgba(239, 68, 68, 0.12));
+    border: 1px solid var(--ionrift-btn-danger-border, rgba(239, 68, 68, 0.25));
+    color: var(--ionrift-btn-danger-text, rgba(252, 165, 165, 0.90));
     font-size: 0.72em;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -110,10 +110,10 @@
 }
 
 .cursed-priority-layout .btn-cursed-tracker-launch:hover {
-    border-color: rgba(220, 38, 38, 0.55);
-    background: rgba(220, 38, 38, 0.18);
-    color: rgba(252, 165, 165, 0.95);
-    box-shadow: 0 0 10px rgba(220, 38, 38, 0.12);
+    border-color: var(--ionrift-btn-danger-hover-border, rgba(239, 68, 68, 0.40));
+    background: var(--ionrift-btn-danger-hover-bg, rgba(239, 68, 68, 0.20));
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
 }
 
 /* ── Tier distribution chart ───────────────────────────────────────── */

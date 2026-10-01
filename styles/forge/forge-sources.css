@@ -92,90 +92,7 @@
     height: 8px !important;
     background: rgba(0, 0, 0, 0.4) !important;
 }
-
-#ionrift-loot-pool-config ::-webkit-scrollbar-track,
-#ionrift-loot-pool-config *::-webkit-scrollbar-track,
-#ionrift-scroll-forge-sources ::-webkit-scrollbar-track,
-#ionrift-scroll-forge-sources *::-webkit-scrollbar-track,
-#ionrift-party-shelf-sources ::-webkit-scrollbar-track,
-#ionrift-party-shelf-sources *::-webkit-scrollbar-track,
-#ionrift-cursed-sources ::-webkit-scrollbar-track,
-#ionrift-cursed-sources *::-webkit-scrollbar-track,
-#ionrift-cursed-pool-sources ::-webkit-scrollbar-track,
-#ionrift-cursed-pool-sources *::-webkit-scrollbar-track,
-#ionrift-cursed-import ::-webkit-scrollbar-track,
-#ionrift-cursed-import *::-webkit-scrollbar-track,
-#ionrift-cache-generator ::-webkit-scrollbar-track,
-#ionrift-cache-generator *::-webkit-scrollbar-track,
-#ionrift-signature-ledger ::-webkit-scrollbar-track,
-#ionrift-signature-ledger *::-webkit-scrollbar-track,
-#ionrift-quartermaster-app ::-webkit-scrollbar-track,
-#ionrift-quartermaster-app *::-webkit-scrollbar-track,
-#ionrift-sound-picker ::-webkit-scrollbar-track,
-#ionrift-sound-picker *::-webkit-scrollbar-track,
-#ionrift-item-sound-config ::-webkit-scrollbar-track,
-#ionrift-item-sound-config *::-webkit-scrollbar-track,
-#ionrift-actor-sound-config ::-webkit-scrollbar-track,
-#ionrift-actor-sound-config *::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.4) !important;
-    border-radius: 4px;
-}
-
-#ionrift-loot-pool-config ::-webkit-scrollbar-thumb,
-#ionrift-loot-pool-config *::-webkit-scrollbar-thumb,
-#ionrift-scroll-forge-sources ::-webkit-scrollbar-thumb,
-#ionrift-scroll-forge-sources *::-webkit-scrollbar-thumb,
-#ionrift-party-shelf-sources ::-webkit-scrollbar-thumb,
-#ionrift-party-shelf-sources *::-webkit-scrollbar-thumb,
-#ionrift-cursed-sources ::-webkit-scrollbar-thumb,
-#ionrift-cursed-sources *::-webkit-scrollbar-thumb,
-#ionrift-cursed-pool-sources ::-webkit-scrollbar-thumb,
-#ionrift-cursed-pool-sources *::-webkit-scrollbar-thumb,
-#ionrift-cursed-import ::-webkit-scrollbar-thumb,
-#ionrift-cursed-import *::-webkit-scrollbar-thumb,
-#ionrift-cache-generator ::-webkit-scrollbar-thumb,
-#ionrift-cache-generator *::-webkit-scrollbar-thumb,
-#ionrift-signature-ledger ::-webkit-scrollbar-thumb,
-#ionrift-signature-ledger *::-webkit-scrollbar-thumb,
-#ionrift-quartermaster-app ::-webkit-scrollbar-thumb,
-#ionrift-quartermaster-app *::-webkit-scrollbar-thumb,
-#ionrift-sound-picker ::-webkit-scrollbar-thumb,
-#ionrift-sound-picker *::-webkit-scrollbar-thumb,
-#ionrift-item-sound-config ::-webkit-scrollbar-thumb,
-#ionrift-item-sound-config *::-webkit-scrollbar-thumb,
-#ionrift-actor-sound-config ::-webkit-scrollbar-thumb,
-#ionrift-actor-sound-config *::-webkit-scrollbar-thumb {
-    background: #6d28d9 !important;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-#ionrift-loot-pool-config ::-webkit-scrollbar-thumb:hover,
-#ionrift-loot-pool-config *::-webkit-scrollbar-thumb:hover,
-#ionrift-scroll-forge-sources ::-webkit-scrollbar-thumb:hover,
-#ionrift-scroll-forge-sources *::-webkit-scrollbar-thumb:hover,
-#ionrift-party-shelf-sources ::-webkit-scrollbar-thumb:hover,
-#ionrift-party-shelf-sources *::-webkit-scrollbar-thumb:hover,
-#ionrift-cursed-sources ::-webkit-scrollbar-thumb:hover,
-#ionrift-cursed-sources *::-webkit-scrollbar-thumb:hover,
-#ionrift-cursed-pool-sources ::-webkit-scrollbar-thumb:hover,
-#ionrift-cursed-pool-sources *::-webkit-scrollbar-thumb:hover,
-#ionrift-cursed-import ::-webkit-scrollbar-thumb:hover,
-#ionrift-cursed-import *::-webkit-scrollbar-thumb:hover,
-#ionrift-cache-generator ::-webkit-scrollbar-thumb:hover,
-#ionrift-cache-generator *::-webkit-scrollbar-thumb:hover,
-#ionrift-signature-ledger ::-webkit-scrollbar-thumb:hover,
-#ionrift-signature-ledger *::-webkit-scrollbar-thumb:hover,
-#ionrift-quartermaster-app ::-webkit-scrollbar-thumb:hover,
-#ionrift-quartermaster-app *::-webkit-scrollbar-thumb:hover,
-#ionrift-sound-picker ::-webkit-scrollbar-thumb:hover,
-#ionrift-sound-picker *::-webkit-scrollbar-thumb:hover,
-#ionrift-item-sound-config ::-webkit-scrollbar-thumb:hover,
-#ionrift-item-sound-config *::-webkit-scrollbar-thumb:hover,
-#ionrift-actor-sound-config ::-webkit-scrollbar-thumb:hover,
-#ionrift-actor-sound-config *::-webkit-scrollbar-thumb:hover {
-    background: #8b5cf6 !important;
-}
+/* Inherits canonical scrollbars from ionrift-library kernel */
 
 .ionrift-cursed-import .cursed-import-manage-sources {
     display: inline;
@@ -584,38 +501,7 @@
 /* --- */
    Scroll Forge Sources  -  additions over the shared pool base
    ═══════════════════════════════════════════════════════ */
-
-.scroll-forge-welcome {
-    text-align: center;
-    padding: 1rem 0.75rem 0.75rem;
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(139, 92, 246, 0.15);
-}
-
-.scroll-forge-welcome-icon {
-    font-size: 2.5em;
-    color: rgba(139, 92, 246, 0.6);
-    margin-bottom: 0.4rem;
-}
-
-.scroll-forge-welcome h3 {
-    margin: 0 0 0.4rem;
-    font-size: 1.2em;
-    color: rgba(255, 255, 255, 0.9);
-    border: none;
-}
-
-.scroll-forge-welcome-desc,
-.scroll-forge-welcome-action {
-    font-size: 0.85em;
-    color: rgba(255, 255, 255, 0.55);
-    line-height: 1.5;
-    margin: 0.25rem 0;
-}
-
-.scroll-forge-welcome-action strong {
-    color: rgba(139, 92, 246, 0.85);
-}
+/* .scroll-forge-welcome defined in ledger-welcome.css */
 
 .scroll-forge-toolbar {
     display: flex;

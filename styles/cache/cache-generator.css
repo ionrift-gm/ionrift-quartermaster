@@ -1441,18 +1441,21 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    background: rgba(139, 92, 246, 0.3);
-    border: 1px solid rgba(139, 92, 246, 0.5);
-    color: white;
-    border-radius: 5px;
+    background: var(--ionrift-btn-primary-bg, rgba(155, 89, 182, 0.18));
+    border: 1px solid var(--ionrift-btn-primary-border, rgba(155, 89, 182, 0.35));
+    color: var(--ionrift-btn-primary-text, rgba(210, 170, 235, 0.95));
+    border-radius: var(--ionrift-radius-md, 5px);
     cursor: pointer;
     font-size: 0.85em;
-    transition: all 0.2s;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
 .cache-btn-accent:hover:not(:disabled) {
-    background: rgba(139, 92, 246, 0.5);
-    box-shadow: 0 0 12px rgba(139, 92, 246, 0.2);
+    background: var(--ionrift-btn-primary-hover-bg, rgba(155, 89, 182, 0.28));
+    border-color: var(--ionrift-btn-primary-hover-border, rgba(155, 89, 182, 0.50));
+    box-shadow: 0 0 12px var(--ionrift-accent-glow, rgba(155, 89, 182, 0.35));
+    color: #ffffff;
 }
 
 .cache-btn-accent:disabled {
@@ -1467,19 +1470,20 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #aaa;
-    border-radius: 5px;
+    background: var(--ionrift-btn-ghost-bg, rgba(255, 255, 255, 0.06));
+    border: 1px solid var(--ionrift-btn-ghost-border, rgba(255, 255, 255, 0.12));
+    color: var(--ionrift-btn-ghost-text, rgba(255, 255, 255, 0.78));
+    border-radius: var(--ionrift-radius-md, 5px);
     cursor: pointer;
     font-size: 0.85em;
-    transition: all 0.2s;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
 .cache-btn-ghost:hover {
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border-color: var(--ionrift-btn-ghost-hover-border, rgba(255, 255, 255, 0.22));
+    background: var(--ionrift-btn-ghost-hover-bg, rgba(255, 255, 255, 0.10));
 }
 
 /* --- */

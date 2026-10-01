@@ -647,7 +647,7 @@
 .qm-toggle {
     position: relative;
     display: inline-flex;
-    width: 32px;
+    width: 34px;
     height: 18px;
     flex-shrink: 0;
     cursor: pointer;
@@ -664,10 +664,10 @@
 .qm-toggle-track {
     position: absolute;
     inset: 0;
-    border-radius: 9px;
-    background: rgba(255, 255, 255, 0.09);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    transition: background 0.2s, border-color 0.2s;
+    border-radius: 18px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.2s ease;
 }
 
 .qm-toggle-track::after {
@@ -678,18 +678,20 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transition: transform 0.2s, background 0.2s;
+    background: rgba(255, 255, 255, 0.65);
+    transition: all 0.2s ease;
 }
 
 .qm-toggle input:checked ~ .qm-toggle-track {
-    background: rgba(139, 92, 246, 0.42);
-    border-color: rgba(167, 130, 255, 0.6);
+    background: rgba(155, 89, 182, 0.35);
+    border-color: var(--ionrift-accent, #9b59b6);
+    box-shadow: 0 0 8px var(--ionrift-accent-glow, rgba(155, 89, 182, 0.35));
 }
 
 .qm-toggle input:checked ~ .qm-toggle-track::after {
-    transform: translateX(14px);
-    background: #c4b5fd;
+    transform: translateX(16px);
+    background: #ffffff;
+    box-shadow: none;
 }
 
 /* ── Remove button (custom types) ─────────────────────── */

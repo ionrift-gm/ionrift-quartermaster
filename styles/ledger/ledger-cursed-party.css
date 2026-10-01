@@ -317,20 +317,7 @@
 }
 
 /* ── Progression Registry: Cursed Pool Tab ──────────────── */
-
-.curse-type-badge {
-    display: inline-block;
-    font-size: 0.72em;
-    text-transform: capitalize;
-    color: rgba(200, 130, 255, 0.85);
-    background: rgba(120, 0, 200, 0.14);
-    border: 1px solid rgba(160, 70, 255, 0.28);
-    border-radius: 3px;
-    padding: 1px 5px;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-    margin-top: 2px;
-}
+/* .curse-type-badge defined in ledger-shell.css */
 
 .cursed-col-header {
     color: rgba(190, 100, 255, 0.75);
@@ -1213,25 +1200,7 @@
     color: rgba(160, 70, 255, 0.15);
 }
 
-/* ── Progression Registry: Auto-Placed (Jitter) Items ───── */
-
-.auto-badge {
-    display: inline-block;
-    font-size: 0.68em;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: rgba(96, 165, 250, 0.85);
-    background: rgba(59, 130, 246, 0.12);
-    border: 1px solid rgba(59, 130, 246, 0.25);
-    border-radius: 3px;
-    padding: 0 4px;
-    vertical-align: middle;
-    margin-left: 4px;
-}
-
-.auto-placed-row {
-    border-left: 2px solid rgba(59, 130, 246, 0.3);
-}
+/* .auto-badge and .auto-placed-row defined in ledger-shell.css */
 
 /* Items directory sidebar: Loot Cache + Quartermaster registry toolbar (GM) */
 .ionrift-item-directory-toolbar {
