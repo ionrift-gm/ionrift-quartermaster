@@ -423,32 +423,70 @@ Hooks.on("renderChatMessage", (message, html) => {
 Hooks.on("renderItemDirectory", (app, html, data) => {
     if (!game.user.isGM) return;
 
-    const $html = $(html);
-    $html.find(".ionrift-cache-btn, .ionrift-ledger-btn").closest(".ionrift-directory-toolbar").remove();
-    $html.find(".ionrift-item-directory-toolbar").remove();
+    const root = html instanceof HTMLElement ? html : (html?.[0] ?? html);
+    if (!root) return;
 
-    const toolbar = $('<div class="ionrift-directory-toolbar ionrift-item-directory-toolbar"></div>');
+    if (game.ionrift?.hud?.injectDirectoryButton) {
+        game.ionrift.hud.injectDirectoryButton("items", root, {
+            id: "loot-cache",
+            className: "ionrift-cache-btn",
+            label: "Loot Cache",
+            icon: "fas fa-treasure-chest",
+            onClick: () => new CacheGeneratorApp().render(true),
+            restricted: true,
+            order: 10
+        });
 
-    const cacheBtn = $(`<button type="button" class="ionrift-directory-btn ionrift-cache-btn"><i class="fas fa-treasure-chest"></i> Loot Cache</button>`);
-    cacheBtn.click(() => {
-        new CacheGeneratorApp().render(true);
-    });
+        game.ionrift.hud.injectDirectoryButton("items", root, {
+            id: "signature-ledger",
+            className: "ionrift-ledger-btn",
+            label: "Quartermaster",
+            icon: "fas fa-book-sparkles",
+            onClick: async () => {
+                const { SignatureLedgerApp } = await import("./apps/ledger/SignatureLedgerApp.js");
+                new SignatureLedgerApp().render(true);
+            },
+            restricted: true,
+            order: 20
+        });
+        return;
+    }
 
-    const ledgerBtn = $(`<button type="button" class="ionrift-directory-btn ionrift-ledger-btn"><i class="fas fa-book-sparkles"></i> Quartermaster</button>`);
-    ledgerBtn.click(async () => {
-        const { SignatureLedgerApp } = await import("./apps/ledger/SignatureLedgerApp.js");
-        new SignatureLedgerApp().render(true);
-    });
+    const header = root.querySelector(".directory-header") || root;
+    const actions = header.querySelector(".header-actions, .action-buttons");
+    let toolbar = header.querySelector(".ionrift-directory-toolbar");
+    if (!toolbar) {
+        toolbar = document.createElement("div");
+        toolbar.className = "ionrift-directory-toolbar ionrift-item-directory-toolbar";
+        if (actions && actions.parentNode) actions.after(toolbar);
+        else header.prepend(toolbar);
+    }
 
-    toolbar.append(cacheBtn).append(ledgerBtn);
+    if (!toolbar.querySelector(".ionrift-cache-btn")) {
+        const cacheBtn = document.createElement("button");
+        cacheBtn.type = "button";
+        cacheBtn.className = "ionrift-directory-btn ionrift-cache-btn";
+        cacheBtn.dataset.order = "10";
+        cacheBtn.innerHTML = '<i class="fas fa-treasure-chest" aria-hidden="true"></i> Loot Cache';
+        cacheBtn.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            new CacheGeneratorApp().render(true);
+        });
+        toolbar.appendChild(cacheBtn);
+    }
 
-    // Scoped strictly to .directory-header to avoid matching .directory-footer.action-buttons
-    const header = $html.find(".directory-header");
-    const actions = header.find(".header-actions, .action-buttons").first();
-    if (actions.length > 0) {
-        actions.after(toolbar);
-    } else if (header.length > 0) {
-        header.prepend(toolbar);
+    if (!toolbar.querySelector(".ionrift-ledger-btn")) {
+        const ledgerBtn = document.createElement("button");
+        ledgerBtn.type = "button";
+        ledgerBtn.className = "ionrift-directory-btn ionrift-ledger-btn";
+        ledgerBtn.dataset.order = "20";
+        ledgerBtn.innerHTML = '<i class="fas fa-book-sparkles" aria-hidden="true"></i> Quartermaster';
+        ledgerBtn.addEventListener("click", async (ev) => {
+            ev.preventDefault();
+            const { SignatureLedgerApp } = await import("./apps/ledger/SignatureLedgerApp.js");
+            new SignatureLedgerApp().render(true);
+        });
+        toolbar.appendChild(ledgerBtn);
     }
 });
 
