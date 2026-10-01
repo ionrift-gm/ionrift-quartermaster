@@ -2,6 +2,7 @@ import { MODULE_ID } from "../../../data/moduleId.js";
 import { getQuartermasterAdapter } from "../../../adapters/getAdapter.js";
 /**
  * GM dialog: choose which item compendiums the Party Shelf randomiser draws from.
+ * Uses Kernel CompendiumSourceService for pack hydration and grouping.
  * Launched from the Signature Ledger's Party Shelf tab.
  */
 
@@ -24,9 +25,22 @@ export class PartyShelfSourceApp extends FormApplication {
     }
 
     async getData() {
+        const CSS = game.ionrift?.library?.CompendiumSourceService;
         const enabled = new Set(PartyShelfSourceApp.getEnabledSources());
-        const packs   = await PartyShelfSourceApp._listEquipmentCompendiums();
 
+        if (CSS) {
+            const packs = await CSS.listPacks({
+                documentName: "Item",
+                itemTypes: EQUIPMENT_TYPES,
+                excludeOutputs: true,
+                ensureHydrated: true
+            });
+            return {
+                groups: CSS.groupPacksByPackage(packs, { enabledIds: enabled })
+            };
+        }
+
+        const packs = await PartyShelfSourceApp._listEquipmentCompendiums();
         const groups = {};
         for (const pack of packs) {
             const [moduleId] = pack.id.split(".");
@@ -49,18 +63,13 @@ export class PartyShelfSourceApp extends FormApplication {
     }
 
     /**
-     * List only compendiums that contain equipment-type items.
-     * Filters out spell packs, class packs, feature packs, etc.
-     *
-     * NOTE: Must be async - Forge lazy-loads compendium indexes, so
-     * pack.index.size is 0 on a cold boot until getIndex() is called.
+     * Fallback equipment compendium scan when library kernel service is unavailable.
      */
     static async _listEquipmentCompendiums() {
         const results = [];
         for (const pack of game.packs) {
             if (pack.documentName !== "Item") continue;
 
-            // Force-load the index so the type scan works on cold Forge instances.
             if (!pack.index?.size) {
                 try { await pack.getIndex({ fields: ["type"] }); } catch { continue; }
             }
@@ -93,13 +102,13 @@ export class PartyShelfSourceApp extends FormApplication {
     }
 
     async _updateObject(_event, formData) {
-        const enabled = [];
-        for (const [key, value] of Object.entries(formData)) {
-            if (key.startsWith("pack-") && value) enabled.push(key.replace("pack-", ""));
-        }
+        const CSS = game.ionrift?.library?.CompendiumSourceService;
+        const enabled = CSS
+            ? CSS.extractSelectedIds(formData, "pack-")
+            : Object.entries(formData).filter(([k, v]) => k.startsWith("pack-") && v).map(([k]) => k.replace("pack-", ""));
 
         await game.settings.set(MODULE_ID, SETTING_PARTY_SHELF_SOURCES, JSON.stringify(enabled));
-        ui.notifications.info(`Party shelf sources saved: ${enabled.length} compendium${enabled.length !== 1 ? "s" : ""} enabled.`);
+        ui.notifications?.info?.(`Party shelf sources saved: ${enabled.length} compendium${enabled.length !== 1 ? "s" : ""} enabled.`);
     }
 
     static getEnabledSources() {

@@ -513,7 +513,15 @@ export class CompendiumForgeApp extends FormApplication {
     // ── Source group builders ─────────────────────────────────────────────
 
     _buildSourceGroups() {
-        const packs  = ItemPoolResolver.listAvailableCompendiums();
+        const packs = ItemPoolResolver.listAvailableCompendiums();
+        const CSS   = game.ionrift?.library?.CompendiumSourceService;
+        if (CSS) {
+            return CSS.groupPacksByPackage(packs, {
+                enabledIds: packs.filter(p => p.enabled).map(p => p.id),
+                recommendedIds: packs.filter(p => p.recommended).map(p => p.id)
+            });
+        }
+
         const groups = {};
 
         for (const pack of packs) {

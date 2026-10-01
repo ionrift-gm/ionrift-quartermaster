@@ -1,10 +1,10 @@
 import { ItemPoolResolver } from "../../../services/loot/ItemPoolResolver.js";
 import { MODULE_ID } from "../../../data/moduleId.js";
 
-
 /**
  * Configuration form for selecting which compendiums contribute to loot pools.
  * Opens from Module Settings > Configure Sources.
+ * Uses Kernel CompendiumSourceService for grouping and form processing.
  * GM-only.
  */
 export class LootPoolConfigApp extends FormApplication {
@@ -23,11 +23,20 @@ export class LootPoolConfigApp extends FormApplication {
 
     getData() {
         const packs = ItemPoolResolver.listAvailableCompendiums();
+        const CSS = game.ionrift?.library?.CompendiumSourceService;
 
-        // Group by module/system
+        if (CSS) {
+            // ItemPoolResolver.listAvailableCompendiums() returns pack objects with enabled flag
+            return {
+                groups: CSS.groupPacksByPackage(packs, {
+                    enabledIds: packs.filter(p => p.enabled).map(p => p.id)
+                })
+            };
+        }
+
+        // Fallback grouping
         const groups = {};
         for (const pack of packs) {
-            // Extract module name from pack id (e.g. "dnd5e.items" -> "dnd5e")
             const [moduleId] = pack.id.split(".");
             const moduleName = game.modules.get(moduleId)?.title
                 ?? game.system?.title
@@ -39,31 +48,28 @@ export class LootPoolConfigApp extends FormApplication {
             groups[moduleName].packs.push(pack);
         }
 
-
         return {
             groups: Object.values(groups).sort((a, b) => a.label.localeCompare(b.label))
         };
     }
 
     async _updateObject(event, formData) {
-        // Collect checked pack IDs
-        const enabled = [];
-        for (const [key, value] of Object.entries(formData)) {
-            if (key.startsWith("pack-") && value) {
-                enabled.push(key.replace("pack-", ""));
-            }
-        }
+        const CSS = game.ionrift?.library?.CompendiumSourceService;
+        const enabled = CSS
+            ? CSS.extractSelectedIds(formData, "pack-")
+            : Object.entries(formData).filter(([k, v]) => k.startsWith("pack-") && v).map(([k]) => k.replace("pack-", ""));
 
         await game.settings.set(MODULE_ID, "lootPoolSources", JSON.stringify(enabled));
         ItemPoolResolver.clearCache();
-        ui.notifications.info(`Loot pool updated: ${enabled.length} source${enabled.length !== 1 ? 's' : ''} enabled.`);
+        ui.notifications?.info?.(`Loot pool updated: ${enabled.length} source${enabled.length !== 1 ? 's' : ''} enabled.`);
     }
 
     activateListeners(html) {
         super.activateListeners(html);
         html.find(".pool-group-header").on("click", ev => {
             ev.preventDefault();
-            $(ev.currentTarget).closest(".pool-group").toggleClass("collapsed");
+            const group = $(ev.currentTarget).closest(".pool-group");
+            group.toggleClass("collapsed");
         });
     }
 }

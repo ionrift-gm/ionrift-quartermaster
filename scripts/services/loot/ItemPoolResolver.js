@@ -1164,7 +1164,7 @@ export class ItemPoolResolver {
         return game.packs
             .filter(p => {
                 if (p.documentName !== "Item") return false;
-                if (QM_PIPELINE_OUTPUTS.has(p.collection)) return false;
+                if (QM_PIPELINE_OUTPUTS.has(p.collection) || game.ionrift?.library?.CompendiumSourceService?.isPipelineOutput?.(p.collection)) return false;
                 if (LOOT_POOL_EXCLUDED_PACKS.has(p.collection)) return false;
 
                 const packName = p.collection.split(".").pop() ?? "";
