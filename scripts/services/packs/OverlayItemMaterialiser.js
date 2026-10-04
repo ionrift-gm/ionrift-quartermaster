@@ -73,14 +73,30 @@ export class OverlayItemMaterialiser {
     }
 
     /**
+     * True when a sublayer ships an items/ payload (vs art or other media only).
+     * @param {string} sublayer
+     * @returns {Promise<boolean>}
+     */
+    static async sublayerHasItems(sublayer) {
+        const overlay = game.ionrift?.library?.overlay;
+        if (!overlay || !sublayer) return false;
+        const index = typeof overlay.readFileIndex === "function"
+            ? await overlay.readFileIndex(MODULE_ID, sublayer).catch(() => null)
+            : null;
+        if (index) return index.some(rel => String(rel).startsWith("items/"));
+        const listing = await overlay.listOverlayDir(MODULE_ID, sublayer, "items").catch(() => null);
+        return (listing?.dirs?.length ?? 0) > 0;
+    }
+
+    /**
      * Materialise one sublayer into a single world compendium.
      * @param {string} sublayer
      */
     static async materialiseSublayer(sublayer) {
         if (!game.user.isGM) return;
         if (!sublayer) return;
-        // Generative companions are art-only; they never unlock loot tables.
-        if (sublayer.endsWith("-art")) return;
+        // Art-only overlays carry no items and never unlock loot tables.
+        if (!(await this.sublayerHasItems(sublayer))) return;
 
         const overlay = game.ionrift?.library?.overlay;
         const manifest = await overlay.getLocalManifest(MODULE_ID, sublayer);
@@ -228,12 +244,8 @@ export class OverlayItemMaterialiser {
             return null;
         }
 
-        const artSublayer = `${sublayer}-art`;
-        const artByStem = await this._loadCompanionArtMap(artSublayer);
-        const artManifest = artByStem.size
-            ? await overlay.getLocalManifest(MODULE_ID, artSublayer).catch(() => null)
-            : null;
-        const artVersion = artManifest?.version ?? "none";
+        const { artByStem, signature: artSignature } = await this._loadInstalledArtMap();
+        const artVersion = artSignature || "none";
         const artCount = artByStem.size;
 
         const collection = `world.quartermaster-${sublayer}`;
@@ -326,7 +338,7 @@ export class OverlayItemMaterialiser {
                     item.folder = parentId ?? null;
                 }
                 delete item._id;
-                this._applyCompanionArt(item, artSublayer, artByStem);
+                this._applyInstalledArt(item, artByStem);
                 preparedItems.push(item);
             }
         }
@@ -538,56 +550,89 @@ export class OverlayItemMaterialiser {
     }
 
     /**
-     * Map art filename stems under `{sublayer}-art` to relative art paths.
-     * @param {string} artSublayer
-     * @returns {Promise<Map<string, string>>}
+     * Map art filename stems to full paths across every installed, active
+     * overlay that carries `art/` images. Quartermaster does not assume
+     * which overlay ships art; matching is by item filename stem.
+     * Ties break on sublayer name; webp wins over other formats.
+     * @returns {Promise<{ artByStem: Map<string, string>, signature: string }>}
      * @private
      */
-    static async _loadCompanionArtMap(artSublayer) {
+    static async _loadInstalledArtMap() {
         const overlay = game.ionrift?.library?.overlay;
-        const map = new Map();
-        if (!overlay) return map;
-
-        let artIndex = null;
-        if (typeof overlay.readFileIndex === "function") {
-            artIndex = await overlay.readFileIndex(MODULE_ID, artSublayer).catch(() => null);
+        const artByStem = new Map();
+        if (!overlay?.listInstalledSublayers || typeof overlay.readFileIndex !== "function") {
+            return { artByStem, signature: "" };
         }
-        if (!artIndex?.length) return map;
 
-        for (const rel of artIndex) {
-            if (!/^art\//.test(rel)) continue;
-            if (!/\.(webp|png|jpe?g)$/i.test(rel)) continue;
-            const stem = rel.split("/").pop().replace(/\.[^.]+$/, "").toLowerCase();
-            if (!stem) continue;
-            // Prefer webp when both formats exist for the same stem.
-            const prev = map.get(stem);
-            if (!prev || (rel.endsWith(".webp") && !prev.endsWith(".webp"))) {
-                map.set(stem, rel);
+        const sublayers = (await overlay.listInstalledSublayers(MODULE_ID).catch(() => [])) ?? [];
+        const signatureParts = [];
+        for (const sublayer of [...sublayers].sort()) {
+            const manifest = await overlay.getLocalManifest?.(MODULE_ID, sublayer).catch(() => null);
+            if (manifest?.overlayId && overlay.isOverlayActive) {
+                const active = await overlay.isOverlayActive(manifest.overlayId, MODULE_ID, sublayer)
+                    .catch(() => true);
+                if (!active) continue;
             }
+            let index = await overlay.readFileIndex(MODULE_ID, sublayer).catch(() => null);
+            if (!index?.length) index = await this._walkArtDir(overlay, sublayer);
+            if (!index?.length) continue;
+
+            let count = 0;
+            for (const rel of index) {
+                if (!/^art\//.test(rel)) continue;
+                if (!/\.(webp|png|jpe?g)$/i.test(rel)) continue;
+                const stem = rel.split("/").pop().replace(/\.[^.]+$/, "").toLowerCase();
+                if (!stem) continue;
+                const full = `ionrift-data/overlays/${MODULE_ID}/${sublayer}/${rel}`;
+                const prev = artByStem.get(stem);
+                if (!prev || (full.endsWith(".webp") && !prev.endsWith(".webp"))) {
+                    artByStem.set(stem, full);
+                }
+                count++;
+            }
+            if (count) signatureParts.push(`${sublayer}@${manifest?.version ?? "?"}:${count}`);
         }
-        return map;
+        return { artByStem, signature: signatureParts.join("|") };
     }
 
     /**
-     * Presence-based img swap when a generative companion ships matching art.
+     * Relative paths under art/ for sublayers installed without a file index.
+     * @param {object} overlay
+     * @param {string} sublayer
+     * @returns {Promise<string[]>}
+     * @private
+     */
+    static async _walkArtDir(overlay, sublayer) {
+        if (typeof overlay.listOverlayDir !== "function") return [];
+        const out = [];
+        const queue = ["art"];
+        let guard = 0;
+        while (queue.length && guard++ < 200) {
+            const dir = queue.shift();
+            const { dirs = [], files = [] } = await overlay.listOverlayDir(MODULE_ID, sublayer, dir)
+                .catch(() => ({ dirs: [], files: [] }));
+            for (const f of files) out.push(`${dir}/${decodeURIComponent(f)}`);
+            for (const d of dirs) queue.push(`${dir}/${decodeURIComponent(d)}`);
+        }
+        return out;
+    }
+
+    /**
+     * Presence-based img swap when installed art matches the item's filename stem.
      * @param {object} item
-     * @param {string} artSublayer
      * @param {Map<string, string>} artByStem
      * @private
      */
-    static _applyCompanionArt(item, artSublayer, artByStem) {
-        if (!item || !artByStem?.size) {
-            if (item) delete item._overlaySourcePath;
-            return;
-        }
+    static _applyInstalledArt(item, artByStem) {
+        if (!item) return;
         const sourcePath = item._overlaySourcePath || "";
         delete item._overlaySourcePath;
+        if (!artByStem?.size) return;
         const stem = (sourcePath.split("/").pop() || "")
             .replace(/\.json$/i, "")
             .toLowerCase();
-        const artRel = stem ? artByStem.get(stem) : null;
-        if (!artRel) return;
-        item.img = `ionrift-data/overlays/${MODULE_ID}/${artSublayer}/${artRel}`;
+        const artPath = stem ? artByStem.get(stem) : null;
+        if (artPath) item.img = artPath;
     }
 
     /**

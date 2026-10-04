@@ -185,35 +185,37 @@ Hooks.once('init', async () => {
         await TerrainDataRegistry.init(true);
 
         const sublayer = detail.sublayer;
-        const isArtCompanion = typeof sublayer === "string" && sublayer.endsWith("-art");
-        const dataSublayer = isArtCompanion ? sublayer.slice(0, -4) : sublayer;
+        const hasItems = detail.installed
+            ? await OverlayItemMaterialiser.sublayerHasItems(sublayer)
+            : false;
 
-        if (detail.installed && detail.active) {
+        if (detail.installed && detail.active && hasItems) {
             try {
-                // Art companions rematerialise the parent data sublayer so imgs update.
-                await OverlayItemMaterialiser.materialiseSublayer(dataSublayer);
+                await OverlayItemMaterialiser.materialiseSublayer(sublayer);
             } catch (err) {
                 Logger.error(MODULE_LABEL, "OverlayItemMaterialiser sublayer rebuild failed:", err);
             }
-        } else if (detail.installed && detail.overlayId) {
+        } else if (detail.installed && hasItems && detail.overlayId) {
             try {
-                if (isArtCompanion) {
-                    await OverlayItemMaterialiser.materialiseSublayer(dataSublayer);
-                } else {
-                    await OverlayItemMaterialiser.setOverlayActive(detail.overlayId, false);
-                }
+                await OverlayItemMaterialiser.setOverlayActive(detail.overlayId, false);
             } catch (err) {
                 Logger.error(MODULE_LABEL, "OverlayItemMaterialiser deactivate failed:", err);
             }
         } else if (!detail.installed && detail.overlayId) {
             try {
-                if (isArtCompanion) {
-                    await OverlayItemMaterialiser.materialiseSublayer(dataSublayer);
-                } else {
-                    await OverlayItemMaterialiser.removeForOverlay(detail.overlayId);
-                }
+                await OverlayItemMaterialiser.removeForOverlay(detail.overlayId);
             } catch (err) {
                 Logger.error(MODULE_LABEL, "OverlayItemMaterialiser teardown failed:", err);
+            }
+        }
+
+        // Art may have changed (art-only overlay toggled, or any uninstall).
+        // Rebuild data compendiums so imgs follow; unchanged ones hash-skip.
+        if (!hasItems) {
+            try {
+                await OverlayItemMaterialiser.materialiseAll();
+            } catch (err) {
+                Logger.error(MODULE_LABEL, "OverlayItemMaterialiser art refresh failed:", err);
             }
         }
     });
