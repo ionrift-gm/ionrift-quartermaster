@@ -569,10 +569,9 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         name: "Cache Generator Debug Logging",
         hint: "Logs per-slot budget and scroll picks to the browser console (F12).",
         scope: "client",
-        config: true,
+        config: false,
         type: Boolean,
-        default: false,
-        restricted: true
+        default: false
     });
 
     // Dev-only. Enable from console: game.settings.set("ionrift-quartermaster", "identifyTrace", true)
