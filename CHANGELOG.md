@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.11.0] - 2026-10-04
+
+### Changed
+- Frost & Stone and Dust & Bone item art now come in the free Core art pack.
+- Buttons, toggles and scrollbars match the rest of the Ionrift suite.
+- The permanent Item Piles warning no longer appears on load.
+- Requires Ionrift Library 3.1.0.
+
+### Fixed
+- Identified poisons keep their revealed details.
+
 ## [1.10.2] - 2026-09-21
 
 ### Fixed
