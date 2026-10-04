@@ -685,7 +685,7 @@
 .qm-toggle input:checked ~ .qm-toggle-track {
     background: rgba(155, 89, 182, 0.35);
     border-color: var(--ionrift-accent, #9b59b6);
-    box-shadow: 0 0 8px var(--ionrift-accent-glow, rgba(155, 89, 182, 0.35));
+    box-shadow: 0 0 8px var(--ionrift-accent-glow-color, rgba(155, 89, 182, 0.35));
 }
 
 .qm-toggle input:checked ~ .qm-toggle-track::after {

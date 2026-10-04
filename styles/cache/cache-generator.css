@@ -1454,7 +1454,7 @@
 .cache-btn-accent:hover:not(:disabled) {
     background: var(--ionrift-btn-primary-hover-bg, rgba(155, 89, 182, 0.28));
     border-color: var(--ionrift-btn-primary-hover-border, rgba(155, 89, 182, 0.50));
-    box-shadow: 0 0 12px var(--ionrift-accent-glow, rgba(155, 89, 182, 0.35));
+    box-shadow: 0 0 12px var(--ionrift-accent-glow-color, rgba(155, 89, 182, 0.35));
     color: #ffffff;
 }
 

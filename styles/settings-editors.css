@@ -148,7 +148,7 @@
 .qm-settings-config .settings-config-toggle input:checked + .settings-config-slider {
     background: var(--ionrift-btn-primary-bg, rgba(155, 89, 182, 0.35));
     border-color: var(--ionrift-accent, #9b59b6);
-    box-shadow: 0 0 8px var(--ionrift-accent-glow, rgba(155, 89, 182, 0.35));
+    box-shadow: 0 0 8px var(--ionrift-accent-glow-color, rgba(155, 89, 182, 0.35));
 }
 
 .qm-settings-config .settings-config-toggle input:checked + .settings-config-slider::before {
@@ -223,7 +223,7 @@
 .qm-settings-config .settings-config-save-btn:hover {
     background: var(--ionrift-btn-primary-hover-bg, rgba(155, 89, 182, 0.28));
     border-color: var(--ionrift-btn-primary-hover-border, rgba(155, 89, 182, 0.50));
-    box-shadow: 0 0 10px var(--ionrift-accent-glow, rgba(155, 89, 182, 0.35));
+    box-shadow: 0 0 10px var(--ionrift-accent-glow-color, rgba(155, 89, 182, 0.35));
 }
 
 .qm-settings-config .settings-config-popout-wrap {
@@ -349,7 +349,7 @@
 .qm-ammo-type-save-btn:hover {
     background: var(--ionrift-btn-primary-hover-bg, rgba(155, 89, 182, 0.28));
     border-color: var(--ionrift-btn-primary-hover-border, rgba(155, 89, 182, 0.50));
-    box-shadow: 0 0 10px var(--ionrift-accent-glow, rgba(155, 89, 182, 0.35));
+    box-shadow: 0 0 10px var(--ionrift-accent-glow-color, rgba(155, 89, 182, 0.35));
 }
 
 .qm-ammo-type-list {
