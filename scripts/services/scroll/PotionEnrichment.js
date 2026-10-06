@@ -308,10 +308,10 @@ export class PotionEnrichment {
         // ── Price ───────────────────────────────────────────────────────
         // latentMagic.originalPrice is stored from the pre-mask compendium
         // value. If that value was 0 (legacy dnd5e.items entries), promotion
-        // restores 0. Override with the PHB-authoritative price.
+        // restores 0. Only then fall back to the tier price; otherwise keep
+        // the value the item was minted with (compendium or GM-edited).
         const currentPrice = item.system?.price ?? {};
-        if ((currentPrice.value ?? 0) !== tier.price
-                || (currentPrice.denomination ?? "gp") !== "gp") {
+        if (!(Number(currentPrice.value) > 0)) {
             patch["system.price"] = { value: tier.price, denomination: "gp" };
         }
 

@@ -366,7 +366,12 @@ export class ItemMaskingHelper {
         // players with an unusable item. Deceptive consumables
         // (Apothecary's Folly) carry their real activity in
         // cursedMeta.realActivity - not here - so they are unaffected.
-        if (itemData.type !== "consumable"
+        // Spell scrolls are the exception: their cast activity is named
+        // after the spell and links it, so it is put aside until the
+        // scroll is identified (dnd5e re-caches the spell on first cast).
+        const isScrollConsumable = itemData.type === "consumable"
+            && (system.type?.value === "scroll" || /scroll/i.test(itemData.name ?? ""));
+        if ((itemData.type !== "consumable" || isScrollConsumable)
                 && system.activities
                 && Object.keys(system.activities).length > 0) {
             latent.activities = foundry.utils.deepClone(system.activities);
