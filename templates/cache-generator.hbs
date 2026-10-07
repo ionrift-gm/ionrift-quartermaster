@@ -89,7 +89,7 @@
                 <div class="advisory-sub-section advisory-scroll-section">
                     <div class="advisory-sub-header">
                         <span><i class="fas fa-scroll"></i> Scroll Plan</span>
-                        {{#if advisory.scrollCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="scroll" title="Reroll scroll suggestions (ignores ripe gate)"><i class="fas fa-dice"></i></button>{{/if}}
+                        {{#if advisory.scrollCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="scroll" title="Reroll scroll suggestions"><i class="fas fa-dice"></i></button>{{/if}}
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.scrolls}}
@@ -118,7 +118,7 @@
                 <div class="advisory-sub-section advisory-party-section">
                     <div class="advisory-sub-header">
                         <span><i class="fas fa-box-open"></i> Party Shelf</span>
-                        {{#if advisory.partyShelfCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="partyShelf" title="Reroll party shelf suggestions (ignores ripe gate)"><i class="fas fa-dice"></i></button>{{/if}}
+                        {{#if advisory.partyShelfCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="partyShelf" title="Reroll party shelf suggestions"><i class="fas fa-dice"></i></button>{{/if}}
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.partyShelf}}
@@ -141,7 +141,7 @@
                 <div class="advisory-sub-section advisory-cursed-section">
                     <div class="advisory-sub-header">
                         <span><i class="fas fa-skull"></i> Cursed Pool</span>
-                        {{#if advisory.cursedCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="cursedPool" title="Reroll cursed pool suggestions (random from full pool)"><i class="fas fa-dice"></i></button>{{/if}}
+                        {{#if advisory.cursedCanReroll}}<button type="button" class="action-reroll-panel-pool advisory-pool-reroll-btn" data-pool="cursedPool" title="Reroll cursed pool suggestions"><i class="fas fa-dice"></i></button>{{/if}}
                     </div>
                     <div class="advisory-sub-body">
                         {{#each advisory.cursedPool}}
@@ -256,7 +256,7 @@
                         {{/if}}
                     </div>
                     <div class="cache-gold-actions">
-                        <button type="button" class="action-reroll-gold reroll-btn" title="Roll a fresh gold total for this tier; items unchanged">
+                        <button type="button" class="action-reroll-gold reroll-btn" title="Roll a fresh gold total for this tier">
                             <i class="fas fa-dice"></i>
                         </button>
                         <button type="button" class="action-clear-gold remove-btn" title="Clear all coinage">
@@ -593,7 +593,7 @@
                 {{#if hasLootPool}}
                 <div class="cache-empty-state">
                     <i class="fas fa-treasure-chest"></i>
-                    <p>Configure your cache above and hit Generate.</p>
+                    <p>Configure the cache above and Generate.</p>
                     <p class="cache-hint">Generate a cache, then drag items from the left panel, compendiums, or the Items directory into the preview.</p>
                 </div>
                 {{else}}

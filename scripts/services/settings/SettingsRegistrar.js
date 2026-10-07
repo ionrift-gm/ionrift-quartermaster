@@ -267,7 +267,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
     game.settings.register(MODULE_ID, "milestoneProfile", {
         name: "Campaign Milestone Profile",
-        hint: "Adjusts the Signature Ledger milestone grid to match your campaign's level range. Each profile spreads 6 milestones across the selected band.",
+        hint: "Adjusts the Signature Items grid to match your campaign's level range. Each profile spreads 6 milestones across the selected band.",
         scope: "world",
         config: true,
         type: String,
