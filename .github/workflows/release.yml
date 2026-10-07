@@ -1,4 +1,4 @@
-﻿name: Release Creation
+name: Release Creation
 
 on:
   push:
@@ -129,6 +129,7 @@ jobs:
             -x "tools/*" \
             -x "ionrift-testharness/*" \
             -x "docs/*" \
+            -x "assets/screenshots/*" \
             -x "vitest*" \
             -x ".eslintrc*"
 

@@ -20,7 +20,6 @@ import { ItemMaskingHelper } from "./services/identify/ItemMaskingHelper.js";
 import { StandalonePoolRegistry } from "./services/loot/StandalonePoolRegistry.js";
 import { TerrainDataRegistry } from "./services/loot/TerrainDataRegistry.js";
 import { registerQuartermasterSettings } from "./services/settings/SettingsRegistrar.js";
-import { openSetupGuide } from "./data/SetupGuide.js";
 
 import { ContentPackLoader } from "./services/packs/ContentPackLoader.js";
 import { ContentPackCompiler } from "./services/packs/ContentPackCompiler.js";
@@ -272,7 +271,7 @@ Hooks.on('ready', () => {
 
 
     // Expose services on namespace for companion modules (Cursewright)
-    game.ionrift.quartermaster.openSetupGuide = openSetupGuide;
+    game.ionrift.quartermaster.openSetupGuide = () => {};
     game.ionrift.quartermaster.itemMaskingHelper = ItemMaskingHelper;
     game.ionrift.quartermaster.identificationService = IdentificationService;
     game.ionrift.quartermaster.identificationGuard = IdentificationGuard;

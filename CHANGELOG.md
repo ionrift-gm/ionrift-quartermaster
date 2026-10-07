@@ -1,9 +1,15 @@
 # Changelog
 
+## [1.11.1] - 2026-10-07
+
+### Changed
+- In-module guide journals removed in favor of online documentation.
+- Refreshed container physical descriptions.
+
 ## [1.11.0] - 2026-10-04
 
 ### Changed
-- Frost & Stone and Dust & Bone item art now come in the free Core art pack.
+- Unified item art resolution across expansion themes.
 - Buttons, toggles and scrollbars match the rest of the Ionrift suite.
 - The permanent Item Piles warning no longer appears on load.
 - Requires Ionrift Library 3.1.0.

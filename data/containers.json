@@ -8,7 +8,7 @@
       "img": "icons/containers/chest/chest-worn-oak-tan.webp",
       "system": {
         "description": {
-          "value": "<p>A battered wooden chest with iron fittings, hinges worn loose from years of use.</p>"
+          "value": "<p>An old wooden chest with iron bindings.</p>"
         }
       },
       "flags": {
@@ -35,7 +35,7 @@
       "img": "icons/containers/chest/chest-reinforced-stone.webp",
       "system": {
         "description": {
-          "value": "<p>A heavy stone box with simple geometric carvings. Clearly intended for long-term storage.</p>"
+          "value": "<p>Stone worked tirelessly into a storage container, with intricate decorative carvings.</p>"
         }
       },
       "flags": {
@@ -61,7 +61,7 @@
       "img": "icons/containers/kitchenware/jug-clay-brown-sealed.webp",
       "system": {
         "description": {
-          "value": "<p>A wide-mouthed clay urn, stoppered and sealed with fired clay paste. Common in wetland settlements where rot claims anything with a lid that breathes.</p>"
+          "value": "<p>A clay urn, sealed with baked mud or clay, unbroken and watertight by the looks of it.</p>"
         }
       },
       "flags": {
@@ -89,7 +89,7 @@
       "img": "icons/containers/chest/chest-reinforced-steel-red.webp",
       "system": {
         "description": {
-          "value": "<p>A well-made iron-reinforced chest stamped with a dwarven mason mark. Heavy and dependable.</p>"
+          "value": "<p>A strong iron chest with dwarven runes and symbolism embellished on the sides and top.</p>"
         }
       },
       "flags": {
@@ -115,7 +115,7 @@
       "img": "icons/containers/barrels/barrel-oak-tan.webp",
       "system": {
         "description": {
-          "value": "<p>A large rotting stump hollowed out and used as a natural cache. Damp on the inside.</p>"
+          "value": "<p>A sturdy and accommodating tree stump. Someone or something has left some items inside.</p>"
         }
       },
       "flags": {
@@ -141,7 +141,7 @@
       "img": "icons/containers/chest/chest-reinforced-steel-brown.webp",
       "system": {
         "description": {
-          "value": "<p>A compact iron lockbox, hinged lid secured with a simple pin lock. Solid construction.</p>"
+          "value": "<p>A small iron lock-box, intended more for display than security.</p>"
         }
       },
       "flags": {
@@ -168,7 +168,7 @@
       "img": "icons/containers/bags/pack-simple-leather-brown.webp",
       "system": {
         "description": {
-          "value": "<p>A weathered adventurer's pack that has clearly been through a great deal. Stains on the canvas.</p>"
+          "value": "<p>An old adventurer's backpack, well-used and frayed.</p>"
         }
       },
       "flags": {
@@ -195,7 +195,7 @@
       "img": "icons/containers/misc/basket-simple-yellow.webp",
       "system": {
         "description": {
-          "value": "<p>A tightly woven reed basket with a fitted lid. Lightweight and common in coastal settlements.</p>"
+          "value": "<p>A woven basket made of dried reeds, with a snugly fitted lid that keeps the worst of the weather off whatever is inside.</p>"
         }
       },
       "flags": {
@@ -221,7 +221,7 @@
       "img": "icons/containers/misc/basket-simple-yellow.webp",
       "system": {
         "description": {
-          "value": "<p>Tightly bound river reeds sealed with pine tar along every seam. It floats. Whoever made this knew they might need to cross water in a hurry.</p>"
+          "value": "<p>A basket made of woven reeds and sealed with tar, sternly watertight.</p>"
         }
       },
       "flags": {
@@ -248,7 +248,7 @@
       "img": "icons/containers/bags/pack-simple-leather-brown.webp",
       "system": {
         "description": {
-          "value": "<p>A soft leather pack treated with beeswax on every seam and fold. The wax needs reapplying every season, but it keeps out standing water well enough for anything short of submersion.</p>"
+          "value": "<p>Someone's left a leather bag here; it's very old and creased.</p>"
         }
       },
       "flags": {
@@ -276,7 +276,7 @@
       "img": "icons/containers/bags/sack-worn-brown.webp",
       "system": {
         "description": {
-          "value": "<p>A weathered leather sack, stitched crudely. It has seen better days, but still holds its contents.</p>"
+          "value": "<p>A leather sack which has seen better days. It's starting to come apart at the stitching.</p>"
         }
       },
       "flags": {
@@ -302,7 +302,7 @@
       "img": "icons/containers/misc/basket-handle-woven-yellow.webp",
       "system": {
         "description": {
-          "value": "<p>A finely woven bamboo box with a simple clasp. Clearly crafted with care.</p>"
+          "value": "<p>A tightly bound bamboo box, held together with rope and closed with a small rope and bone clasp.</p>"
         }
       },
       "flags": {

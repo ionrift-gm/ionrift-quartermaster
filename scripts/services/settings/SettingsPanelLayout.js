@@ -4,7 +4,6 @@ import { MODULE_ID } from "../../data/moduleId.js";
  * @description Registers Quartermaster Quick Setup via ionrift-library.
  */
 
-import { openSetupGuide } from "../../data/SetupGuide.js";
 import { refreshOpenQuartermasterConfigApps } from "../../apps/config/QuartermasterSubmenuConfigApp.js";
 import { LootPoolCompiler } from "../loot/LootPoolCompiler.js";
 import { ScrollForge      } from "../scroll/ScrollForge.js";
@@ -179,8 +178,6 @@ export function registerQuartermasterSettingsPanel() {
                 { beforeKey: "obscureConsumables", label: "Identification" }
             ],
             confirmNote: "Green values will change. Neutral values already match this profile. Loot pool sources, campaign milestone profile, and content packs are left unchanged.",
-            guideTooltip: "Opens the GM setup guide (loot profiles, sources, milestone grid).",
-            onGuide: () => openSetupGuide(),
             onApplied: () => refreshOpenQuartermasterConfigApps()
         },
         groups: GROUPS

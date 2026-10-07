@@ -627,7 +627,7 @@ export class CompendiumForgeApp extends FormApplication {
         }
         if (!bugReport.canSubmit()) {
             ui.notifications.warn(
-                "Connect Patreon in Ionrift Library (free tier is fine), or copy the report and paste it in Discord.",
+                "Copy the report and paste it in Discord.",
                 { permanent: true }
             );
             return;

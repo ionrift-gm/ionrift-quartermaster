@@ -9,11 +9,8 @@
       "note": "Loot containers for cache generation"
     },
     "quartermaster-guide-gm": {
-      "status": "approved",
-      "approvedBy": "ionrift",
-      "approvedDate": "2026-06-04",
-      "assetPolicy": "foundry-core-only",
-      "note": "GM setup and reference guide"
+      "status": "retired",
+      "reason": "Guide compendiums removed from distribution"
     },
     "proving-grounds": {
       "status": "dev",
