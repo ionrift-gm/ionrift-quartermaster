@@ -39,9 +39,6 @@
 #ionrift-cache-generator,
 #ionrift-signature-ledger,
 #ionrift-quartermaster-app,
-#ionrift-sound-picker,
-#ionrift-item-sound-config,
-#ionrift-actor-sound-config,
 #ionrift-compendium-forge {
     scrollbar-color: #6d28d9 rgba(0, 0, 0, 0.4) !important;
     scrollbar-width: thin !important;
@@ -56,9 +53,6 @@
 #ionrift-cache-generator *,
 #ionrift-signature-ledger *,
 #ionrift-quartermaster-app *,
-#ionrift-sound-picker *,
-#ionrift-item-sound-config *,
-#ionrift-actor-sound-config *,
 #ionrift-compendium-forge * {
     scrollbar-color: #6d28d9 rgba(0, 0, 0, 0.4) !important;
     scrollbar-width: thin !important;
@@ -81,13 +75,7 @@
 #ionrift-signature-ledger ::-webkit-scrollbar,
 #ionrift-signature-ledger *::-webkit-scrollbar,
 #ionrift-quartermaster-app ::-webkit-scrollbar,
-#ionrift-quartermaster-app *::-webkit-scrollbar,
-#ionrift-sound-picker ::-webkit-scrollbar,
-#ionrift-sound-picker *::-webkit-scrollbar,
-#ionrift-item-sound-config ::-webkit-scrollbar,
-#ionrift-item-sound-config *::-webkit-scrollbar,
-#ionrift-actor-sound-config ::-webkit-scrollbar,
-#ionrift-actor-sound-config *::-webkit-scrollbar {
+#ionrift-quartermaster-app *::-webkit-scrollbar {
     width: 8px !important;
     height: 8px !important;
     background: rgba(0, 0, 0, 0.4) !important;

@@ -118,48 +118,6 @@
     outline: none;
 }
 
-/* Sound Picker */
-.sound-picker .search-bar {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    padding-bottom: 10px;
-}
-
-/* Higher specificity to beat system styles */
-.ionrift-window .ionrift-picker-layout ul.results-list {
-    height: 480px;
-    overflow-y: auto;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-    /* Reset List Styles */
-    list-style: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    padding-left: 0 !important;
-    /* Double tap */
-    margin-left: 0 !important;
-}
-
-.result-row {
-    padding: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-}
-
-.result-row:hover {
-    background: rgba(155, 89, 182, 0.3);
-    /* Violet Highlight */
-}
-
-.result-row .id {
-    font-size: 0.8em;
-    opacity: 0.6;
-}
-
 .input-group {
     display: flex;
     gap: 5px;

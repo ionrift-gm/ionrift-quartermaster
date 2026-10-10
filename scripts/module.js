@@ -1,6 +1,5 @@
 import { WorkshopApp } from "./apps/workshop/WorkshopApp.js";
 import { CacheGeneratorApp } from "./apps/cache/CacheGeneratorApp.js";
-import { SheetInjector } from "./services/ui/SheetInjector.js";
 import { WorkshopItemFactory } from "./services/workshop/WorkshopItemFactory.js";
 import { CacheGenerator } from "./services/cache/CacheGenerator.js";
 
@@ -28,10 +27,6 @@ import { Logger, MODULE_LABEL } from "./utils/Logger.js";
 import { MODULE_ID } from "./data/moduleId.js";
 import { QM_FEATURES } from "./data/QMFeatures.js";
 import { createQuartermasterContext } from "./composition/createQuartermasterContext.js";
-
-function isResonanceActive() {
-    return game.modules.get("ionrift-resonance")?.active ?? false;
-}
 
 /**
  * Drop loot-pool sources that must not feed cache generation (e.g. Respite activity items).
@@ -219,15 +214,9 @@ Hooks.once('init', async () => {
         }
     });
 
-    // Sound integration (only if Resonance is present)
-    if (isResonanceActive()) {
-        SheetInjector.init();
-    }
-
     // Register partials
     try {
         await foundry.applications.handlebars.loadTemplates([
-            "modules/ionrift-quartermaster/templates/partials/sound-picker-row.hbs",
             "modules/ionrift-quartermaster/templates/partials/slot-cell.hbs",
             "modules/ionrift-quartermaster/templates/partials/cache-qty-stepper.hbs",
             "modules/ionrift-quartermaster/templates/partials/cache-chat-card.hbs",
@@ -531,24 +520,4 @@ Hooks.on("getItemDirectoryEntryContext", (html, options) => {
             return item && item.isOwner;
         }
     });
-
-    // Sound binding (only when Resonance is available)
-    if (isResonanceActive()) {
-        options.push({
-            name: "Ionrift Sounds",
-            icon: '<i class="fas fa-volume-up"></i>',
-            callback: li => {
-                const item = game.items.get(li.data("documentId"));
-                if (item) {
-                    import("./services/ui/SheetInjector.js").then(({ SheetInjector }) => {
-                        SheetInjector.openSoundPicker(item);
-                    });
-                }
-            },
-            condition: li => {
-                const item = game.items.get(li.data("documentId"));
-                return item && item.isOwner;
-            }
-        });
-    }
 });

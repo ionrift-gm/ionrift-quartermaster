@@ -1,4 +1,3 @@
-import { SoundPickerApp } from "../sound/SoundPickerApp.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 
 export class WorkshopApp extends Application {
@@ -173,7 +172,19 @@ export class WorkshopApp extends Application {
         const targetName = event.currentTarget.dataset.target;
         const input = this.element.find(`input[name='${targetName}']`);
 
+        let SoundPickerApp = game.ionrift?.resonance?.SoundPickerApp;
+        if (!SoundPickerApp) {
+            try {
+                const mod = await import("/modules/ionrift-resonance/scripts/apps/browse/SoundPickerApp.js");
+                SoundPickerApp = mod.SoundPickerApp;
+            } catch (err) {
+                ui.notifications.error("Ionrift: Failed to load sound picker from Ionrift Resonance.");
+                return;
+            }
+        }
+
         new SoundPickerApp((result) => {
+            if (!result) return;
             const currentVal = input.val();
 
             if (targetName === "sound_use" && currentVal.length > 0) {
