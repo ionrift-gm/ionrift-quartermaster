@@ -1898,6 +1898,14 @@ export class CacheGeneratorApp extends Application {
             const containerName = result.container?.name ?? "Loot Cache";
             const containerImg = result.container?.img ?? "icons/containers/chest/chest-worn-oak-tan.webp";
 
+            // If dropped directly onto an existing container or Tripwire prefab/shell,
+            // populate it and ensure Quartermaster's visualization and actor image take precedence.
+            const targetToken = this._findTargetContainerToken(rawX, rawY);
+            if (targetToken) {
+                await this._populateExistingContainer(targetToken, result, pileItems, containerName, containerImg);
+                return;
+            }
+
             const currencyOverrides = {};
             if (result.coinage) {
                 for (const denom of ["pp", "gp", "ep", "sp", "cp"]) {
@@ -1951,6 +1959,150 @@ export class CacheGeneratorApp extends Application {
             Logger.error(MODULE_LABEL, "Item Piles createItemPile failed:", e);
             ui.notifications.error("Failed to place cache. Check console for details.");
         }
+    }
+
+    /**
+     * Finds a candidate container token on the active scene directly beneath the drop coordinates.
+     * @param {number} rawX Canvas world X coordinate
+     * @param {number} rawY Canvas world Y coordinate
+     * @returns {Token|null}
+     * @private
+     */
+    _findTargetContainerToken(rawX, rawY) {
+        const tokens = canvas.tokens?.placeables ?? [];
+        const underCursor = tokens.filter(tok => {
+            if (tok.bounds?.contains) return tok.bounds.contains(rawX, rawY);
+            const w = tok.w ?? tok.width;
+            const h = tok.h ?? tok.height;
+            return rawX >= tok.x && rawX <= tok.x + w && rawY >= tok.y && rawY <= tok.y + h;
+        });
+
+        if (!underCursor.length) return null;
+
+        return underCursor.find(tok => {
+            const doc = tok.document;
+            const actor = tok.actor;
+            if (!doc || !actor) return false;
+
+            // Never target player characters or player-owned combatants
+            if (actor.hasPlayerOwner) return false;
+
+            // 1. Tripwire cache, secret, or lock
+            if (doc.flags?.["ionrift-tripwire"]?.cache || doc.flags?.["ionrift-tripwire"]?.secret || doc.flags?.["ionrift-tripwire"]?.lock) {
+                return true;
+            }
+
+            // 2. Item Piles container or loot pile
+            const piles = game.itempiles?.API;
+            if (piles) {
+                if (piles.isItemPileContainer?.(tok) || piles.isItemPileContainer?.(actor)) return true;
+                if (piles.isItemPile?.(actor ?? tok)) return true;
+            }
+
+            // 3. System container or loot actor type
+            if (actor.type === "container" || actor.type === "loot") return true;
+
+            // 4. Token/actor named or themed as a container shell
+            const name = (actor.name || doc.name || "").toLowerCase();
+            if (name.includes("chest") || name.includes("cache") || name.includes("crate") || name.includes("barrel") || name.includes("recess")) {
+                return true;
+            }
+
+            return false;
+        }) ?? null;
+    }
+
+    /**
+     * Populates an existing container token with generated Quartermaster loot items and currency,
+     * ensuring Quartermaster's visualization and actor imagery take precedence.
+     * @param {Token} targetToken
+     * @param {object} result
+     * @param {object[]} pileItems
+     * @param {string} containerName
+     * @param {string} containerImg
+     * @private
+     */
+    async _populateExistingContainer(targetToken, result, pileItems, containerName, containerImg) {
+        const targetActor = targetToken.actor;
+        const piles = game.itempiles?.API;
+
+        // Ensure token is an Item Pile container
+        if (piles && typeof piles.turnTokensIntoItemPiles === "function") {
+            const isPile = typeof piles.isItemPile === "function" && piles.isItemPile(targetActor ?? targetToken);
+            if (!isPile) {
+                await piles.turnTokensIntoItemPiles([targetToken], {
+                    pileSettings: {
+                        type: "container",
+                        isContainer: true,
+                        closeOnInteract: true,
+                        openedImage: containerImg,
+                        lockedImage: containerImg
+                    }
+                });
+            }
+        }
+
+        // Quartermaster visualisation & actor image take precedence
+        const tokenUpdates = {
+            name: containerName,
+            "texture.src": containerImg,
+            lockRotation: true,
+            sight: { enabled: false }
+        };
+
+        const twFlags = targetToken.document?.flags?.["ionrift-tripwire"];
+        if (twFlags) {
+            if (twFlags.cache) tokenUpdates["flags.ionrift-tripwire.cache.label"] = containerName;
+            if (twFlags.mechanism) tokenUpdates["flags.ionrift-tripwire.mechanism.label"] = containerName;
+        }
+
+        await targetToken.document.update(tokenUpdates);
+
+        if (targetActor) {
+            const actorUpdates = {
+                name: containerName,
+                img: containerImg
+            };
+
+            const cur = targetActor.system?.currency ?? {};
+            if (result.coinage) {
+                for (const denom of ["pp", "gp", "ep", "sp", "cp"]) {
+                    const added = result.coinage[denom] ?? 0;
+                    if (added > 0) {
+                        actorUpdates[`system.currency.${denom}`] = (cur[denom] ?? 0) + added;
+                    }
+                }
+            } else if (result.gold) {
+                actorUpdates["system.currency.gp"] = (cur.gp ?? 0) + (result.gold ?? 0);
+            }
+
+            await targetActor.update(actorUpdates);
+        }
+
+        // Update Item Pile container imagery
+        if (piles && typeof piles.updateItemPile === "function") {
+            try {
+                await piles.updateItemPile(targetToken, {
+                    openedImage: containerImg,
+                    closedImage: containerImg,
+                    lockedImage: containerImg,
+                    emptyImage: containerImg,
+                    isContainer: true
+                });
+            } catch (err) {
+                Logger.warn(MODULE_LABEL, "Could not update Item Pile container images:", err);
+            }
+        }
+
+        // Add generated loot items into container
+        if (piles && typeof piles.addItems === "function") {
+            await piles.addItems(targetToken, pileItems);
+        } else if (targetActor) {
+            await targetActor.createEmbeddedDocuments("Item", pileItems);
+        }
+
+        Logger.info(MODULE_LABEL, `Populated container ${containerName} (${targetToken.id}) with ${pileItems.length} items.`);
+        ui.notifications.info(`Populated ${containerName} with ${pileItems.length} items.`);
     }
 
     /**
