@@ -1,5 +1,6 @@
 import { QuartermasterItemAdapter } from "../../QuartermasterItemAdapter.js";
 import { QM_FEATURES } from "../../../data/QMFeatures.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
 import {
     extractPf2ePriceGp,
     extractPf2eWeight,
@@ -119,6 +120,23 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
 
     applyCacheMask(itemData, ctx) {
         applyPf2eMask(itemData, ctx);
+    }
+
+    buildMaskUpdate(item, maskInfo) {
+        if (!item || !maskInfo?.isMagical) return null;
+        const itemData = typeof item.toObject === "function" ? item.toObject() : foundry.utils.deepClone(item);
+        this.applyCacheMask(itemData, maskInfo);
+        const latent = itemData.flags?.[MODULE_ID]?.latentMagic;
+        if (!latent) return null;
+
+        return {
+            _id: item.id ?? itemData._id,
+            "system.identification": itemData.system.identification,
+            "system.traits.rarity": itemData.system.traits?.rarity ?? "common",
+            "system.traits.value": itemData.system.traits?.value ?? [],
+            "system.price": itemData.system.price,
+            [`flags.${MODULE_ID}.latentMagic`]: latent
+        };
     }
 
     getPowerScoreItemTypes() {

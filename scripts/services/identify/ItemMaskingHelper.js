@@ -181,7 +181,7 @@ export class ItemMaskingHelper {
             return { isMagical: false, baseItemName: null, mundaneDesc: null, obscuredImg: null };
         }
 
-        const rarity = (itemMeta.rarity || "").toLowerCase().replace(/\s+/g, "");
+        const rarity = (itemMeta.rarity || itemMeta.system?.rarity || "").toLowerCase().replace(/\s+/g, "");
         const nameLower = (itemMeta.name || "").toLowerCase();
 
         const obscureConsumables = game?.settings?.get(MODULE_ID, "obscureConsumables") ?? true;
@@ -190,7 +190,11 @@ export class ItemMaskingHelper {
         const isScroll = /scroll/i.test(nameLower);
         const obscurableConsumable = this._isObscurableConsumable(itemMeta);
 
-        const rarityMagical = rarity !== "" && rarity !== "common" && rarity !== "none";
+        const hasMagicalProperty = Array.isArray(itemMeta.system?.properties)
+            ? itemMeta.system.properties.includes("mgc")
+            : (itemMeta.system?.properties instanceof Set ? itemMeta.system.properties.has("mgc") : false);
+        const hasMagicalBonus = Boolean(itemMeta.system?.magicalBonus);
+        const rarityMagical = (rarity !== "" && rarity !== "common" && rarity !== "none") || hasMagicalProperty || hasMagicalBonus;
         const isGearMagic = rarityMagical && !isScroll && !obscurableConsumable;
 
         // isMagical reflects intrinsic magic independent of display settings.

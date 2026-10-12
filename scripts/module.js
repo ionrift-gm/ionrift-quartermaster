@@ -16,6 +16,7 @@ import { ScrollForge } from "./services/scroll/ScrollForge.js";
 import { SrdCurseAdapter } from "./services/curse/SrdCurseAdapter.js";
 import { getCurseAdapter } from "./services/curse/getCurseAdapter.js";
 import { ItemMaskingHelper } from "./services/identify/ItemMaskingHelper.js";
+import { CacheConverterService } from "./services/cache/CacheConverterService.js";
 import { StandalonePoolRegistry } from "./services/loot/StandalonePoolRegistry.js";
 import { TerrainDataRegistry } from "./services/loot/TerrainDataRegistry.js";
 import { registerQuartermasterSettings } from "./services/settings/SettingsRegistrar.js";
@@ -252,12 +253,10 @@ Hooks.on('ready', () => {
     game.ionrift.workshop.priceMasker = PriceMasker;
     game.ionrift.workshop.renderItemPrice = (item) => PriceMasker.render(item);
     game.ionrift.workshop.openForgedScrolls = () => ScrollForge.openForgedPack();
-
-
+    game.ionrift.workshop.convertContainer = (target, opts) => CacheConverterService.convertContainer(target, opts);
+    game.ionrift.workshop.bulkIdentify = (target, opts) => CacheConverterService.bulkIdentify(target, opts);
 
     PriceInjector.init();
-
-
 
     // Expose services on namespace for companion modules (Cursewright)
     game.ionrift.quartermaster.openSetupGuide = () => {};
@@ -265,6 +264,7 @@ Hooks.on('ready', () => {
     game.ionrift.quartermaster.identificationService = IdentificationService;
     game.ionrift.quartermaster.identificationGuard = IdentificationGuard;
     game.ionrift.quartermaster.standalonePoolRegistry = StandalonePoolRegistry;
+    game.ionrift.quartermaster.converter = CacheConverterService;
 
     Logger.info(MODULE_LABEL, "Ready.");
 
@@ -521,3 +521,92 @@ Hooks.on("getItemDirectoryEntryContext", (html, options) => {
         }
     });
 });
+
+// Actor Directory context menu for container mystification
+Hooks.on("getActorDirectoryEntryContext", (html, options) => {
+    options.push({
+        name: "Mystify Cache (Quartermaster)",
+        icon: '<i class="fas fa-mask"></i>',
+        callback: async li => {
+            const actor = game.actors.get(li.data("documentId"));
+            if (actor) {
+                await CacheConverterService.convertContainer(actor);
+            }
+        },
+        condition: li => {
+            if (!game.user.isGM) return false;
+            const actor = game.actors.get(li.data("documentId"));
+            return actor && CacheConverterService.isConvertibleContainer(actor);
+        }
+    });
+
+    options.push({
+        name: "Identify All Items (Quartermaster)",
+        icon: '<i class="fas fa-wand-magic-sparkles"></i>',
+        callback: async li => {
+            const actor = game.actors.get(li.data("documentId"));
+            if (actor) {
+                await CacheConverterService.bulkIdentify(actor);
+            }
+        },
+        condition: li => {
+            if (!game.user.isGM) return false;
+            const actor = game.actors.get(li.data("documentId"));
+            return actor && CacheConverterService.hasMystifiedItems(actor);
+        }
+    });
+});
+
+// Actor Sheet header buttons for loot/container sheets
+Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
+    if (!game.user.isGM) return;
+    const actor = sheet.actor;
+    if (!actor || !CacheConverterService.isConvertibleContainer(actor)) return;
+
+    buttons.unshift({
+        label: "Mystify Cache",
+        class: "ionrift-qm-mystify-header-btn",
+        icon: "fas fa-mask",
+        onclick: async () => {
+            await CacheConverterService.convertContainer(actor);
+        }
+    });
+
+    if (CacheConverterService.hasMystifiedItems(actor)) {
+        buttons.unshift({
+            label: "Identify All",
+            class: "ionrift-qm-identify-all-header-btn",
+            icon: "fas fa-wand-magic-sparkles",
+            onclick: async () => {
+                await CacheConverterService.bulkIdentify(actor);
+            }
+        });
+    }
+});
+
+// Canvas Token HUD quick-action for container tokens
+Hooks.on("renderTokenHUD", (hud, html, data) => {
+    if (!game.user.isGM) return;
+    const token = hud.object;
+    if (!token || !CacheConverterService.isConvertibleContainer(token)) return;
+
+    const root = html instanceof HTMLElement ? html : (html?.[0] ?? null);
+    if (!root) return;
+    const col = root.querySelector(".col.right") ?? root.querySelector(".col.left");
+    if (!col || col.querySelector(".ionrift-qm-hud-mystify")) return;
+
+    const btn = document.createElement("div");
+    btn.className = "control-icon ionrift-hud-btn ionrift-qm-hud-mystify";
+    btn.title = "Mystify Cache (Quartermaster)";
+    btn.setAttribute("data-action", "qm-mystify");
+    btn.innerHTML = '<i class="fas fa-mask"></i>';
+
+    btn.addEventListener("click", async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        await CacheConverterService.convertContainer(token);
+    });
+
+    col.appendChild(btn);
+});
+

@@ -4,6 +4,7 @@ import { SignatureLedger } from "../services/progression/SignatureLedger.js";
 import { ProgressionSeeder } from "../services/progression/ProgressionSeeder.js";
 import { ProgressionAdvisor } from "../services/progression/ProgressionAdvisor.js";
 import { ScrollForge } from "../services/scroll/ScrollForge.js";
+import { CacheConverterService } from "../services/cache/CacheConverterService.js";
 import { createQuartermasterAdapter } from "../adapters/adapterFactory.js";
 import { QM_FEATURES } from "../data/QMFeatures.js";
 import { MODULE_ID, MODULE_LABEL } from "../data/moduleId.js";
@@ -23,6 +24,7 @@ export function createQuartermasterContext() {
         features: QM_FEATURES,
         items: WorkshopItemFactory,
         cache: CacheGenerator,
+        converter: CacheConverterService,
         ledger: SignatureLedger,
         seeder: ProgressionSeeder,
         advisor: ProgressionAdvisor,
@@ -41,6 +43,7 @@ export function exposeQuartermasterApi(ctx) {
         features: ctx.features,
         items: ctx.items,
         cache: ctx.cache,
+        converter: ctx.converter,
         ledger: ctx.ledger,
         seeder: ctx.seeder,
         advisor: ctx.advisor,

@@ -172,15 +172,27 @@ export function detectPf2eMagical(itemMeta, { terrainTag } = {}) {
         return { isMagical: false, baseItemName: null, mundaneDesc: null, obscuredImg: null };
     }
 
+    // Check for runes or potency prefix on equipment/weapons/armor
+    const runes = itemMeta.system?.runes;
+    const hasRunes = Boolean(
+        (runes?.potency && Number(runes.potency) > 0)
+        || (runes?.striking && Number(runes.striking) > 0)
+        || (runes?.resilient && Number(runes.resilient) > 0)
+        || (Array.isArray(runes?.property) && runes.property.length > 0)
+        || /\+[1-3]\b/.test(itemMeta.name || "")
+        || /\b(?:Major |Greater )?Striking\b/i.test(itemMeta.name || "")
+        || /\b(?:Major |Greater )?Resilient\b/i.test(itemMeta.name || "")
+    );
+
     // Determine magical status
-    const isMagical = rarityMagical || hasMagicalTrait || isScroll || isConsumable;
+    const isMagical = rarityMagical || hasMagicalTrait || isScroll || isConsumable || hasRunes;
 
     if (!isMagical) {
         return { isMagical: false, baseItemName: null, mundaneDesc: null, obscuredImg: null };
     }
 
     // Apply settings gates (same logic as DnD5e)
-    const isGearMagic = rarityMagical && !isScroll && !isConsumable;
+    const isGearMagic = (rarityMagical || hasRunes) && !isScroll && !isConsumable;
     if (isGearMagic && !obscureMagicalItems) {
         return { isMagical: false, baseItemName: null, mundaneDesc: null, obscuredImg: null };
     }
@@ -439,10 +451,13 @@ function _stripPf2eToLatent(itemData, maskInfo) {
 
     // Price: PF2e doesn't mask price in unidentified mode
     const price = system.price;
-    if (price?.value) {
-        const gpValue = (price.value.gp ?? 0)
-            + (price.value.sp ?? 0) / 10
-            + (price.value.cp ?? 0) / 100;
+    if (price?.value !== undefined) {
+        const gpValue = typeof price.value === "number"
+            ? price.value
+            : ((price.value.gp ?? 0)
+                + (price.value.sp ?? 0) / 10
+                + (price.value.cp ?? 0) / 100
+                + (price.value.pp ?? 0) * 10);
         if (gpValue > 0) {
             latent.originalPrice = foundry.utils.deepClone(price);
             // Set to a mundane-equivalent price

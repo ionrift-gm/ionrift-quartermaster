@@ -1,3 +1,5 @@
+import { MODULE_ID } from "../data/moduleId.js";
+
 /**
  * Abstract system adapter for Quartermaster item pipelines.
  * Core QM services call through game.ionrift.quartermaster.adapter
@@ -146,6 +148,35 @@ export class QuartermasterItemAdapter {
      * @param {object} ctx
      */
     applyCacheMask(itemData, ctx) {}
+
+    /**
+     * Build an embedded Item update dictionary to mask an existing in-world item.
+     * @param {Item|object} item
+     * @param {object} maskInfo
+     * @returns {object|null}
+     */
+    buildMaskUpdate(item, maskInfo) {
+        if (!item || !maskInfo?.isMagical) return null;
+        const itemData = typeof item.toObject === "function" ? item.toObject() : foundry.utils.deepClone(item);
+        this.applyCacheMask(itemData, maskInfo);
+        const latent = itemData.flags?.[MODULE_ID]?.latentMagic;
+        if (!latent) return null;
+
+        return {
+            _id: item.id ?? itemData._id,
+            name: itemData.name,
+            img: itemData.img,
+            "system.description.value": itemData.system?.description?.value ?? "",
+            "system.rarity": itemData.system?.rarity,
+            "system.price": itemData.system?.price,
+            "system.magicalBonus": itemData.system?.magicalBonus ?? "",
+            "system.properties": itemData.system?.properties,
+            "system.attunement": itemData.system?.attunement ?? "",
+            "system.activities": itemData.system?.activities ?? {},
+            "system.identified": itemData.system?.identified ?? true,
+            [`flags.${MODULE_ID}.latentMagic`]: latent
+        };
+    }
 
     /**
      * Post-process compendium item data before Item Piles placement.
