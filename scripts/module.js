@@ -586,29 +586,3 @@ Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
     }
 });
 
-// Canvas Token HUD quick-action for container tokens
-Hooks.on("renderTokenHUD", (hud, html, data) => {
-    if (!game.user.isGM) return;
-    const token = hud.object;
-    if (!token || !CacheConverterService.isConvertibleContainer(token)) return;
-
-    const root = html instanceof HTMLElement ? html : (html?.[0] ?? null);
-    if (!root) return;
-    const col = root.querySelector(".col.right") ?? root.querySelector(".col.left");
-    if (!col || col.querySelector(".ionrift-qm-hud-mystify")) return;
-
-    const btn = document.createElement("div");
-    btn.className = "control-icon ionrift-hud-btn ionrift-qm-hud-mystify";
-    btn.title = "Mystify Cache (Quartermaster)";
-    btn.setAttribute("data-action", "qm-mystify");
-    btn.innerHTML = '<i class="fas fa-mask"></i>';
-
-    btn.addEventListener("click", async (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        await CacheConverterService.convertContainer(token);
-    });
-
-    col.appendChild(btn);
-});
-
