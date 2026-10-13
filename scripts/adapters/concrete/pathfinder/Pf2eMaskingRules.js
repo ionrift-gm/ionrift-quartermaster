@@ -1,27 +1,13 @@
 import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../../data/moduleId.js";
 import { TerrainDataRegistry } from "../../../services/loot/TerrainDataRegistry.js";
+import { ItemMaskingHelper } from "../../../services/identify/ItemMaskingHelper.js";
 
-// PF2e unidentified icons: systems/pf2e/icons/unidentified_item_icons/
-
-const PF2E_ICON_BASE = "systems/pf2e/icons/unidentified_item_icons";
-
-const PF2E_ICON_MAP = {
-    weapon:             `${PF2E_ICON_BASE}/weapon.webp`,
-    armor:              `${PF2E_ICON_BASE}/armor.webp`,
-    shield:             `${PF2E_ICON_BASE}/shields.webp`,
-    "consumable:potion": `${PF2E_ICON_BASE}/potions.webp`,
-    "consumable:elixir": `${PF2E_ICON_BASE}/alchemical_elixir.webp`,
-    "consumable:oil":    `${PF2E_ICON_BASE}/oils.webp`,
-    "consumable:scroll": `${PF2E_ICON_BASE}/other-consumables.webp`,
-    "consumable:talisman": `${PF2E_ICON_BASE}/talisman.webp`,
-    "consumable:poison": `${PF2E_ICON_BASE}/alchemical_poison.webp`,
-    "consumable:drug":   `${PF2E_ICON_BASE}/drugs.webp`,
-    "consumable:ammo":   `${PF2E_ICON_BASE}/ammunition.webp`,
-    "equipment:wand":    `${PF2E_ICON_BASE}/wands.webp`,
-    "equipment:staff":   `${PF2E_ICON_BASE}/staves.webp`,
-    "equipment:worn":    `${PF2E_ICON_BASE}/worn-items.webp`,
-    "equipment:held":    `${PF2E_ICON_BASE}/held-item.webp`,
-    "equipment":         `${PF2E_ICON_BASE}/adventuring_gear.webp`,
+// Talisman mundane icons mapped by surface name
+const TALISMAN_ICONS = {
+    "Small Stone":      "icons/commodities/gems/gem-rough-cushion-grey.webp",
+    "Crystal Fragment": "icons/commodities/gems/gem-shattered-grey.webp",
+    "Inscribed Chip":   "icons/commodities/currency/coin-embossed-bronze.webp",
+    "Etched Disc":      "icons/commodities/currency/coin-engraved-sun-copper.webp",
 };
 
 // ── Rune & Prefix Stripping ──────────────────────────────────────────────
@@ -205,7 +191,7 @@ export function detectPf2eMagical(itemMeta, { terrainTag } = {}) {
 
     const baseItemName = derivePf2eBaseItemName(itemMeta);
     const mundaneDesc = derivePf2eMundaneDescription(itemMeta, baseItemName, rarity, terrainTag);
-    const obscuredImg = _resolvePf2eObscuredIcon(itemMeta);
+    const obscuredImg = _resolvePf2eObscuredIcon(itemMeta, baseItemName);
 
     return { isMagical, baseItemName, mundaneDesc, obscuredImg };
 }
@@ -351,33 +337,62 @@ export function derivePf2eMundaneDescription(itemMeta, baseItemName, rarity, ter
 // ── Icon Resolution ──────────────────────────────────────────────────────
 
 /**
+ * Resolve a diegetic mundane icon for an obscured PF2e item.
+ * Never uses PF2e's default question-mark unidentified icons.
+ *
  * @param {object} itemMeta
+ * @param {string} [baseItemName]
  * @returns {string}
  */
-function _resolvePf2eObscuredIcon(itemMeta) {
+function _resolvePf2eObscuredIcon(itemMeta, baseItemName) {
     const type = (itemMeta.type || "").toLowerCase();
     const category = (itemMeta.system?.category ?? "").toLowerCase();
     const nameLower = (itemMeta.name || "").toLowerCase();
 
-    // Consumable subcategory icons
-    if (type === "consumable" && category) {
-        const key = `consumable:${category}`;
-        if (PF2E_ICON_MAP[key]) return PF2E_ICON_MAP[key];
+    // 1. Scrolls: clean parchment scroll
+    if (type === "consumable" && category === "scroll") {
+        return "icons/sundries/scrolls/scroll-worn-beige.webp";
     }
 
-    // Equipment subcategory by name
-    if (type === "equipment") {
-        if (/\bwand\b/i.test(nameLower)) return PF2E_ICON_MAP["equipment:wand"];
-        if (/\bstaff\b/i.test(nameLower)) return PF2E_ICON_MAP["equipment:staff"];
-        if (/\bworn\b/i.test(nameLower)
-            || /\bring\b|\bamulet\b|\bbelt\b|\bbracers?\b|\bboots?\b|\bcloak\b|\bcirclet\b/i.test(nameLower)) {
-            return PF2E_ICON_MAP["equipment:worn"];
+    // 2. Talismans: clean gem/stone/coin art
+    if (type === "consumable" && category === "talisman") {
+        return TALISMAN_ICONS[baseItemName] ?? "icons/commodities/gems/gem-rough-cushion-grey.webp";
+    }
+
+    // 3. Consumables (potions, elixirs, oils, poisons, drugs)
+    if (type === "consumable") {
+        if (category === "ammo") {
+            return "icons/weapons/ammunition/arrows-quiver-simple.webp";
         }
-        return PF2E_ICON_MAP["equipment:held"] ?? PF2E_ICON_MAP["equipment"];
+        return ItemMaskingHelper.obscuredConsumableIconForMaskedLabel(baseItemName);
     }
 
-    // Direct type match
-    return PF2E_ICON_MAP[type] ?? PF2E_ICON_MAP["equipment"];
+    // 4. Wands and Staves: rustic wooden stick / staff art
+    if (/\bwand\b/i.test(nameLower) || (type === "equipment" && category === "wand")) {
+        return "icons/weapons/staves/staff-simple.webp";
+    }
+    if (/\bstaff\b/i.test(nameLower) || (type === "equipment" && category === "staff")) {
+        return "icons/weapons/staves/staff-carved-brown.webp";
+    }
+
+    // 5. Weapons, Armor, Shields, and Equipment:
+    // Retain the item's authentic icon if valid (a disguised Longsword should look like a Longsword).
+    const existingImg = itemMeta.img;
+    const isDefaultOrMystery = !existingImg
+        || existingImg === DEFAULT_ITEM_ICON
+        || existingImg.includes("mystery-man")
+        || existingImg.includes("item-bag")
+        || existingImg.includes("unidentified_item_icons");
+
+    if (!isDefaultOrMystery) {
+        return existingImg;
+    }
+
+    // Fallbacks if no valid image exists on the source item
+    if (type === "weapon") return "icons/weapons/swords/sword-broad-worn.webp";
+    if (type === "armor") return "icons/equipment/chest/breastplate-leather-brown.webp";
+    if (type === "shield") return "icons/equipment/shield/buckler-wooden-boss.webp";
+    return "icons/sundries/adventuring/pack-backpack-leather.webp";
 }
 
 // ── Internal Helpers ─────────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import { IdentificationService } from "./services/identify/IdentificationService
 import { IdentificationGuard } from "./services/identify/IdentificationGuard.js";
 import { PriceMasker } from "./services/identify/PriceMasker.js";
 import { PriceInjector } from "./services/ui/PriceInjector.js";
+import { GmMystificationHintInjector } from "./services/ui/GmMystificationHintInjector.js";
 import { SignatureLedger } from "./services/progression/SignatureLedger.js";
 import { ProgressionSeeder } from "./services/progression/ProgressionSeeder.js";
 import { ProgressionAdvisor } from "./services/progression/ProgressionAdvisor.js";
@@ -257,6 +258,7 @@ Hooks.on('ready', () => {
     game.ionrift.workshop.bulkIdentify = (target, opts) => CacheConverterService.bulkIdentify(target, opts);
 
     PriceInjector.init();
+    GmMystificationHintInjector.init();
 
     // Expose services on namespace for companion modules (Cursewright)
     game.ionrift.quartermaster.openSetupGuide = () => {};
