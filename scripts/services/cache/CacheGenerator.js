@@ -550,6 +550,14 @@ export class CacheGenerator {
 
         // ── Gold: always roll, scaled by owner theme (does not reduce item budget) ──
         const rawGold = await this._rollGold(tierData.goldDice);
+        if (this._lastGoldRoll) {
+            Object.defineProperty(result, "_goldRoll", {
+                value: this._lastGoldRoll,
+                enumerable: false,
+                configurable: true,
+                writable: true
+            });
+        }
         result.gold = Math.max(0, Math.round(rawGold * (ownerDef.budgetMultiplier ?? 1.0) * economy));
         if (hardCap && effectiveBudget > 0) {
             const share = this.COIN_ROLL_BUDGET_SHARE[tier] ?? 0.25;
@@ -1836,8 +1844,10 @@ export class CacheGenerator {
     // ── Dice Rolling ──────────────────────────────────────────────
 
     static async _rollGold(formula) {
+        this._lastGoldRoll = null;
         try {
             const roll = await new Roll(formula).evaluate();
+            this._lastGoldRoll = roll;
             return Math.floor(roll.total);
         } catch {
             return 5;
@@ -1907,10 +1917,26 @@ export class CacheGenerator {
                 mundane: labelItems(mundane) }
         );
 
+        const gmWhisper = game.users.filter(u => u.isGM).map(u => u.id);
+        const rolls = result._goldRoll ? [result._goldRoll] : [];
+        const rollService = game.ionrift?.library?.rolls;
+        if (rollService?.postCard) {
+            await rollService.postCard({
+                speaker: ChatMessage.getSpeaker({ alias: "Ionrift Quartermaster" }),
+                content: html,
+                rolls,
+                chatMode: "gm",
+                whisper: gmWhisper,
+                settle: rolls.length > 0
+            });
+            return;
+        }
+
         await ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ alias: "Ionrift Quartermaster" }),
             content: html,
-            whisper: game.users.filter(u => u.isGM).map(u => u.id)
+            whisper: gmWhisper,
+            ...(rolls.length ? { rolls } : {})
         });
     }
 
