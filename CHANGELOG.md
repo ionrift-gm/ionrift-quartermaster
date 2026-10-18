@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.12.0] - 2026-10-18
+
+### Added
+- Existing containers in the world can be turned into Quartermaster caches in place, with their contents mystified.
+- Dropping a cache onto an existing container token fills that container instead of placing a new one.
+
+### Changed
+- Pathfinder 2e unidentified items now look mundane, matching D&D 5e. The GM sees the true item name in brackets.
+- Cache gold rolls use the shared roll card and wait for 3D dice.
+- Clearer wording on labels and buttons.
+
+### Fixed
+- The cache chat card title is readable, and the card has proper padding.
+
 ## [1.11.1] - 2026-10-07
 
 ### Changed
