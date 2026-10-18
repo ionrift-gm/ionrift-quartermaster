@@ -2065,5 +2065,16 @@
 }
 
 
-/* Old "Loot Pool Config" block removed  -  see line ~5793 for authoritative styles */
+/* --- Cache chat card --- */
+.ionrift-cache-card {
+    padding: 8px 10px;
+    border: 1px solid var(--ionrift-card-border, transparent);
+    border-radius: 6px;
+}
+
+/* Inherit fallback keeps the title readable on parchment with an older library */
+.ionrift-cache-card h3 {
+    color: var(--ionrift-card-strong, inherit) !important;
+    text-shadow: none;
+}
 
