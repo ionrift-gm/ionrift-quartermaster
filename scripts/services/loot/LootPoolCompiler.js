@@ -6,7 +6,7 @@ import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
  * The dnd5e.equipment24 pack ships named weapon templates (Dragon Slayer, Holy Avenger,
  * etc.) as GM-application shells with no base subtype and weight=0 - not loot items.
  * This service expands them into a full permutation matrix:
- *   template × base weapon × bonus tier → discrete item
+ *   template × base weapon × bonus tier to discrete item
  *
  * Output: world.quartermaster-compiled-pool (GM-only world compendium)
  * Hash-gated: only recompiles when lootPoolSources config changes.
@@ -149,7 +149,7 @@ const RESISTANCE_TYPES = [
 const SPECIFIC_ARMOR_TEMPLATES = [
     {
         // Efreeti Chain: fire immunity + speaks Ignan are passive,
-        // but may carry a template activity — keep for fidelity.
+        // but may carry a template activity - keep for fidelity.
         template: "Efreeti Chain",
         base:     "Chain Mail",
         opts:     { keepActivities: true },
@@ -522,7 +522,7 @@ export class LootPoolCompiler {
         emit("setup", 0, 1, "Loading source compendiums…");
 
         const report   = this._newCompileReport();
-        const packDocs = new Map(); // packId → Item[]
+        const packDocs = new Map(); // packId to Item[]
         for (const packId of sources) {
             const pack = game.packs.get(packId);
             if (!pack || pack.documentName !== "Item") continue;
@@ -530,7 +530,7 @@ export class LootPoolCompiler {
             if (docs.length) packDocs.set(packId, docs);
         }
 
-        // Build name → { item, sourcePackId } map (first-seen wins within each pass)
+        // Build name to { item, sourcePackId } map (first-seen wins within each pass)
         const allByName = new Map();
         for (const [packId, docs] of packDocs) {
             for (const doc of docs) {
@@ -1065,7 +1065,7 @@ export class LootPoolCompiler {
             this._stripEnchantmentShells(data);
         }
         // keepActivities items (Efreeti Chain, Etherealness): leave effects
-        // untouched — they may carry real rider effects or status grants.
+        // untouched - they may carry real rider effects or status grants.
 
         this._cleanCompiledDescription(data);
 
@@ -1125,7 +1125,7 @@ export class LootPoolCompiler {
      * enchantments. Each enchantment has:
      *   - A parent effect (type "enchantment") with changes that modify
      *     the item (name, description, price, rarity). These are template-
-     *     application shells containing {} placeholders — not loot-ready.
+     *     application shells containing {} placeholders - not loot-ready.
      *   - A child rider effect (referenced by the ITEM's
      *     flags.dnd5e.riders.effect array). The rider grants actual
      *     resistance to the wearer via system.traits.dr changes.
@@ -1134,7 +1134,7 @@ export class LootPoolCompiler {
      * flags.dnd5e.riders so the surviving rider effect is treated as a
      * standalone ActiveEffect. Without this, the dnd5e Actor's
      * allApplicableEffects() skips any effect whose ID appears in
-     * parent.getFlag("dnd5e", "riders.effect") — making the resistance
+     * parent.getFlag("dnd5e", "riders.effect") - making the resistance
      * invisible AND non-functional.
      *
      * @param {object} data          Plain item data (mutated in place)
@@ -1155,8 +1155,8 @@ export class LootPoolCompiler {
             const isEnchantmentShell = effect.type === "enchantment";
             const name = (effect.name ?? "").toLowerCase();
 
-            // Always drop parent enchantment shells — they contain template
-            // application changes (e.g. name → "{} of Acid Resistance") that
+            // Always drop parent enchantment shells - they contain template
+            // application changes (e.g. name to "{} of Acid Resistance") that
             // corrupt compiled items.
             if (isEnchantmentShell) return false;
 
@@ -1194,7 +1194,7 @@ export class LootPoolCompiler {
         // ── 2. Strip all @Embed references ────────────────────────────────────
         // Template shells contain @Embed[RollTable...] for the resistance type
         // table and @Embed[JournalEntry...] for template instructions.
-        // Compiled items are concrete — they don't need any embedded content.
+        // Compiled items are concrete - they don't need any embedded content.
         cleaned = cleaned.replace(
             /(<[^>]+>)?\s*@Embed\[[^\]]*\](?:\{[^}]*\})?(<\/[^>]+>)?/gi,
             ""
@@ -1946,7 +1946,7 @@ export class LootPoolCompiler {
 
         // Update path: delete then recreate. updateDocuments does a differential
         // merge on embedded effects, leaving stale effects when we reduce the
-        // effects array (e.g. 10 resistance enchantments → 1). Delete+create
+        // effects array (e.g. 10 resistance enchantments to 1). Delete+create
         // guarantees the compiled data is the ground truth.
         if (toUpdate.length) {
             const updateIds = toUpdate.map(d => d._id);

@@ -301,7 +301,7 @@ export class SignatureLedgerApp extends Application {
                             await reg.setCursedPlanned([]);
                             Logger.info(MODULE_LABEL, `Cursed planner migration: promoted ${toAdd.length} item(s) into the pool.`);
                         } else {
-                            // Planned all already in pool — clear the stale planned list
+                            // Planned all already in pool - clear the stale planned list
                             await reg.setCursedPlanned([]);
                         }
                     }
@@ -648,7 +648,7 @@ export class SignatureLedgerApp extends Application {
 
     /** Move or swap pinned scroll between slots (same or different milestone). */
     async _swapOrMoveScrollPinned(fromLevel, fromUuid, toLevel, toSlotIdx) {
-        let pinned = await SignatureLedger.getScrollPinned();
+        const pinned = await SignatureLedger.getScrollPinned();
         const pin = pinned.find(p => p.level === fromLevel && p.uuid === fromUuid);
         if (!pin || pin.locked) return;
 
@@ -756,7 +756,7 @@ export class SignatureLedgerApp extends Application {
     }
 
     async _swapOrMovePartyShelf(fromLevel, fromUuid, toLevel, toSlotIdx) {
-        let shelf = await SignatureLedger.getPartyShelf();
+        const shelf = await SignatureLedger.getPartyShelf();
         const pin = shelf.find(p => p.level === fromLevel && p.uuid === fromUuid);
         if (!pin) return;
 
@@ -1594,7 +1594,7 @@ export class SignatureLedgerApp extends Application {
         // Lock toggle (signatures, scrolls)
         html.find(".action-toggle-lock").click(this._onToggleLock.bind(this));
 
-        // Cursed tab: priority pool cards — click to open sheet
+        // Cursed tab: priority pool cards - click to open sheet
         html.find(".curse-priority-card[data-uuid]").click(ev => {
             if (ev.target.closest(".curse-priority-card-remove")) return;
             if (this._cursedDragInFlight) return;
@@ -2819,7 +2819,7 @@ SignatureLedgerApp.prototype._positionTooltip = function(anchorEl) {
     const GAP = 8;
 
     const anchor = anchorEl.getBoundingClientRect();
-    let tip = this._tooltipEl.getBoundingClientRect();
+    const tip = this._tooltipEl.getBoundingClientRect();
 
     let left = anchor.right + GAP;
     let top  = anchor.top;

@@ -269,7 +269,7 @@ function injectForgeAlertBadge(html) {
     btn.querySelector(".ionrift-forge-alert-badge")?.remove();
 
     const status = getWorstForgeStatus();
-    if (!status || status === "fresh") return; // clean — no badge needed
+    if (!status || status === "fresh") return; // clean - no badge needed
 
     const isStale = status === "stale";
     const tooltip = isStale

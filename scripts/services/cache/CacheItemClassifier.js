@@ -7,15 +7,15 @@
  * deployment cannot drift out of sync.
  *
  * Return values:
- *   "signature" | "partyShelf" | "cursed"   – Special Items sub-buckets
- *   "scroll"                                – Spell Scrolls
- *   "weapon"                                – Weapons & Armour (all worn gear)
- *   "consumable"                            – Consumables
- *   "gemstone"                              – Gemstones (QM-tagged)
- *   "treasure"                              – Treasure (QM-tagged or native)
- *   "trinket"                               – Trinkets (QM-tagged)
- *   "mundane"                               – Trade Goods catch-all
- *   "unclassified"                          – Nothing matched; a real cache
+ *   "signature" | "partyShelf" | "cursed"   - Special Items sub-buckets
+ *   "scroll"                                - Spell Scrolls
+ *   "weapon"                                - Weapons & Armour (all worn gear)
+ *   "consumable"                            - Consumables
+ *   "gemstone"                              - Gemstones (QM-tagged)
+ *   "treasure"                              - Treasure (QM-tagged or native)
+ *   "trinket"                               - Trinkets (QM-tagged)
+ *   "mundane"                               - Trade Goods catch-all
+ *   "unclassified"                          - Nothing matched; a real cache
  *                                             item hitting this is a bug and
  *                                             is what the invariant test
  *                                             (vitest) fails on.

@@ -100,7 +100,7 @@ export class WorkshopApp extends Application {
         }
 
         // Prepare item data
-        let itemData = {
+        const itemData = {
             name: formData.name,
             type: formData.type,
             system: {

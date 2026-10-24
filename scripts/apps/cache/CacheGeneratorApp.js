@@ -1673,7 +1673,7 @@ export class CacheGeneratorApp extends Application {
         const stackCount = parseInt(el.dataset.stackCount || "1", 10) || 1;
         const index = parseInt(el.dataset.index, 10);
 
-        let raw = parseInt(String(el.value).trim(), 10);
+        const raw = parseInt(String(el.value).trim(), 10);
         if (!Number.isFinite(raw)) {
             el.value = String(Math.max(1, Math.min(99, stackCount)));
             return;

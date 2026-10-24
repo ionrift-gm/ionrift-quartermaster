@@ -305,7 +305,7 @@ export class OverlayItemMaterialiser {
         const fresh = game.packs.get(collection) ?? pack;
 
         const folderIdMap = new Map();
-        let preparedItems = [];
+        const preparedItems = [];
 
         let sectionSort = 100;
         for (const section of sectionPlans) {

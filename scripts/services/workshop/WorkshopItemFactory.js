@@ -40,7 +40,7 @@ export class WorkshopItemFactory {
      */
     static _inferPrice(type, rarity = "common") {
         let value = 0;
-        let denomination = "gp";
+        const denomination = "gp";
 
         switch (type) {
             case "weapon": value = 5; break;
