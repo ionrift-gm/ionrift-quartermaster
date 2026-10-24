@@ -149,7 +149,7 @@ const RESISTANCE_TYPES = [
 const SPECIFIC_ARMOR_TEMPLATES = [
     {
         // Efreeti Chain: fire immunity + speaks Ignan are passive,
-        // but may carry a template activity — keep for fidelity.
+        // but may carry a template activity - keep for fidelity.
         template: "Efreeti Chain",
         base:     "Chain Mail",
         opts:     { keepActivities: true },
@@ -1065,7 +1065,7 @@ export class LootPoolCompiler {
             this._stripEnchantmentShells(data);
         }
         // keepActivities items (Efreeti Chain, Etherealness): leave effects
-        // untouched — they may carry real rider effects or status grants.
+        // untouched - they may carry real rider effects or status grants.
 
         this._cleanCompiledDescription(data);
 
@@ -1125,7 +1125,7 @@ export class LootPoolCompiler {
      * enchantments. Each enchantment has:
      *   - A parent effect (type "enchantment") with changes that modify
      *     the item (name, description, price, rarity). These are template-
-     *     application shells containing {} placeholders — not loot-ready.
+     *     application shells containing {} placeholders - not loot-ready.
      *   - A child rider effect (referenced by the ITEM's
      *     flags.dnd5e.riders.effect array). The rider grants actual
      *     resistance to the wearer via system.traits.dr changes.
@@ -1134,7 +1134,7 @@ export class LootPoolCompiler {
      * flags.dnd5e.riders so the surviving rider effect is treated as a
      * standalone ActiveEffect. Without this, the dnd5e Actor's
      * allApplicableEffects() skips any effect whose ID appears in
-     * parent.getFlag("dnd5e", "riders.effect") — making the resistance
+     * parent.getFlag("dnd5e", "riders.effect") - making the resistance
      * invisible AND non-functional.
      *
      * @param {object} data          Plain item data (mutated in place)
@@ -1155,7 +1155,7 @@ export class LootPoolCompiler {
             const isEnchantmentShell = effect.type === "enchantment";
             const name = (effect.name ?? "").toLowerCase();
 
-            // Always drop parent enchantment shells — they contain template
+            // Always drop parent enchantment shells - they contain template
             // application changes (e.g. name → "{} of Acid Resistance") that
             // corrupt compiled items.
             if (isEnchantmentShell) return false;
@@ -1194,7 +1194,7 @@ export class LootPoolCompiler {
         // ── 2. Strip all @Embed references ────────────────────────────────────
         // Template shells contain @Embed[RollTable...] for the resistance type
         // table and @Embed[JournalEntry...] for template instructions.
-        // Compiled items are concrete — they don't need any embedded content.
+        // Compiled items are concrete - they don't need any embedded content.
         cleaned = cleaned.replace(
             /(<[^>]+>)?\s*@Embed\[[^\]]*\](?:\{[^}]*\})?(<\/[^>]+>)?/gi,
             ""

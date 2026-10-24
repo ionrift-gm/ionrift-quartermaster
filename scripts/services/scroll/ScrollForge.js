@@ -511,7 +511,7 @@ export class ScrollForge {
     }
 
     /**
-     * Synchronous status check — same contract as LootPoolCompiler.getStatus().
+     * Synchronous status check - same contract as LootPoolCompiler.getStatus().
      * @returns {"fresh"|"stale"|"never"|"na"}
      */
     static getStatus() {

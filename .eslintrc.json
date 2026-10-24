@@ -11,7 +11,7 @@
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
     "no-undef": "error",
     "no-console": "off",
-    "eqeqeq": ["error", "always"],
+    "eqeqeq": ["error", "always", { "null": "ignore" }],
     "no-var": "error",
     "prefer-const": "warn",
     "semi": ["error", "always"],

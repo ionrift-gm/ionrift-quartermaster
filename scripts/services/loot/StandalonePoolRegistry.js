@@ -105,7 +105,7 @@ export class StandalonePoolRegistry {
 
     /**
      * Move `uuid` to `newIndex` within its tier column, persisting the new order.
-     * Position in the array is the priority weight — top (index 0) = highest.
+     * Position in the array is the priority weight - top (index 0) = highest.
      * @param {number} tier      1-4
      * @param {string[]} orderedUuids  Full ordered list of UUIDs for that tier (after reorder)
      */
@@ -147,7 +147,7 @@ export class StandalonePoolRegistry {
     /**
      * Priority-ordered sample from the settings-backed cursed pool (mirrors CurseRegistry.getPool).
      * Returns items in their stored array order (= priority order) within each enabled tier.
-     * No shuffle — position IS the weight signal.
+     * No shuffle - position IS the weight signal.
      * @param {number} [tier=1]    Tier cap (draws from tiers <= this)
      * @param {number} [count=3]   Max items to return
      * @returns {Promise<Object[]>}
@@ -164,7 +164,7 @@ export class StandalonePoolRegistry {
             return itemTier <= t && this.getTierEnabled(itemTier);
         });
 
-        // Return in priority order (array position), up to cap — no shuffle
+        // Return in priority order (array position), up to cap - no shuffle
         return eligible.slice(0, cap);
     }
 }

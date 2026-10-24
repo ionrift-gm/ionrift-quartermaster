@@ -421,7 +421,7 @@ export class CacheGenerator {
             if (perItemCap < 1) break;
 
             const slotType = this.DRESSING_SLOT_TYPES[(result.items.length + attempts) % this.DRESSING_SLOT_TYPES.length];
-            let item = await this._pickItem(slotType, theme, tierData, tables, perItemCap, { ownerTheme });
+            const item = await this._pickItem(slotType, theme, tierData, tables, perItemCap, { ownerTheme });
             if (!item) continue;
             if (await this._isBanned(item.name)) continue;
 

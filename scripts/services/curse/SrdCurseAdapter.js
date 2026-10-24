@@ -378,7 +378,7 @@ export class SrdCurseAdapter {
     // ── Status / metadata helpers (mirrors LootPoolCompiler API) ───────────
 
     /**
-     * Synchronous status check — same contract as LootPoolCompiler.getStatus().
+     * Synchronous status check - same contract as LootPoolCompiler.getStatus().
      * Sources are fixed (dnd5e.items + dnd5e.equipment24) so staleness is
      * pack-deletion only; no user source-change detection needed.
      * @returns {"fresh"|"stale"|"never"|"na"}
