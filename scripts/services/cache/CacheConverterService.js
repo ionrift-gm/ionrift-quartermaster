@@ -137,29 +137,36 @@ export class CacheConverterService {
 
         const adapter = getQuartermasterAdapter();
         const items = actor.items?.contents ?? (actor.items ? Array.from(actor.items) : []);
+        const isPf2eFamily = game.system?.id === "pf2e" || game.system?.id === "sf2e";
         const updates = [];
         const obscuredDetails = [];
 
         for (const item of items) {
             const qmFlags = item.flags?.[MODULE_ID] ?? {};
 
-            // Skip items already masked by Quartermaster
-            if (qmFlags.latentMagic && !qmFlags.latentMagic.promoted) continue;
-
             // Skip authored Cursewright lures
             if (qmFlags.cursedMeta?.lure) continue;
 
+            // Skip items already masked by Quartermaster, unless a PF2e item has a leaked name or runes
+            const hasActiveLatent = Boolean(qmFlags.latentMagic && !qmFlags.latentMagic.promoted);
+            if (hasActiveLatent && !CacheConverterService._needsPf2eRemask(item, qmFlags, isPf2eFamily)) {
+                continue;
+            }
+
             // Detect if item is magical according to system adapter rules
-            const itemData = item.toObject();
+            const itemData = CacheConverterService._buildUnmaskedItemSnapshot(item, qmFlags.latentMagic);
             const mask = adapter.detectMagicalForCache(itemData);
             if (!mask?.isMagical) continue;
 
-            const update = adapter.buildMaskUpdate(item, mask);
+            const update = adapter.buildMaskUpdate(
+                hasActiveLatent ? CacheConverterService._wrapItemForRemask(item, itemData) : item,
+                mask
+            );
             if (update) {
                 updates.push(update);
                 obscuredDetails.push({
                     id: item.id,
-                    originalName: item.name,
+                    originalName: itemData.name || item.name,
                     maskedName: mask.baseItemName ?? item.name
                 });
             }
@@ -266,5 +273,112 @@ export class CacheConverterService {
 
         Logger.info(MODULE_LABEL, `Bulk identified ${actor.name} (${actor.id}): ${identifiedCount} items revealed.`);
         return identifiedCount;
+    }
+
+    /**
+     * Detects whether a PF2e item that already carries `latentMagic` still leaks
+     * its original magical name or active runes and should be re-masked in-place.
+     *
+     * @param {Item|object} item
+     * @param {object} qmFlags
+     * @param {boolean} isPf2eFamily
+     * @returns {boolean}
+     */
+    static _needsPf2eRemask(item, qmFlags, isPf2eFamily) {
+        if (!isPf2eFamily) return false;
+        const latent = qmFlags?.latentMagic;
+        if (!latent || latent.promoted) return false;
+
+        const runes = item.system?.runes;
+        const hasActiveRunes = Boolean(
+            runes && (
+                Number(runes.potency) > 0
+                || Number(runes.striking) > 0
+                || Number(runes.resilient) > 0
+                || Number(runes.reinforcing) > 0
+                || (Array.isArray(runes.property) && runes.property.length > 0)
+            )
+        );
+        if (hasActiveRunes) return true;
+
+        const unidentifiedName = (item.system?.identification?.unidentified?.name ?? "").trim();
+        if (!unidentifiedName) return false;
+
+        const trueName = (
+            latent.originalName
+            || item.system?.identification?.identified?.name
+            || item._source?.name
+            || item.name
+            || ""
+        ).trim();
+        if (!trueName) return false;
+
+        const unidLower = unidentifiedName.toLowerCase();
+        const trueLower = trueName.toLowerCase();
+        const trueNoBonus = trueLower.replace(/^\s*\+[1-3]\s+/, "").trim();
+        return unidLower === trueLower || unidLower === trueNoBonus;
+    }
+
+    /**
+     * Reconstructs an item data snapshot with any previously stashed `latentMagic`
+     * fields restored so re-masking or detection sees the true unmasked state.
+     *
+     * @param {Item|object} item
+     * @param {object|null|undefined} latent
+     * @returns {object}
+     */
+    static _buildUnmaskedItemSnapshot(item, latent) {
+        const itemData = typeof item.toObject === "function" ? item.toObject() : foundry.utils.deepClone(item);
+        itemData.system ??= {};
+
+        const liveIdentifiedName = item.system?.identification?.identified?.name || item.name;
+        if (latent?.originalName) {
+            itemData.name = latent.originalName;
+        } else if (liveIdentifiedName && (!itemData.name || liveIdentifiedName.length > itemData.name.length)) {
+            itemData.name = liveIdentifiedName;
+        }
+
+        if (latent?.originalRarity) {
+            itemData.system.traits ??= {};
+            itemData.system.traits.rarity = latent.originalRarity;
+        }
+        if (Array.isArray(latent?.originalTraits) && latent.originalTraits.length) {
+            itemData.system.traits ??= {};
+            const current = Array.isArray(itemData.system.traits.value) ? itemData.system.traits.value : [];
+            itemData.system.traits.value = [...new Set([...current, ...latent.originalTraits])];
+        }
+        if (latent?.originalPrice) {
+            itemData.system.price = foundry.utils.deepClone(latent.originalPrice);
+        }
+        if (latent?.originalRunes) {
+            itemData.system.runes = foundry.utils.deepClone(latent.originalRunes);
+        }
+        if (latent?.originalDescription !== undefined) {
+            itemData.system.description ??= {};
+            itemData.system.description.value = latent.originalDescription;
+        }
+        if (latent?.originalImg) {
+            itemData.img = latent.originalImg;
+        }
+        return itemData;
+    }
+
+    /**
+     * Wraps an unmasked snapshot as an item-like object for `adapter.buildMaskUpdate`.
+     * @param {Item|object} item
+     * @param {object} itemData
+     * @returns {object}
+     */
+    static _wrapItemForRemask(item, itemData) {
+        return {
+            id: item.id ?? itemData._id,
+            _id: item.id ?? itemData._id,
+            name: itemData.name,
+            type: itemData.type,
+            img: itemData.img,
+            system: itemData.system,
+            flags: itemData.flags,
+            toObject: () => foundry.utils.deepClone(itemData)
+        };
     }
 }

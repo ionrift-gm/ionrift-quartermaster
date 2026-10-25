@@ -367,6 +367,32 @@ Hooks.on('ready', () => {
 
 Hooks.on("preUpdateItem", (item, changes, options) => {
     if (!game.user.isGM) return;
+
+    // PF2e/SF2e: when the GM mystifies an item via the native sheet toggle,
+    // route through Quartermaster's mask pipeline so the item gets a mundane
+    // base name, description, icon, and stashed price/rarity/runes/traits.
+    const pf2eStatus = foundry.utils.getProperty(changes, "system.identification.status");
+    if (pf2eStatus === "unidentified" && !options?.curseBypass) {
+        const adapter = game.ionrift?.quartermaster?.adapter;
+        if (adapter?.detectMagicalForCache && adapter?.buildMaskUpdate) {
+            const existingLatent = item.getFlag?.(MODULE_ID, "latentMagic");
+            const snapshot = CacheConverterService._buildUnmaskedItemSnapshot(item, existingLatent);
+            const mask = adapter.detectMagicalForCache(snapshot);
+            if (mask?.isMagical) {
+                const wrapped = CacheConverterService._wrapItemForRemask(item, snapshot);
+                const maskUpdate = adapter.buildMaskUpdate(wrapped, mask);
+                if (maskUpdate) {
+                    for (const [k, v] of Object.entries(maskUpdate)) {
+                        if (k === "_id") continue;
+                        foundry.utils.setProperty(changes, k, v);
+                    }
+                    options.curseBypass = true;
+                }
+            }
+        }
+        return;
+    }
+
     if (changes?.system?.identified !== false) return;
     // Skip items on Item Piles containers - transfer operations can trigger
     // identified changes as a side-effect; never re-identify pile items.

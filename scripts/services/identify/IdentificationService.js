@@ -167,6 +167,10 @@ export class IdentificationService {
             });
         }
 
+        const isPf2eFamily = game.system?.id === "pf2e" || game.system?.id === "sf2e";
+        const isPf2eUnidentified = isPf2eFamily
+            && item.system?.identification?.status === "unidentified";
+
         const hasUnpromotedLatent = !!(latent && !latent.promoted);
         const hasCursedOnlyMeta = !!(
             cursedMeta
@@ -177,7 +181,8 @@ export class IdentificationService {
 
         const hasPendingPayload = hasUnpromotedLatent
             || (cursedMeta?.lure && item.system?.identified === false)
-            || hasCursedOnlyMeta;
+            || hasCursedOnlyMeta
+            || isPf2eUnidentified;
         if (!hasPendingPayload) {
             traceIdentify("identify:abort", { reason: "already-identified", ...traceItemFlags(item) });
             return { identified: false, kind: "none", reason: "already-identified" };
@@ -261,10 +266,14 @@ export class IdentificationService {
         // PF2e-family items are masked via system.identification.status = "unidentified".
         // On identify, flip it back and restore traits/rarity that QM stashed
         // in latentMagic (PF2e/SF2e don't mask these natively).
-        const isPf2eFamily = game.system?.id === "pf2e" || game.system?.id === "sf2e";
-        if (isPf2eFamily && latent) {
+        if (isPf2eFamily) {
             updates["system.identification.status"] = "identified";
-
+            if (kind === "mundane" && isPf2eUnidentified) {
+                kind = "pf2e-native";
+                displayName = item.system?.identification?.identified?.name ?? item.name;
+            }
+        }
+        if (isPf2eFamily && latent) {
             if (latent.originalRarity) {
                 updates["system.traits.rarity"] = latent.originalRarity;
             }
@@ -276,6 +285,9 @@ export class IdentificationService {
             }
             if (latent.originalPrice) {
                 updates["system.price"] = foundry.utils.deepClone(latent.originalPrice);
+            }
+            if (latent.originalRunes) {
+                updates["system.runes"] = foundry.utils.deepClone(latent.originalRunes);
             }
         }
         if (item.type === "consumable") {

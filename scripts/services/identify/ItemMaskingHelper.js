@@ -876,7 +876,11 @@ export class ItemMaskingHelper {
         const rawName = (itemMeta.name || "").trim();
         const nameLower = rawName.toLowerCase();
         const type = (itemMeta.type || "").toLowerCase();
-        const baseItem = itemMeta._baseItem || itemMeta.baseItem || "";
+        const baseItem = itemMeta._baseItem
+            || itemMeta.baseItem
+            || itemMeta.system?.baseItem
+            || itemMeta.system?.type?.baseItem
+            || "";
         const subtype = this._consumableSubtype(itemMeta);
 
         // 1. Named-item overrides (famous magical items -> base weapon/armor type)
@@ -895,25 +899,43 @@ export class ItemMaskingHelper {
             if (focusMask) return focusMask;
         }
 
-        // 4. dnd5e baseItem field (with terse-ID expansion for armor)
+        // 4. Explicit baseItem field (with terse-ID expansion and self-reference guard)
         if (baseItem && typeof baseItem === "string") {
-            const expanded = this._BASE_ITEM_NAMES[baseItem.toLowerCase()];
+            const baseKey = baseItem.toLowerCase().trim();
+            const compactKey = baseKey.replace(/[-_\s]/g, "");
+            const expanded = this._BASE_ITEM_NAMES[baseKey] ?? this._BASE_ITEM_NAMES[compactKey];
             if (expanded) return expanded;
-            return this._capitalise(baseItem);
+
+            const humanised = this._capitalise(baseItem);
+            const humanLower = humanised.toLowerCase();
+            const isSelfReferential = (humanLower === nameLower && /\s/.test(rawName))
+                || /\bof\b/i.test(humanised)
+                || /(?:['’]s|s['’])\s+/i.test(humanised);
+            if (!isSelfReferential) {
+                return humanised;
+            }
         }
 
-        // 5. Strip "of X" suffixes, "+N", and magical prefixes before wondrous scan
+        // 5. Strip parentheticals, "+N", "of X" suffixes, possessives, and magical prefixes
         let strippedName = rawName;
-        strippedName = strippedName.replace(/\s*\+\d+\s*$/g, "").trim();
-        strippedName = strippedName.replace(/\s+of\s+.+$/i, "").trim();
+        strippedName = strippedName.replace(/\s*\([^)]*\)\s*/g, " ").trim();
+        strippedName = strippedName.replace(/\s*\+\d+\b\s*/g, " ").replace(/,\s*\+\d+\b/g, "").trim();
+        if (!this._PRESERVED_OF_PHRASES_RE.test(strippedName)) {
+            strippedName = strippedName.replace(/\s+of\s+.+$/i, "").trim();
+        }
+        if (!this._PRESERVED_POSSESSIVE_RE.test(strippedName)) {
+            const dePossessed = strippedName.replace(/^.+?(?:['’]s|s['’])\s+/i, "").trim();
+            if (dePossessed.length >= 3) strippedName = dePossessed;
+        }
         for (const pattern of this._PREFIX_PATTERNS) {
             const next = strippedName.replace(pattern, "").trim();
             if (next.length > 2) strippedName = next;
         }
+        strippedName = strippedName.replace(/\s{2,}/g, " ").trim();
         const strippedLower = strippedName.toLowerCase();
 
-        // 6. Wondrous type map on stripped label, then full name if needed
-        if (type === "equipment" || type === "armor" || type === "loot") {
+        // 6. Wondrous / physical archetype map on stripped label, then full name if needed
+        if (type === "equipment" || type === "armor" || type === "loot" || type === "backpack" || /\bhandwraps?\b/i.test(strippedLower)) {
             const wondrousMask = this._matchWondrousType(strippedLower)
                 ?? (strippedLower !== nameLower ? this._matchWondrousType(nameLower) : null);
             if (wondrousMask) return wondrousMask;
@@ -921,6 +943,10 @@ export class ItemMaskingHelper {
 
         return strippedName || rawName;
     }
+
+    static _PRESERVED_OF_PHRASES_RE = /^(?:ring\s+mail|(?:flask|jar|vial|phial|bottle|pouch|stick|tin|coil|pair|suit|deck)\s+of\s+(?:oil|dust|incense|salve|rope|rings|armor|cards))$/i;
+
+    static _PRESERVED_POSSESSIVE_RE = /^(?:explorer'?s\s+clothing|filcher'?s\s+fork|alchemist'?s\s+fire)$/i;
 
     static _capitalise(str) {
         const words = str
@@ -1003,40 +1029,70 @@ export class ItemMaskingHelper {
 
     static _WONDROUS_MAP = [
         [/\bcrystal\s*ball\b/i,              "Glass Sphere"],
-        [/\bioun\s*stone\b|\bioun\b/i,       "Polished Stone"],
+        [/\bioun\s*stone\b|\bioun\b|\baeon\s*stone\b/i, "Polished Stone"],
+        [/\bhandwraps?\b|\bfist\s+wraps?\b/i, "Handwraps"],
         [/\b(?:cloak|mantle|cape)s?\b/i,     "Cloak"],
         [/\b(?:gloves|gauntlets)\b/i,        "Gloves"],
         [/\b(?:bracers|vambrace)s?\b/i,      "Bracers"],
         [/\b(?:boots|slippers)\b/i,          "Boots"],
-        [/\b(?:belt|girdle)s?\b/i,           "Belt"],
+        [/\bsandals?\b/i,                    "Sandals"],
+        [/\bshoes?\b/i,                      "Shoes"],
+        [/\b(?:belt|girdle|sash)(?:es|s)?\b/i, "Belt"],
         [/\b(?:amulet|periapt|pendant|medallion|brooch)s?\b/i, "Pendant"],
         [/\bnecklace\b/i,                    "Necklace"],
         [/\bring\s+mail\b/i,                 "Ring Mail"],
-        [/\bring\b/i,                       "Ring"],
+        [/\b(?:ring|signet)s?\b/i,           "Ring"],
         [/\b(?:robe|vestment)s?\b/i,         "Robe"],
         [/\b(?:hat|cap|hood)s?\b/i,          "Hat"],
-        [/\bhelms?\b/i,                      "Helm"],
+        [/\bhelms?\b|\bhelmets?\b/i,         "Helm"],
         [/\bheadbands?\b/i,                  "Headband"],
         [/\bcirclets?\b/i,                   "Circlet"],
-        [/\b(?:goggles|lenses)\b/i,          "Goggles"],
+        [/\b(?:crown|diadem|tiara)s?\b/i,    "Crown"],
+        [/\bmasks?\b/i,                      "Mask"],
+        [/\b(?:goggles|lenses|eyeglasses|spectacles)\b/i, "Goggles"],
+        [/\b(?:eyepiece|monocle)s?\b/i,      "Eyepiece"],
         [/^eyes\b/i,                         "Goggles"],
+        [/\b(?:pouch|satchel)(?:es|s)?\b/i,  "Leather Pouch"],
+        [/\b(?:backpack|rucksack|knapsack)s?\b/i, "Backpack"],
         [/\bhaversack\b|\bbag\b|\bsack\b/i,  "Leather Bag"],
         [/\b(?:tome|manual|libram)s?\b|\bbook\b/i, "Old Book"],
         [/\borb\b/i,                         "Glass Sphere"],
-        [/\bfigurine\b/i,                    "Small Figurine"],
+        [/\bfigurine\b|\bstatuette\b|\bidol\b/i, "Small Figurine"],
         [/\bmirror\b/i,                      "Hand Mirror"],
         [/\bstone\b/i,                       "Polished Stone"],
-        [/\b(?:gem|jewel)\b/i,               "Cut Gemstone"],
+        [/\b(?:gem|jewel|opal|pearl|sapphire|ruby|emerald|diamond|amethyst|topaz|garnet|jade|onyx|quartz|prism)s?\b/i, "Cut Gemstone"],
         [/\b(?:carpet|rug)\b/i,              "Woven Rug"],
         [/\bbroom\b/i,                       "Broom"],
         [/\bcandle\b/i,                      "Candle"],
         [/\b(?:deck|cards)\b/i,              "Card Deck"],
         [/\brope\b/i,                        "Coil of Rope"],
         [/\b(?:lantern|lamp)\b/i,            "Lantern"],
+        [/\b(?:censer|brazier|thurible)s?\b/i, "Censer"],
         [/\bhorn\b/i,                        "Horn"],
+        [/\b(?:drum|lute|flute|harp|lyre|pipes|fiddle|mandolin)s?\b/i, "Musical Instrument"],
         [/\b(?:bottle|flask|decanter)\b/i,   "Sealed Bottle"],
         [/\bquiver\b/i,                      "Quiver"],
+        [/\bbucklers?\b/i,                   "Buckler"],
         [/\bshield\b/i,                      "Shield"],
+        [/\b(?:bracelet|bangle|wristband|armband)s?\b/i, "Bracelet"],
+        [/\banklets?\b/i,                    "Anklets"],
+        [/\b(?:choker|collar|gorget|torc)s?\b/i, "Collar"],
+        [/\b(?:epaulet|epaulette|pauldron)s?\b/i, "Epaulets"],
+        [/\b(?:blouse|tunic|shirt|jerkin|vest|doublet|jacket|coat)s?\b/i, "Tunic"],
+        [/\b(?:sleeve|cuff)s?\b/i,           "Sleeves"],
+        [/\bsaddles?\b/i,                    "Saddle"],
+        [/\bhorseshoes?\b/i,                 "Horseshoes"],
+        [/\b(?:shackles|manacles|fetters)\b/i, "Manacles"],
+        [/\b(?:boat|skiff)s?\b/i,            "Small Boat"],
+        [/\bkeys?\b/i,                       "Metal Key"],
+        [/\bcompass(?:es)?\b/i,              "Compass"],
+        [/\b(?:spyglass|telescope)(?:es)?\b/i, "Spyglass"],
+        [/\bhourglass(?:es)?\b/i,            "Hourglass"],
+        [/\b(?:chalice|goblet|tankard|stein)s?\b/i, "Goblet"],
+        [/\b(?:cauldron|kettle)s?\b/i,       "Iron Pot"],
+        [/\bbells?\b/i,                      "Small Bell"],
+        [/\bwhistles?\b/i,                   "Whistle"],
+        [/\b(?:badge|insignia|emblem)s?\b/i, "Badge"],
     ];
 
     // ── Named Item Overrides ─────────────────────────────────────────
@@ -1072,18 +1128,22 @@ export class ItemMaskingHelper {
         [/animated\s*shield/i,          "Shield"],
         [/spell\s*guard/i,              "Shield"],
         [/arrow[\s-]*catching/i,        "Shield"],
+        [/\bwayfinder\b/i,              "Brass Compass"],
+        [/\bholy\s+prayer\s+beads\b/i,  "Prayer Beads"],
     ].filter(([, v]) => v !== null);
 
     static _PREFIX_PATTERNS = [
-        /^(Greater|Superior|Supreme|Lesser|Minor|Cursed)\s+/i,
+        /^(Greater|Major|Moderate|Superior|Supreme|Lesser|Minor|True|Mythic|Cursed)\s+/i,
     ];
 
-    // Terse dnd5e baseItem identifiers that need full mundane names.
+    // Terse dnd5e & PF2e baseItem identifiers that need full mundane names.
     // Weapons generally capitalise fine ("longsword" -> "Longsword"),
     // but armor IDs lose their type suffix without this map.
     static _BASE_ITEM_NAMES = {
         splint:        "Splint Armor",
+        splintmail:    "Splint Mail",
         plate:         "Plate Armor",
+        fullplate:     "Full Plate",
         halfplate:     "Half Plate Armor",
         chainmail:     "Chain Mail",
         chainshirt:    "Chain Shirt",
@@ -1091,17 +1151,32 @@ export class ItemMaskingHelper {
         scalemail:     "Scale Mail",
         breastplate:   "Breastplate",
         leather:       "Leather Armor",
+        leatherarmor:  "Leather Armor",
         studdedleather:"Studded Leather Armor",
+        studdedleatherarmor: "Studded Leather Armor",
         hide:          "Hide Armor",
+        hidearmor:     "Hide Armor",
         padded:        "Padded Armor",
+        paddedarmor:   "Padded Armor",
+        explorersclothing: "Explorer's Clothing",
         shield:        "Shield",
+        steelshield:   "Steel Shield",
+        woodenshield:  "Wooden Shield",
+        towershield:   "Tower Shield",
+        fortressshield:"Fortress Shield",
+        buckler:       "Buckler",
+        handwrapsofmightyblows: "Handwraps",
+        handwraps:     "Handwraps",
         handcrossbow:  "Hand Crossbow",
         heavycrossbow: "Heavy Crossbow",
         lightcrossbow: "Light Crossbow",
         shortbow:      "Shortbow",
         longbow:       "Longbow",
+        compositelongbow: "Composite Longbow",
+        compositeshortbow: "Composite Shortbow",
         greatclub:     "Greatclub",
         greatsword:    "Greatsword",
+        bastardsword:  "Bastard Sword",
         greataxe:      "Greataxe",
         battleaxe:     "Battleaxe",
         handaxe:       "Handaxe",
@@ -1109,8 +1184,13 @@ export class ItemMaskingHelper {
         warhammer:     "Warhammer",
         waraxe:        "War Axe",
         warpick:       "War Pick",
+        greatpick:     "Greatpick",
+        lightpick:     "Light Pick",
+        lightmace:     "Light Mace",
         morningstar:   "Morningstar",
         quarterstaff:  "Quarterstaff",
+        bostaff:       "Bo Staff",
+        clandagger:    "Clan Dagger",
         shortsword:    "Shortsword",
         longsword:     "Longsword",
     };

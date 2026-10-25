@@ -125,11 +125,28 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
     buildMaskUpdate(item, maskInfo) {
         if (!item || !maskInfo?.isMagical) return null;
         const itemData = typeof item.toObject === "function" ? item.toObject() : foundry.utils.deepClone(item);
+        const identifiedName = item.system?.identification?.identified?.name || item.name;
+        if (identifiedName && (!itemData.name || identifiedName.length > itemData.name.length)) {
+            itemData.name = identifiedName;
+        }
+        if (item.system?.price?.value && itemData.system?.price) {
+            const liveGp = (item.system.price.value.gp ?? 0)
+                + (item.system.price.value.sp ?? 0) / 10
+                + (item.system.price.value.cp ?? 0) / 100
+                + (item.system.price.value.pp ?? 0) * 10;
+            const srcGp = (itemData.system.price.value?.gp ?? 0)
+                + (itemData.system.price.value?.sp ?? 0) / 10
+                + (itemData.system.price.value?.cp ?? 0) / 100
+                + (itemData.system.price.value?.pp ?? 0) * 10;
+            if (liveGp > srcGp) {
+                itemData.system.price = foundry.utils.deepClone(item.system.price);
+            }
+        }
         this.applyCacheMask(itemData, maskInfo);
         const latent = itemData.flags?.[MODULE_ID]?.latentMagic;
         if (!latent) return null;
 
-        return {
+        const update = {
             _id: item.id ?? itemData._id,
             "system.identification": itemData.system.identification,
             "system.traits.rarity": itemData.system.traits?.rarity ?? "common",
@@ -137,6 +154,10 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
             "system.price": itemData.system.price,
             [`flags.${MODULE_ID}.latentMagic`]: latent
         };
+        if (latent.originalRunes && itemData.system.runes) {
+            update["system.runes"] = itemData.system.runes;
+        }
+        return update;
     }
 
     getPowerScoreItemTypes() {
