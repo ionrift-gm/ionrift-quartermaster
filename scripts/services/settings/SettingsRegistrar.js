@@ -10,7 +10,7 @@ import { IdentificationConfigApp } from "../../apps/config/identify/Identificati
 import { SignatureLedger } from "../progression/SignatureLedger.js";
 import { registerQuartermasterSettingsPanel } from "./SettingsPanelLayout.js";
 import { AmmoTypeRegistry } from "../workshop/AmmoTypeRegistry.js";
-import { GenericArmorBonusRegistry, DEFAULT_GENERIC_ARMOR_BONUS } from "../workshop/GenericArmorBonusRegistry.js";
+import { DEFAULT_GENERIC_ARMOR_BONUS } from "../workshop/GenericArmorBonusRegistry.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 

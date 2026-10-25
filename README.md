@@ -3,7 +3,7 @@
 ![Downloads](https://img.shields.io/github/downloads/ionrift-gm/ionrift-quartermaster/total?color=violet&label=Downloads)
 ![Latest Release](https://img.shields.io/github/v/release/ionrift-gm/ionrift-quartermaster?color=violet&label=Latest%20Version)
 ![Foundry v12+](https://img.shields.io/badge/Foundry-v12%2B-333333?style=flat&logo=foundryvirtualtabletop)
-![Systems](https://img.shields.io/badge/system-dnd5e-blue)
+![Systems](https://img.shields.io/badge/systems-dnd5e%20%7C%20pf2e%20%7C%20sf2e%20%7C%20others%3A%20loot%20caches-blue)
 
 **Terrain-aware loot generation for Foundry VTT.** Cache generation, masked item identification, scroll management, cursed item tracking, and campaign item planning.
 
@@ -49,11 +49,15 @@
 - Open **Module Settings > Quartermaster** to configure loot sources, scroll jitter,
   magic frequency, and the cursed item pool.
 
+## Other Systems
+
+Loot caches work on generic systems (tested on Old-School Essentials and Starfinder 1e), pulling from world items and any configured Item compendiums. Scrolls, item masking and identification, curses, the Signature Ledger, and the Workshop are available on D&D 5e, Pathfinder 2e, and Starfinder 2e only.
+
 ## Dependencies
 
 | Module | Required? | What it enables |
 |--------|-----------|----------------|
-| [`ionrift-library`](https://github.com/ionrift-gm/ionrift-library) v2.0.0+ | **Yes** | Core shared utilities |
+| [`ionrift-library`](https://github.com/ionrift-gm/ionrift-library) (a recent version of Ionrift Library) | **Yes** | Core shared utilities |
 | [`itempilesdnd5e`](https://foundryvtt.com/packages/itempilesdnd5e) | Optional | Drag-to-canvas loot containers, player looting UI |
 | [`ionrift-cursewright`](https://patreon.com/ionrift) | Optional | Curse escalation, activation, and narration |
 | [`ionrift-resonance`](https://github.com/ionrift-gm/ionrift-resonance) | Optional | Sound effects bound to item actions |

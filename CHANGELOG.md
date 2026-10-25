@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Loot caches can now be dragged onto the canvas or placed as loot actors on generic game systems without Item Piles, and converted from existing containers in the world.
+- The World Items directory can now be selected as a loot source on generic game systems alongside any Item compendiums.
+
+### Changed
+- Quartermaster can now be enabled on any Foundry game system without a system restriction warning.
+- Generic game systems now read item prices, coin breakdowns, weights, and quantities across broader item types.
+- Features that require D&D 5e, Pathfinder 2e, or Starfinder 2e (Signature Ledger, Workshop, Scroll Forge, and item masking settings) are now hidden on generic systems.
+
+### Fixed
+- Generated items on generic systems (such as Old-School Essentials and Starfinder 1e) now appear in the Cache Generator preview and can be added to the Items sidebar or loot containers without validation errors.
+
 ## [1.12.1] - 2026-10-25
 
 ### Changed

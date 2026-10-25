@@ -5,7 +5,7 @@ import { LootPoolCompiler } from "../../services/loot/LootPoolCompiler.js";
 import { PartyShelfPool } from "../../services/loot/PartyShelfPool.js";
 import { ProgressionAdvisor } from "../../services/progression/ProgressionAdvisor.js";
 import { SignatureLedger } from "../../services/progression/SignatureLedger.js";
-import { StandalonePoolRegistry, getActiveCursedRegistry } from "../../services/loot/StandalonePoolRegistry.js";
+import { getActiveCursedRegistry } from "../../services/loot/StandalonePoolRegistry.js";
 import { takeVisibleCapped } from "../../services/settings/AdvisoryStripUtils.js";
 import { CursedItemResolver } from "../../services/curse/CursedItemResolver.js";
 import { ItemResolutionPipeline } from "../../services/workshop/ItemResolutionPipeline.js";

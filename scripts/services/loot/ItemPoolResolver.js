@@ -12,7 +12,6 @@ import { MODULE_ID } from "../../data/moduleId.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { ItemClassifier } from "../workshop/ItemClassifier.js";
 import { GenericArmorBonusRegistry } from "../workshop/GenericArmorBonusRegistry.js";
-import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
 import { isSrdCursedLootName } from "../curse/SrdCurseCatalog.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 import * as DnD5ePool from "../../adapters/concrete/dnd/DnD5ePoolRules.js";
@@ -655,7 +654,7 @@ export class ItemPoolResolver {
      * @param {number} priceCeiling
      * @returns {object[]}
      */
-    static _genericAspireFloorForItem(item, tier, aspireBonus, weaponMax) {
+    static _genericAspireFloorForItem(item, tier, aspireBonus, _weaponMax) {
         if (this._isArmorPoolItem(item)) {
             const armorMax = GenericArmorBonusRegistry.getMaxBonus(tier);
             if (armorMax <= 0) return Infinity;
@@ -1126,7 +1125,7 @@ export class ItemPoolResolver {
      * Fallback items from static cache-tables.json.
      * Removed: compendiums are the sole source of truth for all items.
      */
-    static _getFallbackItems(slotType, theme, tables) {
+    static _getFallbackItems(_slotType, _theme, _tables) {
         return [];
     }
 

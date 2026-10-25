@@ -1,11 +1,8 @@
 import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 import { ItemPoolResolver } from "../loot/ItemPoolResolver.js";
-import { ItemMaskingHelper } from "../identify/ItemMaskingHelper.js";
 import { ItemClassifier } from "../workshop/ItemClassifier.js";
-import { AmmoTypeRegistry } from "../workshop/AmmoTypeRegistry.js";
 import { SignatureLedger } from "../progression/SignatureLedger.js";
-import { ScrollForge } from "../scroll/ScrollForge.js";
 import { TerrainDataRegistry } from "../loot/TerrainDataRegistry.js";
 import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../workshop/CoinFormat.js";

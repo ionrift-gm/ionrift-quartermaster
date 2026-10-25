@@ -1,6 +1,5 @@
 import { WorkshopApp } from "./apps/workshop/WorkshopApp.js";
 import { CacheGeneratorApp } from "./apps/cache/CacheGeneratorApp.js";
-import { WorkshopItemFactory } from "./services/workshop/WorkshopItemFactory.js";
 import { CacheGenerator } from "./services/cache/CacheGenerator.js";
 
 import { IdentificationService } from "./services/identify/IdentificationService.js";
@@ -9,8 +8,6 @@ import { PriceMasker } from "./services/identify/PriceMasker.js";
 import { PriceInjector } from "./services/ui/PriceInjector.js";
 import { GmMystificationHintInjector } from "./services/ui/GmMystificationHintInjector.js";
 import { SignatureLedger } from "./services/progression/SignatureLedger.js";
-import { ProgressionSeeder } from "./services/progression/ProgressionSeeder.js";
-import { ProgressionAdvisor } from "./services/progression/ProgressionAdvisor.js";
 import { ItemPoolResolver } from "./services/loot/ItemPoolResolver.js";
 import { LootPoolCompiler } from "./services/loot/LootPoolCompiler.js";
 import { ScrollForge } from "./services/scroll/ScrollForge.js";
@@ -141,7 +138,6 @@ Hooks.once('init', async () => {
     Logger.info(MODULE_LABEL, `v${version} | Initializing.`);
 
     const ctx = createQuartermasterContext();
-    const adapter = ctx.adapter;
 
     game.modules.get(MODULE_ID).api = {
         items:       ctx.items,
@@ -458,7 +454,7 @@ Hooks.on("renderChatMessage", (message, html) => {
 });
 
 // Sidebar buttons (GM): Loot Cache and registry (Items directory)
-Hooks.on("renderItemDirectory", (app, html, data) => {
+Hooks.on("renderItemDirectory", (app, html, _data) => {
     if (!game.user.isGM) return;
 
     const root = html instanceof HTMLElement ? html : (html?.[0] ?? html);
