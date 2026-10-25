@@ -11,6 +11,8 @@ import { SignatureLedger } from "../progression/SignatureLedger.js";
 import { registerQuartermasterSettingsPanel } from "./SettingsPanelLayout.js";
 import { AmmoTypeRegistry } from "../workshop/AmmoTypeRegistry.js";
 import { GenericArmorBonusRegistry, DEFAULT_GENERIC_ARMOR_BONUS } from "../workshop/GenericArmorBonusRegistry.js";
+import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { QM_FEATURES } from "../../data/QMFeatures.js";
 
 
 /**
@@ -18,6 +20,7 @@ import { GenericArmorBonusRegistry, DEFAULT_GENERIC_ARMOR_BONUS } from "../works
  * @param {typeof import("../../apps/forge/CompendiumForgeApp.js").CompendiumForgeApp} opts.CompendiumForgeApp
  */
 export function registerQuartermasterSettings({ CompendiumForgeApp }) {
+    const adapter = getQuartermasterAdapter();
 
     game.settings.register(MODULE_ID, "distributeCoins", {
         name: "Distribute Coinage",
@@ -269,7 +272,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         name: "Campaign Milestone Profile",
         hint: "Adjusts the Signature Items grid to match your campaign's level range. Each profile spreads 6 milestones across the selected band.",
         scope: "world",
-        config: true,
+        config: adapter.supports(QM_FEATURES.SIGNATURE_LEDGER),
         type: String,
         choices: Object.fromEntries(
             Object.entries(SignatureLedger.PROFILES).map(([k, v]) => [k, v.label])
@@ -533,30 +536,39 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
 
 
+    const supportsMasking = adapter.supports(QM_FEATURES.LATENT_MASKING);
+    const isSourcesOnly = !adapter.supports(QM_FEATURES.LOOT_POOL_COMPILE)
+        && !adapter.supports(QM_FEATURES.SCROLL_FORGE)
+        && !adapter.supports(QM_FEATURES.SRD_CURSES);
+
     game.settings.registerMenu(MODULE_ID, "lootGenerationConfig", {
         name: "Loot Generation",
         label: "Configure Loot Generation",
-        hint: "Loot abundance, magic frequency, ammunition, healing potions, and coin distribution.",
+        hint: supportsMasking
+            ? "Loot abundance, magic frequency, ammunition, healing potions, and coin distribution."
+            : "Loot abundance, ammunition, healing potions, and coin distribution.",
         icon: "fas fa-coins",
         type: LootGenerationConfigApp,
         restricted: true
     });
 
-    game.settings.registerMenu(MODULE_ID, "identificationConfig", {
-        name: "Identification",
-        label: "Configure Identification",
-        hint: "Obscure loot names and sheet details until the party examines them.",
-        icon: "fas fa-eye-slash",
-        type: IdentificationConfigApp,
-        restricted: true
-    });
-
-
+    if (supportsMasking) {
+        game.settings.registerMenu(MODULE_ID, "identificationConfig", {
+            name: "Identification",
+            label: "Configure Identification",
+            hint: "Obscure loot names and sheet details until the party examines them.",
+            icon: "fas fa-eye-slash",
+            type: IdentificationConfigApp,
+            restricted: true
+        });
+    }
 
     game.settings.registerMenu(MODULE_ID, "compendiumForge", {
         name: "Compendium Forge",
         label: "Compendium Forge",
-        hint: "Manage compiled content pools: loot sources, spell scrolls, and cursed items.",
+        hint: isSourcesOnly
+            ? "Select which compendiums and item directories feed the cache generator."
+            : "Manage compiled content pools: loot sources, spell scrolls, and cursed items.",
         icon: "fas fa-hammer",
         type: CompendiumForgeApp,
         restricted: true

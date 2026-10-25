@@ -3,12 +3,16 @@ import { AmmoTypeConfigApp } from "./AmmoTypeConfigApp.js";
 import { GenericArmorBonusConfigApp } from "./GenericArmorBonusConfigApp.js";
 import { AmmoTypeRegistry } from "../../../services/workshop/AmmoTypeRegistry.js";
 import { GenericArmorBonusRegistry } from "../../../services/workshop/GenericArmorBonusRegistry.js";
+import { getQuartermasterAdapter } from "../../../adapters/getAdapter.js";
+import { QM_FEATURES } from "../../../data/QMFeatures.js";
+
+const supportsMagicalLootTuning = () => getQuartermasterAdapter().supports(QM_FEATURES.LATENT_MASKING);
 
 export const LootGenerationConfigApp = createQuartermasterConfigApp({
     appId: "qm-loot-generation-config",
     title: "Loot Generation",
     icon: "fas fa-coins",
-    lead: "Cache value, magic rates, and consumable drops. Enhancement and named magic are configured separately.",
+    lead: "Cache value, consumable drops, ammunition, and coin distribution.",
     savedMessage: "Loot generation settings saved.",
     popouts: {
         ammoTypes: AmmoTypeConfigApp,
@@ -26,7 +30,7 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             max: 3,
             step: 0.25
         },
-        { type: "section", label: "Enhancement Items" },
+        { type: "section", label: "Enhancement Items", visible: supportsMagicalLootTuning },
         {
             key: "magicFrequency",
             label: "Magic Frequency",
@@ -35,7 +39,8 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             type: "range",
             min: 0,
             max: 2,
-            step: 0.25
+            step: 0.25,
+            visible: supportsMagicalLootTuning
         },
         {
             key: "armourDropChance",
@@ -45,7 +50,8 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             type: "range",
             min: 0,
             max: 1,
-            step: 0.05
+            step: 0.05,
+            visible: supportsMagicalLootTuning
         },
         {
             key: "genericArmorBonusConfig",
@@ -54,9 +60,10 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             hint: "Tier caps for generic +N body armor and shields in mastercraft caches. Independent of magic frequency and weapon bonuses.",
             type: "popout",
             popout: "genericArmorBonus",
-            summary: () => GenericArmorBonusRegistry.getSummaryLabel()
+            summary: () => GenericArmorBonusRegistry.getSummaryLabel(),
+            visible: supportsMagicalLootTuning
         },
-        { type: "section", label: "Named Magic" },
+        { type: "section", label: "Named Magic", visible: supportsMagicalLootTuning },
         {
             key: "namedMagicFrequency",
             label: "Named Magic Frequency",
@@ -65,9 +72,10 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             type: "range",
             min: 0,
             max: 2,
-            step: 0.25
+            step: 0.25,
+            visible: supportsMagicalLootTuning
         },
-        { type: "column-break" },
+        { type: "column-break", visible: supportsMagicalLootTuning },
         { type: "section", label: "Consumables" },
         {
             key: "healingPotionFrequency",
@@ -88,7 +96,8 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             type: "range",
             min: 0,
             max: 2,
-            step: 0.25
+            step: 0.25,
+            visible: supportsMagicalLootTuning
         },
         {
             key: "ammoTypeConfig",

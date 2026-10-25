@@ -24,7 +24,11 @@ export class ItemResolutionPipeline {
         const docId  = metaObj._compendiumId;
         if (!packId || !docId) return null;
 
-        const pack = game.packs.get(packId);
+        if (packId === "world.items") {
+            return game.items?.get(docId) ?? null;
+        }
+
+        const pack = game.packs?.get(packId);
         if (!pack) return null;
 
         try {
@@ -66,8 +70,9 @@ export class ItemResolutionPipeline {
     static async resolve(metaObj, mintBatch) {
         let data = null;
         if (metaObj.sourceCompendium && metaObj._compendiumId) {
-            const pack = game.packs.get(metaObj.sourceCompendium);
-            if (pack) {
+            const isWorldItems = metaObj.sourceCompendium === "world.items";
+            const pack = isWorldItems ? null : game.packs?.get(metaObj.sourceCompendium);
+            if (isWorldItems || pack) {
                 const doc = await ItemResolutionPipeline._resolveCompendiumDocument(metaObj);
                 if (doc) {
                     data = doc.toObject();
@@ -205,7 +210,20 @@ export class ItemResolutionPipeline {
      */
     static stampQuantity(itemData, qty) {
         const q = Math.max(1, Math.floor(Number(qty)) || 1);
-        foundry.utils.setProperty(itemData, "system.quantity", q);
+        const existingQty = itemData?.system?.quantity;
+        const schemaQtyFields = globalThis.CONFIG?.Item?.dataModels?.[itemData?.type]?.schema?.fields?.quantity?.fields;
+        if ((existingQty && typeof existingQty === "object") || schemaQtyFields) {
+            const prevMax = (existingQty && typeof existingQty === "object") ? (existingQty.max ?? 0) : 0;
+            foundry.utils.setProperty(itemData, "system.quantity", {
+                ...(existingQty && typeof existingQty === "object" ? existingQty : {}),
+                value: q,
+                ...(schemaQtyFields?.max || (existingQty && "max" in existingQty)
+                    ? { max: Math.max(q, Number(prevMax) || 0) }
+                    : {})
+            });
+        } else {
+            foundry.utils.setProperty(itemData, "system.quantity", q);
+        }
         // Assign a unique _id so Item Piles doesn't collapse distinct entries into one row.
         itemData._id = foundry.utils.randomID();
         return itemData;

@@ -1,5 +1,6 @@
 import { MODULE_ID, MODULE_LABEL } from "../../data/moduleId.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { QM_FEATURES } from "../../data/QMFeatures.js";
 import { IdentificationService } from "../identify/IdentificationService.js";
 import { Logger } from "../../utils/Logger.js";
 
@@ -62,20 +63,21 @@ export class CacheConverterService {
         const { actor, token } = CacheConverterService.resolveTarget(target);
         if (!actor) return false;
 
-        // Never target player-owned characters
-        if (actor.hasPlayerOwner) return false;
+        const type = (actor.type || "").toLowerCase();
 
         // 1. Explicitly tagged Quartermaster cache or Item Pile container
         if (actor.flags?.[MODULE_ID]?.isQuartermasterCache) return true;
         if (actor.flags?.["item-piles"]?.data?.enabled) return true;
 
         // 2. System container / loot actor types
-        const type = (actor.type || "").toLowerCase();
         if (type === "loot" || type === "container") return true;
 
         // 3. Tripwire containers or locks
         const twFlags = (token?.document ?? token)?.flags?.["ionrift-tripwire"];
         if (twFlags?.cache || twFlags?.secret || twFlags?.lock) return true;
+
+        // Never target player-owned characters
+        if (type === "character" && actor.hasPlayerOwner) return false;
 
         // 4. Token/actor named or themed as a container shell
         const nameLower = (actor.name || token?.name || "").toLowerCase();
@@ -85,8 +87,11 @@ export class CacheConverterService {
         ];
         if (containerKeywords.some(kw => nameLower.includes(kw))) return true;
 
-        // 5. Any non-combatant NPC containing items
-        if (type === "npc" && (actor.items?.size ?? 0) > 0) return true;
+        // Never target player-owned characters
+        if (actor.hasPlayerOwner) return false;
+
+        // 5. Any non-combatant NPC/monster containing items
+        if ((type === "npc" || type === "monster") && (actor.items?.size ?? 0) > 0) return true;
 
         return false;
     }
@@ -180,32 +185,48 @@ export class CacheConverterService {
         // Tag actor as a Quartermaster cache
         await actor.setFlag(MODULE_ID, "isQuartermasterCache", true);
 
-        // Optional Item Piles integration: initialize token as an Item Pile container
+        const supportsMasking = adapter.supports(QM_FEATURES.LATENT_MASKING);
+        if (!supportsMasking && typeof actor.update === "function") {
+            const ownerPerm = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3;
+            if ((actor.ownership?.default ?? 0) < ownerPerm) {
+                await actor.update({ "ownership.default": ownerPerm });
+            }
+        }
+
+        // Optional Item Piles integration: initialize token(s) as Item Pile containers
         if (options.setupItemPiles !== false) {
             const piles = game.itempiles?.API;
             if (piles && typeof piles.turnTokensIntoItemPiles === "function") {
-                const targetToken = token instanceof Token
+                const TokenClass = globalThis.foundry?.canvas?.placeables?.Token;
+                const resolvedToken = (typeof TokenClass === "function" && token instanceof TokenClass)
                     ? token
-                    : (token?.object ?? canvas.tokens?.get(token?.id ?? "") ?? null);
+                    : (token?.object ?? globalThis.canvas?.tokens?.get?.(token?.id ?? "") ?? null);
+                const candidateTokens = resolvedToken
+                    ? [resolvedToken]
+                    : (globalThis.canvas?.tokens?.placeables?.filter?.(t => t.actor?.id === actor.id) ?? []);
 
-                if (targetToken && !piles.isItemPile(targetToken.actor ?? targetToken)) {
-                    try {
-                        await piles.turnTokensIntoItemPiles([targetToken], {
-                            pileSettings: {
-                                type: "container",
-                                isContainer: true,
-                                closeOnInteract: true
-                            }
-                        });
-                    } catch (err) {
-                        Logger.warn(MODULE_LABEL, "Could not turn token into Item Pile container:", err);
+                for (const targetToken of candidateTokens) {
+                    if (targetToken && !piles.isItemPile(targetToken.actor ?? targetToken)) {
+                        try {
+                            await piles.turnTokensIntoItemPiles([targetToken], {
+                                pileSettings: {
+                                    type: "container",
+                                    isContainer: true,
+                                    closeOnInteract: true
+                                }
+                            });
+                        } catch (err) {
+                            Logger.warn(MODULE_LABEL, "Could not turn token into Item Pile container:", err);
+                        }
                     }
                 }
             }
         }
 
         if (!options.silent) {
-            if (updates.length > 0) {
+            if (!supportsMasking) {
+                ui.notifications?.info?.(`Quartermaster: Converted ${actor.name} into a loot cache.`);
+            } else if (updates.length > 0) {
                 ui.notifications?.info?.(
                     `Quartermaster: Mystified ${actor.name} (${updates.length} ${updates.length === 1 ? "item" : "items"} obscured).`
                 );

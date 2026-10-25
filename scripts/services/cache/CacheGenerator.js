@@ -11,6 +11,7 @@ import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
 import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../workshop/CoinFormat.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { QM_FEATURES } from "../../data/QMFeatures.js";
 import { SquashMerger } from "../packs/SquashMerger.js";
 import { ItemResolutionPipeline } from "../workshop/ItemResolutionPipeline.js";
 import {
@@ -568,12 +569,15 @@ export class CacheGenerator {
             result.meta.budgetMax = options.budgetMax;
         }
 
-        // ── Signature: always check the Progression Registry ──────────
-        const partyActors = game.ionrift?.library?.party?.getMembers()
-            ?? game.actors.filter(a => a.hasPlayerOwner && a.type === "character");
-        const sugg = await SignatureLedger.getSuggestedRecipient(partyActors);
-        if (sugg && !sugg.isSuppressed && sugg.actorId) {
-            result.signatureOpportunity = sugg;
+        // ── Signature: check the Progression Registry when supported ──
+        const activeAdapter = getQuartermasterAdapter();
+        if (activeAdapter.supports(QM_FEATURES.SIGNATURE_LEDGER)) {
+            const partyActors = game.ionrift?.library?.party?.getMembers()
+                ?? game.actors.filter(a => a.hasPlayerOwner && a.type === "character");
+            const sugg = await SignatureLedger.getSuggestedRecipient(partyActors);
+            if (sugg && !sugg.isSuppressed && sugg.actorId) {
+                result.signatureOpportunity = sugg;
+            }
         }
 
         // ── Slot Pool Draw: build item slot list from owner theme ─────
@@ -587,6 +591,10 @@ export class CacheGenerator {
         const totalSlotCount = Math.floor(Math.random() * (scaledMax - scaledMin + 1)) + scaledMin;
         const healFreq = game.settings?.get(MODULE_ID, "healingPotionFrequency") ?? 1.0;
         const pool = CacheGenerator._scaleOwnerSlotPool(ownerDef.slotPool ?? {}, healFreq);
+        const supportsScrolls = activeAdapter.supports(QM_FEATURES.SCROLL_FORGE);
+        if (!supportsScrolls) {
+            delete pool.scroll;
+        }
 
         // Expand guaranteed entries into a flat list of slot types.
         // Entries can be plain strings ("scroll") or range objects ({ type, min, max }).
@@ -594,15 +602,16 @@ export class CacheGenerator {
         const guaranteed = [];
         for (const entry of (ownerDef.guaranteed ?? [])) {
             if (typeof entry === "string") {
-                guaranteed.push(entry);
+                guaranteed.push(!supportsScrolls && entry === "scroll" ? "mundane" : entry);
             } else if (entry?.type) {
+                const slotType = !supportsScrolls && entry.type === "scroll" ? "mundane" : entry.type;
                 const min = Math.round((entry.min ?? 1) * tierScale);
                 const max = Math.round((entry.max ?? min) * tierScale);
                 let count = Math.floor(Math.random() * (max - min + 1)) + min;
-                if (entry.type === "scroll") {
+                if (slotType === "scroll") {
                     count = Math.min(count, this._scrollSlotCap(tier, ownerTheme));
                 }
-                for (let j = 0; j < count; j++) guaranteed.push(entry.type);
+                for (let j = 0; j < count; j++) guaranteed.push(slotType);
             }
         }
 
@@ -1253,8 +1262,11 @@ export class CacheGenerator {
         }
 
         // Enrich with magical identification masking metadata
+        const adapter = getQuartermasterAdapter();
+        if (!item && slotType !== "mundane" && !adapter.supports(QM_FEATURES.LATENT_MASKING)) {
+            item = await this._pickMundane(theme, tierData, tables, priceCeiling, pickOpts);
+        }
         if (item) {
-            const adapter = getQuartermasterAdapter();
             if (adapter.shouldApplyLatentMasking()) {
                 const mask = adapter.detectMagicalForCache(item, { terrainTag: theme });
                 if (mask.isMagical) {
@@ -1601,6 +1613,9 @@ export class CacheGenerator {
         return CacheScrollLogic._pickScrollFromIndex(index, tierData, priceCeiling, opts);
     }
     static async _pickScroll(tierData, priceCeiling = Infinity, opts = {}) {
+        if (!getQuartermasterAdapter().supports(QM_FEATURES.SCROLL_FORGE)) {
+            return null;
+        }
         return CacheScrollLogic._pickScroll(tierData, priceCeiling, opts);
     }
     static _pickScrollFromEligible(eligible, targetLevel, minLevel = 1) {
@@ -1980,29 +1995,24 @@ export class CacheGenerator {
             folder = await Folder.create({ name: folderName, type: "Item", parent: null });
         }
 
-        // Build item data for all generated items
+        // Build item data for all generated items via the active system adapter
+        const adapter = getQuartermasterAdapter();
+        const meta = cacheResult.meta ?? {};
         const toCreate = items.map(item => {
-            const base = {
-                name: item.name,
-                type: item.type ?? "loot",
-                img: item.img ?? DEFAULT_ITEM_ICON,
-                folder: folder.id,
-                system: {
-                    quantity: item.quantity ?? 1,
-                    price: { value: item.price ?? 0, denomination: "gp" },
-                    rarity: item.rarity ?? "common",
-                    description: { value: `<p>Generated from a ${cacheResult.meta?.cacheLabel ?? "loot cache"}.</p>` }
-                },
-                flags: {
-                    [MODULE_ID]: {
-                        ...(item.flags?.[MODULE_ID] || {}),
-                        mintBatch: cacheResult.meta?.mintBatch
-                    }
+            const base = adapter.buildCacheItemPayload(item, meta);
+            base.folder = folder.id;
+            if (!base.img) base.img = DEFAULT_ITEM_ICON;
+            base.flags = {
+                ...(base.flags || {}),
+                [MODULE_ID]: {
+                    ...(base.flags?.[MODULE_ID] || {}),
+                    ...(item.flags?.[MODULE_ID] || {}),
+                    mintBatch: cacheResult.meta?.mintBatch
                 }
             };
 
             if (item._isMagical) {
-                getQuartermasterAdapter().applyCacheMask(base, {
+                adapter.applyCacheMask(base, {
                     baseItemName: item._baseItemName,
                     mundaneDesc: item._mundaneDesc,
                     obscuredImg: item._obscuredImg,
@@ -2013,32 +2023,11 @@ export class CacheGenerator {
             return base;
         });
 
-        // Add gold as a loot item
+        // Add gold via adapter coin builder
         if (cacheResult.gold > 0) {
-            if (cacheResult.coinage) {
-                for (const denom of ["pp", "gp", "ep", "sp", "cp"]) {
-                    if (cacheResult.coinage[denom]) {
-                        toCreate.push({
-                            name: `Coins (${denom.toUpperCase()})`,
-                            type: "loot",
-                            img: "icons/commodities/currency/coins-assorted-mix-copper-silver-gold.webp",
-                            folder: folder.id,
-                            system: { price: { value: cacheResult.coinage[denom], denomination: denom } }
-                        });
-                    }
-                }
-            } else {
-                toCreate.push({
-                    name: "Coin Purse",
-                    type: "loot",
-                    img: "icons/commodities/currency/coins-assorted-mix-copper-silver-gold.webp",
-                    folder: folder.id,
-                    system: {
-                        quantity: 1,
-                        price: { value: cacheResult.gold, denomination: "gp" },
-                        description: { value: `<p>${cacheResult.gold} gold pieces.</p>` }
-                    }
-                });
+            for (const coin of adapter.buildCoinItems(cacheResult, meta)) {
+                coin.folder = folder.id;
+                toCreate.push(coin);
             }
         }
 

@@ -50,8 +50,11 @@ export function createQuartermasterConfigApp(definition) {
 
         /** @override */
         async _prepareContext() {
+            const visibleRows = definition.rows.filter(row =>
+                typeof row.visible === "function" ? row.visible() : row.visible !== false
+            );
             return {
-                rows: definition.rows.map(row => ({
+                rows: visibleRows.map(row => ({
                     ...row,
                     value: row.type === "section" || row.type === "column-break"
                         ? undefined
@@ -83,7 +86,8 @@ export function createQuartermasterConfigApp(definition) {
 
             let html = `<p class="settings-config-lead">${definition.lead}</p>`;
 
-            if (hasColumnBreak) {
+            const hasVisibleColumnBreak = context.rows.some(row => row.type === "column-break");
+            if (hasVisibleColumnBreak) {
                 html += `<div class="settings-config-columns"><div class="settings-config-col settings-config-col--left">`;
                 for (const row of context.rows) {
                     if (row.type === "column-break") {

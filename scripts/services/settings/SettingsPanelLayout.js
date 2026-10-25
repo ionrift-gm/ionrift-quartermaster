@@ -8,6 +8,8 @@ import { refreshOpenQuartermasterConfigApps } from "../../apps/config/Quartermas
 import { LootPoolCompiler } from "../loot/LootPoolCompiler.js";
 import { ScrollForge      } from "../scroll/ScrollForge.js";
 import { getCurseAdapter } from "../curse/getCurseAdapter.js";
+import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
+import { QM_FEATURES } from "../../data/QMFeatures.js";
 
 
 const PROFILE_KEYS = [
@@ -162,6 +164,11 @@ export function registerQuartermasterSettingsPanel() {
     const MCP = game.ionrift?.library?.ModuleConfigProfiles;
     if (!MCP) return;
 
+    const adapter = getQuartermasterAdapter();
+    if (!adapter.supports(QM_FEATURES.LATENT_MASKING) && !adapter.supports(QM_FEATURES.SIGNATURE_LEDGER)) {
+        return;
+    }
+
     MCP.register({
         moduleId: MODULE_ID,
         moduleLabel: "Quartermaster",
@@ -231,18 +238,22 @@ function _normalizeForgeStatus(status) {
  */
 export function getWorstForgeStatus() {
     try {
+        const adapter = getQuartermasterAdapter();
         const statuses = [];
         const compiledLootHash = game.settings.get(MODULE_ID, LootPoolCompiler.SETTING_HASH);
 
-        if (LootPoolCompiler.is2024ArchitecturePresent() || compiledLootHash) {
+        if (adapter.supports(QM_FEATURES.LOOT_POOL_COMPILE)
+            && (LootPoolCompiler.is2024ArchitecturePresent() || compiledLootHash)) {
             statuses.push(_normalizeForgeStatus(LootPoolCompiler.getStatus()));
         }
 
-        if (game.settings.get(MODULE_ID, "scrollForgeEnabled") && _hasScrollForgeSources()) {
+        if (adapter.supports(QM_FEATURES.SCROLL_FORGE)
+            && game.settings.get(MODULE_ID, "scrollForgeEnabled")
+            && _hasScrollForgeSources()) {
             statuses.push(_normalizeForgeStatus(ScrollForge.getStatus()));
         }
 
-        if (_isSrdCurseSourceEnabled()) {
+        if (adapter.supports(QM_FEATURES.SRD_CURSES) && _isSrdCurseSourceEnabled()) {
             statuses.push(_normalizeForgeStatus(getCurseAdapter().getStatus()));
         }
 

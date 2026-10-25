@@ -65,20 +65,6 @@
                                                                  }
                                            }
                                        ],
-                          "systems":  [
-                                          {
-                                              "id":  "dnd5e",
-                                              "type":  "system"
-                                          },
-                                          {
-                                              "id":  "pf2e",
-                                              "type":  "system"
-                                          },
-                                          {
-                                              "id":  "sf2e",
-                                              "type":  "system"
-                                          }
-                                      ],
                           "recommends":  [
                                              {
                                                  "id":  "item-piles",

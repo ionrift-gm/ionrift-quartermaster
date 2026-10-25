@@ -28,6 +28,7 @@ import { OverlayItemMaterialiser } from "./services/packs/OverlayItemMaterialise
 import { Logger, MODULE_LABEL } from "./utils/Logger.js";
 import { MODULE_ID } from "./data/moduleId.js";
 import { QM_FEATURES } from "./data/QMFeatures.js";
+import { getQuartermasterAdapter } from "./adapters/getAdapter.js";
 import { createQuartermasterContext } from "./composition/createQuartermasterContext.js";
 
 /**
@@ -61,14 +62,33 @@ async function migrateDefaultLootPoolSources() {
         const sources = JSON.parse(raw);
         if (!Array.isArray(sources)) return;
         const dnd5eDefaults = ["dnd5e.items", "dnd5e.tradegoods"];
-        const stillOnDnd5eDefaults = dnd5eDefaults.every(id => sources.includes(id))
-            && sources.length <= 3;
+        const stillOnDnd5eDefaults = dnd5eDefaults.every(id => sources.includes(id));
         if (!stillOnDnd5eDefaults) return;
-        const next = adapter.getDefaultLootPoolSources();
-        if (!next.length || JSON.stringify(next) === JSON.stringify(sources)) return;
+
+        let next = adapter.getDefaultLootPoolSources();
+        if (!next.length) {
+            const stripped = sources.filter(id =>
+                id !== "dnd5e.items"
+                && id !== "dnd5e.tradegoods"
+                && id !== "world.ionrift-forged-scrolls"
+                && Boolean(game.packs?.get(id))
+            );
+            if (stripped.length > 0) {
+                next = stripped;
+            } else {
+                const available = ItemPoolResolver.listAvailableCompendiums()
+                    .filter(p => p.id !== "world.items");
+                const preferred = available.filter(p =>
+                    p.recommended
+                    || /\b(equipment|items|gear|loot|treasure|armory|weapons|armor)\b/i.test(`${p.id} ${p.label}`)
+                );
+                next = (preferred.length > 0 ? preferred : available).map(p => p.id);
+            }
+        }
+        if (JSON.stringify(next) === JSON.stringify(sources)) return;
         await game.settings.set(MODULE_ID, "lootPoolSources", JSON.stringify(next));
         Logger.log(MODULE_LABEL,
-            `Loot pool sources updated for ${adapter.id}: ${next.join(", ")}`);
+            `Loot pool sources updated for ${adapter.id}: ${next.length ? next.join(", ") : "(none)"}`);
     } catch {
         /* ignore unparseable setting */
     }
@@ -444,6 +464,8 @@ Hooks.on("renderItemDirectory", (app, html, data) => {
     const root = html instanceof HTMLElement ? html : (html?.[0] ?? html);
     if (!root) return;
 
+    const adapter = game.ionrift?.quartermaster?.adapter ?? getQuartermasterAdapter();
+
     if (game.ionrift?.hud?.injectDirectoryButton) {
         game.ionrift.hud.injectDirectoryButton("items", root, {
             id: "loot-cache",
@@ -455,18 +477,20 @@ Hooks.on("renderItemDirectory", (app, html, data) => {
             order: 10
         });
 
-        game.ionrift.hud.injectDirectoryButton("items", root, {
-            id: "signature-ledger",
-            className: "ionrift-ledger-btn",
-            label: "Quartermaster",
-            icon: "fas fa-book-sparkles",
-            onClick: async () => {
-                const { SignatureLedgerApp } = await import("./apps/ledger/SignatureLedgerApp.js");
-                new SignatureLedgerApp().render(true);
-            },
-            restricted: true,
-            order: 20
-        });
+        if (adapter?.supports(QM_FEATURES.SIGNATURE_LEDGER)) {
+            game.ionrift.hud.injectDirectoryButton("items", root, {
+                id: "signature-ledger",
+                className: "ionrift-ledger-btn",
+                label: "Quartermaster",
+                icon: "fas fa-book-sparkles",
+                onClick: async () => {
+                    const { SignatureLedgerApp } = await import("./apps/ledger/SignatureLedgerApp.js");
+                    new SignatureLedgerApp().render(true);
+                },
+                restricted: true,
+                order: 20
+            });
+        }
         return;
     }
 
@@ -493,7 +517,7 @@ Hooks.on("renderItemDirectory", (app, html, data) => {
         toolbar.appendChild(cacheBtn);
     }
 
-    if (!toolbar.querySelector(".ionrift-ledger-btn")) {
+    if (adapter?.supports(QM_FEATURES.SIGNATURE_LEDGER) && !toolbar.querySelector(".ionrift-ledger-btn")) {
         const ledgerBtn = document.createElement("button");
         ledgerBtn.type = "button";
         ledgerBtn.className = "ionrift-directory-btn ionrift-ledger-btn";
@@ -512,6 +536,8 @@ Hooks.on("renderItemDirectory", (app, html, data) => {
 Hooks.on("createItem", async (item, options, userId) => {
     if (game.user.id !== userId) return; // Only process on the creating client
     if (!item.parent || item.parent.documentName !== "Actor") return;
+    const adapter = game.ionrift?.quartermaster?.adapter ?? getQuartermasterAdapter();
+    if (!adapter?.supports(QM_FEATURES.SIGNATURE_LEDGER)) return;
     
     // Only care if it's going into a player-owned character
     const actor = item.parent;
@@ -532,7 +558,10 @@ Hooks.on("createItem", async (item, options, userId) => {
 
 // Context menu entries
 Hooks.on("getItemDirectoryEntryContext", (html, options) => {
-    // Edit in Quartermaster (always available for GMs)
+    const adapter = game.ionrift?.quartermaster?.adapter ?? getQuartermasterAdapter();
+    if (!adapter?.supports(QM_FEATURES.WORKSHOP)) return;
+
+    // Edit in Quartermaster (available for GMs on systems that support Workshop)
     options.push({
         name: "Edit in Quartermaster",
         icon: '<i class="fas fa-hammer"></i>',
@@ -550,11 +579,13 @@ Hooks.on("getItemDirectoryEntryContext", (html, options) => {
     });
 });
 
-// Actor Directory context menu for container mystification
+// Actor Directory context menu for container conversion / mystification
 Hooks.on("getActorDirectoryEntryContext", (html, options) => {
+    const adapter = game.ionrift?.quartermaster?.adapter ?? getQuartermasterAdapter();
+    const supportsMasking = !!adapter?.supports(QM_FEATURES.LATENT_MASKING);
     options.push({
-        name: "Mystify Cache (Quartermaster)",
-        icon: '<i class="fas fa-mask"></i>',
+        name: supportsMasking ? "Mystify Cache (Quartermaster)" : "Convert to Cache (Quartermaster)",
+        icon: supportsMasking ? '<i class="fas fa-mask"></i>' : '<i class="fas fa-box-open"></i>',
         callback: async li => {
             const actor = game.actors.get(li.data("documentId"));
             if (actor) {
@@ -568,21 +599,23 @@ Hooks.on("getActorDirectoryEntryContext", (html, options) => {
         }
     });
 
-    options.push({
-        name: "Identify All Items (Quartermaster)",
-        icon: '<i class="fas fa-wand-magic-sparkles"></i>',
-        callback: async li => {
-            const actor = game.actors.get(li.data("documentId"));
-            if (actor) {
-                await CacheConverterService.bulkIdentify(actor);
+    if (supportsMasking) {
+        options.push({
+            name: "Identify All Items (Quartermaster)",
+            icon: '<i class="fas fa-wand-magic-sparkles"></i>',
+            callback: async li => {
+                const actor = game.actors.get(li.data("documentId"));
+                if (actor) {
+                    await CacheConverterService.bulkIdentify(actor);
+                }
+            },
+            condition: li => {
+                if (!game.user.isGM) return false;
+                const actor = game.actors.get(li.data("documentId"));
+                return actor && CacheConverterService.hasMystifiedItems(actor);
             }
-        },
-        condition: li => {
-            if (!game.user.isGM) return false;
-            const actor = game.actors.get(li.data("documentId"));
-            return actor && CacheConverterService.hasMystifiedItems(actor);
-        }
-    });
+        });
+    }
 });
 
 // Actor Sheet header buttons for loot/container sheets
@@ -591,16 +624,18 @@ Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
     const actor = sheet.actor;
     if (!actor || !CacheConverterService.isConvertibleContainer(actor)) return;
 
+    const adapter = game.ionrift?.quartermaster?.adapter ?? getQuartermasterAdapter();
+    const supportsMasking = !!adapter?.supports(QM_FEATURES.LATENT_MASKING);
     buttons.unshift({
-        label: "Mystify Cache",
+        label: supportsMasking ? "Mystify Cache" : "Convert to Cache",
         class: "ionrift-qm-mystify-header-btn",
-        icon: "fas fa-mask",
+        icon: supportsMasking ? "fas fa-mask" : "fas fa-box-open",
         onclick: async () => {
             await CacheConverterService.convertContainer(actor);
         }
     });
 
-    if (CacheConverterService.hasMystifiedItems(actor)) {
+    if (supportsMasking && CacheConverterService.hasMystifiedItems(actor)) {
         buttons.unshift({
             label: "Identify All",
             class: "ionrift-qm-identify-all-header-btn",

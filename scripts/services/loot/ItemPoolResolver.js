@@ -111,13 +111,26 @@ export class ItemPoolResolver {
      * @returns {string[]}
      */
     static getEnabledSources() {
+        const adapter = getQuartermasterAdapter();
+        const isDnd5e = adapter.id === "dnd5e";
+        const DND5E_FACTORY_DEFAULTS = new Set([
+            "dnd5e.items",
+            "dnd5e.tradegoods",
+            "world.ionrift-forged-scrolls"
+        ]);
         try {
             const raw = JSON.parse(game.settings.get(MODULE_ID, "lootPoolSources"));
             if (!Array.isArray(raw)) return [];
-            return raw.filter(id => !this.LOOT_POOL_EXCLUDED_PACKS.has(id));
+            return raw.filter(id => {
+                if (this.LOOT_POOL_EXCLUDED_PACKS.has(id)) return false;
+                if (!isDnd5e && DND5E_FACTORY_DEFAULTS.has(id) && !game.packs?.get?.(id)) {
+                    return false;
+                }
+                return true;
+            });
         } catch {
-            const defaults = getQuartermasterAdapter().getDefaultLootPoolSources();
-            return (defaults.length ? defaults : ["dnd5e.items", "dnd5e.tradegoods"])
+            const defaults = adapter.getDefaultLootPoolSources();
+            return (defaults.length ? defaults : (isDnd5e ? ["dnd5e.items", "dnd5e.tradegoods"] : []))
                 .filter(id => !this.LOOT_POOL_EXCLUDED_PACKS.has(id));
         }
     }
@@ -807,6 +820,23 @@ export class ItemPoolResolver {
                 continue;
             }
 
+            if (packId === "world.items") {
+                const worldItems = game.items?.contents ?? (game.items ? [...game.items.values()] : []);
+                const filtered = [];
+                for (const entry of worldItems) {
+                    if (!this._matchesSlotType(entry, slotType)) continue;
+                    if (!this._matchesRarity(entry, allowedRarities)) continue;
+                    if (this._isExcluded(entry)) continue;
+                    filtered.push(adapter.normalizePoolEntry(entry, packId));
+                }
+                this._cache.set(cacheKey, filtered);
+                if (!this._cacheExpiry) {
+                    this._cacheExpiry = Date.now() + this.CACHE_TTL_MS;
+                }
+                results.push(...filtered);
+                continue;
+            }
+
             const pack = game.packs.get(packId);
             if (!pack) continue;
             if (pack.documentName !== "Item") continue;
@@ -1114,7 +1144,12 @@ export class ItemPoolResolver {
      */
     static listAvailableCompendiums() {
         const enabled = new Set(this.getEnabledSources());
-        const LOOT_TYPES = new Set(["loot", "equipment", "weapon", "tool", "consumable", "backpack"]);
+        const adapter = getQuartermasterAdapter();
+        const LOOT_TYPES = new Set([
+            "loot", "equipment", "weapon", "tool", "consumable", "backpack",
+            "item", "armor", "shield", "treasure", "gear", "goods", "ammunition",
+            "technological", "augmentation", "hybrid", "magic", "upgrade", "mod", "weaponAccessory"
+        ]);
 
         const EXCLUDED_PACK_SUFFIXES = new Set([
             "spells", "spells24",
@@ -1124,8 +1159,12 @@ export class ItemPoolResolver {
             "monsterfeatures", "monsterfeatures24",
             "backgrounds", "backgrounds24",
             "races", "races24",
-            "rules"
+            "rules",
+            "quartermaster-containers",
+            "item-piles-item-backup-do-not-delete"
         ]);
+
+        const EXCLUDED_PACK_NAME_RE = /(?:^|[-_])(spells?|class-?features?|archetype-?features?|racial-?features?|species-?features?|creature-?features?|monster-?features?|universal-?creature-?rules?|classes|subclasses|backgrounds|races|ancestries|heritages|feats|themes|abilities|skills|conditions|effects|starship|vehicles?|rules|macros|tables)(?:24)?$/i;
 
         // Cursewright manages injection of cursed items into caches via its
         // own pipeline -- these packs must never appear as manual loot sources.
@@ -1154,6 +1193,7 @@ export class ItemPoolResolver {
             "dnd5e.equipment24",
             "dnd5e.items",
             "ionrift-respite.respite-cache-utility",
+            "sfrpg.equipment",
         ]);
 
         // Packs that contain 2024 weapon templates requiring compilation.
@@ -1161,7 +1201,7 @@ export class ItemPoolResolver {
             "dnd5e.equipment24",
         ]);
 
-        return game.packs
+        const packs = (game.packs ?? [])
             .filter(p => {
                 if (p.documentName !== "Item") return false;
                 if (QM_PIPELINE_OUTPUTS.has(p.collection) || game.ionrift?.library?.CompendiumSourceService?.isPipelineOutput?.(p.collection)) return false;
@@ -1169,10 +1209,14 @@ export class ItemPoolResolver {
 
                 const packName = p.collection.split(".").pop() ?? "";
                 if (EXCLUDED_PACK_SUFFIXES.has(packName)) return false;
+                if (EXCLUDED_PACK_NAME_RE.test(packName)) return false;
                 if (CURSEWRIGHT_MANAGED_PACKS.has(packName)) return false;
 
                 if (p.index?.size > 0) {
-                    return [...p.index.values()].some(e => LOOT_TYPES.has(e.type));
+                    return [...p.index.values()].some(e =>
+                        LOOT_TYPES.has(e.type)
+                        && !adapter.isExcludedFromPool({ name: e.name || "item", type: e.type })
+                    );
                 }
                 return true;
             })
@@ -1192,5 +1236,21 @@ export class ItemPoolResolver {
                     needsCompile,
                 };
             });
+
+        const worldItems = game.items?.contents ?? (game.items ? [...game.items.values()] : []);
+        const hasLootableWorldItems = worldItems.some(e => !adapter.isExcludedFromPool(e));
+        const isGenericAdapter = !adapter.canCompileLootPool() && adapter.id !== "pf2e";
+        if (hasLootableWorldItems || isGenericAdapter || enabled.has("world.items")) {
+            packs.unshift({
+                id:           "world.items",
+                label:        "World Items Directory",
+                system:       game.system?.id ?? null,
+                enabled:      enabled.has("world.items"),
+                recommended:  false,
+                needsCompile: false,
+            });
+        }
+
+        return packs;
     }
 }

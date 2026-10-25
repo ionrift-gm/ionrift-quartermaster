@@ -1,3 +1,10 @@
+const GENERIC_MUNDANE_TYPES = new Set([
+    "loot", "tool", "backpack", "book",
+    "item", "gear", "goods", "ammunition",
+    "technological", "augmentation", "hybrid", "magic",
+    "upgrade", "mod", "weaponAccessory"
+]);
+
 /**
  * Pure classifier that maps a cache generator meta-item to the preview
  * section it should render under. The Cache Generator UI and the deployment
@@ -39,7 +46,7 @@ export function classifyCacheItem(item) {
         return "signature";
     }
     if (item.spellName) return "scroll";
-    if (item.type === "consumable") return "consumable";
+    if (item.type === "consumable" || item._qmKind === "consumable") return "consumable";
     // Weapons & Armour: dnd5e uses "equipment" for armour; PF2E splits the
     // wearable space into "armor", "shield", and "equipment". All of these
     // ship inside the same UI section so the preview matches what the
@@ -60,11 +67,7 @@ export function classifyCacheItem(item) {
         return "treasure";
     }
     if (qmKindOrSuffix(item, "trinkets", "quartermaster-trinkets")) return "trinket";
-    if (item.type === "loot"
-        || item.type === "tool"
-        || item.type === "backpack"
-        || item.type === "book"
-        || !item.type) {
+    if (GENERIC_MUNDANE_TYPES.has(item.type) || item._qmKind === "mundane" || !item.type) {
         return "mundane";
     }
     return "unclassified";

@@ -208,9 +208,17 @@ export class CacheGeneratorApp extends Application {
         const supportsLootActor = !itemPilesActive
             && !!game.ionrift?.quartermaster?.adapter?.canCreateLootActor?.();
 
-        const currentOwnerTheme = this._currentResult?.meta?.ownerTheme
+        const activeAdapter = getQuartermasterAdapter();
+        const supportsScrollForge = activeAdapter.supports(QM_FEATURES.SCROLL_FORGE);
+        const supportsAdvisory = activeAdapter.supports(QM_FEATURES.SIGNATURE_LEDGER)
+            || activeAdapter.supports(QM_FEATURES.SRD_CURSES);
+
+        let currentOwnerTheme = this._currentResult?.meta?.ownerTheme
             ?? game.settings?.get(MODULE_ID, "defaultCacheOwnerTheme")
             ?? "unspecified";
+        if (!supportsScrollForge && currentOwnerTheme === "arcana") {
+            currentOwnerTheme = "unspecified";
+        }
 
         // Compact labels for the secondary context strip
         const tierLabels = { 1: "T1", 2: "T2", 3: "T3", 4: "T4" };
@@ -218,7 +226,9 @@ export class CacheGeneratorApp extends Application {
 
         const ownerThemes = [
             { id: "unspecified", label: "Unspecified", desc: "A general cache. Balanced distribution." },
-            { id: "arcana",      label: "Arcana",      desc: "A spellcaster's reserves. Scrolls, reagents, and arcane curiosities." },
+            ...(supportsScrollForge ? [
+                { id: "arcana",  label: "Arcana",      desc: "A spellcaster's reserves. Scrolls, reagents, and arcane curiosities." }
+            ] : []),
             { id: "apothecary",  label: "Apothecary",  desc: "A healer's stock or alchemist's shelf. Potions, elixirs, and medicinal supplies." },
             { id: "armaments",   label: "Armaments",   desc: "Military surplus or a warrior's stash. Weapons, armor, and practical gear." },
             { id: "implements",  label: "Implements",  desc: "A crafter's workshop or cult supplies. Tools, reagents, and utility items." },
@@ -281,7 +291,7 @@ export class CacheGeneratorApp extends Application {
             statsLabel,
             itemPilesActive,
             supportsLootActor,
-            advisory:         this._buildAdvisoryContext(),
+            advisory:         supportsAdvisory ? this._buildAdvisoryContext() : null,
             advisoryCollapsed: this._advisoryCollapsed,
             budgetMin,
             budgetMax,
@@ -351,6 +361,11 @@ export class CacheGeneratorApp extends Application {
      */
     async _refreshAdvisoryForCurrentCache() {
         if (!this._currentResult) return;
+        const adapter = getQuartermasterAdapter();
+        if (!adapter.supports(QM_FEATURES.SIGNATURE_LEDGER) && !adapter.supports(QM_FEATURES.SRD_CURSES)) {
+            this._advisory = null;
+            return;
+        }
         const tier = this._currentResult.meta?.tier
             ?? game.settings?.get(MODULE_ID, "defaultCacheTier")
             ?? 1;
@@ -1750,6 +1765,11 @@ export class CacheGeneratorApp extends Application {
 
         if (sourceCompendium && compendiumId) {
             try {
+                if (sourceCompendium === "world.items") {
+                    const doc = game.items?.get(compendiumId);
+                    if (doc) doc.sheet.render(true);
+                    return;
+                }
                 const pack = game.packs.get(sourceCompendium);
                 if (pack) {
                     const doc = await pack.getDocument(compendiumId);
@@ -1853,7 +1873,7 @@ export class CacheGeneratorApp extends Application {
         const y = snapped?.y ?? rawY;
 
         if (data?.type === "ionrift-cache-loot-actor") {
-            return this._onCanvasDropLootActor(x, y);
+            return this._onCanvasDropLootActor(x, y, rawX, rawY);
         }
 
         if (data?.type !== "ionrift-cache" || !data.result) return;
@@ -1984,29 +2004,34 @@ export class CacheGeneratorApp extends Application {
             const actor = tok.actor;
             if (!doc || !actor) return false;
 
-            // Never target player characters or player-owned combatants
-            if (actor.hasPlayerOwner) return false;
+            // 1. Explicitly tagged Quartermaster cache
+            if (actor.flags?.[MODULE_ID]?.isQuartermasterCache) return true;
 
-            // 1. Tripwire cache, secret, or lock
+            // 2. Tripwire cache, secret, or lock
             if (doc.flags?.["ionrift-tripwire"]?.cache || doc.flags?.["ionrift-tripwire"]?.secret || doc.flags?.["ionrift-tripwire"]?.lock) {
                 return true;
             }
 
-            // 2. Item Piles container or loot pile
+            // 3. Item Piles container or loot pile
             const piles = game.itempiles?.API;
             if (piles) {
                 if (piles.isItemPileContainer?.(tok) || piles.isItemPileContainer?.(actor)) return true;
                 if (piles.isItemPile?.(actor ?? tok)) return true;
             }
 
-            // 3. System container or loot actor type
+            // 4. System container or loot actor type
             if (actor.type === "container" || actor.type === "loot") return true;
 
-            // 4. Token/actor named or themed as a container shell
+            if (actor.type === "character" && actor.hasPlayerOwner) return false;
+
+            // 5. Token/actor named or themed as a container shell
             const name = (actor.name || doc.name || "").toLowerCase();
             if (name.includes("chest") || name.includes("cache") || name.includes("crate") || name.includes("barrel") || name.includes("recess")) {
                 return true;
             }
+
+            // Never target player characters or player-owned combatants
+            if (actor.hasPlayerOwner) return false;
 
             return false;
         }) ?? null;
@@ -2059,24 +2084,44 @@ export class CacheGeneratorApp extends Application {
         await targetToken.document.update(tokenUpdates);
 
         if (targetActor) {
+            const ownerPerm = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3;
             const actorUpdates = {
                 name: containerName,
-                img: containerImg
+                img: containerImg,
+                "ownership.default": ownerPerm,
+                [`flags.${MODULE_ID}.isQuartermasterCache`]: true
             };
 
-            const cur = targetActor.system?.currency ?? {};
-            if (result.coinage) {
-                for (const denom of ["pp", "gp", "ep", "sp", "cp"]) {
-                    const added = result.coinage[denom] ?? 0;
-                    if (added > 0) {
-                        actorUpdates[`system.currency.${denom}`] = (cur[denom] ?? 0) + added;
+            const cur = targetActor.system?.currency;
+            const hasNativeCurrency = cur && typeof cur === "object" && Object.keys(cur).length > 0;
+            if (hasNativeCurrency) {
+                if (result.coinage) {
+                    for (const denom of ["pp", "gp", "ep", "sp", "cp"]) {
+                        const added = result.coinage[denom] ?? 0;
+                        if (added > 0 && denom in cur) {
+                            const existing = typeof cur[denom] === "object" ? (Number(cur[denom]?.value) || 0) : (Number(cur[denom]) || 0);
+                            if (typeof cur[denom] === "object" && cur[denom] !== null) {
+                                actorUpdates[`system.currency.${denom}.value`] = existing + added;
+                            } else {
+                                actorUpdates[`system.currency.${denom}`] = existing + added;
+                            }
+                        }
+                    }
+                } else if (result.gold && "gp" in cur) {
+                    const existing = typeof cur.gp === "object" ? (Number(cur.gp?.value) || 0) : (Number(cur.gp) || 0);
+                    if (typeof cur.gp === "object" && cur.gp !== null) {
+                        actorUpdates["system.currency.gp.value"] = existing + (result.gold ?? 0);
+                    } else {
+                        actorUpdates["system.currency.gp"] = existing + (result.gold ?? 0);
                     }
                 }
-            } else if (result.gold) {
-                actorUpdates["system.currency.gp"] = (cur.gp ?? 0) + (result.gold ?? 0);
             }
 
             await targetActor.update(actorUpdates);
+
+            if (!hasNativeCurrency) {
+                await getQuartermasterAdapter().depositLootActorCurrency(targetActor, result);
+            }
         }
 
         // Update Item Pile container imagery
@@ -2106,15 +2151,18 @@ export class CacheGeneratorApp extends Application {
     }
 
     /**
-     * PF2E native drop path: creates a Loot actor from the current cache
-     * result, then places a token for it at the drop coordinates. No Item
-     * Piles involvement, which is the whole point on PF2E where the Item
-     * Piles pile creation crashes.
+     * Native loot-actor drop path: creates a Loot actor from the current cache
+     * result (or populates an existing container token under the cursor), then
+     * places a token for it at the drop coordinates. When Item Piles is active
+     * on a generic system, also initializes the dropped token as an Item Pile
+     * container.
      *
      * @param {number} x - Canvas world x (already grid-snapped)
      * @param {number} y - Canvas world y
+     * @param {number} [rawX] - Raw unsnapped world x for target token hit-testing
+     * @param {number} [rawY] - Raw unsnapped world y for target token hit-testing
      */
-    async _onCanvasDropLootActor(x, y) {
+    async _onCanvasDropLootActor(x, y, rawX, rawY) {
         if (!this._currentResult) return;
         if (!canvas.scene) {
             ui.notifications.warn("Open a scene to place the loot actor.");
@@ -2122,14 +2170,62 @@ export class CacheGeneratorApp extends Application {
         }
 
         try {
-            const { actorId } = await CacheGenerator._createLootActor(this._currentResult);
+            const result = this._currentResult;
+            const targetToken = (rawX !== undefined && rawY !== undefined)
+                ? this._findTargetContainerToken(rawX, rawY)
+                : null;
+            if (targetToken) {
+                const pileItems = [];
+                const mintBatch = result.meta?.mintBatch;
+                const squashedMap = SquashMerger.merge(result.items ?? [], {
+                    log: (msg) => Logger.info(MODULE_LABEL, msg)
+                });
+                for (const entry of squashedMap.values()) {
+                    const resolved = await ItemResolutionPipeline.resolve(entry, mintBatch);
+                    pileItems.push(ItemResolutionPipeline.stampQuantity(resolved, entry._totalQty ?? 1));
+                }
+                const containerName = result.container?.name ?? "Loot Cache";
+                const containerImg = result.container?.img ?? "icons/containers/chest/chest-worn-oak-tan.webp";
+                await this._populateExistingContainer(targetToken, result, pileItems, containerName, containerImg);
+                return;
+            }
+
+            const { actorId } = await CacheGenerator._createLootActor(result);
             if (!actorId) return;
 
             const actor = game.actors.get(actorId);
             if (!actor) return;
 
             const tokenDoc = await actor.getTokenDocument({ x, y });
-            await canvas.scene.createEmbeddedDocuments("Token", [tokenDoc.toObject()]);
+            const createdTokens = await canvas.scene.createEmbeddedDocuments("Token", [tokenDoc.toObject()]);
+            const placedTokenDoc = Array.isArray(createdTokens) ? createdTokens[0] : null;
+            const placedToken = placedTokenDoc?.object ?? canvas.tokens?.get(placedTokenDoc?.id ?? "");
+
+            const isPf2eFamily = game.system?.id === "pf2e" || game.system?.id === "sf2e";
+            const piles = !isPf2eFamily && game.modules?.get("item-piles")?.active ? game.itempiles?.API : null;
+            if (placedToken && piles && typeof piles.turnTokensIntoItemPiles === "function") {
+                try {
+                    const containerImg = result.container?.img ?? actor.img;
+                    await piles.turnTokensIntoItemPiles([placedToken], {
+                        pileSettings: {
+                            type: "container",
+                            displayOne: false,
+                            showItemName: false,
+                            isContainer: true,
+                            canStackItems: true,
+                            canInspectItems: true,
+                            deleteWhenEmpty: "yes",
+                            shareCurrenciesEnabled: false,
+                            openedImage: containerImg,
+                            closedImage: containerImg,
+                            lockedImage: containerImg,
+                            emptyImage: containerImg
+                        }
+                    });
+                } catch (pileErr) {
+                    Logger.warn(MODULE_LABEL, "Item Piles initialization on loot actor token skipped:", pileErr);
+                }
+            }
         } catch (e) {
             Logger.error(MODULE_LABEL, "Loot actor placement failed:", e);
             ui.notifications.error("Failed to place loot actor. Check console.");
