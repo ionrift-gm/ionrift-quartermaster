@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.12.1] - 2026-10-25
+
+### Changed
+- Mystifying an item from the native Pathfinder 2e item sheet now applies Quartermaster's mundane name, icon, and hidden stats.
+- Expanded mundane item names for unidentified Pathfinder 2e weapons, armor, shields, handwraps, instruments, and worn gear.
+
+### Fixed
+- Converting a container into a cache re-masks Pathfinder 2e items that still showed rune names or true item names.
+
 ## [1.12.0] - 2026-10-18
 
 ### Added
