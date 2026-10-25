@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.12.2] - 2026-10-25
 
 ### Added
 - Loot caches can now be dragged onto the canvas or placed as loot actors on generic game systems without Item Piles, and converted from existing containers in the world.
