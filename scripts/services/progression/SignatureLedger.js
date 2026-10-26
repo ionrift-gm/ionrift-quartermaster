@@ -7,11 +7,11 @@ export class SignatureLedger {
 
     static get PROFILES() {
         return {
-            full:     { label: "Full Campaign (1\u201320)",   milestones: [3, 5, 8, 12, 16, 20] },
-            tier2:    { label: "Tier 2 Campaign (1\u201312)", milestones: [2, 4, 6, 8, 10, 12] },
-            tier3:    { label: "Tier 3 Campaign (1\u201316)", milestones: [3, 5, 8, 11, 14, 16] },
-            chapter1: { label: "Chapter 1 (1\u201310)",       milestones: [2, 3, 5, 7, 8, 10] },
-            chapter2: { label: "Chapter 2 (11\u201320)",      milestones: [11, 13, 15, 17, 18, 20] },
+            full:     { get label() { return game.i18n.localize("ionrift-quartermaster.ledger.profileFull"); },     milestones: [3, 5, 8, 12, 16, 20] },
+            tier2:    { get label() { return game.i18n.localize("ionrift-quartermaster.ledger.profileTier2"); },    milestones: [2, 4, 6, 8, 10, 12] },
+            tier3:    { get label() { return game.i18n.localize("ionrift-quartermaster.ledger.profileTier3"); },    milestones: [3, 5, 8, 11, 14, 16] },
+            chapter1: { get label() { return game.i18n.localize("ionrift-quartermaster.ledger.profileChapter1"); }, milestones: [2, 3, 5, 7, 8, 10] },
+            chapter2: { get label() { return game.i18n.localize("ionrift-quartermaster.ledger.profileChapter2"); }, milestones: [11, 13, 15, 17, 18, 20] },
         };
     }
 

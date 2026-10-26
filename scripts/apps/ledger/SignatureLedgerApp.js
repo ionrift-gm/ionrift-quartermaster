@@ -14,19 +14,19 @@ function MILESTONES() { return SignatureLedger.MILESTONES; }
 
 /** Canonical curse type descriptions for UI tooltips and filter labels. */
 const CURSE_TYPE_DESCRIPTIONS = {
-    compulsion:    "Forces or restricts social behaviour",
-    psychological: "Affects mental state or perception",
-    physical:      "Bodily transformation, aging, weakness",
-    interference:  "Disrupts item use, spellcasting, or economy",
-    narrative:     "Creates story complications (surveillance, reputation)",
-    deceptive:     "Item is not what it appears",
-    haunting:      "Spectral presence, whispers, or ghostly manifestations",
-    behavioral:    "Forces or restricts social behaviour",
-    surveillance:  "Creates story complications (surveillance, reputation)",
-    social:        "Affects social standing or relationships",
-    political:     "Creates political entanglements or obligations",
-    practical:     "Disrupts item use, spellcasting, or economy",
-    aging:         "Bodily transformation, aging, weakness"
+    get compulsion()    { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.compulsion"); },
+    get psychological() { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.psychological"); },
+    get physical()      { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.physical"); },
+    get interference()  { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.interference"); },
+    get narrative()     { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.narrative"); },
+    get deceptive()     { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.deceptive"); },
+    get haunting()      { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.haunting"); },
+    get behavioral()    { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.compulsion"); },
+    get surveillance()  { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.narrative"); },
+    get social()        { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.social"); },
+    get political()     { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.political"); },
+    get practical()     { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.interference"); },
+    get aging()         { return game.i18n.localize("ionrift-quartermaster.ledger.curseType.physical"); }
 };
 
 /** @returns {string|undefined} Pack ID for the cursed items compendium (CW or fallback). */
@@ -188,7 +188,7 @@ export class SignatureLedgerApp extends Application {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id:       "ionrift-signature-ledger",
-            title:    "Quartermaster",
+            title:    "ionrift-quartermaster.ledger.appTitle",
             template: "modules/ionrift-quartermaster/templates/signature-ledger.hbs",
             width:    1000,
             height:   740,
@@ -867,9 +867,9 @@ export class SignatureLedgerApp extends Application {
      */
     static _computeShelfRarityDistribution(concentration) {
         const tiers = [
-            { rarity: "uncommon", label: "Uncommon", base: 6, cssClass: "rarity-uncommon" },
-            { rarity: "rare",     label: "Rare",     base: 3, cssClass: "rarity-rare" },
-            { rarity: "veryRare", label: "Very Rare", base: 1, cssClass: "rarity-veryRare" }
+            { rarity: "uncommon", get label() { return game.i18n.localize("ionrift-quartermaster.ledger.rarity.uncommon"); }, base: 6, cssClass: "rarity-uncommon" },
+            { rarity: "rare",     get label() { return game.i18n.localize("ionrift-quartermaster.ledger.rarity.rare"); },     base: 3, cssClass: "rarity-rare" },
+            { rarity: "veryRare", get label() { return game.i18n.localize("ionrift-quartermaster.ledger.rarity.veryRare"); }, base: 1, cssClass: "rarity-veryRare" }
         ];
 
         const factor = Math.max(1, concentration) / 3;
@@ -897,10 +897,10 @@ export class SignatureLedgerApp extends Application {
      */
     static _computeCategoryMix(jsonStr) {
         const CATEGORY_META = {
-            wondrous: { label: "Wondrous", cssClass: "cat-wondrous" },
-            focus:    { label: "Focus",    cssClass: "cat-focus" },
-            armor:    { label: "Armor",    cssClass: "cat-armor" },
-            weapon:   { label: "Weapon",   cssClass: "cat-weapon" }
+            wondrous: { get label() { return game.i18n.localize("ionrift-quartermaster.ledger.category.wondrous"); }, cssClass: "cat-wondrous" },
+            focus:    { get label() { return game.i18n.localize("ionrift-quartermaster.ledger.category.focus"); },    cssClass: "cat-focus" },
+            armor:    { get label() { return game.i18n.localize("ionrift-quartermaster.ledger.category.armor"); },    cssClass: "cat-armor" },
+            weapon:   { get label() { return game.i18n.localize("ionrift-quartermaster.ledger.category.weapon"); },   cssClass: "cat-weapon" }
         };
 
         let parsed;
@@ -998,7 +998,7 @@ export class SignatureLedgerApp extends Application {
                         posInCol,
                         curseTypeDesc: CURSE_TYPE_DESCRIPTIONS[(e.curseType || "").toLowerCase()] || "",
                         weightPct,
-                        weightTooltip: `Draw weight within T${col.tier}: ${weightPct}% - drag to reorder`
+                        weightTooltip: game.i18n.format("ionrift-quartermaster.ledger.curseWeightTooltip", { tier: col.tier, weight: weightPct })
                     };
                 });
             const enabled = tierEnabledMap[col.tier] ?? true;
@@ -1226,7 +1226,7 @@ export class SignatureLedgerApp extends Application {
                     if (fromTier !== tierNum) {
                         const currentCount = tierItems.length;
                         if (currentCount >= CAP) {
-                            ui.notifications.warn(`T${tierNum} column is full (max ${CAP} items). Remove one before adding another.`);
+                            ui.notifications.warn(game.i18n.format("ionrift-quartermaster.notification.cursedColFullRemoveBeforeAdd", { tier: tierNum, cap: CAP }));
                             return;
                         }
                         // Also update the source tier to remove the item from there
@@ -1271,11 +1271,11 @@ export class SignatureLedgerApp extends Application {
                 const pool = await reg.getCursedPool();
                 const tierItems = pool.filter(e => (e.tier ?? 1) === tierNum);
                 if (tierItems.length >= CAP) {
-                    ui.notifications.warn(`T${tierNum} column is full (max ${CAP} items). Remove one first.`);
+                    ui.notifications.warn(game.i18n.format("ionrift-quartermaster.notification.cursedColFullRemoveFirst", { tier: tierNum, cap: CAP }));
                     return;
                 }
                 if (pool.some(e => (e.uuid || "").toLowerCase() === uuid.toLowerCase())) {
-                    ui.notifications.info("That item is already in the cursed pool.");
+                    ui.notifications.info(game.i18n.localize("ionrift-quartermaster.notification.cursedItemAlreadyInPool"));
                     return;
                 }
 
@@ -1465,7 +1465,7 @@ export class SignatureLedgerApp extends Application {
             await game.settings.set(MODULE_ID, "scrollUpperReach", 2);
             await game.settings.set(MODULE_ID, "scrollConcentration", 2);
             await game.settings.set(MODULE_ID, "scrollOffset", -1);
-            ui.notifications.info("Scroll distribution settings reset to defaults.");
+            ui.notifications.info(game.i18n.localize("ionrift-quartermaster.notification.scrollDefaultsReset"));
             this.render(false);
         });
 
@@ -1569,7 +1569,7 @@ export class SignatureLedgerApp extends Application {
                 armor:    { w: 10, on: true },
                 weapon:   { w: 5,  on: true }
             }));
-            ui.notifications.info("Party shelf policy settings reset to defaults.");
+            ui.notifications.info(game.i18n.localize("ionrift-quartermaster.notification.partyShelfDefaultsReset"));
             this.render(false);
         });
 
@@ -1587,7 +1587,7 @@ export class SignatureLedgerApp extends Application {
         html.find(".action-open-curse-registry").click(ev => {
             ev.preventDefault();
             const cw = game.ionrift?.cursewright;
-            if (!cw) { ui.notifications.warn("Cursewright is not installed."); return; }
+            if (!cw) { ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.notification.cursewrightNotInstalled")); return; }
             new cw.CurseRegistryPanel().render(true);
         });
 
@@ -1757,7 +1757,7 @@ export class SignatureLedgerApp extends Application {
             new PartyRosterApp().render(true);
         } else {
             // Defensive fallback - should not reach here with library >= 2.0.0
-            ui.notifications.warn("Party Roster requires Ionrift Library v2.0.0 or later.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.notification.partyRosterRequiresLib"));
         }
     }
 
@@ -1883,12 +1883,12 @@ export class SignatureLedgerApp extends Application {
         if (rerolled) {
             ledgerData[actorId].plannedItems.push(rerolled);
             await SignatureLedger.setLedgerData(ledgerData);
-            ui.notifications.info(`Re-rolled: ${rerolled.name} for ${actor.name} at Lv ${level}.`);
+            ui.notifications.info(game.i18n.format("ionrift-quartermaster.notification.signatureRerolled", { item: rerolled.name, actor: actor.name, level }));
         } else {
             // Restore old item if no replacement found
             if (oldItem) ledgerData[actorId].plannedItems.push(oldItem);
             await SignatureLedger.setLedgerData(ledgerData);
-            ui.notifications.warn(`No alternative found for ${actor.name} at Lv ${level}.`);
+            ui.notifications.warn(game.i18n.format("ionrift-quartermaster.notification.signatureNoAlternative", { actor: actor.name, level }));
         }
         this.render();
     }
@@ -2053,8 +2053,10 @@ export class SignatureLedgerApp extends Application {
             const dstBudgetUsed = dstItems.length;
             if (dstBudgetUsed >= BUDGET) {
                 ui.notifications.warn(
-                    `${ledgerData[dstActorId].name} has no budget remaining (${BUDGET} items). ` +
-                    `Clear a slot there first.`
+                    game.i18n.format("ionrift-quartermaster.notification.signatureNoBudgetRemaining", {
+                        actor: ledgerData[dstActorId].name,
+                        budget: BUDGET
+                    })
                 );
                 return;
             }
@@ -2086,11 +2088,25 @@ export class SignatureLedgerApp extends Application {
         const srcName = ledgerData[srcActorId].name;
         const dstName = ledgerData[dstActorId].name;
         if (isSameChar) {
-            ui.notifications.info(`Moved ${srcEntry.name} to Lv ${dstLevel} for ${srcName}.`);
+            ui.notifications.info(game.i18n.format("ionrift-quartermaster.notification.signatureMovedLevel", {
+                item: srcEntry.name,
+                level: dstLevel,
+                actor: srcName
+            }));
         } else if (dstEntry) {
-            ui.notifications.info(`Swapped ${srcEntry.name} ↔ ${dstEntry.name} between ${srcName} and ${dstName}.`);
+            ui.notifications.info(game.i18n.format("ionrift-quartermaster.notification.signatureSwapped", {
+                itemA: srcEntry.name,
+                itemB: dstEntry.name,
+                actorA: srcName,
+                actorB: dstName
+            }));
         } else {
-            ui.notifications.info(`Moved ${srcEntry.name} from ${srcName} → ${dstName} at Lv ${dstLevel}.`);
+            ui.notifications.info(game.i18n.format("ionrift-quartermaster.notification.signatureMovedActor", {
+                item: srcEntry.name,
+                actorA: srcName,
+                actorB: dstName,
+                level: dstLevel
+            }));
         }
 
         this.render();
@@ -2110,7 +2126,7 @@ export class SignatureLedgerApp extends Application {
         const BUDGET   = 4;
 
         if (existing.length >= BUDGET) {
-            ui.notifications.warn(`${actor.name} already has ${BUDGET} signatures planned.`);
+            ui.notifications.warn(game.i18n.format("ionrift-quartermaster.notification.signatureBudgetFull", { actor: actor.name, budget: BUDGET }));
             return;
         }
 
@@ -2148,7 +2164,7 @@ export class SignatureLedgerApp extends Application {
         ledgerData[actorId].plannedItems = [...existing, ...newItems];
 
         await SignatureLedger.setLedgerData(ledgerData);
-        ui.notifications.info(`Filled ${newItems.length} empty slot(s) for ${actor.name}.`);
+        ui.notifications.info(game.i18n.format("ionrift-quartermaster.notification.signatureFilledSlots", { count: newItems.length, actor: actor.name }));
         this.render();
     }
 
@@ -2167,7 +2183,7 @@ export class SignatureLedgerApp extends Application {
         // Adding to a full budget is blocked.
         if (!alreadyFilled && existing.length >= BUDGET) {
             ui.notifications.warn(
-                `Signature budget full (${BUDGET} items). Clear a slot to assign a different one.`
+                game.i18n.format("ionrift-quartermaster.notification.signatureBudgetFullAssign", { budget: BUDGET })
             );
             return;
         }
@@ -2254,7 +2270,7 @@ export class SignatureLedgerApp extends Application {
 
     async _onSeedPartyShelf(event) {
         event.preventDefault();
-        ui.notifications.info("Seeding party shelf…");
+        ui.notifications.info(game.i18n.localize("ionrift-quartermaster.notification.partyShelfSeeding"));
 
         const partyActors = SignatureLedger._resolvePartyMembers();
         const banSet      = await SignatureLedger.getBanSet();
@@ -2267,7 +2283,7 @@ export class SignatureLedgerApp extends Application {
         const fresh  = seeded.filter(s => !usedNames.has(s.name.toLowerCase()));
 
         if (!fresh.length && kept.length === existing.length) {
-            ui.notifications.warn("No new items to suggest. All candidates are already on the shelf or banned.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.notification.partyShelfNoNewItems"));
             return;
         }
 
@@ -2282,7 +2298,10 @@ export class SignatureLedgerApp extends Application {
         await SignatureLedger.setPartyShelf(merged);
         const replaced = existing.length - kept.length;
         const added    = merged.length - kept.length;
-        ui.notifications.info(`Randomised party shelf: ${added} suggestion(s)${replaced ? `, replaced ${replaced} previous` : ""}.`);
+        ui.notifications.info(replaced
+            ? game.i18n.format("ionrift-quartermaster.notification.partyShelfRandomisedWithReplaced", { added, replaced })
+            : game.i18n.format("ionrift-quartermaster.notification.partyShelfRandomised", { added })
+        );
         this.render();
     }
 
@@ -2302,16 +2321,16 @@ export class SignatureLedgerApp extends Application {
         // SRD items are superseded when Cursewright is loaded. Block silently so
         // any programmatic caller doesn't pollute the pool with obsolete items.
         if (game.ionrift?.cursewright) {
-            ui.notifications.warn("Cursewright is active. Use Compile CW to refresh the cursed pool.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.notification.cursewrightActiveUseCompileCW"));
             return;
         }
 
-        ui.notifications.info("Quartermaster: compiling SRD cursed items...");
+        ui.notifications.info(game.i18n.localize("ionrift-quartermaster.notification.compilingSrdCursedItems"));
         await getCurseAdapter().compile({ forceRecompile: true });
 
         const srdPack = game.packs.get(getCurseAdapter().worldCollectionId);
         if (!srdPack) {
-            ui.notifications.warn("SRD cursed items could not be found. Check your D&D 5e system installation.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.notification.srdCursedItemsNotFound"));
             return;
         }
 
@@ -2340,7 +2359,10 @@ export class SignatureLedgerApp extends Application {
         await getActiveCursedRegistry().setCursedPool(pool);
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
         const added = pool.length - before;
-        ui.notifications.info(`SRD cursed items refreshed: ${docs.length} item${docs.length !== 1 ? "s" : ""} in pool.`);
+        ui.notifications.info(docs.length === 1
+            ? game.i18n.format("ionrift-quartermaster.notification.srdCursedItemsRefreshedOne", { count: docs.length })
+            : game.i18n.format("ionrift-quartermaster.notification.srdCursedItemsRefreshedOther", { count: docs.length })
+        );
         this.render();
     }
 
@@ -2375,7 +2397,7 @@ export class SignatureLedgerApp extends Application {
             catch (e) { /* The setting may not exist yet. */ }
         }
 
-        ui.notifications.info("Cursewright: compiling cursed items from D&D 5e sources...");
+        ui.notifications.info(game.i18n.localize("ionrift-quartermaster.notification.compilingCursewrightItems"));
         await CurseForge.compile({ force: true });
         CurseForge.enforceOwnership();
 
@@ -2429,7 +2451,10 @@ export class SignatureLedgerApp extends Application {
             await getActiveCursedRegistry().rematchLedgerCursedUuids(docs);
         }
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
-        ui.notifications.info(`Cursewright: ${docs.length} item${docs.length !== 1 ? "s" : ""} in pool.`);
+        ui.notifications.info(docs.length === 1
+            ? game.i18n.format("ionrift-quartermaster.notification.cursewrightItemsInPoolOne", { count: docs.length })
+            : game.i18n.format("ionrift-quartermaster.notification.cursewrightItemsInPoolOther", { count: docs.length })
+        );
     }
 
     // ── Cursed: Pool Actions ──────────────────────────────────────────────
@@ -2541,12 +2566,12 @@ export class SignatureLedgerApp extends Application {
             const key = data.uuid.toLowerCase();
             if (list.some(b => (b.uuid || "").toLowerCase() === key) ||
                 list.some(b => b.name.toLowerCase() === item.name.toLowerCase())) {
-                ui.notifications.warn(`"${item.name}" is already on the ban list.`);
+                ui.notifications.warn(game.i18n.format("ionrift-quartermaster.notification.banItemAlreadyOnList", { name: item.name }));
                 return;
             }
             list.push({ name: item.name, img: item.img || null, uuid: data.uuid, reason: "" });
             await SignatureLedger.setBanList(list);
-            ui.notifications.info(`"${item.name}" added to the ban list.`);
+            ui.notifications.info(game.i18n.format("ionrift-quartermaster.notification.banItemAdded", { name: item.name }));
             this.render();
             return;
         }
@@ -2605,7 +2630,7 @@ export class SignatureLedgerApp extends Application {
             const pinned = await SignatureLedger.getScrollPinned();
             const nameKey = (item.name || "").toLowerCase();
             if (pinned.some(s => (s.spellName || "").toLowerCase() === nameKey)) {
-                ui.notifications.warn(`${item.name} is already pinned in the Scroll Plan.`);
+                ui.notifications.warn(game.i18n.format("ionrift-quartermaster.notification.scrollAlreadyPinned", { name: item.name }));
                 return;
             }
             const slotIdx = Math.min(2, Math.max(0, parseInt(slotEl.dataset.slotIdx || "0", 10)));
@@ -2751,7 +2776,9 @@ SignatureLedgerApp.prototype._showItemTooltip = function(item, anchorEl) {
     }
     desc = desc.slice(0, 240);
 
-    const rarityLabel = rarity === "veryRare" ? "Very Rare" : (rarity.charAt(0).toUpperCase() + rarity.slice(1));
+    const rarityLabel = rarity === "veryRare"
+        ? game.i18n.localize("ionrift-quartermaster.ledger.rarity.veryRare")
+        : (rarity.charAt(0).toUpperCase() + rarity.slice(1));
 
     const isCursed   = anchorEl?.classList?.contains("curse-priority-card");
     const curseType  = anchorEl?.dataset?.curseType || "";
@@ -2794,11 +2821,11 @@ SignatureLedgerApp.prototype._showItemTooltip = function(item, anchorEl) {
                 ${isCursed && curseLabel ? `<span class="sig-tooltip-curse-type">${curseLabel}</span>` : ""}
                 <span class="sig-tooltip-rarity ${rarity}">${rarityLabel}</span>
                 ${type && !isFallback ? `<span class="sig-tooltip-type">${subtype || type}</span>` : ""}
-                ${attunement ? `<span class="sig-tooltip-attunement">Requires Attunement</span>` : ""}
+                ${attunement ? `<span class="sig-tooltip-attunement">${game.i18n.localize("ionrift-quartermaster.ledger.tooltipRequiresAttunement")}</span>` : ""}
             </div>
             ${cursedEnrichment}
             ${desc ? `<div class="sig-tooltip-desc">${desc}</div>` : ""}
-            <div class="sig-tooltip-hint">${isFallback ? "Compendium item" : "Click to open sheet"}</div>
+            <div class="sig-tooltip-hint">${isFallback ? game.i18n.localize("ionrift-quartermaster.ledger.tooltipCompendiumItem") : game.i18n.localize("ionrift-quartermaster.ledger.tooltipClickToOpenSheet")}</div>
         </div>
     `;
 
