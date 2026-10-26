@@ -98,10 +98,10 @@
                     <li><span class="forge-skip-name">{{this.name}}</span>{{#if this.packId}} <span class="forge-skip-pack">{{this.packId}}</span>{{/if}} <span class="forge-skip-phase">[{{this.phase}}]</span></li>
                     {{/each}}
                     {{#if compiledStatus.skipReport.overflowCount}}
-                    <li class="forge-skip-overflow">… and {{compiledStatus.skipReport.overflowCount}} more (see debug report for full list)</li>
+                    <li class="forge-skip-overflow">and {{compiledStatus.skipReport.overflowCount}} more left out.</li>
                     {{/if}}
                 </ul>
-                <p class="forge-skip-hint">Skipped source rows do not block the compiled pool. Add replacements manually to the compiled compendium if needed.</p>
+                <p class="forge-skip-hint">These items were left out because of compatibility issues. Drag any you still want into the compiled compendium.</p>
                 {{/if}}
             </div>
             {{/if}}
@@ -118,9 +118,9 @@
             </div>
             <p class="forge-skip-hint">
                 {{#if bugReportUi.canSubmit}}
-                You get a reference number to cite in Discord when you send.
+                The compiled pool did not finish. You get a reference number to cite in Discord when you send.
                 {{else}}
-                Copy the report for <a href="{{bugReportUi.discordUrl}}" target="_blank" rel="noopener">Discord</a>.
+                The compiled pool did not finish. Copy the report for <a href="{{bugReportUi.discordUrl}}" target="_blank" rel="noopener">Discord</a>.
                 {{/if}}
             </p>
             {{/if}}

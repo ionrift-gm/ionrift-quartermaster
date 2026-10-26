@@ -4,14 +4,14 @@ import { MODULE_ID } from "../../data/moduleId.js";
  *
  * Unified dialog for all Quartermaster compendium compilation workflows.
  * Three first-class tabs: Loot Pool, Scroll Forge, Cursed Items.
- * Each tab has a full source-picker -> compile -> done flow.
+ * Each tab runs source picker, compile, then done.
  *
  * State machine runs independently per tab so switching never resets another
  * tab's phase or compile result.
  *
  * Scroll Forge source discovery is async (reads pack indexes). The tab renders
  * immediately in a loading skeleton state, then re-renders once candidates
- * arrive -- keeps the UI responsive regardless of world size.
+ * arrive. That keeps the UI responsive regardless of world size.
  */
 
 import { ItemPoolResolver } from "../../services/loot/ItemPoolResolver.js";
@@ -24,6 +24,16 @@ import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 
 const QM_BUG_REPORT_CONTEXT = "quartermaster-loot-pool-compile";
+
+/**
+ * Report actions belong on a failed compile, not on compatibility skips.
+ * Skips still leave a usable pool. Error status means the pool did not finish.
+ * @param {{ tab?: string, phase?: string, status?: string }} state
+ * @returns {boolean}
+ */
+export function shouldOfferLootPoolBugReport({ tab, phase, status } = {}) {
+    return tab === "lootPool" && phase === "pick" && status === "error";
+}
 
 const LOOT_PHASE_LABELS = {
     setup:     "Preparing...",
@@ -158,7 +168,7 @@ export class CompendiumForgeApp extends FormApplication {
 
             // Done phase
             doneResult:        doneResult ? this._formatDoneResult(tab, doneResult) : null,
-            bugReportUi:       this._buildBugReportUi(tab, phase, doneResult),
+            bugReportUi:       this._buildBugReportUi(tab, phase),
 
             // Pick phase: view existing compendium if already compiled
             showViewCompendium: phase === "pick" && !!this._existingPackId(tab),
@@ -583,14 +593,12 @@ export class CompendiumForgeApp extends FormApplication {
         });
     }
 
-    _buildBugReportUi(tab, phase, doneResult) {
-        if (tab !== "lootPool") return null;
-
-        const meta       = LootPoolCompiler.getCompiledMeta();
-        const skipCount  = meta?.skippedCount ?? meta?.skippedItems?.length ?? 0;
-        const showOnPick = phase === "pick" && (skipCount > 0 || LootPoolCompiler.getStatus() === "error");
-        const showOnDone = phase === "done" && (doneResult?.skippedCount > 0);
-        if (!showOnPick && !showOnDone) return null;
+    _buildBugReportUi(tab, phase) {
+        if (!shouldOfferLootPoolBugReport({
+            tab,
+            phase,
+            status: LootPoolCompiler.getStatus(),
+        })) return null;
 
         const bugReport = game.ionrift?.library?.bugReport;
         return {
@@ -832,6 +840,11 @@ export class CompendiumForgeApp extends FormApplication {
             onProgress: p => this._onLootProgress(p),
         }).then(() => {
             const meta = LootPoolCompiler.getCompiledMeta();
+            if (meta?.error) {
+                this._doneResults.lootPool = null;
+                this._phases.lootPool = "pick";
+                return;
+            }
             this._doneResults.lootPool = meta;
             this._phases.lootPool = "done";
         }).catch(err => {
