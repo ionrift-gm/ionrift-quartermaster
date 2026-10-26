@@ -2026,8 +2026,17 @@ export class CacheGeneratorApp extends Application {
             if (actor.type === "character" && actor.hasPlayerOwner) return false;
 
             // 5. Token/actor named or themed as a container shell
+            const arch = actor.getFlag?.(MODULE_ID, "containerArchetype")
+                ?? actor.flags?.[MODULE_ID]?.containerArchetype
+                ?? actor.system?.identifier
+                ?? doc.getFlag?.(MODULE_ID, "containerArchetype")
+                ?? doc.flags?.[MODULE_ID]?.containerArchetype
+                ?? doc.system?.identifier;
+            if (arch && ["chest", "cache", "crate", "barrel", "recess", "sack", "bag", "pouch"].includes(String(arch).toLowerCase())) {
+                return true;
+            }
             const name = (actor.name || doc.name || "").toLowerCase();
-            if (name.includes("chest") || name.includes("cache") || name.includes("crate") || name.includes("barrel") || name.includes("recess")) {
+            if (name.includes("chest") || name.includes("cache") || name.includes("crate") || name.includes("barrel") || name.includes("recess") || name.includes("sack") || name.includes("bag") || name.includes("pouch")) {
                 return true;
             }
 

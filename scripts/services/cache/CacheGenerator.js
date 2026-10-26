@@ -1987,9 +1987,10 @@ export class CacheGenerator {
 
         // Create a folder for this cache
         const folderName = `Cache: ${cacheResult.meta?.cacheLabel ?? "Loot"} (${new Date().toLocaleDateString()})`;
-        let folder = game.folders.find(f => f.name === folderName && f.type === "Item");
+        const folderKey = `cache-items-${String(cacheResult.meta?.cacheLabel ?? "loot").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        let folder = game.folders.find(f => (f.getFlag?.(MODULE_ID, "folderKey") === folderKey || f.flags?.[MODULE_ID]?.folderKey === folderKey || f.name === folderName) && f.type === "Item");
         if (!folder) {
-            folder = await Folder.create({ name: folderName, type: "Item", parent: null });
+            folder = await Folder.create({ name: folderName, type: "Item", parent: null, flags: { [MODULE_ID]: { folderKey } } });
         }
 
         // Build item data for all generated items via the active system adapter
@@ -2164,9 +2165,10 @@ export class CacheGenerator {
         const items = result.items ?? [];
         const meta = result.meta ?? {};
         const folderName = `Cache: ${meta.cacheLabel ?? "Loot"} (${new Date().toLocaleDateString()})`;
-        let folder = game.folders.find(f => f.name === folderName && f.type === "Item");
+        const folderKey = `cache-items-${String(meta.cacheLabel ?? "loot").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        let folder = game.folders.find(f => (f.getFlag?.(MODULE_ID, "folderKey") === folderKey || f.flags?.[MODULE_ID]?.folderKey === folderKey || f.name === folderName) && f.type === "Item");
         if (!folder) {
-            folder = await Folder.create({ name: folderName, type: "Item", parent: null });
+            folder = await Folder.create({ name: folderName, type: "Item", parent: null, flags: { [MODULE_ID]: { folderKey } } });
         }
 
         const toCreate = items.map(item => {
@@ -2226,9 +2228,10 @@ export class CacheGenerator {
         const meta = result.meta ?? {};
         const items = result.items ?? [];
         const folderName = `Cache: ${meta.cacheLabel ?? "Loot"} (${new Date().toLocaleDateString()})`;
-        let folder = game.folders.find(f => f.name === folderName && f.type === "Actor");
+        const folderKey = `cache-actor-${String(meta.cacheLabel ?? "loot").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        let folder = game.folders.find(f => (f.getFlag?.(MODULE_ID, "folderKey") === folderKey || f.flags?.[MODULE_ID]?.folderKey === folderKey || f.name === folderName) && f.type === "Actor");
         if (!folder) {
-            folder = await Folder.create({ name: folderName, type: "Actor", parent: null });
+            folder = await Folder.create({ name: folderName, type: "Actor", parent: null, flags: { [MODULE_ID]: { folderKey } } });
         }
 
         const actorPayload = adapter.buildLootActorPayload(result, meta);

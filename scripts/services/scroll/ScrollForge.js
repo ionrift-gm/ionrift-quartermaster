@@ -253,6 +253,10 @@ export class ScrollForge {
                 try {
                     const data = await rules.spellToScrollData(spell, ItemClass);
                     if (!data) { skipCount++; continue; }
+                    data.flags ??= {};
+                    data.flags[MODULE_ID] ??= {};
+                    data.flags[MODULE_ID].spellIdentifier = spell.system?.identifier || spell.system?.slug || spell.id;
+                    data.flags[MODULE_ID].isScroll = true;
                     pendingRows.push({
                         data,
                         groupKey: rules.getSpellFolderGroupKey(spell),
@@ -414,14 +418,20 @@ export class ScrollForge {
      */
     static async _findOrCreateItemFolder(pack, name, parentFolderId) {
         const col = pack.collection;
+        const folderKey = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
         const match = game.folders.find(f =>
             this._folderIsInItemPack(f, col)
-            && f.name === name
+            && (f.getFlag?.(MODULE_ID, "folderKey") === folderKey || f.flags?.[MODULE_ID]?.folderKey === folderKey || f.name === name)
             && this._sameFolderParent(f, parentFolderId)
         );
         if (match) return match;
 
-        const data = { name, type: "Item", sorting: "a" };
+        const data = {
+            name,
+            type: "Item",
+            sorting: "a",
+            flags: { [MODULE_ID]: { folderKey } }
+        };
         if (parentFolderId) data.folder = parentFolderId;
 
         const created = await Folder.create(data, { pack: pack.collection });

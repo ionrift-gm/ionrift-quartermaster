@@ -330,7 +330,12 @@ export class CacheScrollLogic {
         const partySpells = this._getPartyKnownSpells();
         const novel = eligible.filter(e => {
             const spellName = e.flags?.[MODULE_ID]?.scrollMeta?.spellName;
-            return spellName && !partySpells.has(spellName.toLowerCase());
+            const spellIdent = e.flags?.[MODULE_ID]?.spellIdentifier
+                ?? e.flags?.[MODULE_ID]?.scrollMeta?.spellIdentifier
+                ?? e.system?.identifier;
+            if (spellIdent && partySpells.has(String(spellIdent).toLowerCase())) return false;
+            if (spellName && partySpells.has(spellName.toLowerCase())) return false;
+            return true;
         });
         const finalPool = novel.length > 0 ? novel : eligible;
 
@@ -471,7 +476,18 @@ export class CacheScrollLogic {
                 for (const spell of SA.getKnownSpells(actor)) known.add(spell);
             } else {
                 for (const item of actor.items) {
-                    if (item.type === "spell") known.add(item.name.toLowerCase());
+                    if (item.type === "spell") {
+                        if (item.name) known.add(item.name.toLowerCase());
+                        const ident = item.system?.identifier?.toLowerCase();
+                        if (ident) known.add(ident);
+                        const slug = item.system?.slug?.toLowerCase();
+                        if (slug) known.add(slug);
+                        const source = item._stats?.compendiumSource;
+                        if (source) {
+                            const suffix = String(source).split(".").pop()?.toLowerCase();
+                            if (suffix) known.add(suffix);
+                        }
+                    }
                 }
             }
         }

@@ -258,6 +258,8 @@ export class LootPoolAuditor {
         for (const rows of Object.values(byPack)) {
             for (const row of rows) {
                 if (row.name) namesInSources.add(row.name.trim().toLowerCase());
+                const ident = row.system?.identifier || row.flags?.[MODULE_ID]?.compiledKey;
+                if (ident) namesInSources.add(ident.trim().toLowerCase());
                 if (row.bucket === "A_template" && row.compilerAction === "review_for_compiler_manifest") {
                     templateRows.push(row);
                 }
@@ -300,10 +302,13 @@ export class LootPoolAuditor {
         let present = 0;
         const missingSamples = [];
         try {
-            const index = await pack.getIndex({ fields: ["name"] });
-            const compiled = new Set(
-                (index.contents ?? Array.from(index)).map(e => (e.name ?? "").trim().toLowerCase())
-            );
+            const index = await pack.getIndex({ fields: ["name", "flags", "system.identifier"] });
+            const compiled = new Set();
+            for (const e of (index.contents ?? Array.from(index))) {
+                if (e.name) compiled.add(e.name.trim().toLowerCase());
+                const ident = e.system?.identifier || e.flags?.[MODULE_ID]?.compiledKey;
+                if (ident) compiled.add(ident.trim().toLowerCase());
+            }
             for (const name of expectedNames) {
                 if (compiled.has(name.toLowerCase())) present++;
                 else missingSamples.push(name);

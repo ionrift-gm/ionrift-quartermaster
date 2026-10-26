@@ -75,10 +75,11 @@ async function migrateDefaultLootPoolSources() {
             } else {
                 const available = ItemPoolResolver.listAvailableCompendiums()
                     .filter(p => p.id !== "world.items");
-                const preferred = available.filter(p =>
-                    p.recommended
-                    || /\b(equipment|items|gear|loot|treasure|armory|weapons|armor)\b/i.test(`${p.id} ${p.label}`)
-                );
+                const preferred = available.filter(p => {
+                    if (p.recommended) return true;
+                    const testString = `${p.id} ${p.collection ?? ""} ${p.metadata?.id ?? ""} ${p.metadata?.name ?? ""} ${p.label ?? ""}`;
+                    return /\b(equipment|items|gear|loot|treasure|armory|weapons|armor)\b/i.test(testString);
+                });
                 next = (preferred.length > 0 ? preferred : available).map(p => p.id);
             }
         }

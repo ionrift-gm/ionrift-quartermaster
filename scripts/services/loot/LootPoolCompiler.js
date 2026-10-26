@@ -18,6 +18,28 @@ import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
 import { isSrdCursedLootName, isSrdCursedTemplateName } from "../curse/SrdCurseCatalog.js";
+
+export function keyToIdentifier(key) {
+    if (!key) return "";
+    let s = String(key).trim().toLowerCase();
+    s = s.replace(/,\s*\+(\d+)/g, "-$1");
+    s = s.replace(/\s*\+(\d+)/g, "-$1");
+    s = s.replace(/[^a-z0-9]+/g, "-");
+    return s.replace(/^-|-$/g, "");
+}
+
+export function findSourceDoc(allByName, allByIdentifier, key) {
+    if (!key) return null;
+    const byIdent = allByIdentifier ?? allByName?._allByIdentifier;
+    const lowerKey = String(key).trim().toLowerCase();
+    const identKey = keyToIdentifier(key);
+
+    return allByName?.get(lowerKey)
+        ?? byIdent?.get(lowerKey)
+        ?? (identKey ? byIdent?.get(identKey) : null)
+        ?? (identKey ? allByName?.get(identKey) : null)
+        ?? null;
+}
 import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "../packs/CompendiumConfigHelper.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 
@@ -231,6 +253,9 @@ export class LootPoolCompiler {
     static get worldCollectionId() {
         return `world.${this.WORLD_PACK_NAME}`;
     }
+
+    static keyToIdentifier = keyToIdentifier;
+    static findSourceDoc = findSourceDoc;
 
     // ── Compile resilience (per-item isolation) ───────────────────────────
 
@@ -536,11 +561,41 @@ export class LootPoolCompiler {
 
         // Build name to { item, sourcePackId } map (first-seen wins within each pass)
         const allByName = new Map();
+        const allByIdentifier = new Map();
+        allByName._allByIdentifier = allByIdentifier;
+
         for (const [packId, docs] of packDocs) {
             for (const doc of docs) {
-                const key = (doc.name || "").trim().toLowerCase();
-                if (!key) continue;
-                if (!allByName.has(key)) allByName.set(key, { item: doc, packId });
+                const entry = { item: doc, packId };
+                const nameKey = (doc.name || "").trim().toLowerCase();
+                if (nameKey && !allByName.has(nameKey)) allByName.set(nameKey, entry);
+
+                const ident = (doc.system?.identifier || "").trim().toLowerCase();
+                if (ident) {
+                    if (!allByIdentifier.has(ident)) allByIdentifier.set(ident, entry);
+                    if (!allByName.has(ident)) allByName.set(ident, entry);
+                }
+
+                const slug = (doc.system?.slug || "").trim().toLowerCase();
+                if (slug) {
+                    if (!allByIdentifier.has(slug)) allByIdentifier.set(slug, entry);
+                    if (!allByName.has(slug)) allByName.set(slug, entry);
+                }
+
+                const nameIdent = keyToIdentifier(doc.name);
+                if (nameIdent) {
+                    if (!allByIdentifier.has(nameIdent)) allByIdentifier.set(nameIdent, entry);
+                    if (!allByName.has(nameIdent)) allByName.set(nameIdent, entry);
+                }
+
+                if (doc.id && !allByIdentifier.has(doc.id)) allByIdentifier.set(doc.id, entry);
+                if (doc._id && !allByIdentifier.has(doc._id)) allByIdentifier.set(doc._id, entry);
+
+                const sourceUuid = doc._stats?.compendiumSource;
+                if (sourceUuid) {
+                    const sourceId = String(sourceUuid).split(".").pop();
+                    if (sourceId && !allByIdentifier.has(sourceId)) allByIdentifier.set(sourceId, entry);
+                }
             }
         }
 
@@ -556,7 +611,7 @@ export class LootPoolCompiler {
 
         for (const [templateName, { bases, tiers }] of templateEntries) {
             if (isSrdCursedTemplateName(templateName)) continue;
-            const templateEntry = allByName.get(templateName.trim().toLowerCase());
+            const templateEntry = findSourceDoc(allByName, allByIdentifier, templateName);
             if (!templateEntry) {
                 Logger.warn(MODULE_LABEL, `LootPoolCompiler: template "${templateName}" not found in sources.`);
                 templatesDone += bases.length * tiers.length;
@@ -565,7 +620,7 @@ export class LootPoolCompiler {
             const templateDoc = templateEntry.item;
 
             for (const baseName of bases) {
-                const baseEntry = allByName.get(baseName.trim().toLowerCase());
+                const baseEntry = findSourceDoc(allByName, allByIdentifier, baseName);
                 if (!baseEntry) {
                     Logger.warn(MODULE_LABEL, `LootPoolCompiler: base weapon "${baseName}" not found.`);
                     templatesDone += tiers.length;
@@ -600,7 +655,7 @@ export class LootPoolCompiler {
         for (const [stubName, expansions] of rangeStubEntries) {
             if (!expansions.length) continue;
             for (const { base, tiers } of expansions) {
-                const baseEntry = allByName.get(base.trim().toLowerCase());
+                const baseEntry = findSourceDoc(allByName, allByIdentifier, base);
                 if (!baseEntry) {
                     Logger.warn(MODULE_LABEL, `LootPoolCompiler: ammo base "${base}" not found.`);
                     stubsDone += tiers.length;
@@ -613,7 +668,7 @@ export class LootPoolCompiler {
 
                     // Check if this item already exists in sources (some packs ship
                     // "Arrow +1" as a discrete entry alongside the stub)
-                    const existingEntry = allByName.get(itemName.trim().toLowerCase());
+                    const existingEntry = findSourceDoc(allByName, allByIdentifier, itemName);
                     if (existingEntry) continue; // skip - raw pool already has it
 
                     const data = this._safeExpand(
@@ -974,7 +1029,7 @@ export class LootPoolCompiler {
 
         const merged = new Set(discovered);
         for (const baseName of GENERIC_WEAPON_BASES) {
-            const entry = allByName.get(baseName.trim().toLowerCase());
+            const entry = findSourceDoc(allByName, null, baseName);
             if (entry?.item && this._isLootReadyWeaponBase(entry.item)) {
                 merged.add(baseName);
             }
@@ -992,13 +1047,13 @@ export class LootPoolCompiler {
         const bases = this._discoverGenericWeaponBases(allByName, report);
 
         for (const baseName of bases) {
-            const baseEntry = allByName.get(baseName.trim().toLowerCase());
+            const baseEntry = findSourceDoc(allByName, null, baseName);
             const baseDoc = baseEntry?.item ?? null;
             if (!baseDoc || !this._isLootReadyWeaponBase(baseDoc)) continue;
 
             for (const tier of [1, 2, 3]) {
                 const itemName = `${baseName} +${tier}`;
-                const existing = allByName.get(itemName.trim().toLowerCase());
+                const existing = findSourceDoc(allByName, null, itemName);
                 if (existing?.item && this._isLootReadyGenericPlusEntry(existing.item)) {
                     continue;
                 }
@@ -1174,8 +1229,13 @@ export class LootPoolCompiler {
             // corrupt compiled items.
             if (isEnchantmentShell) return false;
 
-            // Keep effects whose name matches the resistance type.
-            return name.includes(type);
+            // Locale-safe: check changes for resistance trait key first, then fall back to name
+            const hasTraitChange = effect.changes?.some(c =>
+                c.key === "system.traits.dr.value" && String(c.value).toLowerCase() === type.toLowerCase()
+            );
+            if (hasTraitChange) return true;
+
+            return name.includes(type.toLowerCase());
         });
 
         // Step 3: Clear item-level rider tracking so surviving effects
@@ -1266,7 +1326,7 @@ export class LootPoolCompiler {
 
         const shouldSkip = (name, templateDoc) => {
             try {
-                const entry = allByName.get((name || "").trim().toLowerCase());
+                const entry = findSourceDoc(allByName, null, name);
                 if (!entry?.item) return false;
                 if (entry.item === templateDoc) return false;
                 if (this._isLootReadyGenericPlusEntry(entry.item)) return true;
@@ -1278,10 +1338,10 @@ export class LootPoolCompiler {
             }
         };
 
-        const lookupTemplate = (name) => allByName.get(name.trim().toLowerCase())?.item ?? null;
+        const lookupTemplate = (name) => findSourceDoc(allByName, null, name)?.item ?? null;
 
         const lookupBaseData = (baseName) => {
-            const entry = allByName.get(baseName.trim().toLowerCase());
+            const entry = findSourceDoc(allByName, null, baseName);
             if (!entry) return null;
             try {
                 const base = entry.item.toObject();
@@ -1408,12 +1468,12 @@ export class LootPoolCompiler {
         const expanded = [];
 
         for (const [templateName, variants] of Object.entries(WONDROUS_TEMPLATE_SHELLS)) {
-            const templateEntry = allByName.get(templateName.trim().toLowerCase());
+            const templateEntry = findSourceDoc(allByName, null, templateName);
             const templateDoc   = templateEntry?.item ?? null;
 
             for (const variant of variants) {
                 const key = variant.name.trim().toLowerCase();
-                const existing = allByName.get(key);
+                const existing = findSourceDoc(allByName, null, key);
                 let existingDoc = null;
                 try {
                     existingDoc = existing?.item?.toObject?.() ?? existing?.item ?? null;
@@ -1455,7 +1515,7 @@ export class LootPoolCompiler {
         const expanded = [];
 
         for (const [itemName, spec] of Object.entries(NAMED_ECONOMY_ENRICHMENT)) {
-            const entry = allByName.get(itemName.trim().toLowerCase());
+            const entry = findSourceDoc(allByName, null, itemName);
             if (!entry?.item) continue;
 
             try {
@@ -1552,12 +1612,12 @@ export class LootPoolCompiler {
      */
     static _expandSlayingAmmunition(allByName, report = null) {
         const expanded = [];
-        const shellEntry = allByName.get(SLAYING_AMMO_TEMPLATE.toLowerCase());
+        const shellEntry = findSourceDoc(allByName, null, SLAYING_AMMO_TEMPLATE);
         const shellDoc     = shellEntry?.item ?? null;
         if (!shellDoc) return expanded;
 
         for (const { base, short } of SLAYING_AMMO_BASES) {
-            const baseEntry = allByName.get(base.toLowerCase());
+            const baseEntry = findSourceDoc(allByName, null, base);
             if (!baseEntry?.item) {
                 Logger.warn(MODULE_LABEL, `LootPoolCompiler: slaying ammo base "${base}" not found.`);
                 continue;
@@ -1565,7 +1625,7 @@ export class LootPoolCompiler {
 
             for (const creatureType of SLAYING_CREATURE_TYPES) {
                 const itemName = `${short} of Slaying (${creatureType})`;
-                const existing = allByName.get(itemName.toLowerCase());
+                const existing = findSourceDoc(allByName, null, itemName);
                 let existingDoc = null;
                 try {
                     existingDoc = existing?.item?.toObject?.() ?? existing?.item ?? null;
@@ -1581,7 +1641,7 @@ export class LootPoolCompiler {
                 if (existingDoc && ItemPoolResolver._extractPrice(existingDoc) > 0) continue;
 
                 const riderName = `${SLAYING_AMMO_TEMPLATE} ${creatureType}`;
-                const riderDoc = allByName.get(riderName.toLowerCase())?.item ?? null;
+                const riderDoc = findSourceDoc(allByName, null, riderName)?.item ?? null;
 
                 const data = this._safeExpand(
                     report, "expand", itemName, baseEntry.packId,
@@ -1724,7 +1784,7 @@ export class LootPoolCompiler {
         for (const data of expanded) {
             try {
                 const key = (data.name || "").trim().toLowerCase();
-                const legacy = allByName.get(key);
+                const legacy = findSourceDoc(allByName, null, key);
                 if (!legacy) continue;
 
                 const ourWeight = this._extractWeight(data.system ?? {});
@@ -1778,6 +1838,7 @@ export class LootPoolCompiler {
         data.flags[MODULE_ID] ??= {};
         data.flags[MODULE_ID].mintBatch = mintBatch;
         data.flags[MODULE_ID].compiledFrom = compiledFrom;
+        data.flags[MODULE_ID].compiledKey = mintBatch;
     }
 
     // ── Source Helpers ────────────────────────────────────────────────────
@@ -1912,38 +1973,75 @@ export class LootPoolCompiler {
         const ItemClass = CONFIG.Item.documentClass;
         const safeReport = report ?? this._newCompileReport();
 
+        function getItemCompiledKey(docOrData) {
+            const flagKey = docOrData.getFlag
+                ? docOrData.getFlag(MODULE_ID, "compiledKey")
+                : docOrData.flags?.[MODULE_ID]?.compiledKey;
+            if (flagKey) return String(flagKey).trim().toLowerCase();
+            const ident = docOrData.system?.identifier;
+            if (ident) return String(ident).trim().toLowerCase();
+            return (docOrData.name || "").trim().toLowerCase();
+        }
+
+        const existingByKey = new Map();
         const existingByName = new Map();
         try {
             const docs = await pack.getDocuments();
             for (const doc of docs) {
-                const key = (doc.name || "").trim().toLowerCase();
-                if (!key) continue;
-                const arr = existingByName.get(key);
-                if (arr) arr.push(doc);
-                else existingByName.set(key, [doc]);
+                const compKey = getItemCompiledKey(doc);
+                if (compKey) {
+                    const arr = existingByKey.get(compKey) ?? [];
+                    arr.push(doc);
+                    existingByKey.set(compKey, arr);
+                }
+                const nameKey = (doc.name || "").trim().toLowerCase();
+                if (nameKey) {
+                    const arr = existingByName.get(nameKey) ?? [];
+                    arr.push(doc);
+                    existingByName.set(nameKey, arr);
+                }
             }
         } catch { /* treat as empty */ }
 
-        const pendingNames = new Set();
+        const matchedDocIds = new Set();
         const toCreate     = [];
         const toUpdate     = [];
         const toDelete     = [];
 
         for (const data of pendingItems) {
-            const key  = (data.name || "").trim().toLowerCase();
-            pendingNames.add(key);
-            const docs = existingByName.get(key);
+            const compKey = getItemCompiledKey(data);
+            const nameKey = (data.name || "").trim().toLowerCase();
+            const docs = (compKey && existingByKey.get(compKey))
+                || (nameKey && existingByName.get(nameKey));
+
             if (docs?.length) {
-                toUpdate.push({ ...data, _id: docs[0].id });
-                for (let i = 1; i < docs.length; i++) toDelete.push(docs[i].id);
+                const primaryDoc = docs[0];
+                matchedDocIds.add(primaryDoc.id);
+                toUpdate.push({ ...data, _id: primaryDoc.id });
+                for (let i = 1; i < docs.length; i++) {
+                    matchedDocIds.add(docs[i].id);
+                    toDelete.push(docs[i].id);
+                }
             } else {
                 toCreate.push(data);
             }
         }
 
-        for (const [key, docs] of existingByName) {
-            if (pendingNames.has(key)) continue;
-            for (const doc of docs) toDelete.push(doc.id);
+        for (const docs of existingByKey.values()) {
+            for (const doc of docs) {
+                if (!matchedDocIds.has(doc.id)) {
+                    matchedDocIds.add(doc.id);
+                    toDelete.push(doc.id);
+                }
+            }
+        }
+        for (const docs of existingByName.values()) {
+            for (const doc of docs) {
+                if (!matchedDocIds.has(doc.id)) {
+                    matchedDocIds.add(doc.id);
+                    toDelete.push(doc.id);
+                }
+            }
         }
 
         let written = 0;
@@ -2022,12 +2120,18 @@ export class LootPoolCompiler {
             qmFolder = allFolders().find(f => f.id === refFolderId) ?? null;
         }
 
+        const matchesFolderKey = (f, key, name) => {
+            const flagKey = f.getFlag ? f.getFlag(MODULE_ID, "folderKey") : f.flags?.[MODULE_ID]?.folderKey;
+            if (flagKey === key) return true;
+            return f.name === name;
+        };
+
         // Secondary: name-walk under any Ionrift root
         if (!qmFolder) {
             const folders = allFolders();
-            const ionriftRoots = folders.filter(f => f.name === "Ionrift" && !parentId(f));
+            const ionriftRoots = folders.filter(f => matchesFolderKey(f, "ionrift", "Ionrift") && !parentId(f));
             for (const ion of ionriftRoots) {
-                qmFolder = folders.find(f => f.name === "Quartermaster" && parentId(f) === ion.id);
+                qmFolder = folders.find(f => matchesFolderKey(f, "quartermaster", "Quartermaster") && parentId(f) === ion.id);
                 if (qmFolder) break;
             }
         }
@@ -2036,11 +2140,23 @@ export class LootPoolCompiler {
         if (!qmFolder) {
             try {
                 const folders = allFolders();
-                let ionrift = folders.find(f => f.name === "Ionrift" && !parentId(f));
+                let ionrift = folders.find(f => matchesFolderKey(f, "ionrift", "Ionrift") && !parentId(f));
                 if (!ionrift) {
-                    ionrift = await Folder.create({ name: "Ionrift", type: "Compendium", color: "#8b5cf6", sorting: "a" });
+                    ionrift = await Folder.create({
+                        name: "Ionrift",
+                        type: "Compendium",
+                        color: "#8b5cf6",
+                        sorting: "a",
+                        flags: { [MODULE_ID]: { folderKey: "ionrift" } }
+                    });
                 }
-                qmFolder = await Folder.create({ name: "Quartermaster", type: "Compendium", folder: ionrift.id, sorting: "a" });
+                qmFolder = await Folder.create({
+                    name: "Quartermaster",
+                    type: "Compendium",
+                    folder: ionrift.id,
+                    sorting: "a",
+                    flags: { [MODULE_ID]: { folderKey: "quartermaster" } }
+                });
             } catch (err) {
                 Logger.warn(MODULE_LABEL, "LootPoolCompiler: could not create compendium folder hierarchy:", err);
                 return null;
@@ -2049,11 +2165,18 @@ export class LootPoolCompiler {
 
         // Step 2: find or create Compiled under the located Quartermaster folder.
         // Use normalised parentId() so document-object vs string-ID never causes a miss.
-        const compiled = allFolders().find(f => f.name === "Compiled" && parentId(f) === qmFolder.id);
+        const compiled = allFolders().find(f => matchesFolderKey(f, "compiled", "Compiled") && parentId(f) === qmFolder.id);
         if (compiled) return compiled.id;
 
         try {
-            const created = await Folder.create({ name: "Compiled", type: "Compendium", folder: qmFolder.id, color: "#6d28d9", sorting: "a" });
+            const created = await Folder.create({
+                name: "Compiled",
+                type: "Compendium",
+                folder: qmFolder.id,
+                color: "#6d28d9",
+                sorting: "a",
+                flags: { [MODULE_ID]: { folderKey: "compiled" } }
+            });
             return created.id;
         } catch (err) {
             Logger.warn(MODULE_LABEL, "LootPoolCompiler: could not create Compiled folder:", err);

@@ -374,7 +374,7 @@ export class ItemMaskingHelper {
         // after the spell and links it, so it is put aside until the
         // scroll is identified (dnd5e re-caches the spell on first cast).
         const isScrollConsumable = itemData.type === "consumable"
-            && (system.type?.value === "scroll" || /scroll/i.test(itemData.name ?? ""));
+            && (system.type?.value === "scroll" || system.type?.subtype === "scroll" || itemData.flags?.[MODULE_ID]?.isScroll || /scroll/i.test(itemData.name ?? ""));
         if ((itemData.type !== "consumable" || isScrollConsumable)
                 && system.activities
                 && Object.keys(system.activities).length > 0) {

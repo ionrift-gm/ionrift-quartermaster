@@ -106,6 +106,8 @@ export function matchesDnd5eSlotType(entry, slotType) {
 }
 
 export function isSlayingTemplateShell(entry, nameLower = (entry.name || "").trim().toLowerCase()) {
+    if (entry?.flags?.[MODULE_ID]?.compiledKey?.startsWith("ammunition-of-slaying")) return true;
+    if (entry?.system?.identifier === "ammunition-of-slaying") return true;
     if (nameLower === "ammunition of slaying") return true;
     if (nameLower.startsWith("ammunition of slaying ")) return true;
     if (entry.type === "enchantment" && /^ammunition of slaying /i.test(entry.name ?? "")) return true;
@@ -237,6 +239,6 @@ export function isDnd5eExcludedFromPool(entry) {
     if (isBulkAmmoCollection(entry, nameLower)) return true;
     if (isGmPlacedPoison(entry, nameLower)) return true;
     if (isLegacyRenamedItem(entry, nameLower)) return true;
-    if (isSrdCursedLootName(name)) return true;
+    if (isSrdCursedLootName(entry) || isSrdCursedLootName(name)) return true;
     return false;
 }

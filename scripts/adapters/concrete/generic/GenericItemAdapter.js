@@ -116,6 +116,10 @@ export class GenericItemAdapter extends QuartermasterItemAdapter {
         switch (slotType) {
             case "consumable":
                 if (entry.type === "consumable") return true;
+                const sub = (entry.system?.type?.value ?? entry.system?.type?.subtype ?? "").toLowerCase();
+                const ident = (entry.system?.identifier ?? entry.flags?.[MODULE_ID]?.compiledKey ?? "").toLowerCase();
+                if (["potion", "scroll", "ammo", "wand", "rod", "trinket"].includes(sub)) return true;
+                if (/^(potion|scroll|ammo|wand|rod|trinket)-/.test(ident)) return true;
                 if (["item", "goods", "gear"].includes(entry.type) && CONSUMABLE_NAME_RE.test(entry.name || "")) {
                     return true;
                 }

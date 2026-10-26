@@ -297,10 +297,13 @@ export function detectPf2eMagical(itemMeta, { terrainTag } = {}) {
 
     // Check for runes or potency prefix on equipment/weapons/armor
     const runes = itemMeta.system?.runes;
+    const potencyVal = runes?.potency || itemMeta.system?.potencyRune?.value;
+    const strikingVal = runes?.striking || itemMeta.system?.strikingRune?.value;
+    const resilientVal = runes?.resilient || itemMeta.system?.resiliencyRune?.value;
     const hasRunes = Boolean(
-        (runes?.potency && Number(runes.potency) > 0)
-        || (runes?.striking && Number(runes.striking) > 0)
-        || (runes?.resilient && Number(runes.resilient) > 0)
+        (potencyVal && Number(potencyVal) > 0)
+        || (strikingVal && Number(strikingVal) > 0)
+        || (resilientVal && Number(resilientVal) > 0)
         || (Array.isArray(runes?.property) && runes.property.length > 0)
         || /\+[1-3]\b/.test(itemMeta.name || "")
         || /\b(?:Major |Greater )?Striking\b/i.test(itemMeta.name || "")

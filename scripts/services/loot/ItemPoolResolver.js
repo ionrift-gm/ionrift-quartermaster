@@ -241,11 +241,14 @@ export class ItemPoolResolver {
         // Merge: compendium items first, then fallback
         const merged = [...compendiumItems, ...fallbackItems];
 
-        // Deduplicate by name (prefer compendium version)
+        // Deduplicate by compiledKey, identifier, or name (prefer compendium version)
         const seen = new Set();
         const deduped = merged.filter(item => {
-            const key = item.name.toLowerCase();
+            const key = item.flags?.[MODULE_ID]?.compiledKey
+                || item.system?.identifier
+                || item.name.toLowerCase();
             if (seen.has(key)) return false;
+            if (item.name) seen.add(item.name.toLowerCase());
             seen.add(key);
             return true;
         });
@@ -258,9 +261,14 @@ export class ItemPoolResolver {
         // are only ever placed through the deliberate curse mechanic.
         const cursedNames = await this._getCursedBlocklist();
         const uncursed = levelFiltered.filter(item => {
-            const nameLower = item.name.trim().toLowerCase();
-            if (isSrdCursedLootName(item.name)) return false;
-            if (cursedNames.has(nameLower)) return false;
+            if (isSrdCursedLootName(item)) return false;
+            const nameLower = item.name?.trim().toLowerCase();
+            if (nameLower && cursedNames.has(nameLower)) return false;
+            const key = item.flags?.[MODULE_ID]?.compiledKey
+                || item.flags?.[MODULE_ID]?.curseSlug
+                || item.system?.identifier
+                || item.system?.slug;
+            if (key && cursedNames.has(key.toLowerCase())) return false;
             return true;
         });
 

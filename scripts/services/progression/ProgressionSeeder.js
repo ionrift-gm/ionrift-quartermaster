@@ -169,8 +169,9 @@ const TRAIT_PENALTIES = [
  */
 function _scoreSynergy(item, traits) {
     let mult = 1;
+    const testTarget = `${item.system?.identifier ?? ""} ${item.system?.slug ?? ""} ${item.name ?? ""}`;
     for (const { trait, pattern, penalty } of TRAIT_PENALTIES) {
-        if (traits.has(trait) && pattern.test(item.name)) {
+        if (traits.has(trait) && pattern.test(testTarget)) {
             mult -= penalty;
         }
     }
@@ -345,7 +346,8 @@ export class ProgressionSeeder {
             const weights = finalPool.map(c => {
                 let w = Math.max(1, Math.floor(_scoreSynergy(c, actorTraits) * 10));
                 if (c.requiresAttunement) w *= 3;
-                if (SIGNATURE_DEMOTE.has(c.name.toLowerCase())) w = Math.max(1, Math.floor(w * 0.1));
+                const cIdent = (c.system?.identifier || c.system?.slug || "")?.replace(/-/g, " ")?.toLowerCase();
+                if (SIGNATURE_DEMOTE.has(c.name.toLowerCase()) || (cIdent && SIGNATURE_DEMOTE.has(cIdent))) w = Math.max(1, Math.floor(w * 0.1));
                 return w;
             });
             let ticket = Math.floor(Math.random() * weights.reduce((a, b) => a + b, 0));
@@ -401,7 +403,13 @@ export class ProgressionSeeder {
         const knownSpells = new Set(
             actor.items
                 .filter(i => i.type === "spell")
-                .map(i => i.name.toLowerCase())
+                .flatMap(i => [
+                    i.name?.toLowerCase(),
+                    i.system?.identifier?.toLowerCase(),
+                    i.system?.slug?.toLowerCase(),
+                    i._stats?.compendiumSource ? String(i._stats.compendiumSource).split(".").pop()?.toLowerCase() : null
+                ])
+                .filter(Boolean)
         );
 
         const classSpellPool = await this._fetchClassSpells(classes, banSet);
@@ -415,6 +423,8 @@ export class ProgressionSeeder {
             const pool = classSpellPool.filter(s => {
                 if (!spellLevels.includes(s.spellLevel)) return false;
                 if (knownSpells.has(s.name.toLowerCase())) return false;
+                const sIdent = (s.system?.identifier || s.system?.slug)?.toLowerCase();
+                if (sIdent && knownSpells.has(sIdent)) return false;
                 return true;
             });
             if (!pool.length) continue;

@@ -167,7 +167,9 @@ export class ItemResolutionPipeline {
         // stacks share the same masked name but carry distinct infectedCount values.
         // Without canStack, IP always CREATEs on transfer; InfectedStackManager.mergeStack
         // intercepts and merges infected stacks manually.
-        const isScroll = data.system?.type?.value === "scroll"
+        const isScroll = (data.type === "consumable" && (data.system?.type?.value === "scroll" || data.system?.type?.subtype === "scroll"))
+            || data.flags?.[MODULE_ID]?.isScroll
+            || data.system?.type?.value === "scroll"
             || /scroll/i.test(data.name || "");
         const hasInfectedCount = (data.flags?.[MODULE_ID]?.infectedCount ?? 0) > 0;
         if (!isScroll && data.flags?.[MODULE_ID]?.latentMagic && !hasInfectedCount) {

@@ -52,7 +52,12 @@ export class SignatureLedger {
     // ── Journal Entry Access ──────────────────────────────────────────────────
 
     static async getOrCreateLedger() {
-        let entry = game.journal.find(j => j.getFlag(MODULE_ID, "isLedger"));
+        let entry = game.journal.find(j =>
+            j.getFlag(MODULE_ID, "isLedger")
+            || j.getFlag(MODULE_ID, "isLedgerStorage")
+            || j.flags?.[MODULE_ID]?.isLedgerStorage
+            || j.name === this.LEDGER_NAME
+        );
         if (!entry) {
             entry = await JournalEntry.create({
                 name: this.LEDGER_NAME,
@@ -60,6 +65,7 @@ export class SignatureLedger {
                 flags: {
                     [MODULE_ID]: {
                         isLedger: true,
+                        isLedgerStorage: true,
                         characters:  {},
                         scrollPlan:  {},
                         partyShelf:  [],
@@ -287,7 +293,15 @@ export class SignatureLedger {
      */
     static async getBanSet() {
         const list = await this.getBanList();
-        return new Set(list.map(b => b.name.toLowerCase()));
+        const set = new Set();
+        for (const b of list) {
+            if (b.name) set.add(b.name.toLowerCase());
+            if (b.compiledKey) set.add(b.compiledKey.toLowerCase());
+            if (b.identifier) set.add(b.identifier.toLowerCase());
+            if (b.slug) set.add(b.slug.toLowerCase());
+            if (b.uuid) set.add(b.uuid.toLowerCase());
+        }
+        return set;
     }
 
     // ── Power Score ───────────────────────────────────────────────────────────

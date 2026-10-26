@@ -1,5 +1,6 @@
 import { Logger, MODULE_LABEL } from "../../../utils/Logger.js";
 import { MODULE_ID } from "../../../data/moduleId.js";
+import { isSrdCursedLootEntry, isSrdCursedLootName } from "../../curse/SrdCurseCatalog.js";
 
 const PACK_SUFFIX = {
     gemstones: "quartermaster-gemstones",
@@ -265,7 +266,7 @@ async function loadContainerPoolIndex() {
     if (hasModulePack) {
         for (const pack of packs) {
             try {
-                const index = await pack.getIndex({ fields: ["name", "img", "system", "flags", "type"] });
+                const index = await pack.getIndex({ fields: ["name", "img", "system", "flags", "type", "system.identifier", "system.slug"] });
                 const chunk = index.contents || Array.from(index) || [];
                 const isModulePack = pack.collection === modulePackId;
                 for (const entry of chunk) {
@@ -327,15 +328,17 @@ async function loadFilteredPoolIndex(packs, kindFilter, label) {
 /** Treasure entries: loot type tagged as Treasure category. */
 function isTreasureEntry(entry) {
     if (entry.type !== "loot") return false;
+    if (isSrdCursedLootEntry(entry) || isSrdCursedLootName(entry.name)) return false;
     const cat = entry.flags?.[MODULE_ID]?.coreMeta?.category;
-    return cat === "Treasure";
+    return cat === "Treasure" || entry.system?.type?.value === "treasure" || entry.system?.identifier === "treasure";
 }
 
 /** Trinket entries: loot type tagged as Trinkets category. */
 function isTrinketEntry(entry) {
     if (entry.type !== "loot") return false;
+    if (isSrdCursedLootEntry(entry) || isSrdCursedLootName(entry.name)) return false;
     const cat = entry.flags?.[MODULE_ID]?.coreMeta?.category;
-    return cat === "Trinkets";
+    return cat === "Trinkets" || entry.system?.type?.value === "trinket" || entry.system?.identifier === "trinket";
 }
 
 /** Gem entries: loot subtype "gem" or carrying a gemMeta.tier. */

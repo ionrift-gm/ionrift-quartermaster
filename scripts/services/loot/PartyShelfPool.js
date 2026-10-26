@@ -69,9 +69,12 @@ export class PartyShelfPool {
                     if (!lootableTypes.has(entry.type)) continue;
                     if (entry.type === "spell" || entry.type === "feat") continue;
 
-                    const key = entry.name.toLowerCase();
-                    if (banSet.has(key) || seen.has(key)) continue;
-                    seen.add(key);
+                    const nameKey = entry.name?.toLowerCase();
+                    const identKey = (entry.flags?.[MODULE_ID]?.compiledKey || entry.system?.identifier || entry.system?.slug)?.toLowerCase();
+                    if ((nameKey && banSet.has(nameKey)) || (identKey && banSet.has(identKey))) continue;
+                    if ((nameKey && seen.has(nameKey)) || (identKey && seen.has(identKey))) continue;
+                    if (nameKey) seen.add(nameKey);
+                    if (identKey) seen.add(identKey);
 
                     const docId = entry._id ?? entry.id ?? "";
                     if (!docId) continue;
@@ -97,8 +100,11 @@ export class PartyShelfPool {
 
             for (const item of shuffled) {
                 if (picked.length >= count) break;
-                if (usedNames.has(item.name.toLowerCase())) continue;
-                usedNames.add(item.name.toLowerCase());
+                const nameKey = item.name?.toLowerCase();
+                const identKey = (item.flags?.[MODULE_ID]?.compiledKey || item.system?.identifier || item.system?.slug)?.toLowerCase();
+                if ((nameKey && usedNames.has(nameKey)) || (identKey && usedNames.has(identKey))) continue;
+                if (nameKey) usedNames.add(nameKey);
+                if (identKey) usedNames.add(identKey);
 
                 picked.push({
                     uuid:             item.uuid,

@@ -1373,12 +1373,30 @@ export class SignatureLedgerApp extends Application {
             const entry = sigData[actor.id];
             if (!entry?.plannedItems?.length) continue;
 
+            const ownedItems = actor.items;
             const ownedNames = new Set(
-                actor.items.map(i => this._normaliseNameForMatch(i.name))
+                ownedItems.map(i => this._normaliseNameForMatch(i.name))
+            );
+            const ownedIdentifiers = new Set(
+                ownedItems.map(i => i.system?.identifier?.toLowerCase()).filter(Boolean)
+            );
+            const ownedSlugs = new Set(
+                ownedItems.map(i => i.system?.slug?.toLowerCase()).filter(Boolean)
+            );
+            const ownedKeys = new Set(
+                ownedItems.map(i => i.flags?.[MODULE_ID]?.compiledKey?.toLowerCase()).filter(Boolean)
             );
 
             for (const planned of entry.plannedItems) {
-                const isOwned = ownedNames.has(this._normaliseNameForMatch(planned.name));
+                const normName = this._normaliseNameForMatch(planned.name);
+                const plannedIdent = (planned.system?.identifier || planned.identifier || "").toLowerCase();
+                const plannedSlug = (planned.system?.slug || planned.slug || "").toLowerCase();
+                const plannedKey = (planned.flags?.[MODULE_ID]?.compiledKey || planned.compiledKey || "").toLowerCase();
+
+                const isOwned = ownedNames.has(normName)
+                    || (plannedIdent && ownedIdentifiers.has(plannedIdent))
+                    || (plannedSlug && ownedSlugs.has(plannedSlug))
+                    || (plannedKey && ownedKeys.has(plannedKey));
                 if (isOwned && !planned.delivered) {
                     planned.delivered = true;
                     changed = true;
