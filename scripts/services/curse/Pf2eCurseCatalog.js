@@ -10,6 +10,8 @@
  * @see ionrift-quartermaster/.cursor/specs/PF2E_CURSE_CATALOG.md
  */
 
+import { MODULE_ID } from "../../data/moduleId.js";
+
 /** Compendium packs scanned for PF2e cursed items. */
 export const PF2E_CURSE_PACK_SOURCES = [
     "pf2e.equipment-srd",
@@ -227,7 +229,63 @@ export const PF2E_GMG_CURSE_MANIFEST = [
  * @param {number|null} [itemLevel]
  * @returns {Pf2eCurseCatalogEntry|null}
  */
-export function lookupPf2eCurseCatalogEntry(name, itemLevel = null) {
+export function lookupPf2eCurseCatalogEntry(nameOrDoc, itemLevel = null) {
+    if (!nameOrDoc) return null;
+
+    let name = "";
+    let slug = "";
+    if (typeof nameOrDoc === "string") {
+        name = nameOrDoc;
+    } else if (typeof nameOrDoc === "object" && nameOrDoc !== null) {
+        name = nameOrDoc.name ?? "";
+        slug = (nameOrDoc.system?.slug
+            ?? nameOrDoc.flags?.[MODULE_ID]?.curseSlug
+            ?? "").trim().toLowerCase();
+        if (itemLevel == null) {
+            const levelRaw = nameOrDoc.system?.level?.value ?? nameOrDoc.system?.level;
+            const numericLevel = Number(levelRaw);
+            if (Number.isFinite(numericLevel)) itemLevel = numericLevel;
+        }
+    }
+
+    // 1. Slug matching (normalizing hyphens to spaces)
+    if (slug) {
+        const slugNormalized = normalizePf2eCurseName(slug.replace(/-/g, " "));
+        for (const entry of PF2E_GMG_CURSE_MANIFEST) {
+            if (normalizePf2eCurseName(entry.match) === slugNormalized) return entry;
+        }
+        if (itemLevel != null) {
+            for (const entry of PF2E_GMG_CURSE_MANIFEST) {
+                if (entry.itemLevel === itemLevel && slugNormalized.startsWith(
+                    normalizePf2eCurseName(entry.match).replace(/\s*\(type\s+[ivx\d]+\)$/i, "")
+                )) {
+                    return entry;
+                }
+            }
+        }
+        const slugPrefixMatches = PF2E_GMG_CURSE_MANIFEST.filter((entry) => {
+            const prefix = normalizePf2eCurseName(entry.match).replace(/\s*\(type\s+[ivx\d]+\)$/i, "");
+            return prefix && slugNormalized.startsWith(prefix);
+        });
+        if (slugPrefixMatches.length === 1) return slugPrefixMatches[0];
+        if (slugPrefixMatches.length > 1) {
+            if (itemLevel != null) {
+                let best = slugPrefixMatches[0];
+                let bestDiff = Math.abs((best.itemLevel ?? 0) - itemLevel);
+                for (let i = 1; i < slugPrefixMatches.length; i++) {
+                    const diff = Math.abs((slugPrefixMatches[i].itemLevel ?? 0) - itemLevel);
+                    if (diff < bestDiff) {
+                        best = slugPrefixMatches[i];
+                        bestDiff = diff;
+                    }
+                }
+                return best;
+            }
+            return slugPrefixMatches[0];
+        }
+    }
+
+    // 2. Name matching
     const normalized = normalizePf2eCurseName(name);
     if (!normalized) return null;
 
@@ -273,12 +331,11 @@ export function normalizePf2eCurseName(name) {
  * @returns {{ tier: number, curseType: string, catalogMatch: string|null }}
  */
 export function inferPf2eCurseMeta(sourceItem) {
-    const name = sourceItem?.name ?? "";
     const levelRaw = sourceItem?.system?.level?.value ?? sourceItem?.system?.level;
     const numericLevel = Number(levelRaw);
     const itemLevel = Number.isFinite(numericLevel) ? numericLevel : null;
 
-    const catalog = lookupPf2eCurseCatalogEntry(name, itemLevel);
+    const catalog = lookupPf2eCurseCatalogEntry(sourceItem, itemLevel);
     if (catalog) {
         return {
             tier: catalog.tier,
@@ -320,7 +377,26 @@ const PF2E_CURSE_PREFIXES = [
  * True when a compendium row is a known GMG specific cursed item by name.
  * @param {string} name
  */
-export function isPf2eGmgCursedName(name) {
+export function isPf2eGmgCursedName(nameOrDoc) {
+    let name = "";
+    let slug = "";
+    if (typeof nameOrDoc === "string") {
+        name = nameOrDoc;
+    } else if (typeof nameOrDoc === "object" && nameOrDoc !== null) {
+        name = nameOrDoc.name ?? "";
+        slug = (nameOrDoc.system?.slug
+            ?? nameOrDoc.flags?.[MODULE_ID]?.curseSlug
+            ?? "").trim().toLowerCase();
+    }
+
+    if (slug) {
+        const slugNormalized = slug.replace(/-/g, " ");
+        if (MANIFEST_NAMES_LC.has(slugNormalized)) return true;
+        for (const prefix of PF2E_CURSE_PREFIXES) {
+            if (slugNormalized.startsWith(prefix)) return true;
+        }
+    }
+
     const normalized = (name ?? "").trim().toLowerCase();
     if (!normalized) return false;
     if (MANIFEST_NAMES_LC.has(normalized)) return true;
@@ -341,6 +417,7 @@ export function isPf2eCursedLootEntry(entry) {
     const traits = entry?.system?.traits?.value ?? entry?.system?.traits ?? [];
     const traitList = Array.isArray(traits) ? traits : (traits?.value ?? []);
     if (traitList.includes("cursed")) return true;
-    return isPf2eGmgCursedName(entry?.name);
+    if (entry?.flags?.[MODULE_ID]?.isCurseItem) return true;
+    return isPf2eGmgCursedName(entry);
 }
 

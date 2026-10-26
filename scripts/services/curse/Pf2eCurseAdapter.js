@@ -118,10 +118,13 @@ export class Pf2eCurseAdapter {
         };
         if (meta.catalogMatch) cursedMeta.catalogMatch = meta.catalogMatch;
 
-        const slug = (sourceItem.name || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        const slug = (sourceItem.system?.slug || sourceItem.name || "item")
+            .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
         data.flags ??= {};
         data.flags[MODULE_ID] ??= {};
         data.flags[MODULE_ID].cursedMeta = cursedMeta;
+        data.flags[MODULE_ID].curseSlug = slug;
+        data.flags[MODULE_ID].isCurseItem = true;
         data.flags[MODULE_ID].mintBatch = `pf2e-curse-${slug}`;
 
         return data;
@@ -167,7 +170,7 @@ export class Pf2eCurseAdapter {
 
             for (const doc of docs) {
                 if (!itemHasPf2eCursedTrait(doc) && !isPf2eCursedLootEntry(doc)) continue;
-                const key = (doc.name || "").trim().toLowerCase();
+                const key = (doc.system?.slug || doc.name || "").trim().toLowerCase();
                 if (!key || byName.has(key)) continue;
                 byName.set(key, doc);
             }

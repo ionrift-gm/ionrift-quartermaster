@@ -89,6 +89,12 @@ export class CursedItemResolver {
             const uuid = `Compendium.${pack.collection}.Item.${doc.id}`;
             map.set(uuid, name);
             map._byDocId.set(doc.id, name);
+            const curseKey = (doc.getFlag ? doc.getFlag(QM_ID, "curseSlug") : doc.flags?.[QM_ID]?.curseSlug)
+                ?? doc.system?.identifier
+                ?? doc.system?.slug;
+            if (curseKey) {
+                map._byDocId.set(String(curseKey).toLowerCase(), name);
+            }
         }
         return map;
     }
@@ -105,9 +111,13 @@ export class CursedItemResolver {
         if (!nameMap || !uuid) return undefined;
         const direct = nameMap.get(uuid);
         if (direct) return direct;
-        // Fallback: extract docId from the UUID and try the secondary index
+        // Fallback: extract docId or key from the UUID and try the secondary index
         const docId = uuid.split(".").pop();
-        return docId ? nameMap._byDocId?.get(docId) : undefined;
+        if (docId) {
+            const byId = nameMap._byDocId?.get(docId) ?? nameMap._byDocId?.get(docId.toLowerCase());
+            if (byId) return byId;
+        }
+        return nameMap._byDocId?.get(String(uuid).toLowerCase());
     }
 
     /**
@@ -183,9 +193,16 @@ export class CursedItemResolver {
             return pool;
         }
         if (!nameMap.size) return pool;
-        return pool.map(entry => ({
-            ...entry,
-            name: CursedItemResolver.resolveFromMap(nameMap, entry.uuid) ?? entry.name
-        }));
+        return pool.map(entry => {
+            const resolved = CursedItemResolver.resolveFromMap(nameMap, entry.uuid)
+                ?? (entry.flags?.[QM_ID]?.curseSlug && CursedItemResolver.resolveFromMap(nameMap, entry.flags[QM_ID].curseSlug))
+                ?? (entry.system?.identifier && CursedItemResolver.resolveFromMap(nameMap, entry.system.identifier))
+                ?? (entry.system?.slug && CursedItemResolver.resolveFromMap(nameMap, entry.system.slug))
+                ?? entry.name;
+            return {
+                ...entry,
+                name: resolved
+            };
+        });
     }
 }

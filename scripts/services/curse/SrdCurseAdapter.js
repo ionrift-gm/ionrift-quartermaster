@@ -65,11 +65,32 @@ export class SrdCurseAdapter {
             }
         }
 
-        // Build name → item map (first occurrence wins)
+        // Build name & identifier maps (first occurrence wins)
         const itemsByName = new Map();
+        const itemsByIdentifier = new Map();
+        const itemsById = new Map();
+
         for (const doc of allItems) {
             const key = (doc.name || "").trim().toLowerCase();
             if (key && !itemsByName.has(key)) itemsByName.set(key, doc);
+
+            const ident = (doc.system?.identifier || "").trim().toLowerCase();
+            if (ident && !itemsByIdentifier.has(ident)) itemsByIdentifier.set(ident, doc);
+
+            const slug = (doc.system?.slug || "").trim().toLowerCase();
+            if (slug && !itemsByIdentifier.has(slug)) itemsByIdentifier.set(slug, doc);
+
+            const nameSlug = (doc.name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+            if (nameSlug && !itemsByIdentifier.has(nameSlug)) itemsByIdentifier.set(nameSlug, doc);
+
+            if (doc.id && !itemsById.has(doc.id)) itemsById.set(doc.id, doc);
+            if (doc._id && !itemsById.has(doc._id)) itemsById.set(doc._id, doc);
+
+            const sourceUuid = doc._stats?.compendiumSource;
+            if (sourceUuid) {
+                const sourceId = String(sourceUuid).split(".").pop();
+                if (sourceId && !itemsById.has(sourceId)) itemsById.set(sourceId, doc);
+            }
         }
 
         // Match manifest entries against discovered items
@@ -78,8 +99,12 @@ export class SrdCurseAdapter {
         let missCount  = 0;
 
         for (const entry of SRD_CURSE_MANIFEST) {
-            const key        = entry.match.trim().toLowerCase();
-            const sourceItem = itemsByName.get(key);
+            const nameKey  = entry.match.trim().toLowerCase();
+            const identKey = (entry.identifier || nameKey.replace(/\s+/g, "-")).toLowerCase();
+            const sourceItem = (identKey && itemsByIdentifier.get(identKey))
+                || (entry._id && itemsById.get(entry._id))
+                || itemsByName.get(nameKey)
+                || itemsByName.get(identKey);
             if (!sourceItem) {
                 Logger.warn(MODULE_LABEL, `SrdCurseAdapter: "${entry.match}" not found in dnd5e packs. Skipping.`);
                 missCount++;
@@ -145,7 +170,13 @@ export class SrdCurseAdapter {
      * @param {string} entryName  Manifest match name (e.g. "Berserker Axe").
      */
     static _applyFallbacks(data, entryName) {
-        const fallback = SRD_ITEM_FALLBACKS[entryName.trim().toLowerCase()];
+        const nameKey = (entryName || "").trim().toLowerCase();
+        const identKey = (data.system?.identifier || "").trim().toLowerCase();
+        const slugKey = (data.flags?.[MODULE_ID]?.curseSlug || "").trim().toLowerCase();
+        const fallback = SRD_ITEM_FALLBACKS[nameKey]
+            || (identKey && SRD_ITEM_FALLBACKS[identKey])
+            || (slugKey && SRD_ITEM_FALLBACKS[slugKey])
+            || Object.values(SRD_ITEM_FALLBACKS).find(f => f.identifier && (f.identifier === identKey || f.identifier === slugKey || f.identifier === nameKey));
         if (!fallback) return;
         const system = data.system ??= {};
         // Weight: handles both object { value, units } and legacy number forms
@@ -219,9 +250,14 @@ export class SrdCurseAdapter {
             trueNature:       ""
         };
 
+        const curseSlug = entry.identifier
+            ?? entry.match.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
         data.flags                                  ??= {};
         data.flags[MODULE_ID]         ??= {};
         data.flags[MODULE_ID].cursedMeta  = cursedMeta;
+        data.flags[MODULE_ID].curseSlug   = curseSlug;
+        data.flags[MODULE_ID].isCurseItem = true;
         data.flags[MODULE_ID].mintBatch   = `srd-curse-${entry.match.toLowerCase().replace(/\s+/g, "-")}`;
 
         return data;
@@ -282,44 +318,79 @@ export class SrdCurseAdapter {
         const ItemClass = CONFIG.Item.documentClass;
         const minting   = game.ionrift?.library?.minting;
 
-        // Build name -> doc[] map. Tracks ALL docs per name so duplicates
-        // left over from a corrupted clear cycle can be pruned.
+        function getCurseDocKey(docOrData) {
+            const flagSlug = docOrData.getFlag
+                ? docOrData.getFlag(MODULE_ID, "curseSlug")
+                : docOrData.flags?.[MODULE_ID]?.curseSlug;
+            if (flagSlug) return String(flagSlug).trim().toLowerCase();
+            const ident = docOrData.system?.identifier;
+            if (ident) return String(ident).trim().toLowerCase();
+            return (docOrData.name || "").trim().toLowerCase();
+        }
+
+        const existingByKey = new Map();
         const existingByName = new Map();
         try {
             const docs = await pack.getDocuments();
             for (const doc of docs) {
-                const key = (doc.name || "").trim().toLowerCase();
-                if (!key) continue;
-                const arr = existingByName.get(key);
-                if (arr) arr.push(doc);
-                else existingByName.set(key, [doc]);
+                const curseKey = getCurseDocKey(doc);
+                if (curseKey) {
+                    const arr = existingByKey.get(curseKey) ?? [];
+                    arr.push(doc);
+                    existingByKey.set(curseKey, arr);
+                }
+                const nameKey = (doc.name || "").trim().toLowerCase();
+                if (nameKey) {
+                    const arr = existingByName.get(nameKey) ?? [];
+                    arr.push(doc);
+                    existingByName.set(nameKey, arr);
+                }
             }
         } catch {
             // Can't read the pack; treat as empty and insert everything fresh.
         }
 
-        const pendingNames = new Set();
+        const matchedDocIds = new Set();
         const toCreate     = [];
         const toUpdate     = [];
         const toDelete     = [];
 
         for (const data of pendingItems) {
-            const key  = (data.name || "").trim().toLowerCase();
-            pendingNames.add(key);
-            const docs = existingByName.get(key);
+            const curseKey = getCurseDocKey(data);
+            const nameKey  = (data.name || "").trim().toLowerCase();
+            const docs = (curseKey && existingByKey.get(curseKey))
+                || (nameKey && existingByName.get(nameKey));
+
             if (docs?.length) {
-                // Keep the first, update it. Mark extras for deletion.
-                toUpdate.push({ ...data, _id: docs[0].id });
-                for (let i = 1; i < docs.length; i++) toDelete.push(docs[i].id);
+                // Keep the first matching doc, update it. Mark any duplicates for deletion.
+                const primaryDoc = docs[0];
+                matchedDocIds.add(primaryDoc.id);
+                toUpdate.push({ ...data, _id: primaryDoc.id });
+                for (let i = 1; i < docs.length; i++) {
+                    matchedDocIds.add(docs[i].id);
+                    toDelete.push(docs[i].id);
+                }
             } else {
                 toCreate.push(data);
             }
         }
 
-        // Any name in the pack that isn't in the manifest: delete all copies.
-        for (const [key, docs] of existingByName) {
-            if (pendingNames.has(key)) continue;
-            for (const doc of docs) toDelete.push(doc.id);
+        // Any doc in the pack that wasn't matched to pendingItems: delete it.
+        for (const docs of existingByKey.values()) {
+            for (const doc of docs) {
+                if (!matchedDocIds.has(doc.id)) {
+                    matchedDocIds.add(doc.id);
+                    toDelete.push(doc.id);
+                }
+            }
+        }
+        for (const docs of existingByName.values()) {
+            for (const doc of docs) {
+                if (!matchedDocIds.has(doc.id)) {
+                    matchedDocIds.add(doc.id);
+                    toDelete.push(doc.id);
+                }
+            }
         }
 
         // Guard new items through the minting pipeline.
