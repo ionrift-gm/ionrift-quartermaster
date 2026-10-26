@@ -11,7 +11,7 @@ export class LootPoolConfigApp extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "ionrift-loot-pool-config",
-            title: "Loot Pool Sources",
+            title: "ionrift-quartermaster.config.lootPool.title",
             template: `modules/${MODULE_ID}/templates/loot-pool-config.hbs`,
             width: 480,
             height: 520,
@@ -61,7 +61,11 @@ export class LootPoolConfigApp extends FormApplication {
 
         await game.settings.set(MODULE_ID, "lootPoolSources", JSON.stringify(enabled));
         ItemPoolResolver.clearCache();
-        ui.notifications?.info?.(`Loot pool updated: ${enabled.length} source${enabled.length !== 1 ? 's' : ''} enabled.`);
+        const count = enabled.length;
+        const msg = count === 1
+            ? game.i18n.format("ionrift-quartermaster.notification.lootPoolUpdatedOne", { count })
+            : game.i18n.format("ionrift-quartermaster.notification.lootPoolUpdatedOther", { count });
+        ui.notifications?.info?.(msg);
     }
 
     activateListeners(html) {

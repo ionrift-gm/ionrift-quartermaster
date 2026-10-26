@@ -14,7 +14,7 @@ export class PartyShelfSourceApp extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id:            "ionrift-party-shelf-sources",
-            title:         "Party Shelf: item compendiums",
+            title:         "ionrift-quartermaster.config.partyShelfSources.title",
             template:      `modules/${MODULE_ID}/templates/party-shelf-sources.hbs`,
             width:         520,
             height:        480,
@@ -108,7 +108,11 @@ export class PartyShelfSourceApp extends FormApplication {
             : Object.entries(formData).filter(([k, v]) => k.startsWith("pack-") && v).map(([k]) => k.replace("pack-", ""));
 
         await game.settings.set(MODULE_ID, SETTING_PARTY_SHELF_SOURCES, JSON.stringify(enabled));
-        ui.notifications?.info?.(`Party shelf sources saved: ${enabled.length} compendium${enabled.length !== 1 ? "s" : ""} enabled.`);
+        const count = enabled.length;
+        const msg = count === 1
+            ? game.i18n.format("ionrift-quartermaster.notification.partyShelfSourcesSavedOne", { count })
+            : game.i18n.format("ionrift-quartermaster.notification.partyShelfSourcesSavedOther", { count });
+        ui.notifications?.info?.(msg);
     }
 
     static getEnabledSources() {

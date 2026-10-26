@@ -309,9 +309,10 @@ Hooks.on('ready', () => {
                     Logger.info(MODULE_LABEL,
                         `Cursewright detected: purged ${removed} SRD cursed item${removed !== 1 ? "s" : ""} from pool (superseded by Cursewright).`
                     );
-                    ui.notifications.info(
-                        `Quartermaster: removed ${removed} SRD cursed item${removed !== 1 ? "s" : ""}. Cursewright is active and provides its own pool.`
-                    );
+                    const msg = removed === 1
+                        ? game.i18n.format("ionrift-quartermaster.notification.srdPurgedOne", { count: removed })
+                        : game.i18n.format("ionrift-quartermaster.notification.srdPurgedOther", { count: removed });
+                    ui.notifications.info(msg);
                 }
             } catch (err) {
                 Logger.error(MODULE_LABEL, "SRD pool purge failed:", err);
@@ -466,7 +467,7 @@ Hooks.on("renderItemDirectory", (app, html, _data) => {
         game.ionrift.hud.injectDirectoryButton("items", root, {
             id: "loot-cache",
             className: "ionrift-cache-btn",
-            label: "Loot Cache",
+            label: game.i18n.localize("ionrift-quartermaster.sidebar.lootCache"),
             icon: "fas fa-treasure-chest",
             onClick: () => new CacheGeneratorApp().render(true),
             restricted: true,
@@ -477,7 +478,7 @@ Hooks.on("renderItemDirectory", (app, html, _data) => {
             game.ionrift.hud.injectDirectoryButton("items", root, {
                 id: "signature-ledger",
                 className: "ionrift-ledger-btn",
-                label: "Quartermaster",
+                label: game.i18n.localize("ionrift-quartermaster.sidebar.quartermaster"),
                 icon: "fas fa-book-sparkles",
                 onClick: async () => {
                     const { SignatureLedgerApp } = await import("./apps/ledger/SignatureLedgerApp.js");
@@ -505,7 +506,7 @@ Hooks.on("renderItemDirectory", (app, html, _data) => {
         cacheBtn.type = "button";
         cacheBtn.className = "ionrift-directory-btn ionrift-cache-btn";
         cacheBtn.dataset.order = "10";
-        cacheBtn.innerHTML = '<i class="fas fa-treasure-chest" aria-hidden="true"></i> Loot Cache';
+        cacheBtn.innerHTML = `<i class="fas fa-treasure-chest" aria-hidden="true"></i> ${game.i18n.localize("ionrift-quartermaster.sidebar.lootCache")}`;
         cacheBtn.addEventListener("click", (ev) => {
             ev.preventDefault();
             new CacheGeneratorApp().render(true);
@@ -518,7 +519,7 @@ Hooks.on("renderItemDirectory", (app, html, _data) => {
         ledgerBtn.type = "button";
         ledgerBtn.className = "ionrift-directory-btn ionrift-ledger-btn";
         ledgerBtn.dataset.order = "20";
-        ledgerBtn.innerHTML = '<i class="fas fa-book-sparkles" aria-hidden="true"></i> Quartermaster';
+        ledgerBtn.innerHTML = `<i class="fas fa-book-sparkles" aria-hidden="true"></i> ${game.i18n.localize("ionrift-quartermaster.sidebar.quartermaster")}`;
         ledgerBtn.addEventListener("click", async (ev) => {
             ev.preventDefault();
             const { SignatureLedgerApp } = await import("./apps/ledger/SignatureLedgerApp.js");
@@ -548,7 +549,7 @@ Hooks.on("createItem", async (item, options, userId) => {
         
         await SignatureLedger.logWindfall(actor.id, rarity);
         
-        ui.notifications.info(`Ionrift: ${actor.name} received a signature item. Ledger updated.`);
+        ui.notifications.info(game.i18n.format("ionrift-quartermaster.notification.signatureWindfall", { name: actor.name }));
     }
 });
 
@@ -559,7 +560,7 @@ Hooks.on("getItemDirectoryEntryContext", (html, options) => {
 
     // Edit in Quartermaster (available for GMs on systems that support Workshop)
     options.push({
-        name: "Edit in Quartermaster",
+        name: game.i18n.localize("ionrift-quartermaster.contextMenu.editInQuartermaster"),
         icon: '<i class="fas fa-hammer"></i>',
         callback: li => {
             const item = game.items.get(li.data("documentId"));
@@ -580,7 +581,7 @@ Hooks.on("getActorDirectoryEntryContext", (html, options) => {
     const adapter = game.ionrift?.quartermaster?.adapter ?? getQuartermasterAdapter();
     const supportsMasking = !!adapter?.supports(QM_FEATURES.LATENT_MASKING);
     options.push({
-        name: supportsMasking ? "Mystify Cache (Quartermaster)" : "Convert to Cache (Quartermaster)",
+        name: supportsMasking ? game.i18n.localize("ionrift-quartermaster.contextMenu.mystifyCache") : game.i18n.localize("ionrift-quartermaster.contextMenu.convertToCache"),
         icon: supportsMasking ? '<i class="fas fa-mask"></i>' : '<i class="fas fa-box-open"></i>',
         callback: async li => {
             const actor = game.actors.get(li.data("documentId"));
@@ -597,7 +598,7 @@ Hooks.on("getActorDirectoryEntryContext", (html, options) => {
 
     if (supportsMasking) {
         options.push({
-            name: "Identify All Items (Quartermaster)",
+            name: game.i18n.localize("ionrift-quartermaster.contextMenu.identifyAllItems"),
             icon: '<i class="fas fa-wand-magic-sparkles"></i>',
             callback: async li => {
                 const actor = game.actors.get(li.data("documentId"));
@@ -623,7 +624,7 @@ Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
     const adapter = game.ionrift?.quartermaster?.adapter ?? getQuartermasterAdapter();
     const supportsMasking = !!adapter?.supports(QM_FEATURES.LATENT_MASKING);
     buttons.unshift({
-        label: supportsMasking ? "Mystify Cache" : "Convert to Cache",
+        label: supportsMasking ? game.i18n.localize("ionrift-quartermaster.sheetHeader.mystifyCache") : game.i18n.localize("ionrift-quartermaster.sheetHeader.convertToCache"),
         class: "ionrift-qm-mystify-header-btn",
         icon: supportsMasking ? "fas fa-mask" : "fas fa-box-open",
         onclick: async () => {
@@ -633,7 +634,7 @@ Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
 
     if (supportsMasking && CacheConverterService.hasMystifiedItems(actor)) {
         buttons.unshift({
-            label: "Identify All",
+            label: game.i18n.localize("ionrift-quartermaster.sheetHeader.identifyAll"),
             class: "ionrift-qm-identify-all-header-btn",
             icon: "fas fa-wand-magic-sparkles",
             onclick: async () => {

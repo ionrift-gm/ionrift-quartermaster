@@ -2,37 +2,37 @@ import { createQuartermasterConfigApp } from "../QuartermasterSubmenuConfigApp.j
 
 export const IdentificationConfigApp = createQuartermasterConfigApp({
     appId: "qm-identification-config",
-    title: "Identification",
+    title: "ionrift-quartermaster.config.identify.title",
     icon: "fas fa-eye-slash",
-    lead: "Control how unidentified loot appears on sheets and in chat before the party examines it.",
-    savedMessage: "Identification settings saved.",
+    get lead() { return game.i18n.localize("ionrift-quartermaster.config.identify.lead"); },
+    get savedMessage() { return game.i18n.localize("ionrift-quartermaster.config.identify.savedMessage"); },
     rows: [
         {
             key: "obscureConsumables",
-            label: "Obscure Consumables",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.identify.obscureConsumables.label"); },
             icon: "fas fa-flask",
-            hint: "Potions and oils use generic names until identified. Off shows true names for common items like Potions of Healing.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.identify.obscureConsumables.hint"); },
             type: "boolean"
         },
         {
             key: "obscureScrolls",
-            label: "Obscure Spell Scrolls",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.identify.obscureScrolls.label"); },
             icon: "fas fa-scroll",
-            hint: "Spell scrolls appear as Unidentified Scroll until examined. Off shows spell names directly.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.identify.obscureScrolls.hint"); },
             type: "boolean"
         },
         {
             key: "obscureMagicalItems",
-            label: "Obscure Magical Items",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.identify.obscureMagicalItems.label"); },
             icon: "fas fa-wand-sparkles",
-            hint: "Weapons, armor, wondrous gear, and foci use mundane names until identified. Off shows true names and properties on the sheet.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.identify.obscureMagicalItems.hint"); },
             type: "boolean"
         },
         {
             key: "gmOnlyIdentification",
-            label: "GM-Only Identification",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.identify.gmOnlyIdentification.label"); },
             icon: "fas fa-user-shield",
-            hint: "When on, the sheet identification toggle is GM-only. Players cannot flip masked loot to the generic unidentified label.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.identify.gmOnlyIdentification.hint"); },
             type: "boolean"
         }
     ]

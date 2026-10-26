@@ -116,7 +116,7 @@ export function createQuartermasterConfigApp(definition) {
             html += `
         <div class="settings-config-actions">
             <button type="button" class="settings-config-save-btn">
-                <i class="fas fa-save"></i> Save
+                <i class="fas fa-save"></i> ${game.i18n.localize("ionrift-quartermaster.config.save")}
             </button>
         </div>`;
 
@@ -167,7 +167,7 @@ export function createQuartermasterConfigApp(definition) {
             <div class="settings-config-popout-wrap">
                 <span class="settings-config-popout-summary">${row.value ?? ""}</span>
                 <button type="button" class="settings-config-popout-btn" data-popout="${row.popout}">
-                    <i class="fas fa-sliders"></i> Configure
+                    <i class="fas fa-sliders"></i> ${game.i18n.localize("ionrift-quartermaster.config.configure")}
                 </button>
             </div>`;
             }
@@ -193,7 +193,7 @@ export function createQuartermasterConfigApp(definition) {
                     if (range) await game.settings.set(MODULE_ID, row.key, Number(range.value));
                 }
             }
-            ui.notifications.info(definition.savedMessage ?? "Quartermaster settings saved.");
+            ui.notifications.info(definition.savedMessage ?? game.i18n.localize("ionrift-quartermaster.config.savedDefault"));
             this.close();
         }
     };

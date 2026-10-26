@@ -1,16 +1,14 @@
 <form class="ionrift-loot-pool-config ionrift-party-shelf-sources">
     <p class="pool-instructions">
-        Select which item compendiums the Party Shelf randomiser considers.
-        Only compendiums containing equipment are listed. Within those, only
-        uncommon through very rare items are drawn.
+        {{localize "ionrift-quartermaster.config.partyShelfSources.instructions"}}
     </p>
 
     <div class="scroll-forge-toolbar">
         <button type="button" class="cache-btn-accent party-shelf-select-all">
-            <i class="fas fa-check-double"></i> Select all
+            <i class="fas fa-check-double"></i> {{localize "ionrift-quartermaster.config.partyShelfSources.selectAll"}}
         </button>
         <button type="button" class="cache-btn-accent party-shelf-select-none">
-            <i class="fas fa-times"></i> Select none
+            <i class="fas fa-times"></i> {{localize "ionrift-quartermaster.config.partyShelfSources.selectNone"}}
         </button>
     </div>
 
@@ -24,7 +22,7 @@
             <label class="pool-pack-row">
                 <input type="checkbox" name="pack-{{this.id}}" {{#if this.enabled}}checked{{/if}} />
                 <span class="pool-pack-label">{{this.label}}</span>
-                <span class="pool-pack-id">{{this.id}}{{#if this.count}} ({{this.count}} items){{/if}}</span>
+                <span class="pool-pack-id">{{this.id}}{{#if this.count}} {{localize "ionrift-quartermaster.config.partyShelfSources.itemCount" count=this.count}}{{/if}}</span>
             </label>
             {{/each}}
         </div>
@@ -33,7 +31,7 @@
 
     <footer class="pool-footer">
         <button type="submit" class="cache-btn-accent">
-            <i class="fas fa-save"></i> Save sources
+            <i class="fas fa-save"></i> {{localize "ionrift-quartermaster.config.partyShelfSources.saveSources"}}
         </button>
     </footer>
 </form>

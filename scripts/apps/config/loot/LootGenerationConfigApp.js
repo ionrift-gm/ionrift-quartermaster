@@ -10,32 +10,32 @@ const supportsMagicalLootTuning = () => getQuartermasterAdapter().supports(QM_FE
 
 export const LootGenerationConfigApp = createQuartermasterConfigApp({
     appId: "qm-loot-generation-config",
-    title: "Loot Generation",
+    title: "ionrift-quartermaster.config.lootGen.title",
     icon: "fas fa-coins",
-    lead: "Cache value, consumable drops, ammunition, and coin distribution.",
-    savedMessage: "Loot generation settings saved.",
+    get lead() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.lead"); },
+    get savedMessage() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.savedMessage"); },
     popouts: {
         ammoTypes: AmmoTypeConfigApp,
         genericArmorBonus: GenericArmorBonusConfigApp
     },
     rows: [
-        { type: "section", label: "Economy" },
+        { type: "section", get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.section.economy"); } },
         {
             key: "lootEconomy",
-            label: "Loot Abundance",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.lootEconomy.label"); },
             icon: "fas fa-scale-balanced",
-            hint: "Scales the value of generated caches. Below 1.0 for scarce games. Above 1.0 for high-fantasy treasure runs.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.lootEconomy.hint"); },
             type: "range",
             min: 0.25,
             max: 3,
             step: 0.25
         },
-        { type: "section", label: "Enhancement Items", visible: supportsMagicalLootTuning },
+        { type: "section", get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.section.enhancement"); }, visible: supportsMagicalLootTuning },
         {
             key: "magicFrequency",
-            label: "Magic Frequency",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.magicFrequency.label"); },
             icon: "fas fa-wand-sparkles",
-            hint: "Mastercraft slot draw weight for generic +N weapons and enhancement gear. Does not affect armour drops or named magic.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.magicFrequency.hint"); },
             type: "range",
             min: 0,
             max: 2,
@@ -44,9 +44,9 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
         },
         {
             key: "armourDropChance",
-            label: "Armour Drop Chance",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.armourDropChance.label"); },
             icon: "fas fa-shield-halved",
-            hint: "Chance a mastercraft armour slot is reserved per cache (Unspecified / Armaments themes). 0 = off. 0.65 = standard. 1.0 = guaranteed.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.armourDropChance.hint"); },
             type: "range",
             min: 0,
             max: 1,
@@ -55,20 +55,20 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
         },
         {
             key: "genericArmorBonusConfig",
-            label: "Generic Armor Bonus Curve",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.genericArmorBonusConfig.label"); },
             icon: "fas fa-shield-halved",
-            hint: "Tier caps for generic +N body armor and shields in mastercraft caches. Independent of magic frequency and weapon bonuses.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.genericArmorBonusConfig.hint"); },
             type: "popout",
             popout: "genericArmorBonus",
             summary: () => GenericArmorBonusRegistry.getSummaryLabel(),
             visible: supportsMagicalLootTuning
         },
-        { type: "section", label: "Named Magic", visible: supportsMagicalLootTuning },
+        { type: "section", get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.section.namedMagic"); }, visible: supportsMagicalLootTuning },
         {
             key: "namedMagicFrequency",
-            label: "Named Magic Frequency",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.namedMagicFrequency.label"); },
             icon: "fas fa-wand-sparkles",
-            hint: "Scales how often one named magical item appears per cache. Baseline: T2 10%, T3 20%, T4 35%. 0 = off. 1 = standard. 2 = double.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.namedMagicFrequency.hint"); },
             type: "range",
             min: 0,
             max: 2,
@@ -76,23 +76,23 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
             visible: supportsMagicalLootTuning
         },
         { type: "column-break", visible: supportsMagicalLootTuning },
-        { type: "section", label: "Consumables" },
+        { type: "section", get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.section.consumables"); } },
         {
             key: "healingPotionFrequency",
-            label: "Healing Potion Frequency",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.healingPotionFrequency.label"); },
             icon: "fas fa-heart-pulse",
-            hint: "Scales consumable slots, healing picks on those slots, and bonus healing lines per cache. 1.0 is moderate; 4.0 is heavy. Requires healing potions in Loot Pool Sources.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.healingPotionFrequency.hint"); },
             type: "range",
             min: 0,
             max: 4,
             step: 0.25
         },
-        { type: "section", label: "Ammunition" },
+        { type: "section", get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.section.ammunition"); } },
         {
             key: "magicAmmoFrequency",
-            label: "Magical Ammunition Frequency",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.magicAmmoFrequency.label"); },
             icon: "fas fa-bullseye",
-            hint: "How often +1/+2/+3 ammunition appears. Independent of Magic Frequency.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.magicAmmoFrequency.hint"); },
             type: "range",
             min: 0,
             max: 2,
@@ -101,19 +101,19 @@ export const LootGenerationConfigApp = createQuartermasterConfigApp({
         },
         {
             key: "ammoTypeConfig",
-            label: "Ammunition Type Curve",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.ammoTypeConfig.label"); },
             icon: "fas fa-bullseye-arrow",
-            hint: "Weight arrows, bolts, needles, sling bullets, and custom house-rule types.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.ammoTypeConfig.hint"); },
             type: "popout",
             popout: "ammoTypes",
             summary: () => AmmoTypeRegistry.getSummaryLabel()
         },
-        { type: "section", label: "Coinage" },
+        { type: "section", get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.section.coinage"); } },
         {
             key: "distributeCoins",
-            label: "Distribute Coinage",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.distributeCoins.label"); },
             icon: "fas fa-coins",
-            hint: "Convert cache gold into a randomized mix of cp, sp, ep, gp, and pp.",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.lootGen.distributeCoins.hint"); },
             type: "boolean"
         }
     ]

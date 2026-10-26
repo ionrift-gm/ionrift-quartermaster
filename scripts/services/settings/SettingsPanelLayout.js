@@ -28,35 +28,35 @@ const PROFILE_KEYS = [
 ];
 
 const KEY_LABELS = {
-    lootEconomy: "Loot abundance",
-    magicFrequency: "Magic frequency",
-    armourDropChance: "Armour drop chance",
-    namedMagicFrequency: "Named magic frequency",
-    magicAmmoFrequency: "Magical ammunition",
-    healingPotionFrequency: "Healing potions",
-    ammoTypeTilt: "Ammunition preference",
-    obscureConsumables: "Obscure consumables",
-    obscureScrolls: "Obscure scrolls",
-    obscureMagicalItems: "Obscure magical items",
-    gmOnlyIdentification: "GM-only identification",
-    distributeCoins: "Distribute coinage"
+    get lootEconomy() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.lootEconomy"); },
+    get magicFrequency() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.magicFrequency"); },
+    get armourDropChance() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.armourDropChance"); },
+    get namedMagicFrequency() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.namedMagicFrequency"); },
+    get magicAmmoFrequency() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.magicAmmoFrequency"); },
+    get healingPotionFrequency() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.healingPotionFrequency"); },
+    get ammoTypeTilt() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.ammoTypeTilt"); },
+    get obscureConsumables() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.obscureConsumables"); },
+    get obscureScrolls() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.obscureScrolls"); },
+    get obscureMagicalItems() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.obscureMagicalItems"); },
+    get gmOnlyIdentification() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.gmOnlyIdentification"); },
+    get distributeCoins() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.distributeCoins"); }
 };
 
 const AMMO_LABELS = {
-    balanced: "Balanced",
-    arrows: "Arrows",
-    bolts: "Bolts",
-    sling: "Sling",
-    mixed: "Mixed",
-    custom: "Custom curve"
+    get balanced() { return game.i18n.localize("ionrift-quartermaster.quickSetup.ammoLabel.balanced"); },
+    get arrows() { return game.i18n.localize("ionrift-quartermaster.quickSetup.ammoLabel.arrows"); },
+    get bolts() { return game.i18n.localize("ionrift-quartermaster.quickSetup.ammoLabel.bolts"); },
+    get sling() { return game.i18n.localize("ionrift-quartermaster.quickSetup.ammoLabel.sling"); },
+    get mixed() { return game.i18n.localize("ionrift-quartermaster.quickSetup.ammoLabel.mixed"); },
+    get custom() { return game.i18n.localize("ionrift-quartermaster.quickSetup.ammoLabel.custom"); }
 };
 
 const PROFILES = [
     {
         id: "low",
-        label: "Low",
+        get label() { return game.i18n.localize("ionrift-quartermaster.quickSetup.profile.low.label"); },
         icon: "fas fa-mountain",
-        desc: "Scarce loot, little magic, sparse healing, opaque items, tight scroll bands.",
+        get desc() { return game.i18n.localize("ionrift-quartermaster.quickSetup.profile.low.desc"); },
         values: {
             lootEconomy: 0.5,
             magicFrequency: 0.25,
@@ -74,9 +74,9 @@ const PROFILES = [
     },
     {
         id: "standard",
-        label: "Standard",
+        get label() { return game.i18n.localize("ionrift-quartermaster.quickSetup.profile.standard.label"); },
         icon: "fas fa-scale-balanced",
-        desc: "Default table: balanced economy, magic, and identification.",
+        get desc() { return game.i18n.localize("ionrift-quartermaster.quickSetup.profile.standard.desc"); },
         values: {
             lootEconomy: 1,
             magicFrequency: 1,
@@ -94,9 +94,9 @@ const PROFILES = [
     },
     {
         id: "high",
-        label: "High",
+        get label() { return game.i18n.localize("ionrift-quartermaster.quickSetup.profile.high.label"); },
         icon: "fas fa-gem",
-        desc: "Generous hauls, more magic and healing, readable loot, wider scroll overshoot.",
+        get desc() { return game.i18n.localize("ionrift-quartermaster.quickSetup.profile.high.desc"); },
         values: {
             lootEconomy: 1.5,
             magicFrequency: 1.5,
@@ -116,22 +116,22 @@ const PROFILES = [
 
 const GROUPS = [
     {
-        title: "Start here",
+        get title() { return game.i18n.localize("ionrift-quartermaster.settingsGroup.startHere"); },
         icon: "fas fa-flag",
         keys: ["milestoneProfile", "compendiumForge"]
     },
     {
-        title: "Loot & caches",
+        get title() { return game.i18n.localize("ionrift-quartermaster.settingsGroup.lootAndCaches"); },
         icon: "fas fa-coins",
         keys: ["lootGenerationConfig"]
     },
     {
-        title: "At the table",
+        get title() { return game.i18n.localize("ionrift-quartermaster.settingsGroup.atTheTable"); },
         icon: "fas fa-eye",
         keys: ["identificationConfig"]
     },
     {
-        title: "Tools",
+        get title() { return game.i18n.localize("ionrift-quartermaster.settingsGroup.tools"); },
         icon: "fas fa-wrench",
         keys: ["debug"]
     }
@@ -157,7 +157,7 @@ function formatProfileCell(key, value) {
     if (key === "ammoTypeTilt") {
         return { text: AMMO_LABELS[value] ?? value, cssClass: "value" };
     }
-    return { text: value ? "On" : "Off", cssClass: value ? "on" : "off" };
+    return { text: value ? game.i18n.localize("ionrift-quartermaster.quickSetup.cell.on") : game.i18n.localize("ionrift-quartermaster.quickSetup.cell.off"), cssClass: value ? "on" : "off" };
 }
 
 export function registerQuartermasterSettingsPanel() {
@@ -174,17 +174,17 @@ export function registerQuartermasterSettingsPanel() {
         moduleLabel: "Quartermaster",
         anchorKey: "milestoneProfile",
         quickSetup: {
-            title: "Quick setup",
-            subtitle: "Pick a loot feel for the table. Sources, milestone band, and packs stay as they are.",
+            get title() { return game.i18n.localize("ionrift-quartermaster.quickSetup.title"); },
+            get subtitle() { return game.i18n.localize("ionrift-quartermaster.quickSetup.subtitle"); },
             profiles: PROFILES,
             profileKeys: PROFILE_KEYS,
             keyLabels: KEY_LABELS,
             formatCell: formatProfileCell,
             confirmRowGroups: [
-                { beforeKey: "lootEconomy", label: "Loot & caches" },
-                { beforeKey: "obscureConsumables", label: "Identification" }
+                { beforeKey: "lootEconomy", get label() { return game.i18n.localize("ionrift-quartermaster.quickSetup.rowGroup.lootAndCaches"); } },
+                { beforeKey: "obscureConsumables", get label() { return game.i18n.localize("ionrift-quartermaster.quickSetup.rowGroup.identification"); } }
             ],
-            confirmNote: "Green values will change. Neutral values already match this profile. Loot pool sources, campaign milestone profile, and content packs are left unchanged.",
+            get confirmNote() { return game.i18n.localize("ionrift-quartermaster.quickSetup.confirmNote"); },
             onApplied: () => refreshOpenQuartermasterConfigApps()
         },
         groups: GROUPS
@@ -284,8 +284,8 @@ function injectForgeAlertBadge(html) {
 
     const isStale = status === "stale";
     const tooltip = isStale
-        ? "A compiled pool is stale or missing. Open Compendium Forge to recompile."
-        : "Content pools have not been compiled yet. Open Compendium Forge to set up.";
+        ? game.i18n.localize("ionrift-quartermaster.forgeAlert.staleTooltip")
+        : game.i18n.localize("ionrift-quartermaster.forgeAlert.neverTooltip");
     const icon = isStale ? "fa-exclamation-triangle" : "fa-hammer";
 
     const badge = document.createElement("span");

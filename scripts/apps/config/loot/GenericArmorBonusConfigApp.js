@@ -5,9 +5,9 @@ import {
 } from "../../../services/workshop/GenericArmorBonusRegistry.js";
 
 const PRESET_LABELS = {
-    standard: "Standard",
-    plus1Only: "+1 cap",
-    noPlusArmor: "No +N armor"
+    get standard() { return game.i18n.localize("ionrift-quartermaster.config.genericArmorBonus.preset.standard"); },
+    get plus1Only() { return game.i18n.localize("ionrift-quartermaster.config.genericArmorBonus.preset.plus1Only"); },
+    get noPlusArmor() { return game.i18n.localize("ionrift-quartermaster.config.genericArmorBonus.preset.noPlusArmor"); }
 };
 
 export class GenericArmorBonusConfigApp extends foundry.applications.api.ApplicationV2 {
@@ -15,7 +15,7 @@ export class GenericArmorBonusConfigApp extends foundry.applications.api.Applica
     static DEFAULT_OPTIONS = {
         id: "qm-generic-armor-bonus-config",
         window: {
-            title: "Generic Armor Bonus Curve",
+            title: "ionrift-quartermaster.config.genericArmorBonus.title",
             icon: "fas fa-shield-halved",
             resizable: false
         },
@@ -56,12 +56,12 @@ export class GenericArmorBonusConfigApp extends foundry.applications.api.Applica
             const options = [0, 1, 2, 3].map(n => {
                 const disabled = n > cap ? "disabled" : "";
                 const selected = n === max ? "selected" : "";
-                const label = n === 0 ? "None" : `+${n}`;
+                const label = n === 0 ? game.i18n.localize("ionrift-quartermaster.config.genericArmorBonus.none") : `+${n}`;
                 return `<option value="${n}" ${selected} ${disabled}>${label}</option>`;
             }).join("");
             return `
                 <div class="qm-armor-bonus-tier-row" data-tier="${tier}">
-                    <span class="qm-armor-bonus-tier-label">Tier ${tier}</span>
+                    <span class="qm-armor-bonus-tier-label">${game.i18n.format("ionrift-quartermaster.config.genericArmorBonus.tierLabel", { tier })}</span>
                     <select class="qm-armor-bonus-tier-max">${options}</select>
                 </div>`;
         }).join("");
@@ -72,28 +72,27 @@ export class GenericArmorBonusConfigApp extends foundry.applications.api.Applica
 
         return `
             <p class="qm-armor-bonus-lead">
-                Caps generic +N body armor and shields in armaments mastercraft slots.
-                Weapons and named magic use the separate magic curve.
+                ${game.i18n.localize("ionrift-quartermaster.config.genericArmorBonus.lead")}
             </p>
             <div class="qm-armor-bonus-presets">
-                <span class="qm-armor-bonus-presets-label">Presets</span>
+                <span class="qm-armor-bonus-presets-label">${game.i18n.localize("ionrift-quartermaster.config.genericArmorBonus.presetsLabel")}</span>
                 <div class="qm-armor-bonus-preset-row">${presetBtns}</div>
             </div>
             <div class="qm-armor-bonus-cap-row">
-                <label class="qm-armor-bonus-cap-label" for="qm-armor-bonus-cap">Global cap</label>
+                <label class="qm-armor-bonus-cap-label" for="qm-armor-bonus-cap">${game.i18n.localize("ionrift-quartermaster.config.genericArmorBonus.globalCap")}</label>
                 <select id="qm-armor-bonus-cap" class="qm-armor-bonus-cap-select">
                     ${[0, 1, 2, 3].map(n =>
-                        `<option value="${n}" ${n === cap ? "selected" : ""}>+${n} maximum</option>`
+                        `<option value="${n}" ${n === cap ? "selected" : ""}>${game.i18n.format("ionrift-quartermaster.config.genericArmorBonus.maximumOption", { n })}</option>`
                     ).join("")}
                 </select>
             </div>
             <div class="qm-armor-bonus-tier-grid">${tierRows}</div>
             <p class="qm-armor-bonus-note">
-                Standard uses a global cap of +2 (no +3 armor). Adjust the cap or tier rows for a stricter or looser table.
+                ${game.i18n.localize("ionrift-quartermaster.config.genericArmorBonus.note")}
             </p>
             <div class="qm-armor-bonus-footer">
-                <button type="button" class="qm-armor-bonus-cancel-btn">Cancel</button>
-                <button type="button" class="qm-armor-bonus-save-btn"><i class="fas fa-save"></i> Save</button>
+                <button type="button" class="qm-armor-bonus-cancel-btn">${game.i18n.localize("ionrift-quartermaster.config.cancel")}</button>
+                <button type="button" class="qm-armor-bonus-save-btn"><i class="fas fa-save"></i> ${game.i18n.localize("ionrift-quartermaster.config.save")}</button>
             </div>`;
     }
 
@@ -167,7 +166,7 @@ export class GenericArmorBonusConfigApp extends foundry.applications.api.Applica
 
     async _onSave() {
         await GenericArmorBonusRegistry.save(this._collectDraftFromDom());
-        ui.notifications.info("Generic armor bonus curve saved.");
+        ui.notifications.info(game.i18n.localize("ionrift-quartermaster.config.genericArmorBonus.saved"));
         this.close();
     }
 }

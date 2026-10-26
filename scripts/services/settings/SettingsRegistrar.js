@@ -23,8 +23,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     const adapter = getQuartermasterAdapter();
 
     game.settings.register(MODULE_ID, "distributeCoins", {
-        name: "Distribute Coinage",
-        hint: "Automatically convert cache gold values into a randomized mix of cp, sp, ep, gp, and pp.",
+        name: "ionrift-quartermaster.setting.distributeCoins.name",
+        hint: "ionrift-quartermaster.setting.distributeCoins.hint",
         scope: "world",
         config: false,
         type: Boolean,
@@ -48,8 +48,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "defaultCacheOwnerTheme", {
-        name: "Default Cache Owner Theme",
-        hint: "Last-used owner theme for cache generation. Restored automatically when the generator opens.",
+        name: "ionrift-quartermaster.setting.defaultCacheOwnerTheme.name",
+        hint: "ionrift-quartermaster.setting.defaultCacheOwnerTheme.hint",
         scope: "world",
         config: false,
         type: String,
@@ -65,8 +65,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "advisoryCollapsed", {
-        name: "Advisory Panel Collapsed",
-        hint: "Remembers whether the Progression Advisory panel was collapsed.",
+        name: "ionrift-quartermaster.setting.advisoryCollapsed.name",
+        hint: "ionrift-quartermaster.setting.advisoryCollapsed.hint",
         scope: "client",
         config: false,
         type: Boolean,
@@ -104,8 +104,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "lootPoolSources", {
-        name: "Loot Pool Compendium Sources",
-        hint: "JSON array of compendium IDs to draw loot from. Managed via the config button below.",
+        name: "ionrift-quartermaster.setting.lootPoolSources.name",
+        hint: "ionrift-quartermaster.setting.lootPoolSources.hint",
         scope: "world",
         config: false,
         type: String,
@@ -119,8 +119,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "lootEconomy", {
-        name: "Loot Abundance",
-        hint: "Scales the value of generated caches. Below 1.0 for scarce, gritty games. Above 1.0 for high-fantasy treasure runs.",
+        name: "ionrift-quartermaster.setting.lootEconomy.name",
+        hint: "ionrift-quartermaster.setting.lootEconomy.hint",
         scope: "world",
         config: false,
         type: Number,
@@ -130,8 +130,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "magicFrequency", {
-        name: "Magic Frequency",
-        hint: "Scales the likelihood of drawing magical items (Uncommon+) from loot caches. 0.0 (No Magic) to 1.0 (Standard) to 2.0 (High Fantasy).",
+        name: "ionrift-quartermaster.setting.magicFrequency.name",
+        hint: "ionrift-quartermaster.setting.magicFrequency.hint",
         scope: "world",
         config: false,
         type: Number,
@@ -141,7 +141,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "armourDropChance", {
-        name: "Armour Drop Chance",
+        name: "ionrift-quartermaster.setting.armourDropChance.name",
         scope: "world",
         config: false,
         type: Number,
@@ -151,7 +151,7 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "namedMagicFrequency", {
-        name: "Named Magic Frequency",
+        name: "ionrift-quartermaster.setting.namedMagicFrequency.name",
         scope: "world",
         config: false,
         type: Number,
@@ -161,8 +161,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "magicAmmoFrequency", {
-        name: "Magical Ammunition Frequency",
-        hint: "Scales how often magical ammunition (+1/+2/+3) appears in caches. 0 disables magical ammo entirely. 1.0 follows the tier-appropriate curve. 2.0 is generous. Independent of Magic Frequency.",
+        name: "ionrift-quartermaster.setting.magicAmmoFrequency.name",
+        hint: "ionrift-quartermaster.setting.magicAmmoFrequency.hint",
         scope: "world",
         config: false,
         type: Number,
@@ -172,8 +172,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "healingPotionFrequency", {
-        name: "Healing Potion Frequency",
-        hint: "Scales consumable slots and healing potions per cache. 0 is scarce, 1.0 is moderate, 4.0 is abundant.",
+        name: "ionrift-quartermaster.setting.healingPotionFrequency.name",
+        hint: "ionrift-quartermaster.setting.healingPotionFrequency.hint",
         scope: "world",
         config: false,
         type: Number,
@@ -183,18 +183,18 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "ammoTypeTilt", {
-        name: "Ammunition Type Preference",
-        hint: "Legacy preset key synced from the ammunition type curve. Quick setup profiles still write this value.",
+        name: "ionrift-quartermaster.setting.ammoTypeTilt.name",
+        hint: "ionrift-quartermaster.setting.ammoTypeTilt.hint",
         scope: "world",
         config: false,
         type: String,
         choices: {
-            balanced: "Balanced, equal weight for all ammo types",
-            arrows: "Arrows, favour arrows and bow ammunition",
-            bolts: "Bolts, favour bolts and crossbow ammunition",
-            sling: "Sling, favour sling bullets",
-            mixed: "Mixed, arrows and bolts heavy, others light",
-            custom: "Custom, weights set in the ammunition type curve"
+            balanced: "ionrift-quartermaster.setting.ammoTypeTilt.choices.balanced",
+            arrows: "ionrift-quartermaster.setting.ammoTypeTilt.choices.arrows",
+            bolts: "ionrift-quartermaster.setting.ammoTypeTilt.choices.bolts",
+            sling: "ionrift-quartermaster.setting.ammoTypeTilt.choices.sling",
+            mixed: "ionrift-quartermaster.setting.ammoTypeTilt.choices.mixed",
+            custom: "ionrift-quartermaster.setting.ammoTypeTilt.choices.custom"
         },
         default: "balanced",
         restricted: true,
@@ -206,8 +206,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "ammoTypeConfig", {
-        name: "Ammunition Type Curve",
-        hint: "Per-category weights and custom ammo match rules for cache generation.",
+        name: "ionrift-quartermaster.setting.ammoTypeConfig.name",
+        hint: "ionrift-quartermaster.setting.ammoTypeConfig.hint",
         scope: "world",
         config: false,
         type: String,
@@ -216,8 +216,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "genericArmorBonusConfig", {
-        name: "Generic Armor Bonus Curve",
-        hint: "Tier caps and pick weights for generic +N body armor and shields in mastercraft caches.",
+        name: "ionrift-quartermaster.setting.genericArmorBonusConfig.name",
+        hint: "ionrift-quartermaster.setting.genericArmorBonusConfig.hint",
         scope: "world",
         config: false,
         type: String,
@@ -229,8 +229,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "obscureConsumables", {
-        name: "Obscure Consumables",
-        hint: "Presents potions and consumables with generic names (such as Sealed Vial) until identified. Disable to reveal names immediately.",
+        name: "ionrift-quartermaster.setting.obscureConsumables.name",
+        hint: "ionrift-quartermaster.setting.obscureConsumables.hint",
         scope: "world",
         config: false,
         type: Boolean,
@@ -239,8 +239,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "obscureScrolls", {
-        name: "Obscure Spell Scrolls",
-        hint: "Displays spell scrolls as 'Unidentified Scroll' until examined. Disable to show spell names directly.",
+        name: "ionrift-quartermaster.setting.obscureScrolls.name",
+        hint: "ionrift-quartermaster.setting.obscureScrolls.hint",
         scope: "world",
         config: false,
         type: Boolean,
@@ -249,8 +249,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "obscureMagicalItems", {
-        name: "Obscure Magical Items",
-        hint: "When enabled, weapons, armor, wondrous gear, and spell foci present as mundane base items until identified. Disable to show true names, rarity, and mechanical properties on the sheet immediately.",
+        name: "ionrift-quartermaster.setting.obscureMagicalItems.name",
+        hint: "ionrift-quartermaster.setting.obscureMagicalItems.hint",
         scope: "world",
         config: false,
         type: Boolean,
@@ -259,8 +259,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "gmOnlyIdentification", {
-        name: "GM-Only Identification",
-        hint: "When enabled, players cannot use the identification toggle on item sheets. Only the GM can identify masked loot via the sheet wand, Quartermaster tools, or linked rest activities.",
+        name: "ionrift-quartermaster.setting.gmOnlyIdentification.name",
+        hint: "ionrift-quartermaster.setting.gmOnlyIdentification.hint",
         scope: "world",
         config: false,
         type: Boolean,
@@ -269,8 +269,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "milestoneProfile", {
-        name: "Campaign Milestone Profile",
-        hint: "Adjusts the Signature Items grid to match your campaign's level range. Each profile spreads 6 milestones across the selected band.",
+        name: "ionrift-quartermaster.setting.milestoneProfile.name",
+        hint: "ionrift-quartermaster.setting.milestoneProfile.hint",
         scope: "world",
         config: adapter.supports(QM_FEATURES.SIGNATURE_LEDGER),
         type: String,
@@ -336,8 +336,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "compiledLootPoolHash", {
-        name: "Compiled Loot Pool Hash",
-        hint: "Hash of the lootPoolSources config at last compile. Empty = never compiled.",
+        name: "ionrift-quartermaster.setting.compiledLootPoolHash.name",
+        hint: "ionrift-quartermaster.setting.compiledLootPoolHash.hint",
         scope: "world",
         config: false,
         type: String,
@@ -346,8 +346,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "compiledLootPoolMeta", {
-        name: "Compiled Loot Pool Metadata",
-        hint: "JSON: { compiledAt, sourceIds, itemCount, templateCount }",
+        name: "ionrift-quartermaster.setting.compiledLootPoolMeta.name",
+        hint: "ionrift-quartermaster.setting.compiledLootPoolMeta.hint",
         scope: "world",
         config: false,
         type: String,
@@ -401,8 +401,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "cursedT3Enabled", {
-        name: "Cursed Pool: T3 Enabled",
-        hint: "Allow Tier 3 cursed items in advisory suggestions. T3 items are high-lethality and can kill characters.",
+        name: "ionrift-quartermaster.setting.cursedT3Enabled.name",
+        hint: "ionrift-quartermaster.setting.cursedT3Enabled.hint",
         scope: "world",
         config: false,
         type: Boolean,
@@ -411,8 +411,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "cursedT4Enabled", {
-        name: "Cursed Pool: T4 Enabled",
-        hint: "Allow Tier 4 cursed items in advisory suggestions. T4 items carry campaign-altering consequences and quests.",
+        name: "ionrift-quartermaster.setting.cursedT4Enabled.name",
+        hint: "ionrift-quartermaster.setting.cursedT4Enabled.hint",
         scope: "world",
         config: false,
         type: Boolean,
@@ -446,8 +446,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
 
     game.settings.register(MODULE_ID, "scrollFloor", {
-        name: "Scroll Floor",
-        hint: "Lowest spell level scrolls can drop at. The distribution stretches down to this level as the party levels up. Set higher to exclude low-level scrolls from high-level caches.",
+        name: "ionrift-quartermaster.setting.scrollFloor.name",
+        hint: "ionrift-quartermaster.setting.scrollFloor.hint",
         scope: "world",
         config: false,
         type: Number,
@@ -457,8 +457,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "scrollUpperReach", {
-        name: "Scroll Upper Reach",
-        hint: "Maximum spell levels above optimal that jitter can push. 0 = scrolls never exceed optimal. Higher values allow rare high-level scrolls.",
+        name: "ionrift-quartermaster.setting.scrollUpperReach.name",
+        hint: "ionrift-quartermaster.setting.scrollUpperReach.hint",
         scope: "world",
         config: false,
         type: Number,
@@ -468,8 +468,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "scrollConcentration", {
-        name: "Scroll Concentration",
-        hint: "How tightly the distribution clusters around the optimal level. 1 = flat spread, 5 = sharply peaked at optimal.",
+        name: "ionrift-quartermaster.setting.scrollConcentration.name",
+        hint: "ionrift-quartermaster.setting.scrollConcentration.hint",
         scope: "world",
         config: false,
         type: Number,
@@ -479,8 +479,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "scrollOffset", {
-        name: "Scroll Optimal Offset",
-        hint: "Offsets the party's assumed optimal scroll level to favor pulling lower or higher level scrolls.",
+        name: "ionrift-quartermaster.setting.scrollOffset.name",
+        hint: "ionrift-quartermaster.setting.scrollOffset.hint",
         scope: "world",
         config: false,
         type: Number,
@@ -490,8 +490,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "shelfConcentration", {
-        name: "Party Shelf Concentration",
-        hint: "How tightly the rarity distribution peaks around Uncommon. 1 = flat spread across rarities, 5 = heavily Uncommon.",
+        name: "ionrift-quartermaster.setting.shelfConcentration.name",
+        hint: "ionrift-quartermaster.setting.shelfConcentration.hint",
         scope: "world",
         config: false,
         type: Number,
@@ -501,8 +501,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "shelfAttunementBias", {
-        name: "Party Shelf Attunement Bias",
-        hint: "0 = Low (avoid attunement), 1 = Medium (neutral), 2 = High (favor attunement items).",
+        name: "ionrift-quartermaster.setting.shelfAttunementBias.name",
+        hint: "ionrift-quartermaster.setting.shelfAttunementBias.hint",
         scope: "world",
         config: false,
         type: Number,
@@ -512,8 +512,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     });
 
     game.settings.register(MODULE_ID, "shelfCategoryWeights", {
-        name: "Party Shelf Category Weights",
-        hint: "Per-category weight and enabled flag for the party shelf randomiser.",
+        name: "ionrift-quartermaster.setting.shelfCategoryWeights.name",
+        hint: "ionrift-quartermaster.setting.shelfCategoryWeights.hint",
         scope: "world",
         config: false,
         type: String,
@@ -542,11 +542,11 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         && !adapter.supports(QM_FEATURES.SRD_CURSES);
 
     game.settings.registerMenu(MODULE_ID, "lootGenerationConfig", {
-        name: "Loot Generation",
-        label: "Configure Loot Generation",
+        name: "ionrift-quartermaster.menu.lootGenerationConfig.name",
+        label: "ionrift-quartermaster.menu.lootGenerationConfig.label",
         hint: supportsMasking
-            ? "Loot abundance, magic frequency, ammunition, healing potions, and coin distribution."
-            : "Loot abundance, ammunition, healing potions, and coin distribution.",
+            ? "ionrift-quartermaster.menu.lootGenerationConfig.hintMasking"
+            : "ionrift-quartermaster.menu.lootGenerationConfig.hintNoMasking",
         icon: "fas fa-coins",
         type: LootGenerationConfigApp,
         restricted: true
@@ -554,9 +554,9 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
     if (supportsMasking) {
         game.settings.registerMenu(MODULE_ID, "identificationConfig", {
-            name: "Identification",
-            label: "Configure Identification",
-            hint: "Obscure loot names and sheet details until the party examines them.",
+            name: "ionrift-quartermaster.menu.identificationConfig.name",
+            label: "ionrift-quartermaster.menu.identificationConfig.label",
+            hint: "ionrift-quartermaster.menu.identificationConfig.hint",
             icon: "fas fa-eye-slash",
             type: IdentificationConfigApp,
             restricted: true
@@ -564,11 +564,11 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     }
 
     game.settings.registerMenu(MODULE_ID, "compendiumForge", {
-        name: "Compendium Forge",
-        label: "Compendium Forge",
+        name: "ionrift-quartermaster.menu.compendiumForge.name",
+        label: "ionrift-quartermaster.menu.compendiumForge.label",
         hint: isSourcesOnly
-            ? "Select which compendiums and item directories feed the cache generator."
-            : "Manage compiled content pools: loot sources, spell scrolls, and cursed items.",
+            ? "ionrift-quartermaster.menu.compendiumForge.hintSourcesOnly"
+            : "ionrift-quartermaster.menu.compendiumForge.hintFull",
         icon: "fas fa-hammer",
         type: CompendiumForgeApp,
         restricted: true
@@ -578,8 +578,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
     SettingsLayout?.registerFooter(MODULE_ID);
 
     game.settings.register(MODULE_ID, "debug", {
-        name: "Cache Generator Debug Logging",
-        hint: "Logs per-slot budget and scroll picks to the browser console (F12).",
+        name: "ionrift-quartermaster.setting.debug.name",
+        hint: "ionrift-quartermaster.setting.debug.hint",
         scope: "client",
         config: false,
         type: Boolean,
@@ -588,8 +588,8 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
 
     // Dev-only. Enable from console: game.settings.set("ionrift-quartermaster", "identifyTrace", true)
     game.settings.register(MODULE_ID, "identifyTrace", {
-        name: "Identification Trace Logging",
-        hint: "Logs GM wand clicks and identification routing to the browser console (F12). Prefix: [QM Identify].",
+        name: "ionrift-quartermaster.setting.identifyTrace.name",
+        hint: "ionrift-quartermaster.setting.identifyTrace.hint",
         scope: "client",
         config: false,
         type: Boolean,
