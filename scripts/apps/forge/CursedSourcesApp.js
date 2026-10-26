@@ -18,7 +18,7 @@ export class CursedSourcesApp extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id:            "ionrift-cursed-sources",
-            title:         "Cursed Pool: Compendium Sources",
+            title:         "ionrift-quartermaster.forge.cursedSourcesTitle",
             template:      `modules/${MODULE_ID}/templates/cursed-sources.hbs`,
             width:         520,
             height:        480,
@@ -97,7 +97,9 @@ export class CursedSourcesApp extends FormApplication {
         }
 
         await game.settings.set(MODULE_ID, SETTING_CURSED_ITEM_SOURCES, JSON.stringify(enabled));
-        ui.notifications.info(`Cursed pool sources saved: ${enabled.length} compendium${enabled.length !== 1 ? "s" : ""} enabled.`);
+        ui.notifications.info(enabled.length === 1
+            ? game.i18n.format("ionrift-quartermaster.notification.cursedPoolSourcesSavedOne", { count: enabled.length })
+            : game.i18n.format("ionrift-quartermaster.notification.cursedPoolSourcesSavedMany", { count: enabled.length }));
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
     }
 

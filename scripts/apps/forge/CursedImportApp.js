@@ -12,7 +12,7 @@ export class CursedImportApp extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "ionrift-cursed-import",
-            title: "Add Cursed Items",
+            title: "ionrift-quartermaster.forge.cursedImportTitle",
             template: `modules/${MODULE_ID}/templates/cursed-import.hbs`,
             width: 520,
             height: 560,
@@ -119,7 +119,7 @@ export class CursedImportApp extends FormApplication {
     async _onApplyPoolChanges(event) {
         event.preventDefault();
         if (!game.user.isGM) {
-            ui.notifications.warn("Only a GM can modify the cursed pool.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.notification.cursePoolGmOnly"));
             return;
         }
 
@@ -145,7 +145,7 @@ export class CursedImportApp extends FormApplication {
         }
 
         if (!toRemove.size && !toAddUuids.length) {
-            ui.notifications.info("No changes to apply.");
+            ui.notifications.info(game.i18n.localize("ionrift-quartermaster.notification.noChangesToApply"));
             return;
         }
 
@@ -185,9 +185,11 @@ export class CursedImportApp extends FormApplication {
         Hooks.callAll(CURSED_POOL_DATA_HOOK);
 
         const parts = [];
-        if (added) parts.push(`${added} added`);
-        if (removed) parts.push(`${removed} removed`);
-        ui.notifications.info(parts.length ? `Applied: ${parts.join(", ")}.` : "Pool updated.");
+        if (added) parts.push(game.i18n.format("ionrift-quartermaster.notification.cursedImportAdded", { count: added }));
+        if (removed) parts.push(game.i18n.format("ionrift-quartermaster.notification.cursedImportRemoved", { count: removed }));
+        ui.notifications.info(parts.length
+            ? game.i18n.format("ionrift-quartermaster.notification.cursedImportApplied", { details: parts.join(", ") })
+            : game.i18n.localize("ionrift-quartermaster.notification.cursedImportPoolUpdated"));
 
         await this.render(false);
     }

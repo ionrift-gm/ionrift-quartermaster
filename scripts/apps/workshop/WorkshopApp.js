@@ -4,7 +4,7 @@ export class WorkshopApp extends Application {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "ionrift-quartermaster-app",
-            title: "Ionrift Quartermaster",
+            title: "ionrift-quartermaster.workshop.appTitle",
             template: "modules/ionrift-quartermaster/templates/quartermaster.hbs",
             width: 800,
             height: 640,
@@ -25,7 +25,9 @@ export class WorkshopApp extends Application {
         const hasResonance = game.modules.get("ionrift-resonance")?.active ?? false;
 
         return {
-            title: isEdit ? `Editing: ${this._editItem.name}` : "Item Quartermaster",
+            title: isEdit
+                ? game.i18n.format("ionrift-quartermaster.workshop.editingTitle", { name: this._editItem.name })
+                : game.i18n.localize("ionrift-quartermaster.workshop.itemQuartermasterTitle"),
             types,
             isEdit,
             hasResonance,
@@ -95,7 +97,7 @@ export class WorkshopApp extends Application {
         const formData = Object.fromEntries(new FormData(form));
 
         if (!formData.name || !formData.type) {
-            ui.notifications.warn("Please specify a Name and Type.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.notification.specifyNameAndType"));
             return;
         }
 
@@ -147,7 +149,7 @@ export class WorkshopApp extends Application {
                 img: itemData.img,
                 ...(itemData.flags ? { flags: itemData.flags } : {})
             });
-            ui.notifications.info(`Updated: ${this._editItem.name}`);
+            ui.notifications.info(game.i18n.format("ionrift-quartermaster.notification.itemUpdated", { name: this._editItem.name }));
             this._editItem.sheet.render(true);
             this.close();
             return;
@@ -156,7 +158,7 @@ export class WorkshopApp extends Application {
         // Create mode
         const item = await Item.create(itemData);
         if (item) {
-            ui.notifications.info(`Forged: ${item.name}`);
+            ui.notifications.info(game.i18n.format("ionrift-quartermaster.notification.itemForged", { name: item.name }));
             item.sheet.render(true);
             this.close();
         }
@@ -165,7 +167,7 @@ export class WorkshopApp extends Application {
     async _onSearchSound(event) {
         event.preventDefault();
         if (!game.modules.get("ionrift-resonance")?.active) {
-            ui.notifications.warn("Ionrift Resonance is required for sound binding.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.notification.resonanceRequired"));
             return;
         }
 
@@ -178,7 +180,7 @@ export class WorkshopApp extends Application {
                 const mod = await import("/modules/ionrift-resonance/scripts/apps/browse/SoundPickerApp.js");
                 SoundPickerApp = mod.SoundPickerApp;
             } catch (err) {
-                ui.notifications.error("Ionrift: Failed to load sound picker from Ionrift Resonance.");
+                ui.notifications.error(game.i18n.localize("ionrift-quartermaster.notification.soundPickerLoadFailed"));
                 return;
             }
         }
@@ -193,7 +195,7 @@ export class WorkshopApp extends Application {
                 input.val(result.id);
             }
 
-            ui.notifications.info(`Selected Sound: ${result.name} (${result.id})`);
+            ui.notifications.info(game.i18n.format("ionrift-quartermaster.notification.selectedSound", { name: result.name, id: result.id }));
         }).render(true);
     }
 

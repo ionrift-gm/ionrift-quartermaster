@@ -27,7 +27,7 @@ export class ScrollForgeSourceApp extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id:       "ionrift-scroll-forge-sources",
-            title:    "Scroll Forge: spell compendiums",
+            title:    "ionrift-quartermaster.forge.scrollForgeSourcesTitle",
             template: `modules/${MODULE_ID}/templates/scroll-forge-sources.hbs`,
             width:    520,
             height:   "auto",
@@ -94,7 +94,7 @@ export class ScrollForgeSourceApp extends FormApplication {
         );
         await game.settings.set(MODULE_ID, ScrollForge.SETTING_HASH, "");
 
-        ui.notifications.info("Scroll Forge spell sources saved. Compiling scrolls.");
+        ui.notifications.info(game.i18n.localize("ionrift-quartermaster.notification.scrollForgeSourcesSaved"));
 
         await ScrollForge.compile();
         this.close();

@@ -1,14 +1,14 @@
 <div class="curse-registry-panel">
 
     <header class="curse-registry-header">
-        <h2 class="curse-registry-title"><i class="fas fa-eye"></i> Tracked Curses</h2>
+        <h2 class="curse-registry-title"><i class="fas fa-eye"></i> {{localize "ionrift-quartermaster.forge.trackedCurses"}}</h2>
         <p class="curse-registry-summary">
-            <strong>{{liveCount}}</strong> active,
-            <strong>{{cleansedTrackedCount}}</strong> cleansed
+            <strong>{{liveCount}}</strong> {{localize "ionrift-quartermaster.forge.curseActive"}},
+            <strong>{{cleansedTrackedCount}}</strong> {{localize "ionrift-quartermaster.forge.curseCleansed"}}
         </p>
         <div class="curse-registry-toolbar">
             <button type="button" class="curse-scan-world curse-toolbar-btn">
-                <i class="fas fa-search"></i> Scan World
+                <i class="fas fa-search"></i> {{localize "ionrift-quartermaster.forge.scanWorld"}}
             </button>
         </div>
     </header>
@@ -34,11 +34,11 @@
                             <span class="curse-badge curse-badge-type">{{curseType}}</span>
                         </div>
                         <div class="curse-track-card-owner"><i class="fas fa-user"></i> {{actorName}}
-                            {{#if showUnattuned}}<span class="curse-badge curse-badge-unattuned" title="Requires attunement. Exposure will not accumulate until attuned."><i class="fas fa-unlink"></i> Not Attuned</span>{{/if}}
+                            {{#if showUnattuned}}<span class="curse-badge curse-badge-unattuned" title="{{localize 'ionrift-quartermaster.forge.curseUnattunedTitle'}}"><i class="fas fa-unlink"></i> {{localize "ionrift-quartermaster.forge.notAttuned"}}</span>{{/if}}
                         </div>
                         <div class="curse-track-card-subtitle">{{curseDisplayName}}</div>
                         <div class="curse-track-card-meta">
-                            <span class="curse-meta-chip">Trigger: <strong>{{triggerLabel}}</strong></span>
+                            <span class="curse-meta-chip">{{localize "ionrift-quartermaster.forge.curseTriggerLabel"}} <strong>{{triggerLabel}}</strong></span>
                             <span class="curse-meta-chip curse-meta-chip--counter">
                                 {{counterLabel}}: <strong>{{currentCount}}</strong> / {{threshold}}
                                 {{#if canAdjustCounter}}
@@ -49,7 +49,7 @@
                                     <button type="button" class="curse-adjust-btn curse-adjust-counter" data-item-uuid="{{itemUuid}}" data-delta="10" title="{{counterLabel}} +10">&raquo;</button>
                                 </span>
                                 {{else}}
-                                <span class="curse-adjust-btns curse-adjust-btns--disabled" title="{{triggerLabel}} triggers are event-driven and cannot be manually adjusted">
+                                <span class="curse-adjust-btns curse-adjust-btns--disabled" title="{{localize 'ionrift-quartermaster.forge.triggerEventDrivenTitle' trigger=triggerLabel}}">
                                     <i class="fas fa-lock" style="opacity: 0.35; font-size: 0.8em; margin-left: 4px;"></i>
                                 </span>
                                 {{/if}}
@@ -63,13 +63,13 @@
                             {{/each}}
                         </div>
                         {{#if currentPhaseEffect}}
-                        <p class="curse-track-card-hint"><strong>Current:</strong> {{currentPhaseEffect}}</p>
+                        <p class="curse-track-card-hint"><strong>{{localize "ionrift-quartermaster.forge.curseHintCurrent"}}</strong> {{currentPhaseEffect}}</p>
                         {{/if}}
                         {{#if nextPhaseEffect}}
-                        <p class="curse-track-card-hint curse-track-card-hint--next"><strong>Next (at {{nextPhaseAt}}):</strong> {{nextPhaseEffect}}</p>
+                        <p class="curse-track-card-hint curse-track-card-hint--next"><strong>{{localize "ionrift-quartermaster.forge.curseHintNext" at=nextPhaseAt}}</strong> {{nextPhaseEffect}}</p>
                         {{/if}}
                         {{#if activatedAtLabel}}
-                        <div class="curse-track-card-activated">Activated: {{activatedAtLabel}}</div>
+                        <div class="curse-track-card-activated">{{localize "ionrift-quartermaster.forge.curseActivatedAt" at=activatedAtLabel}}</div>
                         {{/if}}
                         {{#if hasCustomRequirement}}
                         <div class="curse-track-card-custom"><i class="fas fa-key"></i> {{customRequirement}}</div>
@@ -77,20 +77,20 @@
                     </div>
                     <div class="curse-track-card-actions">
                         {{#if activated}}
-                        <button type="button" class="curse-action-btn curse-btn-break-bond" data-item-uuid="{{itemUuid}}" title="Attempt to break the bond">
-                            <i class="fas fa-unlock"></i><span>Break Bond</span>
+                        <button type="button" class="curse-action-btn curse-btn-break-bond" data-item-uuid="{{itemUuid}}" title="{{localize 'ionrift-quartermaster.forge.breakBondTitle'}}">
+                            <i class="fas fa-unlock"></i><span>{{localize "ionrift-quartermaster.forge.breakBond"}}</span>
                         </button>
-                        <button type="button" class="curse-action-btn curse-btn-cleansed" data-item-uuid="{{itemUuid}}" title="Mark as cleansed">
-                            <i class="fas fa-check"></i><span>Cleansed</span>
+                        <button type="button" class="curse-action-btn curse-btn-cleansed" data-item-uuid="{{itemUuid}}" title="{{localize 'ionrift-quartermaster.forge.cleansedTitle'}}">
+                            <i class="fas fa-check"></i><span>{{localize "ionrift-quartermaster.forge.cleansed"}}</span>
                         </button>
                         {{else}}
                         {{#unless atMaxPhase}}
-                        <button type="button" class="curse-action-btn curse-btn-activate" data-item-uuid="{{itemUuid}}" title="Preview activation effects">
-                            <i class="fas fa-bolt"></i><span>Activate</span>
+                        <button type="button" class="curse-action-btn curse-btn-activate" data-item-uuid="{{itemUuid}}" title="{{localize 'ionrift-quartermaster.forge.activateTitle'}}">
+                            <i class="fas fa-bolt"></i><span>{{localize "ionrift-quartermaster.forge.activate"}}</span>
                         </button>
                         {{/unless}}
-                        <button type="button" class="curse-action-btn curse-btn-whisper" data-item-uuid="{{itemUuid}}" title="Preview and send a whisper">
-                            <i class="fas fa-comment-dots"></i><span>Whisper</span>
+                        <button type="button" class="curse-action-btn curse-btn-whisper" data-item-uuid="{{itemUuid}}" title="{{localize 'ionrift-quartermaster.forge.whisperTitle'}}">
+                            <i class="fas fa-comment-dots"></i><span>{{localize "ionrift-quartermaster.forge.whisper"}}</span>
                         </button>
                         {{/if}}
                     </div>
@@ -98,7 +98,7 @@
                 {{/each}}
             </div>
         {{else}}
-            <p class="curse-registry-empty-line">No active tracked items. Use Scan World to pick up cursed gear.</p>
+            <p class="curse-registry-empty-line">{{localize "ionrift-quartermaster.forge.noActiveTrackedItems"}}</p>
         {{/if}}
 
         {{!-- CLEANSED: collapsible --}}
@@ -106,11 +106,11 @@
             <div class="curse-registry-cleansed-toggle">
                 <button type="button" class="curse-toggle-cleansed curse-toolbar-btn">
                     <i class="fas fa-{{#if showCleansed}}chevron-down{{else}}chevron-right{{/if}}"></i>
-                    Cleansed ({{cleansedCount}})
+                    {{localize "ionrift-quartermaster.forge.cleansedCount" count=cleansedCount}}
                 </button>
                 {{#if showCleansed}}
                 <button type="button" class="curse-clear-cleansed curse-toolbar-btn curse-toolbar-btn--subtle">
-                    <i class="fas fa-eraser"></i> Clear All
+                    <i class="fas fa-eraser"></i> {{localize "ionrift-quartermaster.forge.clearAll"}}
                 </button>
                 {{/if}}
             </div>
@@ -126,7 +126,7 @@
                         <div class="curse-track-card-titlerow">
                             <strong class="curse-track-card-name">{{itemName}}</strong>
                         </div>
-                        <div class="curse-track-card-activated">{{actorName}} &middot; Cleansed</div>
+                        <div class="curse-track-card-activated">{{{localize "ionrift-quartermaster.forge.actorCleansed" actor=actorName}}}</div>
                     </div>
                 </article>
                 {{/each}}
@@ -134,15 +134,15 @@
             {{/if}}
         {{/if}}
     {{else}}
-        <p class="curse-registry-empty">No curse engine tracking yet. Use Scan World after placing cursed items on actors.</p>
+        <p class="curse-registry-empty">{{localize "ionrift-quartermaster.forge.noCurseEngineTracking"}}</p>
     {{/if}}
 
     {{#if count}}
     <hr class="curse-registry-divider">
 
     <header class="curse-registry-legacy-header">
-        <h2 class="curse-registry-title"><i class="fas fa-skull"></i> Legacy Batches</h2>
-        <p class="curse-registry-summary">Mint batch ledger: <strong>{{count}}</strong> {{ledgerEntryWord}}</p>
+        <h2 class="curse-registry-title"><i class="fas fa-skull"></i> {{localize "ionrift-quartermaster.forge.legacyBatches"}}</h2>
+        <p class="curse-registry-summary">{{localize "ionrift-quartermaster.forge.mintBatchLedger"}} <strong>{{count}}</strong> {{ledgerEntryWord}}</p>
     </header>
 
     <div class="curse-registry-legacy-list">
@@ -150,11 +150,11 @@
         <article class="curse-legacy-card">
             <div class="curse-legacy-head">
                 <strong>{{decoyName}}</strong>
-                <span class="curse-badge curse-badge-legacy">{{cursed}} of {{total}} cursed</span>
+                <span class="curse-badge curse-badge-legacy">{{localize "ionrift-quartermaster.forge.curseCountOfTotal" cursed=cursed total=total}}</span>
             </div>
-            <p class="curse-legacy-truth">True nature: <strong>{{trueItem}}</strong></p>
+            <p class="curse-legacy-truth">{{localize "ionrift-quartermaster.forge.curseTrueNature"}} <strong>{{trueItem}}</strong></p>
             <div class="curse-legacy-holders">
-                <h4>Currently held by</h4>
+                <h4>{{localize "ionrift-quartermaster.forge.currentlyHeldBy"}}</h4>
                 {{#if holders.length}}
                     <ul>
                         {{#each holders}}
@@ -162,12 +162,12 @@
                         {{/each}}
                     </ul>
                 {{else}}
-                    <span class="curse-legacy-none">Not found on any actor.</span>
+                    <span class="curse-legacy-none">{{localize "ionrift-quartermaster.forge.notFoundOnAnyActor"}}</span>
                 {{/if}}
             </div>
             <div class="curse-legacy-actions">
                 <button type="button" class="resolve-curse curse-toolbar-btn" data-batch="{{batchId}}">
-                    <i class="fas fa-check"></i> Mark Used
+                    <i class="fas fa-check"></i> {{localize "ionrift-quartermaster.forge.markUsed"}}
                 </button>
             </div>
         </article>
@@ -176,11 +176,11 @@
 
     <footer class="curse-registry-footer">
         <div class="curse-registry-footer-actions">
-            <button type="button" class="sweep-orphans curse-toolbar-btn" title="Remove legacy batch entries whose items no longer exist in the world">
-                <i class="fas fa-broom"></i> Sweep Orphans
+            <button type="button" class="sweep-orphans curse-toolbar-btn" title="{{localize 'ionrift-quartermaster.forge.sweepOrphansTitle'}}">
+                <i class="fas fa-broom"></i> {{localize "ionrift-quartermaster.forge.sweepOrphans"}}
             </button>
-            <button type="button" class="purge-all curse-toolbar-btn curse-toolbar-btn--danger" title="Delete all legacy batch records. Tracked curses are not affected.">
-                <i class="fas fa-trash"></i> Reset Batches
+            <button type="button" class="purge-all curse-toolbar-btn curse-toolbar-btn--danger" title="{{localize 'ionrift-quartermaster.forge.resetBatchesTitle'}}">
+                <i class="fas fa-trash"></i> {{localize "ionrift-quartermaster.forge.resetBatches"}}
             </button>
         </div>
     </footer>

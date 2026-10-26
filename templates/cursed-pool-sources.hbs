@@ -1,15 +1,15 @@
 <form class="ionrift-loot-pool-config ionrift-cursed-pool-sources">
     <p class="pool-instructions">
-        Select which item compendiums the Cursed Pool draws from.
-        All items in the selected compendiums are available for import.
+        {{localize "ionrift-quartermaster.forge.cursedPoolSourcesInstructions1"}}
+        {{localize "ionrift-quartermaster.forge.cursedPoolSourcesInstructions2"}}
     </p>
 
     <div class="scroll-forge-toolbar">
         <button type="button" class="cache-btn-accent cursed-pool-select-all">
-            <i class="fas fa-check-double"></i> Select all
+            <i class="fas fa-check-double"></i> {{localize "ionrift-quartermaster.forge.selectAll"}}
         </button>
         <button type="button" class="cache-btn-accent cursed-pool-select-none">
-            <i class="fas fa-times"></i> Select none
+            <i class="fas fa-times"></i> {{localize "ionrift-quartermaster.forge.selectNone"}}
         </button>
     </div>
 
@@ -23,7 +23,7 @@
             <label class="pool-pack-row">
                 <input type="checkbox" name="pack-{{this.id}}" {{#if this.enabled}}checked{{/if}} />
                 <span class="pool-pack-label">{{this.label}}</span>
-                <span class="pool-pack-id">{{this.id}}{{#if this.count}} ({{this.count}} items){{/if}}</span>
+                <span class="pool-pack-id">{{this.id}}{{#if this.count}} ({{this.count}} {{localize "ionrift-quartermaster.forge.items"}}){{/if}}</span>
             </label>
             {{/each}}
         </div>
@@ -32,7 +32,7 @@
 
     <footer class="pool-footer">
         <button type="submit" class="cache-btn-accent">
-            <i class="fas fa-save"></i> Save sources
+            <i class="fas fa-save"></i> {{localize "ionrift-quartermaster.forge.saveSourcesLower"}}
         </button>
     </footer>
 </form>
