@@ -110,7 +110,7 @@ export class SrdCurseAdapter {
             await this._reconcilePack(pack, pendingItems);
         } catch (err) {
             Logger.error(MODULE_LABEL, "SrdCurseAdapter: reconcile failed:", err);
-            ui.notifications.error("Quartermaster: SRD cursed item compile failed. Check the console.");
+            ui.notifications.error(game.i18n.localize("ionrift-quartermaster.notification.srdCurseCompileFailed"));
             return;
         }
 
@@ -124,9 +124,14 @@ export class SrdCurseAdapter {
         enforcePackOwnership(pack);
         await assignPackToCompiledFolder(pack);
 
-        const skipNote = missCount > 0 ? ` (${missCount} item${missCount !== 1 ? "s" : ""} not found in your dnd5e packs)` : "";
+        let infoKey = "ionrift-quartermaster.notification.compiledSrdCursedItems";
+        if (missCount === 1) {
+            infoKey = "ionrift-quartermaster.notification.compiledSrdCursedItemsSkipsOne";
+        } else if (missCount > 1) {
+            infoKey = "ionrift-quartermaster.notification.compiledSrdCursedItemsSkipsMany";
+        }
         ui.notifications.info(
-            `Quartermaster: compiled ${matchCount} SRD cursed items${skipNote}.`
+            game.i18n.format(infoKey, { count: matchCount, missCount })
         );
         Logger.info(MODULE_LABEL, `SrdCurseAdapter: ${matchCount} compiled, ${missCount} missed.`);
     }
@@ -371,7 +376,7 @@ export class SrdCurseAdapter {
             }
         }
         Logger.error(MODULE_LABEL, "SrdCurseAdapter: failed to create world compendium:", lastErr);
-        ui.notifications.error("Quartermaster: could not create SRD cursed items compendium. Check the console.");
+        ui.notifications.error(game.i18n.localize("ionrift-quartermaster.notification.couldNotCreateSrdCurseCompendium"));
         return null;
     }
 

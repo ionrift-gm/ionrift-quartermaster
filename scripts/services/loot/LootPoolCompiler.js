@@ -290,9 +290,13 @@ export class LootPoolCompiler {
         const shown = names.slice(0, maxNames);
         const extra = names.length - shown.length;
         let text = shown.join(", ");
-        if (extra > 0) text += `, and ${extra} more`;
-        const noun = names.length === 1 ? "item was" : "items were";
-        return `${names.length} ${noun} not imported due to compatibility issues: ${text}.`;
+        if (extra > 0) {
+            text += game.i18n.format("ionrift-quartermaster.forge.skippedAndMore", { extra });
+        }
+        const key = names.length === 1
+            ? "ionrift-quartermaster.forge.skippedSummaryOne"
+            : "ionrift-quartermaster.forge.skippedSummaryMany";
+        return game.i18n.format(key, { count: names.length, text });
     }
 
     /** Max skip rows shown in Forge status cards and done panel. Full list stays in meta / bug report. */
@@ -499,7 +503,7 @@ export class LootPoolCompiler {
             if (typeof onProgress === "function") onProgress({ phase, current, total, label });
         };
 
-        emit("setup", 0, 1, "Checking sources…");
+        emit("setup", 0, 1, game.i18n.localize("ionrift-quartermaster.forge.progressCheckingSources"));
 
         const sources = this._getEnabledSources();
         const has2024 = sources.some(id => ARCHITECTURE_2024_PACKS.has(id));
@@ -519,7 +523,7 @@ export class LootPoolCompiler {
         }
 
         // ── Load source packs ──────────────────────────────────────────
-        emit("setup", 0, 1, "Loading source compendiums…");
+        emit("setup", 0, 1, game.i18n.localize("ionrift-quartermaster.forge.progressLoadingSources"));
 
         const report   = this._newCompileReport();
         const packDocs = new Map(); // packId to Item[]
@@ -541,7 +545,7 @@ export class LootPoolCompiler {
         }
 
         // ── Template × base weapon expansion ──────────────────────────
-        emit("templates", 0, 1, "Expanding weapon templates…");
+        emit("templates", 0, 1, game.i18n.localize("ionrift-quartermaster.forge.progressExpandingWeaponTemplates"));
 
         const templateEntries = Object.entries(WEAPON_TEMPLATES);
         const totalTemplateItems = templateEntries.reduce(
@@ -585,7 +589,7 @@ export class LootPoolCompiler {
         }
 
         // ── Range stub expansion ───────────────────────────────────────
-        emit("stubs", 0, 1, "Expanding ammunition stubs…");
+        emit("stubs", 0, 1, game.i18n.localize("ionrift-quartermaster.forge.progressExpandingAmmoStubs"));
 
         const rangeStubEntries = Object.entries(RANGE_STUB_EXPANSIONS);
         const totalStubItems = rangeStubEntries.reduce(
@@ -622,7 +626,7 @@ export class LootPoolCompiler {
         }
 
         // ── Armor template expansion ───────────────────────────────────
-        emit("armor", 0, 1, "Expanding armor templates…");
+        emit("armor", 0, 1, game.i18n.localize("ionrift-quartermaster.forge.progressExpandingArmorTemplates"));
 
         const armorItems = this._expandArmorTemplates(allByName, report);
         const genericArmorPlusCount = armorItems.filter(
@@ -640,7 +644,7 @@ export class LootPoolCompiler {
         expandedItems.push(...genericWeaponItems);
 
         // ── Wondrous template expansion (belts, etc.) ────────────────────
-        emit("wondrous", 0, 1, "Expanding wondrous templates…");
+        emit("wondrous", 0, 1, game.i18n.localize("ionrift-quartermaster.forge.progressExpandingWondrousTemplates"));
         const wondrousItems = this._expandWondrousTemplates(allByName, report);
         for (let i = 0; i < wondrousItems.length; i++) {
             emit("wondrous", i + 1, wondrousItems.length, wondrousItems[i].name ?? "");
@@ -648,7 +652,7 @@ export class LootPoolCompiler {
         expandedItems.push(...wondrousItems);
 
         // ── Named economy enrichment (helms, etc.) ─────────────────────
-        emit("enrich", 0, 1, "Enriching named economy…");
+        emit("enrich", 0, 1, game.i18n.localize("ionrift-quartermaster.forge.progressEnrichingNamedEconomy"));
         const enrichedItems = this._expandNamedEconomyEnrichment(allByName, report);
         for (let i = 0; i < enrichedItems.length; i++) {
             emit("enrich", i + 1, enrichedItems.length, enrichedItems[i].name ?? "");
@@ -656,7 +660,7 @@ export class LootPoolCompiler {
         expandedItems.push(...enrichedItems);
 
         // ── Slaying ammunition expansion ───────────────────────────────
-        emit("slaying", 0, 1, "Expanding slaying ammunition…");
+        emit("slaying", 0, 1, game.i18n.localize("ionrift-quartermaster.forge.progressExpandingSlayingAmmo"));
         const slayingItems = this._expandSlayingAmmunition(allByName, report);
         for (let i = 0; i < slayingItems.length; i++) {
             emit("slaying", i + 1, slayingItems.length, slayingItems[i].name ?? "");
@@ -664,19 +668,19 @@ export class LootPoolCompiler {
         expandedItems.push(...slayingItems);
 
         // ── Collision resolution ───────────────────────────────────────
-        emit("collision", 0, 1, "Resolving collisions…");
+        emit("collision", 0, 1, game.i18n.localize("ionrift-quartermaster.forge.progressResolvingCollisions"));
         const resolved = this._filterCursedFromCompiled(
             this._collisionResolve(expandedItems, allByName, report)
         );
 
         // ── Write to world pack ────────────────────────────────────────
-        emit("writing", 0, resolved.length, "Writing compiled pool…");
+        emit("writing", 0, resolved.length, game.i18n.localize("ionrift-quartermaster.forge.progressWritingCompiledPool"));
 
         let pack = game.packs.get(this.worldCollectionId);
         if (!pack) {
             pack = await this._createWorldPack();
             if (!pack) {
-                ui.notifications.error("Quartermaster: could not create compiled loot pool compendium.");
+                ui.notifications.error(game.i18n.localize("ionrift-quartermaster.notification.couldNotCreateLootCompendium"));
                 return;
             }
             pack = game.packs.get(this.worldCollectionId) ?? pack;
@@ -702,7 +706,7 @@ export class LootPoolCompiler {
             await game.settings.set(MODULE_ID, this.SETTING_META, JSON.stringify(errorMeta)).catch(() => {});
 
             ui.notifications.error(
-                "Quartermaster: loot pool compile failed. Open Compendium Forge to retry.",
+                game.i18n.localize("ionrift-quartermaster.notification.lootCompileFailedRetry"),
                 { permanent: true }
             );
             return;
@@ -719,7 +723,7 @@ export class LootPoolCompiler {
             };
             await game.settings.set(MODULE_ID, this.SETTING_META, JSON.stringify(errorMeta)).catch(() => {});
             ui.notifications.error(
-                "Quartermaster: loot pool compile failed. Open Compendium Forge to review skipped items.",
+                game.i18n.localize("ionrift-quartermaster.notification.lootCompileFailedReviewSkips"),
                 { permanent: true }
             );
             return;
@@ -748,14 +752,24 @@ export class LootPoolCompiler {
 
         ItemPoolResolver.clearCache();
 
-        const skipNote = report.skips.length
-            ? ` ${this.formatSkippedItemsSummary(report.skips)}`
-            : "";
-        ui.notifications.info(
-            `Quartermaster: compiled loot pool: ${meta.itemCount} items ` +
-            `(${genericArmorPlusCount} generic +N armor, ${genericWeaponItems.length} generic +N weapons).` +
-            skipNote
-        );
+        if (report.skips.length) {
+            ui.notifications.info(
+                game.i18n.format("ionrift-quartermaster.notification.lootPoolCompiledWithSkips", {
+                    count: meta.itemCount,
+                    armorCount: genericArmorPlusCount,
+                    weaponCount: genericWeaponItems.length,
+                    skipSummary: this.formatSkippedItemsSummary(report.skips)
+                })
+            );
+        } else {
+            ui.notifications.info(
+                game.i18n.format("ionrift-quartermaster.notification.lootPoolCompiled", {
+                    count: meta.itemCount,
+                    armorCount: genericArmorPlusCount,
+                    weaponCount: genericWeaponItems.length
+                })
+            );
+        }
         Logger.info(
             MODULE_LABEL,
             `LootPoolCompiler: ${meta.itemCount} items written ` +

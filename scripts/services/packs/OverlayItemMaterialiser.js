@@ -133,7 +133,11 @@ export class OverlayItemMaterialiser {
         // so the GM does not see "materialised" on every world reload.
         if (result.changed) {
             ui.notifications.info(
-                `Quartermaster: ${manifest.overlayId} materialised: ${result.itemCount} items in ${result.collection}.`
+                game.i18n.format("ionrift-quartermaster.notification.overlayMaterialised", {
+                    overlayId: manifest.overlayId,
+                    count: result.itemCount,
+                    collection: result.collection
+                })
             );
         }
     }

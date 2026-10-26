@@ -151,7 +151,10 @@ export class ContentPackCompiler {
             `ContentPackCompiler | Pack "${packId}" compiled: ${totalItems} items across ${compendiums.length} compendiums.`
         );
         ui.notifications.info(
-            `Quartermaster: "${manifest.name}" content pack compiled: ${totalItems} items ready.`
+            game.i18n.format("ionrift-quartermaster.notification.contentPackCompiled", {
+                name: manifest.name,
+                count: totalItems
+            })
         );
     }
 
@@ -181,7 +184,9 @@ export class ContentPackCompiler {
         Logger.info(MODULE_LABEL,
             `ContentPackCompiler | Removed pack "${packId}" - compendiums deleted.`
         );
-        ui.notifications.info(`Quartermaster: Content pack "${packId}" removed.`);
+        ui.notifications.info(
+            game.i18n.format("ionrift-quartermaster.notification.contentPackRemoved", { packId })
+        );
     }
 
     /**

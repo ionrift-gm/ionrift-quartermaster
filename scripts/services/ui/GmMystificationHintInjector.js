@@ -67,7 +67,7 @@ export class GmMystificationHintInjector {
                 const hint = document.createElement("span");
                 hint.className = "ionrift-gm-latent-hint";
                 hint.textContent = ` [${originalName}]`;
-                hint.dataset.tooltip = `Quartermaster: Concealed Identity (${originalName})`;
+                hint.dataset.tooltip = game.i18n.format("ionrift-quartermaster.identify.concealedIdentityTooltip", { name: originalName });
                 hint.style.opacity = "0.75";
                 hint.style.fontStyle = "italic";
                 hint.style.fontWeight = "normal";
@@ -102,8 +102,8 @@ export class GmMystificationHintInjector {
 
             const badge = document.createElement("div");
             badge.className = "ionrift-gm-latent-item-hint";
-            badge.textContent = `[Conceals: ${originalName}]`;
-            badge.dataset.tooltip = `Quartermaster: True item revealed upon identification.`;
+            badge.textContent = game.i18n.format("ionrift-quartermaster.identify.concealsBadge", { name: originalName });
+            badge.dataset.tooltip = game.i18n.localize("ionrift-quartermaster.identify.trueItemRevealedTooltip");
             badge.style.fontSize = "0.85em";
             badge.style.fontStyle = "italic";
             badge.style.opacity = "0.85";

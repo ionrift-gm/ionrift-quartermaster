@@ -193,7 +193,7 @@ export class ScrollForge {
         if (!spellPacks.length) {
             if (enabledIds.length > 0) {
                 ui.notifications.warn(
-                    "Scroll Forge: no spell compendiums are enabled. Open module settings, Scroll Forge spell sources."
+                    game.i18n.localize("ionrift-quartermaster.notification.noSpellCompendiumsEnabled")
                 );
             }
             return;
@@ -269,7 +269,7 @@ export class ScrollForge {
 
         if (!pendingRows.length) {
             ui.notifications.warn(
-                "Scroll Forge: no scroll items were produced (no leveled spells after filters, or scroll creation failed). See the browser console (F12) for errors."
+                game.i18n.localize("ionrift-quartermaster.notification.noScrollsProduced")
             );
             return;
         }
@@ -306,7 +306,7 @@ export class ScrollForge {
             writeOk = true;
         } catch (err) {
             Logger.error(MODULE_LABEL, "Scroll Forge createDocuments failed:", err);
-            ui.notifications.error("Scroll Forge could not write items into the compendium. Check the console.");
+            ui.notifications.error(game.i18n.localize("ionrift-quartermaster.notification.scrollForgeWriteFailed"));
             return;
         }
 
@@ -320,11 +320,18 @@ export class ScrollForge {
             });
         }
         await this.ensureSidebarPlacement();
-        const skipNote = skipCount > 0
-            ? ` (${skipCount} spell${skipCount !== 1 ? "s" : ""} skipped, see console)`
-            : "";
+        let infoKey = "ionrift-quartermaster.notification.compiledScrolls";
+        if (skipCount === 1) {
+            infoKey = "ionrift-quartermaster.notification.compiledScrollsSkipsOne";
+        } else if (skipCount > 1) {
+            infoKey = "ionrift-quartermaster.notification.compiledScrollsSkipsMany";
+        }
         ui.notifications.info(
-            `Scroll Forge: compiled ${scrollItems.length} spell scrolls into "${this.PACK_LABEL}"${skipNote}. Opening it now.`
+            game.i18n.format(infoKey, {
+                count: scrollItems.length,
+                pack: this.PACK_LABEL,
+                skipCount
+            })
         );
         await this.openForgedPack();
     }
@@ -431,7 +438,9 @@ export class ScrollForge {
         const pack = this.getForgedPack();
         if (!pack) {
             ui.notifications.warn(
-                `"${ScrollForge.PACK_LABEL}" compendium not found. Enable Scroll Forge, pick spell sources, and save so the world pack is created.`
+                game.i18n.format("ionrift-quartermaster.notification.scrollCompendiumNotFound", {
+                    pack: ScrollForge.PACK_LABEL
+                })
             );
             return;
         }
@@ -485,7 +494,7 @@ export class ScrollForge {
             }
         }
         Logger.error(MODULE_LABEL, "Scroll Forge failed to create world compendium:", lastErr);
-        ui.notifications.error("Scroll Forge could not create the world compendium. Check the console.");
+        ui.notifications.error(game.i18n.localize("ionrift-quartermaster.notification.couldNotCreateScrollCompendium"));
         return null;
     }
 

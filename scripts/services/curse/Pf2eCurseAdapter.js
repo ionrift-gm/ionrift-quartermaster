@@ -50,7 +50,7 @@ export class Pf2eCurseAdapter {
         const cursedItems = await this._collectCursedItems(itemPacks);
         if (!cursedItems.length) {
             Logger.warn(MODULE_LABEL, "Pf2eCurseAdapter: no cursed-trait items found in pf2e packs.");
-            ui.notifications.warn("Quartermaster: no cursed items found in pf2e equipment compendiums.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.notification.noPf2eCursedItemsFound"));
             return;
         }
 
@@ -75,7 +75,7 @@ export class Pf2eCurseAdapter {
             await this._reconcilePack(pack, pendingItems);
         } catch (err) {
             Logger.error(MODULE_LABEL, "Pf2eCurseAdapter: reconcile failed:", err);
-            ui.notifications.error("Quartermaster: cursed item compile failed. Check the console.");
+            ui.notifications.error(game.i18n.localize("ionrift-quartermaster.notification.pf2eCurseCompileFailed"));
             return;
         }
 
@@ -90,11 +90,11 @@ export class Pf2eCurseAdapter {
         enforcePackOwnership(pack);
         await assignPackToCompiledFolder(pack);
 
-        const catalogNote = catalogHits > 0
-            ? ` (${catalogHits} matched GMG catalog)`
-            : "";
+        const infoKey = catalogHits > 0
+            ? "ionrift-quartermaster.notification.compiledPf2eCursedItemsCatalog"
+            : "ionrift-quartermaster.notification.compiledPf2eCursedItems";
         ui.notifications.info(
-            `Quartermaster: compiled ${pendingItems.length} pf2e cursed items${catalogNote}.`
+            game.i18n.format(infoKey, { count: pendingItems.length, hits: catalogHits })
         );
         Logger.info(MODULE_LABEL,
             `Pf2eCurseAdapter: ${pendingItems.length} compiled (${catalogHits} GMG catalog matches).`

@@ -172,7 +172,7 @@ export class GenericArmorBonusRegistry {
     /** @returns {string} */
     static getSummaryLabel() {
         const config = this.load();
-        const parts = [`cap +${config.cap}`];
+        const parts = [game.i18n.format("ionrift-quartermaster.workshop.capBonus", { cap: config.cap })];
         for (const tier of [1, 2, 3, 4]) {
             const max = config.maxByTier[tier] ?? 0;
             parts.push(`T${tier} +${max}`);

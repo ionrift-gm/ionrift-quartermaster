@@ -60,7 +60,9 @@ export class IdentificationService {
             return { identified: false, kind: "none", reason: "enrichment-failed" };
         }
         if (!silent) {
-            ui.notifications?.info?.(`${item.name} identified.`);
+            ui.notifications?.info?.(
+                game.i18n.format("ionrift-quartermaster.notification.itemIdentified", { name: item.name })
+            );
         }
         return { identified: true, kind: "poison-lure-surface" };
     }
@@ -104,7 +106,9 @@ export class IdentificationService {
         }
         // Do not mark latent.promoted: Identify spell must still be able to split.
         if (!silent) {
-            ui.notifications?.info?.(`${item.name} identified.`);
+            ui.notifications?.info?.(
+                game.i18n.format("ionrift-quartermaster.notification.itemIdentified", { name: item.name })
+            );
         }
         return { identified: true, kind: "infected-lure-surface" };
     }
@@ -424,23 +428,30 @@ export class IdentificationService {
                 Logger.warn("Quartermaster", `IdentificationService: failed to mark cursedMeta gmRevealed on ${item.name}:`, err.message);
             }
             if (!silent) {
-                const curseName = cursedMeta.curse?.name ?? "Unknown Curse";
+                const curseName = cursedMeta.curse?.name
+                    ?? game.i18n.localize("ionrift-quartermaster.curse.unknownCurse");
                 const tier = cursedMeta.tier ?? 1;
                 ui.notifications.warn(
-                    `[GM] ${item.name} is cursed (T${tier}: ${curseName}). The curse is latent; it will not reveal until activated.`,
+                    game.i18n.format("ionrift-quartermaster.notification.itemCursedGmNotice", {
+                        name: item.name,
+                        tier,
+                        curseName
+                    }),
                     { permanent: false }
                 );
             }
         }
 
         if (!silent && kind !== "cursed-identified") {
-            const actorName = item.parent?.name ?? "an unknown holder";
-            const suffix = kind === "cursed-lure"
-                ? ". The lure is active."
-                : kind === "poison-truth"
-                    ? ". Its true nature is poison."
-                    : ".";
-            ui.notifications.info(`${displayName} has been identified for ${actorName}${suffix}`);
+            const actorName = item.parent?.name
+                ?? game.i18n.localize("ionrift-quartermaster.notification.unknownHolder");
+            let key = "ionrift-quartermaster.notification.itemIdentifiedForActor";
+            if (kind === "cursed-lure") {
+                key = "ionrift-quartermaster.notification.itemIdentifiedForActorLureActive";
+            } else if (kind === "poison-truth") {
+                key = "ionrift-quartermaster.notification.itemIdentifiedForActorPoisonTruth";
+            }
+            ui.notifications.info(game.i18n.format(key, { displayName, actorName }));
         }
 
         Hooks.callAll(`${MODULE_ID}.itemIdentified`, item, { kind, cursedMeta });

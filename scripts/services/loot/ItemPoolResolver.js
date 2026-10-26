@@ -1242,7 +1242,7 @@ export class ItemPoolResolver {
         if (hasLootableWorldItems || isGenericAdapter || enabled.has("world.items")) {
             packs.unshift({
                 id:           "world.items",
-                label:        "World Items Directory",
+                label:        game.i18n.localize("ionrift-quartermaster.pool.worldItemsDirectory"),
                 system:       game.system?.id ?? null,
                 enabled:      enabled.has("world.items"),
                 recommended:  false,

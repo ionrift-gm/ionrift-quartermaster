@@ -17,35 +17,35 @@ export const AMMO_TILT_PRESETS = {
 export const DEFAULT_AMMO_TYPES = [
     {
         id: "arrows",
-        label: "Arrows",
+        get label() { return game.i18n?.localize ? game.i18n.localize("ionrift-quartermaster.ammo.type.arrows") : ""; },
         patterns: ["\\barrows?\\b"],
         builtin: true,
         weight: 1
     },
     {
         id: "bolts",
-        label: "Bolts",
+        get label() { return game.i18n?.localize ? game.i18n.localize("ionrift-quartermaster.ammo.type.bolts") : ""; },
         patterns: ["\\bbolts?\\b", "\\bcrossbow\\b"],
         builtin: true,
         weight: 1
     },
     {
         id: "needles",
-        label: "Needles",
+        get label() { return game.i18n?.localize ? game.i18n.localize("ionrift-quartermaster.ammo.type.needles") : ""; },
         patterns: ["\\bneedles?\\b", "\\bblowgun\\b"],
         builtin: true,
         weight: 1
     },
     {
         id: "sling",
-        label: "Sling bullets",
+        get label() { return game.i18n?.localize ? game.i18n.localize("ionrift-quartermaster.ammo.type.slingBullets") : ""; },
         patterns: ["\\bsling bullets?\\b", "\\bbullets?\\b"],
         builtin: true,
         weight: 1
     },
     {
         id: "other",
-        label: "Other",
+        get label() { return game.i18n?.localize ? game.i18n.localize("ionrift-quartermaster.ammo.type.other") : ""; },
         patterns: [],
         builtin: true,
         fallback: true,
@@ -54,12 +54,12 @@ export const DEFAULT_AMMO_TYPES = [
 ];
 
 const PRESET_LABELS = {
-    balanced: "Balanced",
-    arrows: "Arrows",
-    bolts: "Bolts",
-    sling: "Sling",
-    mixed: "Mixed",
-    custom: "Custom"
+    get balanced() { return game.i18n.localize("ionrift-quartermaster.config.ammoType.preset.balanced"); },
+    get arrows()   { return game.i18n.localize("ionrift-quartermaster.config.ammoType.preset.arrows"); },
+    get bolts()    { return game.i18n.localize("ionrift-quartermaster.config.ammoType.preset.bolts"); },
+    get sling()    { return game.i18n.localize("ionrift-quartermaster.config.ammoType.preset.sling"); },
+    get mixed()    { return game.i18n.localize("ionrift-quartermaster.config.ammoType.preset.mixed"); },
+    get custom()   { return game.i18n.localize("ionrift-quartermaster.config.ammoType.preset.custom"); }
 };
 
 export class AmmoTypeRegistry {
@@ -235,19 +235,23 @@ export class AmmoTypeRegistry {
             .filter(t => !t.fallback && (t.weight ?? 1) > 0)
             .sort((a, b) => (b.weight ?? 1) - (a.weight ?? 1));
 
-        if (!weighted.length) return "Custom";
-        if (weighted.every(t => Math.abs((t.weight ?? 1) - 1) < 0.001)) return "Balanced";
+        if (!weighted.length) return game.i18n.localize("ionrift-quartermaster.config.ammoType.preset.custom");
+        if (weighted.every(t => Math.abs((t.weight ?? 1) - 1) < 0.001)) {
+            return game.i18n.localize("ionrift-quartermaster.config.ammoType.preset.balanced");
+        }
 
         const lead = weighted[0].label ?? weighted[0].id;
         const rest = weighted.length - 1;
-        return rest > 0 ? `${lead} weighted (+${rest} more)` : `${lead} weighted`;
+        return rest > 0
+            ? game.i18n.format("ionrift-quartermaster.ammo.summaryWeightedPlus", { lead, rest })
+            : game.i18n.format("ionrift-quartermaster.ammo.summaryWeighted", { lead });
     }
 
     /**
      * @param {string} [label="Custom type"]
      * @returns {object}
      */
-    static createCustomType(label = "Custom type") {
+    static createCustomType(label = game.i18n.localize("ionrift-quartermaster.config.ammoType.customTypeDefault")) {
         const id = `custom-${foundry.utils.randomID(8)}`;
         return {
             id,
@@ -273,7 +277,8 @@ export class AmmoTypeRegistry {
 
         return {
             id,
-            label: String(entry.label ?? "Custom type").trim() || "Custom type",
+            label: String(entry.label ?? game.i18n.localize("ionrift-quartermaster.config.ammoType.customTypeDefault")).trim()
+                || game.i18n.localize("ionrift-quartermaster.config.ammoType.customTypeDefault"),
             patterns,
             builtin: false,
             weight: AmmoTypeRegistry._clampWeight(entry.weight ?? 1)

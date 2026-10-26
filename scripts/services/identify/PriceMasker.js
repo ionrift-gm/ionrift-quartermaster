@@ -78,7 +78,7 @@ export class PriceMasker {
         const bandPct = Math.round(band * 100);
         const label = `≈ ${estimate} ${denom}`;
         const tooltip = band > 0
-            ? `Estimated ${lo}-${hi} ${denom} (±${bandPct}%) · Appraise to refine.`
+            ? game.i18n.format("ionrift-quartermaster.price.estimatedTooltip", { lo, hi, denom, bandPct })
             : `${value} ${denom}`;
 
         return {
