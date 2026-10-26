@@ -130,13 +130,13 @@ export class CacheConverterService {
      */
     static async convertContainer(target, options = {}) {
         if (!game.user?.isGM) {
-            ui.notifications?.warn?.("Only the GM can convert containers.");
+            ui.notifications?.warn?.(game.i18n.localize("ionrift-quartermaster.converter.warnGmOnlyConvert"));
             return null;
         }
 
         const { actor, token } = CacheConverterService.resolveTarget(target);
         if (!actor) {
-            ui.notifications?.warn?.("No valid container actor found to convert.");
+            ui.notifications?.warn?.(game.i18n.localize("ionrift-quartermaster.converter.warnNoContainerActorToConvert"));
             return null;
         }
 
@@ -225,13 +225,15 @@ export class CacheConverterService {
 
         if (!options.silent) {
             if (!supportsMasking) {
-                ui.notifications?.info?.(`Quartermaster: Converted ${actor.name} into a loot cache.`);
+                ui.notifications?.info?.(game.i18n.format("ionrift-quartermaster.converter.notifyConvertedLootCache", { actor: actor.name }));
             } else if (updates.length > 0) {
                 ui.notifications?.info?.(
-                    `Quartermaster: Mystified ${actor.name} (${updates.length} ${updates.length === 1 ? "item" : "items"} obscured).`
+                    updates.length === 1
+                        ? game.i18n.format("ionrift-quartermaster.converter.notifyMystifiedItemOne", { actor: actor.name, count: updates.length })
+                        : game.i18n.format("ionrift-quartermaster.converter.notifyMystifiedItemOther", { actor: actor.name, count: updates.length })
                 );
             } else {
-                ui.notifications?.info?.(`Quartermaster: ${actor.name} contains no unmasked magical items.`);
+                ui.notifications?.info?.(game.i18n.format("ionrift-quartermaster.converter.notifyNoUnmaskedMagicalItems", { actor: actor.name }));
             }
         }
 
@@ -255,13 +257,13 @@ export class CacheConverterService {
      */
     static async bulkIdentify(target, options = {}) {
         if (!game.user?.isGM) {
-            ui.notifications?.warn?.("Only the GM can identify container items.");
+            ui.notifications?.warn?.(game.i18n.localize("ionrift-quartermaster.converter.warnGmOnlyIdentify"));
             return null;
         }
 
         const { actor } = CacheConverterService.resolveTarget(target);
         if (!actor) {
-            ui.notifications?.warn?.("No valid container actor found.");
+            ui.notifications?.warn?.(game.i18n.localize("ionrift-quartermaster.converter.warnNoContainerActor"));
             return null;
         }
 
@@ -285,10 +287,12 @@ export class CacheConverterService {
         if (!options.silent) {
             if (identifiedCount > 0) {
                 ui.notifications?.info?.(
-                    `Quartermaster: Identified ${identifiedCount} ${identifiedCount === 1 ? "item" : "items"} on ${actor.name}.`
+                    identifiedCount === 1
+                        ? game.i18n.format("ionrift-quartermaster.converter.notifyIdentifiedItemOne", { count: identifiedCount, actor: actor.name })
+                        : game.i18n.format("ionrift-quartermaster.converter.notifyIdentifiedItemOther", { count: identifiedCount, actor: actor.name })
                 );
             } else {
-                ui.notifications?.info?.(`Quartermaster: No unidentified items found on ${actor.name}.`);
+                ui.notifications?.info?.(game.i18n.format("ionrift-quartermaster.converter.notifyNoUnidentifiedItems", { actor: actor.name }));
             }
         }
 

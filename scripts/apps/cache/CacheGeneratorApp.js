@@ -106,7 +106,7 @@ export class CacheGeneratorApp extends Application {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "ionrift-cache-generator",
-            title: "Loot Cache Generator",
+            title: "ionrift-quartermaster.cacheGenerator.title",
             template: `modules/${MODULE_ID}/templates/cache-generator.hbs`,
             // Match three-column layout width up front so opening empty and
             // opening after Generate do not resize (advisory column is 960px wide).
@@ -225,15 +225,15 @@ export class CacheGeneratorApp extends Application {
         const tierLabel = tierLabels[tier] ?? `T${tier}`;
 
         const ownerThemes = [
-            { id: "unspecified", label: "Unspecified", desc: "A general cache. Balanced distribution." },
+            { id: "unspecified", label: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeUnspecified"), desc: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeUnspecifiedDesc") },
             ...(supportsScrollForge ? [
-                { id: "arcana",  label: "Arcana",      desc: "A spellcaster's reserves. Scrolls, reagents, and arcane curiosities." }
+                { id: "arcana",  label: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeArcana"), desc: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeArcanaDesc") }
             ] : []),
-            { id: "apothecary",  label: "Apothecary",  desc: "A healer's stock or alchemist's shelf. Potions, elixirs, and medicinal supplies." },
-            { id: "armaments",   label: "Armaments",   desc: "Military surplus or a warrior's stash. Weapons, armor, and practical gear." },
-            { id: "implements",  label: "Implements",  desc: "A crafter's workshop or cult supplies. Tools, reagents, and utility items." },
-            { id: "relics",      label: "Relics",      desc: "Remnants of the dead or divine. Ancient coins, holy relics, and cursed objects." },
-            { id: "abandoned",   label: "Abandoned",   desc: "Forgotten junk. Mostly worthless, occasionally surprising." }
+            { id: "apothecary",  label: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeApothecary"), desc: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeApothecaryDesc") },
+            { id: "armaments",   label: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeArmaments"), desc: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeArmamentsDesc") },
+            { id: "implements",  label: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeImplements"), desc: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeImplementsDesc") },
+            { id: "relics",      label: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeRelics"), desc: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeRelicsDesc") },
+            { id: "abandoned",   label: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeAbandoned"), desc: game.i18n.localize("ionrift-quartermaster.cacheGenerator.themeAbandonedDesc") }
         ].map(t => ({ ...t, selected: t.id === currentOwnerTheme }));
 
         const brackets = TIER_BUDGET_BRACKETS[tier] ?? TIER_BUDGET_BRACKETS[1];
@@ -899,7 +899,7 @@ export class CacheGeneratorApp extends Application {
             Logger.info(MODULE_LABEL, "Compendium Forge rendered");
         } catch (err) {
             Logger.error(MODULE_LABEL, "Failed to open Compendium Forge:", err);
-            ui.notifications.error("Could not open the Compendium Forge. Check the console for details.");
+            ui.notifications.error(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyOpenForgeFailed"));
         }
     }
 
@@ -967,7 +967,7 @@ export class CacheGeneratorApp extends Application {
             ]);
         } catch (e) {
             Logger.error(MODULE_LABEL, "Generation failed:", e);
-            ui.notifications.error("Cache generation failed.");
+            ui.notifications.error(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyGenerationFailed"));
         } finally {
             this._generating = false;
             this._setGeneratingUi(false);
@@ -1322,7 +1322,7 @@ export class CacheGeneratorApp extends Application {
 
         if (!itemData) {
             itemData = {
-                name:        `Spell Scroll of ${spellName}`,
+                name:        game.i18n.format("ionrift-quartermaster.cacheGenerator.spellScrollOf", { spellName }),
                 type:        "loot",
                 img:         entry.img || "icons/magic/symbols/runes-star-pentagon-orange.webp",
                 spellName,
@@ -1470,11 +1470,12 @@ export class CacheGeneratorApp extends Application {
         itemData._injected   = true;
         itemData._badgeLabel = badge;
 
-        const isSpecial = treatAsSignature || markCursed || badge === "Party Shelf";
+        const isPartyShelf = badge === "Party Shelf" || badge === game.i18n?.localize?.("ionrift-quartermaster.cacheGenerator.badgePartyShelf");
+        const isSpecial = treatAsSignature || markCursed || isPartyShelf;
         if (isSpecial) {
             itemData._specialSection = true;
-            itemData._specialType    = markCursed       ? "cursed"
-                                     : badge === "Party Shelf" ? "partyShelf"
+            itemData._specialType    = markCursed   ? "cursed"
+                                     : isPartyShelf ? "partyShelf"
                                      : "signature";
         }
         this._currentResult.items.push(itemData);
@@ -1614,7 +1615,7 @@ export class CacheGeneratorApp extends Application {
 
     _buildGoldChipsHtml({ gold, coinage }) {
         if (!gold) {
-            return '<span class="cache-gold-empty">No coinage</span>';
+            return `<span class="cache-gold-empty">${game.i18n.localize("ionrift-quartermaster.cacheGenerator.noCoinage")}</span>`;
         }
 
         const chip = (cls, amount, label) =>
@@ -1641,7 +1642,7 @@ export class CacheGeneratorApp extends Application {
             btn.disabled = active;
             if (active) {
                 if (!btn.dataset.prevHtml) btn.dataset.prevHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${game.i18n.localize("ionrift-quartermaster.cacheGenerator.generating")}`;
             } else if (btn.dataset.prevHtml) {
                 btn.innerHTML = btn.dataset.prevHtml;
                 delete btn.dataset.prevHtml;
@@ -1977,7 +1978,7 @@ export class CacheGeneratorApp extends Application {
             });
         } catch (e) {
             Logger.error(MODULE_LABEL, "Item Piles createItemPile failed:", e);
-            ui.notifications.error("Failed to place cache. Check console for details.");
+            ui.notifications.error(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyPlaceCacheFailed"));
         }
     }
 
@@ -2147,7 +2148,7 @@ export class CacheGeneratorApp extends Application {
         }
 
         Logger.info(MODULE_LABEL, `Populated container ${containerName} (${targetToken.id}) with ${pileItems.length} items.`);
-        ui.notifications.info(`Populated ${containerName} with ${pileItems.length} items.`);
+        ui.notifications.info(game.i18n.format("ionrift-quartermaster.cacheGenerator.notifyPopulatedContainer", { container: containerName, count: pileItems.length }));
     }
 
     /**
@@ -2165,7 +2166,7 @@ export class CacheGeneratorApp extends Application {
     async _onCanvasDropLootActor(x, y, rawX, rawY) {
         if (!this._currentResult) return;
         if (!canvas.scene) {
-            ui.notifications.warn("Open a scene to place the loot actor.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyOpenSceneForLootActor"));
             return;
         }
 
@@ -2239,15 +2240,15 @@ export class CacheGeneratorApp extends Application {
         if (!this._currentResult) return;
 
         const btn = $(event.currentTarget);
-        btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> Adding...');
+        btn.prop("disabled", true).html(`<i class="fas fa-spinner fa-spin"></i> ${game.i18n.localize("ionrift-quartermaster.cacheGenerator.btnAdding")}`);
 
         try {
             await CacheGenerator._addToItems(this._currentResult);
-            btn.html('<i class="fas fa-check"></i> Added');
+            btn.html(`<i class="fas fa-check"></i> ${game.i18n.localize("ionrift-quartermaster.cacheGenerator.btnAdded")}`);
         } catch (e) {
             Logger.error(MODULE_LABEL, "Add to items failed:", e);
-            ui.notifications.error("Failed to add items. Check console.");
-            btn.prop("disabled", false).html('<i class="fas fa-box-open"></i> Add to Items');
+            ui.notifications.error(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyAddItemsFailed"));
+            btn.prop("disabled", false).html(`<i class="fas fa-box-open"></i> ${game.i18n.localize("ionrift-quartermaster.cacheGenerator.addToItems")}`);
         }
     }
 
@@ -2256,19 +2257,19 @@ export class CacheGeneratorApp extends Application {
         if (!this._currentResult) return;
 
         const btn = $(event.currentTarget);
-        btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> Creating...');
+        btn.prop("disabled", true).html(`<i class="fas fa-spinner fa-spin"></i> ${game.i18n.localize("ionrift-quartermaster.cacheGenerator.btnCreating")}`);
 
         try {
             const { actorId } = await CacheGenerator._createLootActor(this._currentResult);
-            btn.html('<i class="fas fa-check"></i> Created');
+            btn.html(`<i class="fas fa-check"></i> ${game.i18n.localize("ionrift-quartermaster.cacheGenerator.btnCreated")}`);
             if (actorId) {
                 const actor = game.actors.get(actorId);
                 actor?.sheet?.render(true);
             }
         } catch (e) {
             Logger.error(MODULE_LABEL, "Create loot actor failed:", e);
-            ui.notifications.error("Failed to create loot actor. Check console.");
-            btn.prop("disabled", false).html('<i class="fas fa-treasure-chest"></i> Create Loot Actor');
+            ui.notifications.error(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyCreateLootActorFailed"));
+            btn.prop("disabled", false).html(`<i class="fas fa-treasure-chest"></i> ${game.i18n.localize("ionrift-quartermaster.cacheGenerator.btnCreateLootActor")}`);
         }
     }
 }

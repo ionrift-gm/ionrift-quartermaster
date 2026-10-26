@@ -1961,12 +1961,12 @@ export class CacheGenerator {
             const cacheId = event.currentTarget.dataset.cacheId;
             const result = this._pendingCaches.get(cacheId);
             if (!result) {
-                ui.notifications.warn("Cache data expired. Generate a new cache.");
+                ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyCacheDataExpired"));
                 return;
             }
             await this.createCacheItems(result);
             // Disable button after use
-            $(event.currentTarget).prop("disabled", true).text("Created");
+            $(event.currentTarget).prop("disabled", true).text(game.i18n.localize("ionrift-quartermaster.cacheGenerator.btnCreated"));
             this._pendingCaches.delete(cacheId);
         });
     }
@@ -1978,7 +1978,7 @@ export class CacheGenerator {
      */
     static async createCacheItems(cacheResult, options = {}) {
         if (!game.user.isGM) {
-            ui.notifications.warn("Only the GM can create cache items.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyGmOnlyCreateCacheItems"));
             return;
         }
 
@@ -2046,14 +2046,14 @@ export class CacheGenerator {
                 const innerItems = toCreate.map(i => ({ ...i, folder: folder.id, system: { ...i.system, container: containerItem.id } }));
                 CacheGenerator._guardMintSources(innerItems);
                 await Item.create(innerItems);
-                ui.notifications.info(`Created "${container.name}" with ${innerItems.length} items in "${folderName}".`);
+                ui.notifications.info(game.i18n.format("ionrift-quartermaster.cacheGenerator.notifyCreatedContainerWithItems", { container: container.name, count: innerItems.length, folder: folderName }));
                 return;
             }
         }
 
         CacheGenerator._guardMintSources(toCreate);
         const created = await Item.create(toCreate);
-        ui.notifications.info(`Created ${created.length} items in "${folderName}".`);
+        ui.notifications.info(game.i18n.format("ionrift-quartermaster.cacheGenerator.notifyCreatedItemsInFolder", { count: created.length, folder: folderName }));
     }
 
     /**
@@ -2156,7 +2156,7 @@ export class CacheGenerator {
      */
     static async _addToItems(result) {
         if (!game.user.isGM) {
-            ui.notifications.warn("Only the GM can create cache items.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyGmOnlyCreateCacheItems"));
             return { count: 0 };
         }
 
@@ -2197,7 +2197,7 @@ export class CacheGenerator {
         CacheGenerator._guardMintSources(toCreate);
         const created = await Item.create(toCreate);
 
-        ui.notifications.info(`Cache added to Items directory: ${created.length} items in "${folderName}".`);
+        ui.notifications.info(game.i18n.format("ionrift-quartermaster.cacheGenerator.notifyCacheAddedToItems", { count: created.length, folder: folderName }));
 
         return { count: created.length };
     }
@@ -2213,13 +2213,13 @@ export class CacheGenerator {
      */
     static async _createLootActor(result) {
         if (!game.user.isGM) {
-            ui.notifications.warn("Only the GM can create loot actors.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyGmOnlyCreateLootActors"));
             return { actorId: null, itemCount: 0 };
         }
 
         const adapter = getQuartermasterAdapter();
         if (!adapter.canCreateLootActor()) {
-            ui.notifications.warn("This system does not support the Loot actor deployment path.");
+            ui.notifications.warn(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyLootActorNotSupported"));
             return { actorId: null, itemCount: 0 };
         }
 
@@ -2263,7 +2263,7 @@ export class CacheGenerator {
 
         await adapter.depositLootActorCurrency(actor, result);
 
-        ui.notifications.info(`Loot actor "${actor.name}" created with ${itemPayloads.length} items.`);
+        ui.notifications.info(game.i18n.format("ionrift-quartermaster.cacheGenerator.notifyLootActorCreated", { actor: actor.name, count: itemPayloads.length }));
 
         return { actorId: actor.id, itemCount: itemPayloads.length };
     }
