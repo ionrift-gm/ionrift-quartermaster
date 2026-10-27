@@ -1,5 +1,6 @@
 import { QuartermasterItemAdapter } from "../../QuartermasterItemAdapter.js";
 import { QM_FEATURES } from "../../../data/QMFeatures.js";
+import { MODULE_ID } from "../../../data/moduleId.js";
 
 const EXCLUDED_TYPES = new Set([
     "feat", "feature", "class", "spell", "subclass", "background", "race",
