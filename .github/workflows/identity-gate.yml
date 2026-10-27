@@ -12,3 +12,5 @@ permissions:
 jobs:
   identity-gate:
     uses: ionrift-gm/ionrift-ci/.github/workflows/identity-gate.yml@main
+    secrets:
+      IDENTITY_DENYLIST: ${{ secrets.IDENTITY_DENYLIST }}
