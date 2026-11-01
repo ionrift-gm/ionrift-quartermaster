@@ -266,7 +266,7 @@ async function loadContainerPoolIndex() {
     if (hasModulePack) {
         for (const pack of packs) {
             try {
-                const index = await pack.getIndex({ fields: ["name", "img", "system", "flags", "type", "system.identifier", "system.slug"] });
+                const index = await pack.getIndex({ fields: ["name", "img", "system", "flags", "type"] });
                 const chunk = index.contents || Array.from(index) || [];
                 const isModulePack = pack.collection === modulePackId;
                 for (const entry of chunk) {
