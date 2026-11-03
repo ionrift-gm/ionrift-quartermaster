@@ -68,30 +68,43 @@ export class CacheConverterService {
         // 1. Explicitly tagged Quartermaster cache or Item Pile container
         if (actor.flags?.[MODULE_ID]?.isQuartermasterCache) return true;
         if (actor.flags?.["item-piles"]?.data?.enabled) return true;
+        const piles = game.itempiles?.API;
+        if (piles && (piles.isItemPileContainer?.(token ?? actor) || piles.isItemPile?.(actor ?? token))) return true;
 
         // 2. System container / loot actor types
         if (type === "loot" || type === "container") return true;
 
         // 3. Tripwire containers or locks
-        const twFlags = (token?.document ?? token)?.flags?.["ionrift-tripwire"];
+        const doc = token?.document ?? token;
+        const twFlags = doc?.flags?.["ionrift-tripwire"];
         if (twFlags?.cache || twFlags?.secret || twFlags?.lock) return true;
 
-        // Never target player-owned characters
-        if (type === "character" && actor.hasPlayerOwner) return false;
+        // 4. Explicit Quartermaster container archetype flag
+        const arch = actor.getFlag?.(MODULE_ID, "containerArchetype")
+            ?? actor.flags?.[MODULE_ID]?.containerArchetype
+            ?? doc?.getFlag?.(MODULE_ID, "containerArchetype")
+            ?? doc?.flags?.[MODULE_ID]?.containerArchetype;
+        if (arch) return true;
 
-        // 4. Token/actor named or themed as a container shell
-        const nameLower = (actor.name || token?.name || "").toLowerCase();
-        const containerKeywords = [
-            "chest", "cache", "crate", "barrel", "recess", "storeroom",
-            "pile", "loot", "trove", "urn", "vault", "coffer", "box", "sack"
-        ];
-        if (containerKeywords.some(kw => nameLower.includes(kw))) return true;
+        // Never target player-owned actors or non-container sheet types
+        if (actor.hasPlayerOwner || ["character", "familiar", "party", "vehicle", "hazard"].includes(type)) {
+            return false;
+        }
 
-        // Never target player-owned characters
-        if (actor.hasPlayerOwner) return false;
+        // Systems with native loot/container actor types (e.g. PF2e/SF2e) use those types for containers;
+        // do not treat NPC/creature statblocks as containers unless explicitly flagged above.
+        const availableActorTypes = Object.keys(game.system?.documentTypes?.Actor ?? {})
+            .concat(Array.isArray(Actor?.TYPES) ? Actor.TYPES : []);
+        const hasNativeContainerActorType = availableActorTypes.some(t => t === "loot" || t === "container");
+        if (hasNativeContainerActorType && (type === "npc" || type === "monster")) {
+            return false;
+        }
 
-        // 5. Any non-combatant NPC/monster containing items
-        if ((type === "npc" || type === "monster") && (actor.items?.size ?? 0) > 0) return true;
+        // 5. Fallback for systems without a dedicated loot actor type (e.g. dnd5e adventure containers):
+        // match whole-word container nouns only on non-combatant container shells.
+        const nameTarget = (actor.name || token?.name || "").trim();
+        const containerNounRe = /\b(chest|cache|crate|barrel|recess|storeroom|pile|loot|trove|urn|vault|coffer|box|sack)\b/i;
+        if (containerNounRe.test(nameTarget)) return true;
 
         return false;
     }
