@@ -86,15 +86,18 @@ export class CacheConverterService {
             ?? doc?.flags?.[MODULE_ID]?.containerArchetype;
         if (arch) return true;
 
-        // Never target player-owned actors or non-container sheet types
-        if (actor.hasPlayerOwner || ["character", "familiar", "party", "vehicle", "hazard"].includes(type)) {
+        // Never target non-container sheet types, or player-owned non-NPC actors
+        if (["character", "familiar", "party", "vehicle", "hazard"].includes(type)) {
+            return false;
+        }
+        if (actor.hasPlayerOwner && type !== "npc" && type !== "monster") {
             return false;
         }
 
         // Systems with native loot/container actor types (e.g. PF2e/SF2e) use those types for containers;
         // do not treat NPC/creature statblocks as containers unless explicitly flagged above.
         const availableActorTypes = Object.keys(game.system?.documentTypes?.Actor ?? {})
-            .concat(Array.isArray(Actor?.TYPES) ? Actor.TYPES : []);
+            .concat(Array.isArray(globalThis.Actor?.TYPES) ? globalThis.Actor.TYPES : []);
         const hasNativeContainerActorType = availableActorTypes.some(t => t === "loot" || t === "container");
         if (hasNativeContainerActorType && (type === "npc" || type === "monster")) {
             return false;
@@ -107,6 +110,87 @@ export class CacheConverterService {
         if (containerNounRe.test(nameTarget)) return true;
 
         return false;
+    }
+
+    /**
+     * Determines whether an actor or token is a non-player creature eligible for
+     * automatic corpse mystification upon death.
+     * Never targets PCs, familiars, companions, summons, hazards, vehicles, or containers.
+     *
+     * @param {Actor|Token|TokenDocument|string} target
+     * @returns {boolean}
+     */
+    static isEligibleCorpseActor(target) {
+        const { actor, token } = CacheConverterService.resolveTarget(target);
+        if (!actor) return false;
+
+        const type = (actor.type || "").toLowerCase();
+        if (["character", "pc", "familiar", "party", "vehicle", "hazard", "loot", "container", "group", "army"].includes(type)) {
+            return false;
+        }
+        if (actor.hasPlayerOwner) return false;
+
+        // Exclude Quartermaster caches, Item Piles, and container shells
+        if (actor.flags?.[MODULE_ID]?.isQuartermasterCache) return false;
+        if (actor.flags?.["item-piles"]?.data?.enabled) return false;
+        const piles = game.itempiles?.API;
+        if (piles && (piles.isItemPileContainer?.(token ?? actor) || piles.isItemPile?.(actor ?? token))) return false;
+
+        const doc = token?.document ?? token;
+        const twFlags = doc?.flags?.["ionrift-tripwire"];
+        if (twFlags?.cache || twFlags?.secret || twFlags?.lock) return false;
+        if (actor.flags?.[MODULE_ID]?.containerArchetype || doc?.flags?.[MODULE_ID]?.containerArchetype) return false;
+
+        // Exclude summoned creatures and eidolons
+        if (actor.flags?.["ionrift-summoning"]?.isSummoned || doc?.flags?.["ionrift-summoning"]?.isSummoned) return false;
+        const traits = actor.system?.traits?.value ?? [];
+        if (Array.isArray(traits) && traits.some(t => String(t).toLowerCase() === "summoned" || String(t).toLowerCase() === "eidolon")) {
+            return false;
+        }
+
+        if (CacheConverterService.isConvertibleContainer(target)) return false;
+
+        return type === "npc" || type === "monster" || type === "creature" || Boolean(actor.system?.attributes?.hp || actor.system?.hp);
+    }
+
+    /**
+     * Checks whether automatic corpse mystification on creature death is enabled.
+     * @returns {boolean}
+     */
+    static isAutoMystifyOnDeathEnabled() {
+        if (!game.user?.isGM) return false;
+        const adapter = getQuartermasterAdapter();
+        if (!adapter?.supports(QM_FEATURES.LATENT_MASKING)) return false;
+        try {
+            const val = game.settings?.get?.(MODULE_ID, "autoMystifyOnDeath");
+            return val ?? true;
+        } catch {
+            return true;
+        }
+    }
+
+    /**
+     * Checks whether an embedded item is a physical inventory item (as opposed to
+     * an innate spell, feat, action, condition, or natural strike).
+     * @param {Item|object} item
+     * @returns {boolean}
+     */
+    static _isPhysicalInventoryItem(item) {
+        if (!item) return false;
+        const type = (item.type || "").toLowerCase();
+        const nonPhysicalTypes = new Set([
+            "spell", "spellcastingentry", "feat", "feature", "action", "melee", "ranged",
+            "lore", "condition", "effect", "affliction", "ancestry", "heritage",
+            "background", "class", "subclass", "race", "species", "deity", "facility",
+            "campaignfeature", "ability", "power"
+        ]);
+        if (nonPhysicalTypes.has(type)) return false;
+
+        if (type === "weapon") {
+            const weaponSub = (item.system?.type?.value || item.system?.weaponType || "").toLowerCase();
+            if (weaponSub === "natural") return false;
+        }
+        return true;
     }
 
     /**
@@ -311,6 +395,227 @@ export class CacheConverterService {
 
         Logger.info(MODULE_LABEL, `Bulk identified ${actor.name} (${actor.id}): ${identifiedCount} items revealed.`);
         return identifiedCount;
+    }
+
+    /**
+     * Mystifies carried magical gear, scrolls, and consumables on a fallen creature
+     * in-place without converting the creature into a container actor or altering
+     * its token disposition.
+     *
+     * @param {Actor|Token|TokenDocument|string} target
+     * @param {object} [options]
+     * @param {boolean} [options.silent=true]
+     * @param {boolean} [options.force=false]
+     * @returns {Promise<{ actor: Actor, token: Token|TokenDocument|null, count: number, items: Array }|null>}
+     */
+    static async mystifyCorpse(target, options = {}) {
+        if (!game.user?.isGM) return null;
+
+        const { actor, token } = CacheConverterService.resolveTarget(target);
+        if (!actor || !CacheConverterService.isEligibleCorpseActor(target)) {
+            return null;
+        }
+
+        const adapter = getQuartermasterAdapter();
+        if (!adapter?.supports(QM_FEATURES.LATENT_MASKING)) {
+            return null;
+        }
+
+        if (actor.flags?.[MODULE_ID]?.corpseMystified && !options.force) {
+            return { actor, token, count: 0, items: [], alreadyMystified: true };
+        }
+
+        const items = actor.items?.contents ?? (actor.items ? Array.from(actor.items) : []);
+        const isPf2eFamily = game.system?.id === "pf2e" || game.system?.id === "sf2e";
+        const updates = [];
+        const obscuredDetails = [];
+
+        for (const item of items) {
+            if (!CacheConverterService._isPhysicalInventoryItem(item)) continue;
+
+            const qmFlags = item.flags?.[MODULE_ID] ?? {};
+            if (qmFlags.cursedMeta?.lure) continue;
+
+            const hasActiveLatent = Boolean(qmFlags.latentMagic && !qmFlags.latentMagic.promoted);
+            if (hasActiveLatent && !CacheConverterService._needsPf2eRemask(item, qmFlags, isPf2eFamily)) {
+                continue;
+            }
+
+            const itemData = CacheConverterService._buildUnmaskedItemSnapshot(item, qmFlags.latentMagic);
+            const mask = adapter.detectMagicalForCache(itemData);
+            if (!mask?.isMagical) continue;
+
+            const update = adapter.buildMaskUpdate(
+                hasActiveLatent ? CacheConverterService._wrapItemForRemask(item, itemData) : item,
+                mask
+            );
+            if (update) {
+                updates.push(update);
+                obscuredDetails.push({
+                    id: item.id,
+                    originalName: itemData.name || item.name,
+                    maskedName: mask.baseItemName ?? item.name
+                });
+            }
+        }
+
+        if (updates.length > 0) {
+            await actor.updateEmbeddedDocuments("Item", updates);
+        }
+
+        const mystifiedIds = obscuredDetails.map(d => d.id);
+        actor.flags ??= {};
+        actor.flags[MODULE_ID] ??= {};
+        actor.flags[MODULE_ID].corpseMystified = true;
+        actor.flags[MODULE_ID].corpseMystifiedItemIds = mystifiedIds;
+        if (typeof actor.setFlag === "function") {
+            await actor.setFlag(MODULE_ID, "corpseMystified", true);
+            await actor.setFlag(MODULE_ID, "corpseMystifiedItemIds", mystifiedIds);
+        }
+
+        if (options.silent === false && updates.length > 0) {
+            ui.notifications?.info?.(
+                updates.length === 1
+                    ? game.i18n.format("ionrift-quartermaster.converter.notifyMystifiedItemOne", { actor: actor.name, count: updates.length })
+                    : game.i18n.format("ionrift-quartermaster.converter.notifyMystifiedItemOther", { actor: actor.name, count: updates.length })
+            );
+        }
+
+        Logger.info(MODULE_LABEL, `Mystified fallen creature ${actor.name} (${actor.id}): ${updates.length} items masked.`);
+
+        return {
+            actor,
+            token,
+            count: updates.length,
+            items: obscuredDetails
+        };
+    }
+
+    /**
+     * Restores items that were automatically mystified when a creature fell to 0 HP
+     * if the creature is subsequently healed or revived during play.
+     *
+     * @param {Actor|Token|TokenDocument|string} target
+     * @returns {Promise<number|null>}
+     */
+    static async restoreRevivedCorpse(target) {
+        if (!game.user?.isGM) return null;
+
+        const { actor } = CacheConverterService.resolveTarget(target);
+        if (!actor) return null;
+
+        const qmFlags = actor.flags?.[MODULE_ID] ?? {};
+        if (!qmFlags.corpseMystified) return 0;
+
+        const trackedIds = new Set(Array.isArray(qmFlags.corpseMystifiedItemIds) ? qmFlags.corpseMystifiedItemIds : []);
+        const items = actor.items?.contents ?? (actor.items ? Array.from(actor.items) : []);
+        let restoredCount = 0;
+
+        for (const item of items) {
+            if (trackedIds.size > 0 && !trackedIds.has(item.id)) continue;
+            const latent = item.flags?.[MODULE_ID]?.latentMagic;
+            if (latent && !latent.promoted) {
+                const res = await IdentificationService.identify(item, { silent: true });
+                if (res?.identified) restoredCount++;
+            }
+        }
+
+        if (actor.flags?.[MODULE_ID]) {
+            actor.flags[MODULE_ID].corpseMystified = false;
+            actor.flags[MODULE_ID].corpseMystifiedItemIds = [];
+        }
+        if (typeof actor.setFlag === "function") {
+            await actor.setFlag(MODULE_ID, "corpseMystified", false);
+            await actor.setFlag(MODULE_ID, "corpseMystifiedItemIds", []);
+        }
+
+        Logger.info(MODULE_LABEL, `Restored revived creature ${actor.name} (${actor.id}): ${restoredCount} items unmasked.`);
+        return restoredCount;
+    }
+
+    /**
+     * Hook handler for `updateActor`. Mystifies fallen creatures when HP drops to 0 or below,
+     * and restores mystified items if the creature is healed back above 0 HP.
+     *
+     * @param {Actor} actor
+     * @param {object} changes
+     */
+    static async handleActorDeathUpdate(actor, changes) {
+        if (!game.user?.isGM) return;
+        if (game.users?.activeGM && game.users.activeGM.id !== game.user.id) return;
+        if (!CacheConverterService.isAutoMystifyOnDeathEnabled()) return;
+        if (!CacheConverterService.isEligibleCorpseActor(actor)) return;
+
+        const rawHpChange = foundry.utils.getProperty(changes, "system.attributes.hp.value")
+            ?? foundry.utils.getProperty(changes, "system.hp.value");
+        if (rawHpChange === undefined || rawHpChange === null) return;
+
+        const hp = Number(rawHpChange);
+        if (!Number.isFinite(hp)) return;
+
+        if (hp <= 0) {
+            if (!actor.flags?.[MODULE_ID]?.corpseMystified) {
+                await CacheConverterService.mystifyCorpse(actor, { silent: true });
+            }
+        } else if (actor.flags?.[MODULE_ID]?.corpseMystified) {
+            await CacheConverterService.restoreRevivedCorpse(actor);
+        }
+    }
+
+    /**
+     * Hook handler for `updateCombatant`. Mystifies fallen creatures when marked defeated
+     * in the combat tracker.
+     *
+     * @param {Combatant} combatant
+     * @param {object} changes
+     */
+    static async handleCombatantUpdate(combatant, changes) {
+        if (!game.user?.isGM) return;
+        if (game.users?.activeGM && game.users.activeGM.id !== game.user.id) return;
+        if (!CacheConverterService.isAutoMystifyOnDeathEnabled()) return;
+        if (changes?.defeated === undefined) return;
+
+        const actor = combatant?.actor ?? combatant?.token?.actor ?? null;
+        if (!actor || !CacheConverterService.isEligibleCorpseActor(actor)) return;
+
+        if (changes.defeated === true) {
+            if (!actor.flags?.[MODULE_ID]?.corpseMystified) {
+                await CacheConverterService.mystifyCorpse(actor, { silent: true });
+            }
+        } else if (changes.defeated === false && actor.flags?.[MODULE_ID]?.corpseMystified) {
+            const currentHp = Number(actor.system?.attributes?.hp?.value ?? actor.system?.hp?.value ?? 1);
+            if (currentHp > 0) {
+                await CacheConverterService.restoreRevivedCorpse(actor);
+            }
+        }
+    }
+
+    /**
+     * Hook handler for `createItem` and `createActiveEffect`. Mystifies fallen creatures
+     * when a `dead` condition or status effect is applied directly.
+     *
+     * @param {Item|ActiveEffect} doc
+     */
+    static async handleDeathStatusOrCondition(doc) {
+        if (!game.user?.isGM) return;
+        if (game.users?.activeGM && game.users.activeGM.id !== game.user.id) return;
+        if (!CacheConverterService.isAutoMystifyOnDeathEnabled()) return;
+
+        const actor = doc?.parent;
+        if (!actor || actor.documentName !== "Actor" || !CacheConverterService.isEligibleCorpseActor(actor)) return;
+        if (actor.flags?.[MODULE_ID]?.corpseMystified) return;
+
+        const isDeadCondition = doc.type === "condition" && (
+            (doc.system?.slug || doc.slug || "").toLowerCase() === "dead"
+            || (doc.name || "").trim().toLowerCase() === "dead"
+        );
+        const isDeadEffect = (doc.statuses instanceof Set && doc.statuses.has("dead"))
+            || (Array.isArray(doc.statuses) && doc.statuses.includes("dead"))
+            || doc.flags?.core?.statusId === "dead";
+
+        if (isDeadCondition || isDeadEffect) {
+            await CacheConverterService.mystifyCorpse(actor, { silent: true });
+        }
     }
 
     /**

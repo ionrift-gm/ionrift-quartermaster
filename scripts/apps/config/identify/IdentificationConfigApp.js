@@ -34,6 +34,13 @@ export const IdentificationConfigApp = createQuartermasterConfigApp({
             icon: "fas fa-user-shield",
             get hint() { return game.i18n.localize("ionrift-quartermaster.config.identify.gmOnlyIdentification.hint"); },
             type: "boolean"
+        },
+        {
+            key: "autoMystifyOnDeath",
+            get label() { return game.i18n.localize("ionrift-quartermaster.config.identify.autoMystifyOnDeath.label"); },
+            icon: "fas fa-skull",
+            get hint() { return game.i18n.localize("ionrift-quartermaster.config.identify.autoMystifyOnDeath.hint"); },
+            type: "boolean"
         }
     ]
 });

@@ -326,6 +326,26 @@ export class QuartermasterItemAdapter {
     }
 
     /**
+     * Resolve an item's effective level (1-20) for party-relative tier and chaff filtering.
+     * Systems with explicit item levels (PF2e) return the native level; systems without
+     * item levels (D&D 5e) derive an equivalent level from rarity, magical bonus, or spell level.
+     *
+     * @param {Item|object} entry
+     * @returns {number}
+     */
+    getEffectiveItemLevel(entry) {
+        if (!entry) return 0;
+        const explicit = Number(
+            entry.system?.level?.value
+            ?? entry.system?.level
+            ?? entry.level
+            ?? entry.flags?.[MODULE_ID]?.latentMagic?.level
+            ?? NaN
+        );
+        return Number.isFinite(explicit) && explicit >= 0 ? explicit : 0;
+    }
+
+    /**
      * @param {Item|object} item
      * @param {object} [weights]
      * @returns {number}

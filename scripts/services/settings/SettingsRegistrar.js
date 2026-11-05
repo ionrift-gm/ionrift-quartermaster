@@ -268,6 +268,16 @@ export function registerQuartermasterSettings({ CompendiumForgeApp }) {
         restricted: true
     });
 
+    game.settings.register(MODULE_ID, "autoMystifyOnDeath", {
+        name: "ionrift-quartermaster.setting.autoMystifyOnDeath.name",
+        hint: "ionrift-quartermaster.setting.autoMystifyOnDeath.hint",
+        scope: "world",
+        config: false,
+        type: Boolean,
+        default: true,
+        restricted: true
+    });
+
     game.settings.register(MODULE_ID, "milestoneProfile", {
         name: "ionrift-quartermaster.setting.milestoneProfile.name",
         hint: "ionrift-quartermaster.setting.milestoneProfile.hint",

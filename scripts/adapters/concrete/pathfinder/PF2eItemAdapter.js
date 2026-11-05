@@ -164,6 +164,18 @@ export class PF2eItemAdapter extends QuartermasterItemAdapter {
         return new Set(["weapon", "armor", "shield", "equipment"]);
     }
 
+    getEffectiveItemLevel(entry) {
+        if (!entry) return 0;
+        const explicit = Number(
+            entry.system?.level?.value
+            ?? entry.system?.level
+            ?? entry.level
+            ?? entry.flags?.[MODULE_ID]?.latentMagic?.level
+            ?? 0
+        );
+        return Number.isFinite(explicit) ? Math.max(0, explicit) : 0;
+    }
+
     getPowerScoreContribution(item, weights) {
         const lib = game.ionrift?.library?.system;
         if (lib?.getPowerScoreContribution) {

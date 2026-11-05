@@ -272,6 +272,7 @@ Hooks.on('ready', () => {
     game.ionrift.workshop.renderItemPrice = (item) => PriceMasker.render(item);
     game.ionrift.workshop.openForgedScrolls = () => ScrollForge.openForgedPack();
     game.ionrift.workshop.convertContainer = (target, opts) => CacheConverterService.convertContainer(target, opts);
+    game.ionrift.workshop.mystifyCorpse = (target, opts) => CacheConverterService.mystifyCorpse(target, opts);
     game.ionrift.workshop.bulkIdentify = (target, opts) => CacheConverterService.bulkIdentify(target, opts);
 
     PriceInjector.init();
@@ -530,8 +531,23 @@ Hooks.on("renderItemDirectory", (app, html, _data) => {
     }
 });
 
-// Windfall Logger for Signature Items
+// Automatic corpse mystification on creature death
+Hooks.on("updateActor", (actor, changes, options, userId) => {
+    CacheConverterService.handleActorDeathUpdate(actor, changes, options, userId);
+});
+
+Hooks.on("updateCombatant", (combatant, changes, options, userId) => {
+    CacheConverterService.handleCombatantUpdate(combatant, changes, options, userId);
+});
+
+Hooks.on("createActiveEffect", (effect, options, userId) => {
+    CacheConverterService.handleDeathStatusOrCondition(effect, options, userId);
+});
+
+// Windfall Logger for Signature Items + PF2e dead condition mystification
 Hooks.on("createItem", async (item, options, userId) => {
+    CacheConverterService.handleDeathStatusOrCondition(item, options, userId);
+
     if (game.user.id !== userId) return; // Only process on the creating client
     if (!item.parent || item.parent.documentName !== "Actor") return;
     const adapter = game.ionrift?.quartermaster?.adapter ?? getQuartermasterAdapter();
@@ -616,22 +632,26 @@ Hooks.on("getActorDirectoryEntryContext", (html, options) => {
     }
 });
 
-// Actor Sheet header buttons for loot/container sheets
+// Actor Sheet header buttons for loot/container sheets and mystified corpses
 Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
     if (!game.user.isGM) return;
     const actor = sheet.actor;
-    if (!actor || !CacheConverterService.isConvertibleContainer(actor)) return;
+    if (!actor) return;
 
     const adapter = game.ionrift?.quartermaster?.adapter ?? getQuartermasterAdapter();
     const supportsMasking = !!adapter?.supports(QM_FEATURES.LATENT_MASKING);
-    buttons.unshift({
-        label: supportsMasking ? game.i18n.localize("ionrift-quartermaster.sheetHeader.mystifyCache") : game.i18n.localize("ionrift-quartermaster.sheetHeader.convertToCache"),
-        class: "ionrift-qm-mystify-header-btn",
-        icon: supportsMasking ? "fas fa-mask" : "fas fa-box-open",
-        onclick: async () => {
-            await CacheConverterService.convertContainer(actor);
-        }
-    });
+    const isContainer = CacheConverterService.isConvertibleContainer(actor);
+
+    if (isContainer) {
+        buttons.unshift({
+            label: supportsMasking ? game.i18n.localize("ionrift-quartermaster.sheetHeader.mystifyCache") : game.i18n.localize("ionrift-quartermaster.sheetHeader.convertToCache"),
+            class: "ionrift-qm-mystify-header-btn",
+            icon: supportsMasking ? "fas fa-mask" : "fas fa-box-open",
+            onclick: async () => {
+                await CacheConverterService.convertContainer(actor);
+            }
+        });
+    }
 
     if (supportsMasking && CacheConverterService.hasMystifiedItems(actor)) {
         buttons.unshift({

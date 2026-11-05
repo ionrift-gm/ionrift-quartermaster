@@ -24,6 +24,7 @@ const PROFILE_KEYS = [
     "obscureScrolls",
     "obscureMagicalItems",
     "gmOnlyIdentification",
+    "autoMystifyOnDeath",
     "distributeCoins"
 ];
 
@@ -39,6 +40,7 @@ const KEY_LABELS = {
     get obscureScrolls() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.obscureScrolls"); },
     get obscureMagicalItems() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.obscureMagicalItems"); },
     get gmOnlyIdentification() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.gmOnlyIdentification"); },
+    get autoMystifyOnDeath() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.autoMystifyOnDeath"); },
     get distributeCoins() { return game.i18n.localize("ionrift-quartermaster.quickSetup.keyLabel.distributeCoins"); }
 };
 
@@ -69,6 +71,7 @@ const PROFILES = [
             obscureScrolls: true,
             obscureMagicalItems: true,
             gmOnlyIdentification: true,
+            autoMystifyOnDeath: true,
             distributeCoins: true
         }
     },
@@ -89,6 +92,7 @@ const PROFILES = [
             obscureScrolls: true,
             obscureMagicalItems: true,
             gmOnlyIdentification: true,
+            autoMystifyOnDeath: true,
             distributeCoins: true
         }
     },
@@ -109,6 +113,7 @@ const PROFILES = [
             obscureScrolls: false,
             obscureMagicalItems: false,
             gmOnlyIdentification: false,
+            autoMystifyOnDeath: false,
             distributeCoins: true
         }
     }
