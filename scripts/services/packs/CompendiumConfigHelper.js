@@ -56,15 +56,28 @@ export async function assignPackToCompiledFolder(pack) {
 }
 
 /**
- * Delete all documents from a compiled world pack and reset its hash/meta
- * settings to empty strings. Used by ScrollForge and SrdCurseAdapter to
- * clear their compiled output and force a fresh compile on next trigger.
- *
- * @param {string} collectionId  Pack collection id (e.g. "world.quartermaster-scrolls")
- * @param {string} hashSetting   Settings key for the source hash
- * @param {string} metaSetting   Settings key for the compile metadata
- * @param {string} callerLabel   Label for warning messages (e.g. "ScrollForge")
+ * Place a materialised overlay compendium under either:
+ * - Ionrift > Quartermaster > Released Packs (public/released overlays)
+ * - Ionrift > Quartermaster > Incubating (Unreleased) (dev/incubating overlays)
+ * @param {CompendiumCollection} pack
+ * @param {{ incubating?: boolean }} [options]
  */
+export async function assignPackToOverlayFolder(pack, { incubating = false } = {}) {
+    if (!game.user.isGM || !pack) return;
+
+    const { LootPoolCompiler } = await import("../loot/LootPoolCompiler.js");
+    const folderId = incubating
+        ? await LootPoolCompiler._ensureIncubatingFolderId()
+        : await LootPoolCompiler._ensureReleasedFolderId();
+    if (!folderId) return;
+
+    const packId = pack.collection;
+    const cfg    = foundry.utils.duplicate(game.settings.get("core", "compendiumConfiguration") ?? {});
+    if (cfg[packId]?.folder === folderId) return;
+    cfg[packId]  = foundry.utils.mergeObject(cfg[packId] ?? {}, { folder: folderId });
+    await game.settings.set("core", "compendiumConfiguration", cfg);
+}
+
 /**
  * Deterministic djb2 hash returning a hex string.
  * Shared by LootPoolCompiler, ScrollForge, SrdCurseAdapter, and
@@ -80,6 +93,16 @@ export function stableHash(str) {
     return (h >>> 0).toString(16);
 }
 
+/**
+ * Delete all documents from a compiled world pack and reset its hash/meta
+ * settings to empty strings. Used by ScrollForge and SrdCurseAdapter to
+ * clear their compiled output and force a fresh compile on next trigger.
+ *
+ * @param {string} collectionId  Pack collection id (e.g. "world.quartermaster-scrolls")
+ * @param {string} hashSetting   Settings key for the source hash
+ * @param {string} metaSetting   Settings key for the compile metadata
+ * @param {string} callerLabel   Label for warning messages (e.g. "ScrollForge")
+ */
 export async function clearPackAndResetMeta(collectionId, hashSetting, metaSetting, callerLabel) {
     const pack = game.packs.get(collectionId);
     if (pack) {

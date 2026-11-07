@@ -681,6 +681,33 @@ export class LootPoolPackReconciler {
      * @returns {Promise<string|null>}
      */
     static async _ensureCompiledFolderId() {
+        return this._ensureQmSubfolderId("compiled", "Compiled", "#6d28d9");
+    }
+
+    /**
+     * Ensure Ionrift > Quartermaster > Released Packs exists for public overlays.
+     * @returns {Promise<string|null>}
+     */
+    static async _ensureReleasedFolderId() {
+        return this._ensureQmSubfolderId("released", "Released Packs", "#15803d");
+    }
+
+    /**
+     * Ensure Ionrift > Quartermaster > Incubating (Unreleased) exists for dev/incubating overlays.
+     * @returns {Promise<string|null>}
+     */
+    static async _ensureIncubatingFolderId() {
+        return this._ensureQmSubfolderId("incubating", "Incubating (Unreleased)", "#b45309");
+    }
+
+    /**
+     * Locate or create a named subfolder under Ionrift > Quartermaster.
+     * @param {string} folderKey
+     * @param {string} folderName
+     * @param {string} color
+     * @returns {Promise<string|null>}
+     */
+    static async _ensureQmSubfolderId(folderKey, folderName, color) {
         const cfg     = game.settings.get("core", "compendiumConfiguration") ?? {};
         const refPack = "ionrift-quartermaster.quartermaster-containers";
 
@@ -753,23 +780,22 @@ export class LootPoolPackReconciler {
             }
         }
 
-        // Step 2: find or create Compiled under the located Quartermaster folder.
-        // Use normalised parentId() so document-object vs string-ID never causes a miss.
-        const compiled = allFolders().find(f => matchesFolderKey(f, "compiled", "Compiled") && parentId(f) === qmFolder.id);
-        if (compiled) return compiled.id;
+        // Step 2: find or create target subfolder under the located Quartermaster folder.
+        const existing = allFolders().find(f => matchesFolderKey(f, folderKey, folderName) && parentId(f) === qmFolder.id);
+        if (existing) return existing.id;
 
         try {
             const created = await Folder.create({
-                name: "Compiled",
+                name: folderName,
                 type: "Compendium",
                 folder: qmFolder.id,
-                color: "#6d28d9",
+                color,
                 sorting: "a",
-                flags: { [MODULE_ID]: { folderKey: "compiled" } }
+                flags: { [MODULE_ID]: { folderKey } }
             });
             return created.id;
         } catch (err) {
-            Logger.warn(MODULE_LABEL, "LootPoolCompiler: could not create Compiled folder:", err);
+            Logger.warn(MODULE_LABEL, `LootPoolCompiler: could not create ${folderName} folder:`, err);
             return null;
         }
     }

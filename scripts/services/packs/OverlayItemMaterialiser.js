@@ -25,8 +25,10 @@ import { MODULE_ID } from "../../data/moduleId.js";
  *     synthetic folder id map).
  *   - Hash-based idempotency: re-running with the same overlay version and
  *     file count is a no-op. A version change rebuilds the compendium.
- *   - Compendiums land under Ionrift/Quartermaster in the sidebar and are
- *     locked to GM ownership.
+ *   - Compendiums land under Ionrift/Quartermaster/Released Packs or
+ *     Ionrift/Quartermaster/Incubating (Unreleased) in the sidebar, with
+ *     explicit version and provenance badges on the compendium label and
+ *     item flags, and are locked to GM ownership.
  *
  * Legacy state from the previous "one compendium per packDir" model is
  * detected on materialise and the orphaned `world.quartermaster-{packDir}`
@@ -39,7 +41,7 @@ import { MODULE_ID } from "../../data/moduleId.js";
  */
 
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { enforcePackOwnership, assignPackToCompiledFolder } from "./CompendiumConfigHelper.js";
+import { enforcePackOwnership, assignPackToOverlayFolder } from "./CompendiumConfigHelper.js";
 
 const OVERLAY_ROOT = "ionrift-data/overlays";
 const FOLDERS_FILE = "_folders.json";
@@ -116,7 +118,7 @@ export class OverlayItemMaterialiser {
 
         let result;
         try {
-            result = await this._materialiseSublayerContent(sublayer, manifest.overlayId, overlayVersion);
+            result = await this._materialiseSublayerContent(sublayer, manifest.overlayId, overlayVersion, manifest);
         } catch (err) {
             Logger.error(MODULE_LABEL,
                 `OverlayItemMaterialiser | "${manifest.overlayId}" failed:`, err
@@ -219,10 +221,11 @@ export class OverlayItemMaterialiser {
      * @param {string} sublayer
      * @param {string} overlayId
      * @param {string} overlayVersion
-     * @returns {Promise<{ collection: string, itemCount: number }|null>}
+     * @param {object|null} [manifest]
+     * @returns {Promise<{ collection: string, itemCount: number, changed: boolean }|null>}
      * @private
      */
-    static async _materialiseSublayerContent(sublayer, overlayId, overlayVersion) {
+    static async _materialiseSublayerContent(sublayer, overlayId, overlayVersion, manifest = null) {
         const overlay = game.ionrift?.library?.overlay;
 
         // Prefer the browse-independent file index written at install. On Sqyre,
@@ -253,7 +256,8 @@ export class OverlayItemMaterialiser {
         const artCount = artByStem.size;
 
         const collection = `world.quartermaster-${sublayer}`;
-        const label = this._labelForSublayer(sublayer);
+        const isIncubating = this._isIncubating(manifest, sublayer);
+        const label = this._labelForSublayer(sublayer, manifest);
 
         const sectionPlans = [];
         let totalFileCount = 0;
@@ -283,12 +287,14 @@ export class OverlayItemMaterialiser {
         }
 
         const coerceRev = this._overlayCoerceRev();
-        const hashKey = `${overlayId}:${sublayer}:${overlayVersion}:${totalFileCount}:art=${artVersion}:${artCount}:coerce=${coerceRev}`;
+        const hashKey = `${overlayId}:${sublayer}:${overlayVersion}:${totalFileCount}:art=${artVersion}:${artCount}:coerce=${coerceRev}:label=${label}:inc=${isIncubating ? 1 : 0}`;
         const state = this._getState();
         const existingHash = state[overlayId]?.packHashes?.[sublayer];
 
         const existing = game.packs.get(collection);
         if (existing && existingHash === hashKey) {
+            await assignPackToOverlayFolder(existing, { incubating: isIncubating });
+            enforcePackOwnership(existing);
             Logger.log(MODULE_LABEL,
                 `OverlayItemMaterialiser | "${collection}" already at hash ${hashKey}; skipping.`
             );
@@ -310,10 +316,22 @@ export class OverlayItemMaterialiser {
 
         const folderIdMap = new Map();
         const preparedItems = [];
+        const provenanceMeta = {
+            overlayId,
+            sublayer,
+            version: overlayVersion,
+            releaseStatus: isIncubating ? "incubating" : "public",
+            tier: manifest?.tier ?? (isIncubating ? "Incubation" : "Free"),
+            packLabel: label
+        };
 
         let sectionSort = 100;
         for (const section of sectionPlans) {
-            const wrapperName = this._sectionWrapperName(section.packDir);
+            const rawWrapperName = this._sectionWrapperName(section.packDir);
+            const isSingleSection = sectionPlans.length === 1;
+            const skipRedundantWrapper = isSingleSection
+                && (section.folderDefs.length > 0 || section.packDir === sublayer);
+            const wrapperName = skipRedundantWrapper ? null : rawWrapperName;
 
             let parentId = null;
             if (wrapperName) {
@@ -332,7 +350,12 @@ export class OverlayItemMaterialiser {
                 sectionSort += 100;
             }
 
-            await this._createFolderTree(fresh, section.folderDefs, folderIdMap, parentId);
+            // When a single-section pack only defines one redundant folder (e.g. "Keys" inside "QM: Keys"),
+            // hoist its items directly to the compendium root so the pack opens with items visible.
+            const effectiveFolderDefs = (isSingleSection && section.folderDefs.length === 1)
+                ? []
+                : section.folderDefs;
+            await this._createFolderTree(fresh, effectiveFolderDefs, folderIdMap, parentId);
 
             for (const raw of section.items) {
                 const item = foundry.utils.duplicate(raw);
@@ -343,6 +366,7 @@ export class OverlayItemMaterialiser {
                 }
                 delete item._id;
                 this._applyInstalledArt(item, artByStem);
+                this._applyItemProvenance(item, provenanceMeta);
                 preparedItems.push(item);
             }
         }
@@ -381,18 +405,21 @@ export class OverlayItemMaterialiser {
             }
         }
 
-        await assignPackToCompiledFolder(fresh);
+        await assignPackToOverlayFolder(fresh, { incubating: isIncubating });
         enforcePackOwnership(fresh);
 
         const newState = this._getState();
         newState[overlayId] = newState[overlayId] ?? { version: overlayVersion, packs: [], packHashes: {} };
         newState[overlayId].version = overlayVersion;
+        newState[overlayId].releaseStatus = provenanceMeta.releaseStatus;
+        newState[overlayId].tier = provenanceMeta.tier;
+        newState[overlayId].label = label;
         newState[overlayId].packs = [collection];
         newState[overlayId].packHashes = { [sublayer]: hashKey };
         await this._setState(newState);
 
         Logger.info(MODULE_LABEL,
-            `OverlayItemMaterialiser | Built "${collection}": ${coerced.length} items across ${sectionPlans.length} section(s).`
+            `OverlayItemMaterialiser | Built "${collection}" (${label}): ${coerced.length} items across ${sectionPlans.length} section(s).`
         );
 
         return { collection, itemCount: coerced.length, changed: true };
@@ -450,20 +477,6 @@ export class OverlayItemMaterialiser {
         return [];
     }
 
-    /**
-     * Walk every `.json` item file under `items/{packDir}` recursively.
-     * Required because some overlays nest items inside terrain subfolders
-     * (e.g. `items/containers/catacombs/*.json`) with the destination folder
-     * pre-tagged in `_folders.json` at the packDir root. Folder defs are
-     * loaded separately via {@link _readFolders}; only `_folders.json` files
-     * are skipped here.
-     *
-     * @param {string} sublayer
-     * @param {string} itemsPath  Path relative to the overlay root (e.g. "items/containers").
-     * @param {object} [deps]     Optional injection for unit tests.
-     * @returns {Promise<object[]>}
-     * @private
-     */
     /**
      * Derive packDir names from a file index. Paths look like
      * `items/{packDir}/...`; the first segment under `items/` is the packDir.
@@ -640,20 +653,81 @@ export class OverlayItemMaterialiser {
     }
 
     /**
-     * Compendium label per sublayer. Each overlay owns its own compendium.
+     * Stamp provenance metadata onto each materialised item so GMs and debug
+     * tools can inspect which overlay, version, and release track produced it.
+     * @param {object} item
+     * @param {{ overlayId: string, sublayer: string, version: string, releaseStatus: string, tier: string, packLabel: string }} meta
+     * @private
+     */
+    static _applyItemProvenance(item, meta) {
+        if (!item || !meta) return;
+        item.flags = item.flags ?? {};
+        item.flags[MODULE_ID] = item.flags[MODULE_ID] ?? {};
+        item.flags[MODULE_ID].overlayProvenance = {
+            overlayId: meta.overlayId,
+            sublayer: meta.sublayer,
+            version: meta.version,
+            releaseStatus: meta.releaseStatus,
+            tier: meta.tier,
+            packLabel: meta.packLabel
+        };
+        if (item.system?.source && typeof item.system.source === "object" && !item.system.source.book) {
+            item.system.source.book = meta.packLabel;
+        }
+    }
+
+    /**
+     * Determine whether an overlay sublayer is an unreleased/incubating pack.
+     * @param {object|null} manifest
      * @param {string} sublayer
+     * @returns {boolean}
+     */
+    static _isIncubating(manifest, sublayer) {
+        if (manifest) {
+            if (manifest.incubation === true) return true;
+            if (manifest.releaseStatus === "incubating") return true;
+            if (String(manifest.tier ?? "").toLowerCase() === "incubation") return true;
+            if (String(manifest.classification ?? "").toLowerCase() === "incubation") return true;
+        }
+        if (String(sublayer ?? "").startsWith("incuba")) return true;
+        return false;
+    }
+
+    /**
+     * Compendium label per sublayer. Includes version and provenance badge
+     * when a manifest is provided so the GM can distinguish Public/Released
+     * packs from Incubating/Unreleased packs at a glance in the sidebar.
+     *
+     * @param {string} sublayer
+     * @param {object|null} [manifest]
      * @returns {string}
      */
-    static _labelForSublayer(sublayer) {
-        const map = {
-            core: "Quartermaster: Core",
-            "bone-dust": "Quartermaster: Bone & Dust",
-            "frost-stone": "Quartermaster: Frost & Stone",
-            wanderers: "Quartermaster: Wanderer's"
+    static _labelForSublayer(sublayer, manifest = null) {
+        const baseNames = {
+            core: "Core",
+            "bone-dust": "Bone & Dust",
+            "frost-stone": "Frost & Stone",
+            wanderers: "Wanderer's",
+            keys: "Keys & Lock-Openers",
+            gemstones: "Universal Gemstones",
+            "coastal-jungle": "Coastal & Jungle",
+            mastercraft: "Mastercraft Weapons"
         };
-        if (map[sublayer]) return map[sublayer];
-        const titled = sublayer.replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-        return `Quartermaster: ${titled}`;
+        const fallbackTitle = sublayer.replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+        const baseTitle = manifest?.packLabel || baseNames[sublayer] || fallbackTitle;
+
+        if (!manifest) {
+            return `Quartermaster: ${baseTitle}`;
+        }
+
+        const version = manifest.version ?? "0.0.0";
+        if (this._isIncubating(manifest, sublayer)) {
+            return `QM: ${baseTitle} [v${version} · Incubating]`;
+        }
+
+        const tier = manifest.tier ? ` ${manifest.tier}` : "";
+        const preview = manifest.preview ? " Preview" : "";
+        return `QM: ${baseTitle} [v${version} · Public${tier}${preview}]`;
     }
 
     /**
@@ -670,6 +744,8 @@ export class OverlayItemMaterialiser {
             containers: "Containers",
             gems: "Gems",
             gemstones: "Gemstones",
+            keys: "Keys",
+            mastercraft: "Mastercraft",
             treasure: "Treasure",
             trinkets: "Trinkets",
             "terrain-treasure": "Terrain Treasure",
