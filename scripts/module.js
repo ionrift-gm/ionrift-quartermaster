@@ -544,6 +544,14 @@ Hooks.on("createActiveEffect", (effect, options, userId) => {
     CacheConverterService.handleDeathStatusOrCondition(effect, options, userId);
 });
 
+Hooks.on("deleteActiveEffect", (effect, options, userId) => {
+    CacheConverterService.handleDeathStatusRemoved(effect, options, userId);
+});
+
+Hooks.on("deleteItem", (item, options, userId) => {
+    CacheConverterService.handleDeathStatusRemoved(item, options, userId);
+});
+
 // Windfall Logger for Signature Items + PF2e dead condition mystification
 Hooks.on("createItem", async (item, options, userId) => {
     CacheConverterService.handleDeathStatusOrCondition(item, options, userId);

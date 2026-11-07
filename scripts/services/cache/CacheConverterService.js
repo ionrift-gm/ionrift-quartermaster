@@ -619,6 +619,36 @@ export class CacheConverterService {
     }
 
     /**
+     * Hook handler for `deleteItem` and `deleteActiveEffect`. Restores a creature
+     * if its `dead` condition or status effect is removed while its HP is above 0.
+     *
+     * @param {Item|ActiveEffect} doc
+     */
+    static async handleDeathStatusRemoved(doc) {
+        if (!game.user?.isGM) return;
+        if (game.users?.activeGM && game.users.activeGM.id !== game.user.id) return;
+
+        const actor = doc?.parent;
+        if (!actor || actor.documentName !== "Actor") return;
+        if (!actor.flags?.[MODULE_ID]?.corpseMystified) return;
+
+        const isDeadCondition = doc.type === "condition" && (
+            (doc.system?.slug || doc.slug || "").toLowerCase() === "dead"
+            || (doc.name || "").trim().toLowerCase() === "dead"
+        );
+        const isDeadEffect = (doc.statuses instanceof Set && doc.statuses.has("dead"))
+            || (Array.isArray(doc.statuses) && doc.statuses.includes("dead"))
+            || doc.flags?.core?.statusId === "dead";
+
+        if (!isDeadCondition && !isDeadEffect) return;
+
+        const currentHp = Number(actor.system?.attributes?.hp?.value ?? actor.system?.hp?.value ?? 1);
+        if (currentHp > 0) {
+            await CacheConverterService.restoreRevivedCorpse(actor);
+        }
+    }
+
+    /**
      * Detects whether a PF2e item that already carries `latentMagic` still leaks
      * its original magical name or active runes and should be re-masked in-place.
      *
