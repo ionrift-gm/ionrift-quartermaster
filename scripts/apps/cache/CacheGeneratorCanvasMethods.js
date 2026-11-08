@@ -393,7 +393,7 @@ export class CacheGeneratorCanvasMethods {
         const t = canvas.stage.worldTransform;
         const rawX = (event.clientX - t.tx) / canvas.stage.scale.x;
         const rawY = (event.clientY - t.ty) / canvas.stage.scale.y;
-        const snapped = canvas.grid.getSnappedPoint({ x: rawX, y: rawY }, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX });
+        const snapped = canvas.grid.getSnappedPoint({ x: rawX, y: rawY }, { mode: CONST?.GRID_SNAPPING_MODES?.TOP_LEFT_VERTEX });
         const x = snapped?.x ?? rawX;
         const y = snapped?.y ?? rawY;
 
@@ -460,7 +460,9 @@ export class CacheGeneratorCanvasMethods {
                 currencyOverrides["system.currency.gp"] = result.gold ?? 0;
             }
 
-            await game.itempiles.API.createItemPile({
+            const levelPlacement = this._resolveActiveLevelPlacement();
+
+            const createdPileTokenUuid = await game.itempiles.API.createItemPile({
                 position: { x, y },
                 items: pileItems,
                 pileSettings: {
@@ -492,7 +494,8 @@ export class CacheGeneratorCanvasMethods {
                     // Lock artwork rotation so the container token never spins
                     lockRotation:    true,
                     vision:          false,
-                    sight:           { enabled: false }
+                    sight:           { enabled: false },
+                    ...levelPlacement
                 },
                 actorOverrides: {
                     name: containerName,
@@ -500,10 +503,53 @@ export class CacheGeneratorCanvasMethods {
                     ...currencyOverrides
                 }
             });
+
+            if (typeof createdPileTokenUuid === "string" && (levelPlacement.level !== undefined || levelPlacement.elevation !== undefined)) {
+                const createdDoc = await globalThis.fromUuid?.(createdPileTokenUuid);
+                if (createdDoc && typeof createdDoc.update === "function") {
+                    const patch = {};
+                    if (levelPlacement.level && createdDoc.level !== levelPlacement.level) {
+                        patch.level = levelPlacement.level;
+                    }
+                    if (levelPlacement.elevation !== undefined && createdDoc.elevation !== levelPlacement.elevation) {
+                        patch.elevation = levelPlacement.elevation;
+                    }
+                    if (Object.keys(patch).length > 0) {
+                        await createdDoc.update(patch);
+                    }
+                }
+            }
         } catch (e) {
             Logger.error(MODULE_LABEL, "Item Piles createItemPile failed:", e);
             ui.notifications.error(game.i18n.localize("ionrift-quartermaster.cacheGenerator.notifyPlaceCacheFailed"));
         }
+    }
+
+    /**
+     * Resolves the active level ID and base elevation on multi-level scenes
+     * (Foundry v14+ native Scene Levels `canvas.level`, or Ripper93 `Levels`
+     * `CONFIG.Levels.UI.currentLevels` on v12/v13) so dropped tokens land on
+     * the currently viewed level rather than the scene's initial level.
+     *
+     * @returns {{ level?: string, elevation?: number }}
+     * @private
+     */
+    _resolveActiveLevelPlacement() {
+        const placement = {};
+        const activeLevel = globalThis.canvas?.level;
+        if (activeLevel?.id) {
+            placement.level = activeLevel.id;
+            const baseElev = activeLevel.elevation?.base ?? activeLevel.elevation?.bottom;
+            if (Number.isFinite(baseElev)) {
+                placement.elevation = baseElev;
+            }
+        } else {
+            const ripperBottom = Number(globalThis.CONFIG?.Levels?.UI?.currentLevels?.[0]);
+            if (Number.isFinite(ripperBottom)) {
+                placement.elevation = ripperBottom;
+            }
+        }
+        return placement;
     }
 
     /**
@@ -514,8 +560,25 @@ export class CacheGeneratorCanvasMethods {
      * @private
      */
     _findTargetContainerToken(rawX, rawY) {
+        const activeLevelId = globalThis.canvas?.level?.id ?? null;
+        const ripperLevels = !activeLevelId ? globalThis.CONFIG?.Levels?.UI?.currentLevels : null;
+        const ripperBottom = Array.isArray(ripperLevels) ? Number(ripperLevels[0]) : NaN;
+        const ripperTop = Array.isArray(ripperLevels) ? Number(ripperLevels[1]) : NaN;
+
         const tokens = canvas.tokens?.placeables ?? [];
         const underCursor = tokens.filter(tok => {
+            if (tok.visible === false) return false;
+            const doc = tok.document;
+            if (activeLevelId && doc) {
+                if (typeof doc.locatedInLevel === "function") {
+                    if (!doc.locatedInLevel(activeLevelId)) return false;
+                } else if (doc.level && doc.level !== activeLevelId) {
+                    return false;
+                }
+            } else if (Number.isFinite(ripperBottom) && Number.isFinite(ripperTop) && doc) {
+                const elev = Number(doc.elevation ?? 0);
+                if (elev < ripperBottom || elev > ripperTop) return false;
+            }
             if (tok.bounds?.contains) return tok.bounds.contains(rawX, rawY);
             const w = tok.w ?? tok.width;
             const h = tok.h ?? tok.height;
@@ -730,8 +793,12 @@ export class CacheGeneratorCanvasMethods {
             const actor = game.actors.get(actorId);
             if (!actor) return;
 
-            const tokenDoc = await actor.getTokenDocument({ x, y });
-            const createdTokens = await canvas.scene.createEmbeddedDocuments("Token", [tokenDoc.toObject()]);
+            const levelPlacement = this._resolveActiveLevelPlacement();
+            const tokenDoc = await actor.getTokenDocument({ x, y, ...levelPlacement }, { parent: canvas.scene });
+            const tokenObj = typeof tokenDoc.toObject === "function" ? tokenDoc.toObject() : { ...tokenDoc };
+            if (levelPlacement.level) tokenObj.level = levelPlacement.level;
+            if (levelPlacement.elevation !== undefined) tokenObj.elevation = levelPlacement.elevation;
+            const createdTokens = await canvas.scene.createEmbeddedDocuments("Token", [tokenObj]);
             const placedTokenDoc = Array.isArray(createdTokens) ? createdTokens[0] : null;
             const placedToken = placedTokenDoc?.object ?? canvas.tokens?.get(placedTokenDoc?.id ?? "");
 
