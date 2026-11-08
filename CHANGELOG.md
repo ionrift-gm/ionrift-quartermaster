@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.13.1] - 2026-11-08
+
+### Added
+- Mystify Fallen Creatures setting (on by default) that obscures carried magical gear, scrolls, and potions when a non-player creature dies.
+
+### Fixed
+- Dropping a loot cache onto a multi-level scene now places the container on the currently viewed level and only fills existing containers on that level.
+- Container name detection no longer falsely treats non-loot actors as containers on systems with native loot actors.
+- D&D 5e items without an explicit item level fall back to rarity when evaluating identification thresholds.
+
 ## [1.13.0] - 2026-11-01
 
 ### Added
