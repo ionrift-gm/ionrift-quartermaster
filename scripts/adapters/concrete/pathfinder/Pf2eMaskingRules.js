@@ -711,11 +711,11 @@ function _stripPf2eToLatent(itemData, maskInfo) {
         system.traits.rarity = "common";
     }
 
-    // Magical trait: strip from the traits array
+    // Magical trait: preserve in system.traits.value while status === "unidentified"
+    // (PF2e hides traits natively on unidentified items, and stripping "magical" breaks item.isMagical)
     const traitValues = system.traits?.value;
     if (Array.isArray(traitValues) && traitValues.includes("magical")) {
         latent.originalTraits = ["magical"];
-        system.traits.value = traitValues.filter(t => t !== "magical");
     }
 
     // Runes: PF2e's computePrice() and computeLevelRarityPrice() recompute
