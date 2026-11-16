@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.13.2] - 2026-11-16
+
+### Fixed
+- Unidentified Pathfinder 2e magic items keep their magical trait so Identify Magic checks recognize them.
+- Identifying a masked cursed item on D&D 5e now completes in a single pass instead of staying pending for a second identify, keeping the GM wand in step.
+
 ## [1.13.1] - 2026-11-08
 
 ### Added
