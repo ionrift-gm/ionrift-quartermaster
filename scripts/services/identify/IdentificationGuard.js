@@ -219,6 +219,7 @@ export class IdentificationGuard {
             });
             return;
         }
+        IdentificationGuard._showPendingOnWand(control);
         if (control.dataset.ionriftIdentifyBound === "1") return;
         control.dataset.ionriftIdentifyBound = "1";
 
@@ -226,6 +227,19 @@ export class IdentificationGuard {
             via: control === app?._headerToggles?.identified ? "headerToggles" : "selector",
             ...traceItemFlags(item)
         });
+    }
+
+    /**
+     * Masked items keep `system.identified = true`, so dnd5e draws the wand as
+     * identified. Redraw it as unidentified while a payload is pending. GM only:
+     * on a player sheet an unidentified wand would mark the item as magical.
+     * @param {HTMLElement} control
+     */
+    static _showPendingOnWand(control) {
+        const label = "DND5E.Unidentified.Title";
+        control.classList.remove("active");
+        control.dataset.tooltip = label;
+        control.setAttribute("aria-label", game.i18n.localize(label));
     }
 
     /**

@@ -176,10 +176,13 @@ export class IdentificationService {
             && item.system?.identification?.status === "unidentified";
 
         const hasUnpromotedLatent = !!(latent && !latent.promoted);
+        // Cursed-only means no latentMagic at all. Once a mask is promoted the
+        // item is identified, even when Cursewright later writes an inline
+        // cursedMeta stub (lureRevealed) without a lure blob.
         const hasCursedOnlyMeta = !!(
             cursedMeta
             && !cursedMeta.lure
-            && !hasUnpromotedLatent
+            && !latent
             && !cursedMeta.gmRevealed
         );
 
@@ -421,13 +424,23 @@ export class IdentificationService {
             }
         }
 
-        if (hasCursedOnlyMeta) {
+        // Promoting latentMagic leaves lure-less cursedMeta matching the
+        // cursed-only check, which would keep the item pending for a second
+        // identify. Settle gmRevealed in this pass instead.
+        const settlesCurseReveal = hasUnpromotedLatent
+            && !!cursedMeta
+            && !cursedMeta.lure
+            && !cursedMeta.gmRevealed;
+
+        if (hasCursedOnlyMeta || settlesCurseReveal) {
+            const liveCursedMeta = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? cursedMeta;
             try {
-                await item.setFlag(MODULE_ID, FLAG_CURSED_META, { ...cursedMeta, gmRevealed: true });
+                await item.setFlag(MODULE_ID, FLAG_CURSED_META, { ...liveCursedMeta, gmRevealed: true });
             } catch (err) {
                 Logger.warn("Quartermaster", `IdentificationService: failed to mark cursedMeta gmRevealed on ${item.name}:`, err.message);
             }
-            if (!silent) {
+            // Curse Forge lures already announce the active lure; SRD curse stamps do not.
+            if (!silent && (hasCursedOnlyMeta || !isCurseForgeLatent)) {
                 const curseName = cursedMeta.curse?.name
                     ?? game.i18n.localize("ionrift-quartermaster.curse.unknownCurse");
                 const tier = cursedMeta.tier ?? 1;
@@ -527,10 +540,13 @@ export class IdentificationService {
         const cursedMeta = item.getFlag?.(MODULE_ID, FLAG_CURSED_META) ?? null;
 
         const hasUnpromotedLatent = !!(latent && !latent.promoted);
+        // Cursed-only means no latentMagic at all. Once a mask is promoted the
+        // item is identified, even when Cursewright later writes an inline
+        // cursedMeta stub (lureRevealed) without a lure blob.
         const hasCursedOnlyMeta = !!(
             cursedMeta
             && !cursedMeta.lure
-            && !hasUnpromotedLatent
+            && !latent
             && !cursedMeta.gmRevealed
         );
 
