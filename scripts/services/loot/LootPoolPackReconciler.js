@@ -17,32 +17,16 @@ import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { ItemPoolResolver } from "./ItemPoolResolver.js";
-import { isSrdCursedLootName, isSrdCursedTemplateName } from "../curse/SrdCurseCatalog.js";
-
-import { enforcePackOwnership, assignPackToCompiledFolder, stableHash } from "../packs/CompendiumConfigHelper.js";
-import { QM_FEATURES } from "../../data/QMFeatures.js";
+import { isSrdCursedLootName } from "../curse/SrdCurseCatalog.js";
 
 import {
-    keyToIdentifier,
     findSourceDoc,
-    WEAPON_TEMPLATES,
-    RANGE_STUB_EXPANSIONS,
-    TIER_RARITY,
-    SHIELD_BONUS_RARITY,
-    ARMOR_BONUS_RARITY,
-    BASE_ARMORS,
-    GENERIC_WEAPON_BASES,
-    ADAMANTINE_MITHRAL_BASES,
-    RESISTANCE_BASES,
-    RESISTANCE_TYPES,
-    SPECIFIC_ARMOR_TEMPLATES,
     WONDROUS_TEMPLATE_SHELLS,
     NAMED_ECONOMY_ENRICHMENT,
     SLAYING_AMMO_TEMPLATE,
     SLAYING_AMMO_BASES,
     SLAYING_CREATURE_TYPES,
-    SLAYING_AMMO_PRICE,
-    ARCHITECTURE_2024_PACKS
+    SLAYING_AMMO_PRICE
 } from "./LootPoolTemplateCatalog.js";
 
 export class LootPoolPackReconciler {

@@ -14,17 +14,14 @@ import { MODULE_ID } from "../../data/moduleId.js";
  * arrive. That keeps the UI responsive regardless of world size.
  */
 
-import { ItemPoolResolver } from "../../services/loot/ItemPoolResolver.js";
 import { LootPoolCompiler  } from "../../services/loot/LootPoolCompiler.js";
 import { ScrollForge       } from "../../services/scroll/ScrollForge.js";
 import { getCurseAdapter   } from "../../services/curse/getCurseAdapter.js";
 import { refreshForgeAlertBadge } from "../../services/settings/SettingsPanelLayout.js";
-import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 
 import {
-    QM_BUG_REPORT_CONTEXT,
     shouldOfferLootPoolBugReport,
     lootPoolCompileIsOptional,
     LOOT_PHASE_LABELS,

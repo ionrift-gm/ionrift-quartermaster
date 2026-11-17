@@ -1,26 +1,16 @@
-import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 
 import { ItemPoolResolver } from "../loot/ItemPoolResolver.js";
 import { ItemClassifier } from "../workshop/ItemClassifier.js";
 import { SignatureLedger } from "../progression/SignatureLedger.js";
-import { TerrainDataRegistry } from "../loot/TerrainDataRegistry.js";
-import { PotionEnrichment } from "../scroll/PotionEnrichment.js";
-import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../workshop/CoinFormat.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
-import { SquashMerger } from "../packs/SquashMerger.js";
-import { ItemResolutionPipeline } from "../workshop/ItemResolutionPipeline.js";
 import {
-    CacheScrollLogic,
     SCROLL_PRICES_BY_LEVEL,
     TIER_SCROLL_MIN_LEVEL,
     TIER_SCROLL_MAX_UNIQUES
 } from "./logic/CacheScrollLogic.js";
-import { CacheAmmoLogic } from "./logic/CacheAmmoLogic.js";
-import { CacheHealingLogic } from "./logic/CacheHealingLogic.js";
-import { CacheQuantityLogic } from "./logic/CacheQuantityLogic.js";
-import { CacheCoinageLogic } from "./logic/CacheCoinageLogic.js";
 import {
     PACK_SUFFIX,
     isQmPackRole,
@@ -29,7 +19,6 @@ import {
     resolveQmTreasurePacks,
     resolveQmGemPacks,
     resolveQmCorePacks,
-    parseDiscoveryPhrases,
     containerMatchesTerrain,
     containerIsTerrainSpecific,
     isBundledContainerEntry,
@@ -41,11 +30,7 @@ import {
     flavorIsTerrainBound,
     flavorEligibleForTheme,
     selectBlendedContainerPool,
-    loadContainerPoolIndex,
-    loadFilteredPoolIndex,
-    isTreasureEntry,
-    isTrinketEntry,
-    isGemEntry
+    loadContainerPoolIndex
 } from "./logic/CachePackIndex.js";
 import { applyCachePhaseAndMintMethods } from "./logic/CachePhaseAndMintMethods.js";
 import { applyCachePickerMethods } from "./logic/CachePickerMethods.js";

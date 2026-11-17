@@ -1,12 +1,4 @@
 import { SignatureLedger } from "../../services/progression/SignatureLedger.js";
-import { ProgressionSeeder }  from "../../services/progression/ProgressionSeeder.js";
-import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { getCurseAdapter } from "../../services/curse/getCurseAdapter.js";
-import { StandalonePoolRegistry, getActiveCursedRegistry } from "../../services/loot/StandalonePoolRegistry.js";
-import { CursedSourcesApp, CURSED_POOL_DATA_HOOK } from "../forge/CursedSourcesApp.js";
-import { CursedItemResolver } from "../../services/curse/CursedItemResolver.js";
-import { LootGenerationConfigApp } from "../config/loot/LootGenerationConfigApp.js";
-import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
 
 /** Always read fresh so profile changes take effect without reload. */
 export function MILESTONES() { return SignatureLedger.MILESTONES; }

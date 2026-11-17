@@ -6,11 +6,7 @@ import { MODULE_ID } from "../../data/moduleId.js";
  * Pattern mirrors ScrollBalanceSimulator.js.
  */
 
-import { CacheGenerator } from "./CacheGenerator.js";
-import { ItemPoolResolver } from "../loot/ItemPoolResolver.js";
 import { ItemClassifier } from "../workshop/ItemClassifier.js";
-import { ItemMaskingHelper } from "../identify/ItemMaskingHelper.js";
-import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 
 
 /** Per-cache named-magic eligibility (matches CacheGenerator.generate). */

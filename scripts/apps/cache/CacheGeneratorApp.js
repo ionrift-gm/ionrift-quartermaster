@@ -1,22 +1,13 @@
 import { applyCacheGeneratorAdvisoryMethods } from "./CacheGeneratorAdvisoryMethods.js";
 import { applyCacheGeneratorCanvasMethods } from "./CacheGeneratorCanvasMethods.js";
 import { CacheGenerator } from "../../services/cache/CacheGenerator.js";
-import { ItemMaskingHelper } from "../../services/identify/ItemMaskingHelper.js";
 import { ItemPoolResolver } from "../../services/loot/ItemPoolResolver.js";
 import { LootPoolCompiler } from "../../services/loot/LootPoolCompiler.js";
-import { PartyShelfPool } from "../../services/loot/PartyShelfPool.js";
 import { ProgressionAdvisor } from "../../services/progression/ProgressionAdvisor.js";
-import { SignatureLedger } from "../../services/progression/SignatureLedger.js";
-import { getActiveCursedRegistry } from "../../services/loot/StandalonePoolRegistry.js";
-import { takeVisibleCapped } from "../../services/settings/AdvisoryStripUtils.js";
-import { CursedItemResolver } from "../../services/curse/CursedItemResolver.js";
-import { ItemResolutionPipeline } from "../../services/workshop/ItemResolutionPipeline.js";
-import { SquashMerger } from "../../services/packs/SquashMerger.js";
-import { classifyCacheItem } from "../../services/cache/CacheItemClassifier.js";
 import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../../services/workshop/CoinFormat.js";
-import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
+import { roundCoinGp } from "../../services/workshop/CoinFormat.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
 import { QM_FEATURES } from "../../data/QMFeatures.js";
 
