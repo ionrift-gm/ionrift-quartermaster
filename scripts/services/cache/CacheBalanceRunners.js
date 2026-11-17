@@ -9,51 +9,25 @@ import { MODULE_ID } from "../../data/moduleId.js";
 import { CacheGenerator } from "./CacheGenerator.js";
 import { ItemPoolResolver } from "../loot/ItemPoolResolver.js";
 import { ItemClassifier } from "../workshop/ItemClassifier.js";
-import { ItemMaskingHelper } from "../identify/ItemMaskingHelper.js";
-import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
 import {
-    NAMED_MAGIC_PER_CACHE,
     TIER_DATA,
     DEFAULT_EXPECTATIONS,
-    ARMOR_SUBTYPES,
     CURVE_STRICT_KEYS,
-    createSeededRandom,
-    withSeededRandom,
-    withSeededRandomAsync,
-    resolveGearKind,
-    isMagicalGear,
     classifyCacheItem,
-    isMagicalArmorOrShield,
-    isResistanceArmor,
-    genericBonusShare,
-    summarizeGenericBonusHist,
-    deriveCurveStatsFromItems,
     buildSyntheticMastercraftPool,
-    buildSyntheticFillerPool,
     buildSyntheticFullPool,
     readBalanceSimulationSettings,
-    resolveSettingsProfile,
     loadSettingsProfiles,
     loadSettingsMatrix,
     applyBalanceSimulationSettings,
     resolveScenarioSettings,
-    scaleExpectationsForProfile,
-    isHealingCacheItem,
-    cacheEffectiveWeight
+    scaleExpectationsForProfile
 } from "./CacheBalancePoolsAndSettings.js";
 import {
-    buildMastercraftPickStats,
     extractMastercraftPickStats,
-    drawMastercraftInCacheContext,
     realisticMastercraftSlotCeiling,
-    mastercraftPickOpts,
     simulateMastercraftPicks,
-    extractCacheItemWeight,
-    extractCacheItemUnitPrice,
-    inspectCacheItemEconomyIssues,
-    scanItemsForEconomyLeaks,
     scanCacheRunsForEconomyLeaks,
-    SYNTHETIC_CACHE_TABLES,
     aggregateCacheRuns
 } from "./CacheBalanceSimulator.js";
 

@@ -1,33 +1,11 @@
 import { CacheGenerator } from "../../services/cache/CacheGenerator.js";
-import { ItemMaskingHelper } from "../../services/identify/ItemMaskingHelper.js";
-import { ItemPoolResolver } from "../../services/loot/ItemPoolResolver.js";
-import { LootPoolCompiler } from "../../services/loot/LootPoolCompiler.js";
-import { PartyShelfPool } from "../../services/loot/PartyShelfPool.js";
-import { ProgressionAdvisor } from "../../services/progression/ProgressionAdvisor.js";
 import { SignatureLedger } from "../../services/progression/SignatureLedger.js";
-import { getActiveCursedRegistry } from "../../services/loot/StandalonePoolRegistry.js";
-import { takeVisibleCapped } from "../../services/settings/AdvisoryStripUtils.js";
-import { CursedItemResolver } from "../../services/curse/CursedItemResolver.js";
 import { ItemResolutionPipeline } from "../../services/workshop/ItemResolutionPipeline.js";
 import { SquashMerger } from "../../services/packs/SquashMerger.js";
-import { classifyCacheItem } from "../../services/cache/CacheItemClassifier.js";
-import { TerrainDataRegistry } from "../../services/loot/TerrainDataRegistry.js";
 import { Logger, MODULE_LABEL } from "../../utils/Logger.js";
-import { roundCoinGp, formatCoinPrice, withCoinPriceLabel } from "../../services/workshop/CoinFormat.js";
-import { MODULE_ID, DEFAULT_ITEM_ICON } from "../../data/moduleId.js";
+import { MODULE_ID } from "../../data/moduleId.js";
 import { getQuartermasterAdapter } from "../../adapters/getAdapter.js";
-import { QM_FEATURES } from "../../data/QMFeatures.js";
-import {
-    getFoundryDragData,
-    ADVISORY_SIDE_POOL_CAP,
-    ADVISORY_SIDE_POOL_CAP_NO_SCROLLS,
-    ADVISORY_EPHEMERAL_FETCH,
-    TIER_BUDGET_BRACKETS,
-    formatGpShort,
-    formatBracketLabel,
-    bracketMidpoint,
-    nearestBracketIndex
-} from "./CacheGeneratorApp.js";
+import { getFoundryDragData } from "./CacheGeneratorApp.js";
 
 export class CacheGeneratorCanvasMethods {
     _onLeftPanelItemDragStart(event) {
