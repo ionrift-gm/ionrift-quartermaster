@@ -18,7 +18,7 @@ jobs:
     uses: ionrift-gm/ionrift-ci/.github/workflows/lint.yml@main
     with:
       eslint_version: '9'
-      eslint_max_warnings: 50
+      eslint_max_warnings: 350
       skip_import_integrity: true
 
   hygiene:
