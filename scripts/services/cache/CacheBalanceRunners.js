@@ -166,6 +166,8 @@ export function mergePickAndCacheStats(pickStats, cacheStats) {
 
 // ── Expectations ───────────────────────────────────────────────────────
 
+let _expectationsCache = null;
+
 /**
  * @returns {Promise<object>}
  */

@@ -57,8 +57,6 @@ export const DEFAULT_EXPECTATIONS = {
     }
 };
 
-let _expectationsCache = null;
-
 // ── Seeded RNG ───────────────────────────────────────────────────────
 
 /**
