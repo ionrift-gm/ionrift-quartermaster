@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.13.3] - 2026-11-18
+
+### Fixed
+- Cache balance evaluation now loads tier and theme expectation data without error.
+
 ## [1.13.2] - 2026-11-16
 
 ### Fixed
